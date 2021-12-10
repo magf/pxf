@@ -79,6 +79,16 @@ public enum DbProduct {
         public String wrapTimestamp(Object val) {
             return "TO_TIMESTAMP('" + val + "')";
         }
+    },
+
+    SYBASE {
+        @Override
+        public String wrapDate(Object val) { return "'" + val + "'"; }
+
+        @Override
+        public String buildSessionQuery(String key, String value) {
+            return String.format("SET %s %s", key, value);
+        }
     };
 
     /**
@@ -131,6 +141,8 @@ public enum DbProduct {
             result = DbProduct.ORACLE;
         else if (dbName.contains("S3 SELECT"))
             result = DbProduct.S3_SELECT;
+        else if (dbName.contains("ADAPTIVE SERVER ENTERPRISE"))
+            result = DbProduct.SYBASE;
         else
             result = DbProduct.POSTGRES;
 

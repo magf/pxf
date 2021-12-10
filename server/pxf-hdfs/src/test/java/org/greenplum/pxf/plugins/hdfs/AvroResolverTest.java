@@ -445,7 +445,7 @@ public class AvroResolverTest {
         // add a RECORD with a float, int, and string inside
         fields.add(new Schema.Field(
                 Schema.Type.RECORD.getName(),
-                createRecord(new Schema.Type[]{Schema.Type.FLOAT, Schema.Type.INT, Schema.Type.STRING}),
+                    createRecord(schema, new Schema.Type[]{Schema.Type.FLOAT, Schema.Type.INT, Schema.Type.STRING}),
                 "",
                 null)
         );
@@ -488,12 +488,12 @@ public class AvroResolverTest {
         return Schema.createEnum("enum", "", null, values);
     }
 
-    private Schema createRecord(Schema.Type[] types) {
+    private Schema createRecord(Schema schema, Schema.Type[] types) {
         List<Schema.Field> fields = new ArrayList<>();
         for (Schema.Type type : types) {
             fields.add(new Schema.Field(type.getName(), Schema.create(type), "", null));
         }
-        return Schema.createRecord(fields);
+        return Schema.createRecord(schema.getName(), schema.getDoc(), schema.getNamespace(), false, fields);
     }
 
     // we can only support Unions that have 2 elements, and one has to be NULL
