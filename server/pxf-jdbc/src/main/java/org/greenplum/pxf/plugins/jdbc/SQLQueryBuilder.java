@@ -77,6 +77,7 @@ public class SQLQueryBuilder {
     private final List<ColumnDescriptor> columns;
     private final String source;
     private String quoteString;
+    private boolean wrapDateWithTime = false;
     private boolean subQueryUsed = false;
 
     /**
@@ -120,6 +121,10 @@ public class SQLQueryBuilder {
         }
 
         quoteString = "";
+    }
+
+    public void setWrapDateWithTime(boolean wrapDateWithTime) {
+        this.wrapDateWithTime = wrapDateWithTime;
     }
 
     /**
@@ -268,7 +273,8 @@ public class SQLQueryBuilder {
         return new JdbcPredicateBuilder(
                 dbProduct,
                 quoteString,
-                context.getTupleDescription());
+                context.getTupleDescription(),
+                wrapDateWithTime);
     }
 
     /**
