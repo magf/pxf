@@ -1,12 +1,15 @@
-ARG BASE_IMAGE=gcr.io/data-gpdb-public-images/gpdb7-centos7-test:latest
+ARG BASE_IMAGE=gcr.io/data-gpdb-public-images/gpdb7-centos7-test:net-tools
 
 FROM ${BASE_IMAGE}
 
+ARG GO_VERSION
+ARG GINKGO_VERSION
+
 # install Go utilities
 RUN mkdir -p /tmp/pxf_src/ && cd /tmp \
-    && wget -O go.tgz -q https://dl.google.com/go/go1.15.3.linux-amd64.tar.gz \
+    && wget -O go.tgz -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go.tgz && rm go.tgz \
-    && GOPATH=/opt/go /usr/local/go/bin/go get github.com/onsi/ginkgo/ginkgo
+    && GOPATH=/opt/go /usr/local/go/bin/go install github.com/onsi/ginkgo/ginkgo@v${GINKGO_VERSION}
 
 # add minio software
 RUN useradd -s /sbin/nologin -d /opt/minio minio \
@@ -19,7 +22,7 @@ RUN useradd -s /sbin/nologin -d /opt/minio minio \
 
 # install java 8 and 11 and dependencies that are missing on the base images
 # java 8 is required to run hadoop. Do not use java 8 to build / run PXF
-RUN yum install -y rpm-build sudo java-1.8.0-openjdk java-11-openjdk-devel
+RUN yum install -y rpm-build sudo java-1.8.0-openjdk java-11-openjdk-devel jq
 
 # create user gpadmin since GPDB cannot run under root
 RUN ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa \

@@ -2,11 +2,14 @@ ARG BASE_IMAGE=gcr.io/data-gpdb-public-images/gpdb6-centos7-test:latest
 
 FROM ${BASE_IMAGE}
 
+ARG GO_VERSION
+ARG GINKGO_VERSION
+
 # install Go utilities
 RUN mkdir -p /tmp/pxf_src/ && cd /tmp \
-    && wget -O go.tgz -q https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz \
+    && wget -O go.tgz -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go.tgz && rm go.tgz \
-    && GOPATH=/opt/go /usr/local/go/bin/go get github.com/onsi/ginkgo/ginkgo
+    && GOPATH=/opt/go /usr/local/go/bin/go install github.com/onsi/ginkgo/ginkgo@v${GINKGO_VERSION}
 
 # add Java 11
 RUN wget -q https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz \
@@ -33,7 +36,7 @@ RUN curl -fsSL -o /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERS
     && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
     && rm -f /tmp/apache-maven.tar.gz \
     && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn \
-    && yum install -y rpm-build python-devel sudo && yum clean all \
+    && yum install -y rpm-build python-devel jq sudo && yum clean all \
     && cd /tmp && /usr/bin/pip install --upgrade pip==20.3.3 \
     && /usr/bin/pip install psi paramiko --no-cache-dir
 

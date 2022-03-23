@@ -2,15 +2,18 @@ ARG BASE_IMAGE=gcr.io/data-gpdb-public-images/gpdb7-ubuntu18.04-test:latest
 
 FROM ${BASE_IMAGE}
 
+ARG GO_VERSION
+ARG GINKGO_VERSION
+
 # install Go utilities
 RUN mkdir -p /tmp/pxf_src/ && cd /tmp \
-    && wget -O go.tgz -q https://dl.google.com/go/go1.15.3.linux-amd64.tar.gz \
+    && wget -O go.tgz -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go.tgz && rm go.tgz \
-    && GOPATH=/opt/go /usr/local/go/bin/go get github.com/onsi/ginkgo/ginkgo
+    && GOPATH=/opt/go /usr/local/go/bin/go install github.com/onsi/ginkgo/ginkgo@v${GINKGO_VERSION}
 
 # install java 11 and dependencies that are missing on the base images
 RUN apt-get update -y \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y curl sudo openjdk-11-jdk \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y curl sudo openjdk-11-jdk jq \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

@@ -3,45 +3,56 @@
 ## ANCHORS
 ## ======================================================================
 anchors:
-- &destroy_clusters
-  do:
-  - in_parallel:
-    - task: Cleanup Dataproc 1
-      config:
-        run:
-          path: pxf_src/concourse/scripts/cleanup_dataproc_cluster.bash
-        inputs:
-          - name: pxf_src
-          - name: dataproc_env_files
-        platform: linux
-      image: ccp-7-image
-      params:
-        GOOGLE_CREDENTIALS: ((google-service-account-key))
-        GOOGLE_PROJECT_ID: ((google-project-id))
-        GOOGLE_ZONE: ((google-zone))
-    - task: Cleanup Dataproc 2
-      input_mapping:
-        dataproc_env_files: dataproc_2_env_files
-      config:
-        run:
-          path: pxf_src/concourse/scripts/cleanup_dataproc_cluster.bash
-        inputs:
-          - name: pxf_src
-          - name: dataproc_env_files
-        platform: linux
-      image: ccp-7-image
-      params:
-        GOOGLE_CREDENTIALS: ((data-gpdb-ud-kerberos-google-service-account-key))
-        GOOGLE_PROJECT_ID: ((data-gpdb-ud-kerberos-google-project-id))
-        GOOGLE_ZONE: ((data-gpdb-ud-kerberos-google-zone))
-    - put: terraform_gpdb
-      resource: terraform
-      params:
-        action: destroy
-        env_name_file: terraform_gpdb/name
-        terraform_source: ccp_src/google/
-      get_params:
-        action: destroy
+- &destroy_dataproc_1
+  task: Cleanup Dataproc 1
+  config:
+    run:
+      path: pxf_src/concourse/scripts/cleanup_dataproc_cluster.bash
+    inputs:
+      - name: pxf_src
+      - name: dataproc_env_files
+    platform: linux
+  image: ccp-7-image
+  params:
+    GOOGLE_CREDENTIALS: ((google-service-account-key))
+    GOOGLE_PROJECT_ID: ((google-project-id))
+    GOOGLE_ZONE: ((google-zone))
+
+- &destroy_dataproc_2
+  task: Cleanup Dataproc 2
+  input_mapping:
+    dataproc_env_files: dataproc_2_env_files
+  config:
+    run:
+      path: pxf_src/concourse/scripts/cleanup_dataproc_cluster.bash
+    inputs:
+      - name: pxf_src
+      - name: dataproc_env_files
+    platform: linux
+  image: ccp-7-image
+  params:
+    GOOGLE_CREDENTIALS: ((data-gpdb-ud-kerberos-google-service-account-key))
+    GOOGLE_PROJECT_ID: ((data-gpdb-ud-kerberos-google-project-id))
+    GOOGLE_ZONE: ((data-gpdb-ud-kerberos-google-zone))
+
+- &destroy_gpdb_cluster
+  put: terraform_gpdb
+  resource: terraform
+  params:
+    action: destroy
+    env_name_file: terraform_gpdb/name
+    terraform_source: ccp_src/google/
+  get_params:
+    action: destroy
+
+- &destroy_hadoop_cluster
+  put: terraform_ipa_hadoop
+  params:
+    action: destroy
+    env_name_file: terraform_ipa_hadoop/name
+    terraform_source: pxf_src/concourse/terraform/ipa-multinode-hadoop
+  get_params:
+    action: destroy
 
 {% if slack_notification %}
 - &slack_alert
@@ -70,6 +81,14 @@ resource_types:
     tag: 0.11.15
     username: _json_key
     password: ((pxf-cloudbuild-service-account-key))
+{% endif %}
+
+{% if multinode %}
+- name: terraform-0.14.10
+  type: registry-image
+  source:
+    repository: ljfranklin/terraform-resource
+    tag: 0.14.10
 {% endif %}
 
 - name: gcs
@@ -165,6 +184,17 @@ resources:
     password: ((pxf-cloudbuild-service-account-key))
 {% endfor %} {# gp5, gp6, and gp7 #}
 
+{% set gp_ver = 6 %}
+- name: gpdb[[gp_ver]]-pxf-dev-rhel8-image
+  type: registry-image
+  icon: docker
+  source:
+    repository: gcr.io/data-gpdb-ud/gpdb-pxf-dev/gpdb[[gp_ver]]-rhel8-test-pxf
+    tag: latest
+    username: _json_key
+    password: ((pxf-cloudbuild-service-account-key))
+{% set gp_ver = None %}
+
 {% if oel7 %}
 - name: gpdb6-pxf-dev-oel7-image
   type: registry-image
@@ -241,6 +271,14 @@ resources:
     bucket: data-gpdb-ud-pivnet-artifacts
     json_key: ((pxf-storage-service-account-key))
     regexp: latest-0_gpdb[[gp_ver]]/greenplum-db-(.*)-ubuntu18.04-amd64.deb
+
+- name: gpdb[[gp_ver]]_rhel8_rpm_latest-0
+  type: gcs
+  icon: google-drive
+  source:
+    bucket: pivotal-gpdb-concourse-resources-prod
+    json_key: ((concourse-gcs-resources-service-account-key))
+    regexp: server/published/gpdb6/greenplum-db-(6.*)-rhel8-x86_64.rpm
 {% set gp_ver = None %}
 
 ## ---------- Greenplum 7 Alpha Builds ----------
@@ -285,6 +323,16 @@ resources:
     versioned_file: dev/[[user]]-[[branch]]/snapshots/pxf-gp[[gp_ver]]-ubuntu18.04.tar.gz
 {% set gp_ver = None %}
 
+{% for gp_ver in range(6, 7) %}
+- name: pxf_gp[[gp_ver]]_tarball_rhel8
+  type: gcs
+  icon: google-drive
+  source:
+    bucket: data-gpdb-ud-pxf-build
+    json_key: ((pxf-storage-service-account-key))
+    versioned_file: dev/[[user]]-[[branch]]/snapshots/pxf-gp[[gp_ver]].el8.tar.gz
+{% endfor %}
+
 ## ---------- Auxiliary Resources ----------
 {% if multinode or multinode_no_impersonation or file %}
 - name: terraform
@@ -302,6 +350,21 @@ resources:
       region_name: ((aws-region))
       bucket: ((tf-bucket-name))
       bucket_path: ((tf-bucket-path))
+{% endif %}
+
+{% if multinode %}
+- name: terraform_ipa_hadoop
+  type: terraform-0.14.10
+  source:
+    env:
+      GOOGLE_CREDENTIALS: ((data-gpdb-ud-ipa-google-service-account-key))
+    delete_on_failure: true
+    storage:
+      bucket: ((tf-bucket-name))
+      bucket_path: ((pxf-tf-bucket-path-hadoop))
+      region_name: ((aws-region))
+      access_key_id: ((tf-machine-access-key-id))
+      secret_access_key: ((tf-machine-secret-access-key))
 {% endif %}
 
 ## ======================================================================
@@ -325,7 +388,6 @@ jobs:
     file: pxf_src/concourse/tasks/build.yml
     params:
       LICENSE: ((pxf-rpm-license))
-      TARGET_OS: rhel7
       VENDOR: ((pxf-rpm-vendor))
   - put: pxf_gp[[gp_ver]]_tarball_rhel7
     params:
@@ -362,8 +424,6 @@ jobs:
       GROUP: gpdb,proxy,profile
 {% endif %}
       SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -394,8 +454,6 @@ jobs:
       GP_VER: 6
       GROUP: gpdb,proxy,profile
       SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -417,7 +475,6 @@ jobs:
     file: pxf_src/concourse/tasks/build.yml
     params:
       LICENSE: ((pxf-rpm-license))
-      TARGET_OS: ubuntu18.04
       VENDOR: ((pxf-rpm-vendor))
   - put: pxf_gp[[gp_ver]]_tarball_ubuntu18
     params:
@@ -449,11 +506,58 @@ jobs:
       GROUP: gpdb,proxy,profile
       PXF_BASE_DIR: /home/gpadmin/pxf
       SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
-      TARGET_OS: ubuntu
-      TARGET_OS_VERSION: 18
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
+{% set gp_ver = None %}
+
+## ---------- RHEL 8 Swimlane ----------
+{% set gp_ver = 6 %}
+- name: Build PXF-GP[[gp_ver]] on RHEL8
+  plan:
+  - in_parallel:
+    - get: pxf_src
+      trigger: true
+    - get: gpdb_package
+      resource: gpdb[[gp_ver]]_rhel8_rpm_latest-0
+    - get: gpdb[[gp_ver]]-pxf-dev-rhel8-image
+    - get: pxf-build-dependencies
+  - task: Build PXF-GP[[gp_ver]] on RHEL8
+    image: gpdb[[gp_ver]]-pxf-dev-rhel8-image
+    file: pxf_src/concourse/tasks/build.yml
+    params:
+      LICENSE: ((pxf-rpm-license))
+      TARGET_OS: rhel8
+      VENDOR: ((pxf-rpm-vendor))
+  - put: pxf_gp[[gp_ver]]_tarball_rhel8
+    params:
+      file: dist/pxf-gp[[gp_ver]]-*.el8.tar.gz
+
+- name: Test PXF-GP[[gp_ver]]-HDP2 on RHEL8
+  plan:
+  - in_parallel:
+      - get: pxf_src
+        passed: [Build PXF-GP[[gp_ver]] on RHEL8]
+        trigger: true
+      - get: pxf_tarball
+        resource: pxf_gp[[gp_ver]]_tarball_rhel8
+        passed: [Build PXF-GP[[gp_ver]] on RHEL8]
+      - get: gpdb_package
+        resource: gpdb[[gp_ver]]_rhel8_rpm_latest-0
+        passed: [Build PXF-GP[[gp_ver]] on RHEL8]
+      - get: gpdb[[gp_ver]]-pxf-dev-rhel8-image
+        passed: [Build PXF-GP[[gp_ver]] on RHEL8]
+      - get: pxf-automation-dependencies
+      - get: singlecluster
+        resource: singlecluster-hdp2
+  - task: Test PXF-GP[[gp_ver]]-HDP2 on RHEL8
+    file: pxf_src/concourse/tasks/test.yml
+    image: gpdb[[gp_ver]]-pxf-dev-rhel8-image
+    params:
+      ACCESS_KEY_ID: ((tf-machine-access-key-id))
+      GP_VER: [[gp_ver]]
+      GROUP: gpdb,proxy,profile
+      SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
 {% set gp_ver = None %}
 
 ## ---------- Extended Tests ----------
@@ -481,8 +585,6 @@ jobs:
     params:
       GP_VER: [[gp_ver]]
       IMPERSONATION: false
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -511,8 +613,6 @@ jobs:
       GP_VER: [[gp_ver]]
       GROUP: hcfs,jdbc
       HADOOP_CLIENT: MAPR
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -543,8 +643,6 @@ jobs:
       GP_VER: [[gp_ver]]
       GROUP: gpdb,proxy,profile
       SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -583,7 +681,6 @@ jobs:
       GROUP: security
       HADOOP_CLIENT: HDP_KERBEROS
       SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
-      TARGET_OS: centos
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -612,11 +709,9 @@ jobs:
     params:
       ACCESS_KEY_ID: ((tf-machine-access-key-id))
       GP_VER: [[gp_ver]]
-      GROUP: cloud-access-and-hdfs,hbase,hcfs,jdbc,profile,pushdown
+      GROUP: gpdb,proxy,profile
       RUN_JDK_VERSION: 11
       SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -650,8 +745,6 @@ jobs:
       GROUP: gpdb,proxy,profile
       HADOOP_CLIENT: CDH
       SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -747,8 +840,6 @@ jobs:
       GROUP: hcfs
       IMPERSONATION: false
       PROTOCOL: file
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -782,8 +873,6 @@ jobs:
       GROUP: hcfs,s3
       PROTOCOL: s3
       SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -814,8 +903,6 @@ jobs:
       IMPERSONATION: false
       PROTOCOL: s3
       SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -850,7 +937,6 @@ jobs:
       GROUP: hcfs
       IMPERSONATION: false
       PROTOCOL: adl
-      TARGET_OS: centos
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -882,7 +968,6 @@ jobs:
       GROUP: hcfs
       IMPERSONATION: false
       PROTOCOL: gs
-      TARGET_OS: centos
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -913,7 +998,6 @@ jobs:
       GROUP: hcfs
       IMPERSONATION: false
       PROTOCOL: minio
-      TARGET_OS: centos
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -984,7 +1068,6 @@ jobs:
             ACCESS_KEY_ID: ((tf-machine-access-key-id))
             SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
             IMPERSONATION: ((enable-impersonation-multinode))
-            TARGET_OS: centos
     - task: Generate Hadoop Cluster 1
       file: pxf_src/concourse/tasks/install_dataproc.yml
       image: ccp-7-image
@@ -1015,6 +1098,21 @@ jobs:
         NO_ADDRESS: false
         PROXY_USER: gpuser
         SECRETS_BUCKET: data-gpdb-ud-kerberos-pxf-secrets
+    - do: # Generate IPA Hadoop cluster
+      - put: terraform_ipa_hadoop
+        params:
+          action: create
+          generate_random_name: true
+          terraform_source: pxf_src/concourse/terraform/ipa-multinode-hadoop
+          vars:
+            gcp_project: ((data-gpdb-ud-ipa-google-project-id))
+      - task: Generate Multinode Hadoop Cluster
+        file: pxf_src/concourse/tasks/install_multinode_hadoop.yml
+        image: gpdb[[gp_ver]]-pxf-dev-centos7-image
+        params:
+          ANSIBLE_VAR_gcp_storage_bucket: data-gpdb-ud-pxf-build-resources
+          ANSIBLE_VAR_ipa_password: ((ipa-password))
+          ANSIBLE_VAR_ssl_store_password: ((ssl-store-password))
   - task: Setup PXF 5 Latest
     input_mapping:
       terraform: terraform_gpdb
@@ -1049,17 +1147,18 @@ jobs:
       KERBEROS: ((kerberos-enabled))
       GOOGLE_PROJECT_ID: ((google-project-id))
       GP_VER: [[gp_ver]]
-      GROUP: security,proxySecurity,multiClusterSecurity
+      GROUP: security,proxySecurity,proxySecurityIpa,multiClusterSecurity
       PXF_BASE_DIR: /home/gpadmin/pxf-boot
-      TARGET_OS: centos
   - task: Test PXF CLI
     on_success:
-      <<: *destroy_clusters
+      in_parallel:
+        steps:
+        - *destroy_dataproc_1
+        - *destroy_dataproc_2
+        - *destroy_gpdb_cluster
+        - *destroy_hadoop_cluster
     image: gpdb[[gp_ver]]-pxf-dev-centos7-image
     file: pxf_src/concourse/tasks/test_pxf_cli.yml
-    params:
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 {% if slack_notification %}
     <<: *slack_alert
 {% endif %}
@@ -1127,7 +1226,6 @@ jobs:
             ACCESS_KEY_ID: ((tf-machine-access-key-id))
             SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
             IMPERSONATION: ((enable-impersonation-multinode))
-            TARGET_OS: centos
     - task: Generate Hadoop Cluster 1
       file: pxf_src/concourse/tasks/install_dataproc.yml
       image: ccp-7-image
@@ -1183,15 +1281,15 @@ jobs:
       GP_VER: [[gp_ver]]
       GROUP: security,multiClusterSecurity
       PXF_JVM_OPTS: ((pxf-jvm-opts))
-      TARGET_OS: centos
   - task: Test PXF CLI
     on_success:
-      <<: *destroy_clusters
+      in_parallel:
+        steps:
+        - *destroy_dataproc_1
+        - *destroy_dataproc_2
+        - *destroy_gpdb_cluster
     image: gpdb[[gp_ver]]-pxf-dev-centos7-image
     file: pxf_src/concourse/tasks/test_pxf_cli.yml
-    params:
-      TARGET_OS: centos
-      TARGET_OS_VERSION: 7
 
 {% if slack_notification %}
     <<: *slack_alert

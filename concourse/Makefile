@@ -90,6 +90,7 @@ set-dev-release-pipeline:
 		--load-vars-from=$(SECRETS_HOME)/pivotal-gp-pxf-dev-deploy-key.yml \
 		--var=pxf-git-branch=${BRANCH} \
 		--var=pxf-build-bucket-prefix=dev/$(USER)-$(BRANCH) \
+		--var=pxf-releases-bucket-prefix=dev/$(USER)-$(BRANCH) \
 		${FLY_OPTION_NON-INTERACTIVE} || echo "Generated yaml has errors: check $${PIPELINE_FILE}"
 
 	@echo using the following command to unpause the pipeline:
@@ -135,6 +136,22 @@ set-dev-build-pipeline:
 
 	@echo using the following command to unpause the pipeline:
 	@echo -e "\t$(FLY_CMD) -t ${CONCOURSE} unpause-pipeline --pipeline ${DEV_BUILD_PIPELINE_NAME}"
+
+.PHONY: set-hadoop-cluster-cleaner
+set-hadoop-cluster-cleaner:
+	$(FLY_CMD) --target=$(CONCOURSE) \
+		set-pipeline \
+		--check-creds \
+		--pipeline=hadoop-cluster-cleaner \
+		--config=pipelines/hadoop-cluster-cleaner.yml \
+		--load-vars-from=$(SECRETS_HOME)/gpdb_common-ci-secrets.yml \
+		--load-vars-from=$(SECRETS_HOME)/pxf-secrets.yml \
+		--load-vars-from=$(SECRETS_HOME)/pxf-common.yml \
+		--var=pxf-git-branch=$(BRANCH) \
+		${FLY_OPTIONS_NON-INTERACTIVE} || echo "pipelines/hadoop-cluster-cleaner.yml has errors"
+
+	@echo "using the following command to unpause the pipeline"
+	@echo -e "\t$(FLY_CMD) -t $(CONCOURSE) unpause-pipeline --pipeline hadoop-cluster-cleaner"
 
 .PHONY: set-pr-build-pipeline
 set-pr-build-pipeline:
@@ -203,6 +220,7 @@ set-pivnet-pipeline:
 	$(FLY_CMD) --target=$(CONCOURSE) \
 		set-pipeline \
 		--check-creds \
+		--pipeline=${PIVNET_PIPELINE_NAME} \
 		--config "$${PIPELINE_FILE}" \
 		--load-vars-from=$(SECRETS_HOME)/gpdb_common-ci-secrets.yml \
 		--load-vars-from=$(SECRETS_HOME)/pxf-secrets.yml \
@@ -210,7 +228,6 @@ set-pivnet-pipeline:
 		--load-vars-from=$(SECRETS_HOME)/pxf-prod.yml \
 		--var pxf-git-branch=$(BRANCH) \
 		--var pxf-git-remote=https://github.com/greenplum-db/pxf \
-		--pipeline pivnet_artifacts \
 		${FLY_OPTION_NON-INTERACTIVE} || echo "Generated yaml has errors: check $${PIPELINE_FILE}"
 
 	@echo using the following command to unpause the pipeline:

@@ -74,7 +74,6 @@ import java.util.stream.Stream;
  * </ol>
  */
 public class HiveDataFragmenter extends HdfsDataFragmenter {
-    private static final Logger LOG = LoggerFactory.getLogger(HiveDataFragmenter.class);
     private static final short ALL_PARTS = -1;
 
     public static final String HIVE_PARTITIONS_DELIM = "!HPAD!";
@@ -94,9 +93,10 @@ public class HiveDataFragmenter extends HdfsDataFragmenter {
 
     private static final TreeTraverser TRAVERSER = new TreeTraverser();
 
-    private IMetaStoreClient client;
-    private final HiveClientWrapper hiveClientWrapper;
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected final HiveUtilities hiveUtilities;
+
+    private final HiveClientWrapper hiveClientWrapper;
 
     // Data structure to hold hive partition names if exist, to be used by
     // partition filtering
@@ -118,7 +118,6 @@ public class HiveDataFragmenter extends HdfsDataFragmenter {
     @Override
     public void afterPropertiesSet() {
         super.afterPropertiesSet();
-        client = hiveClientWrapper.initHiveClient(this.context, configuration);
     }
 
     /**
@@ -127,7 +126,10 @@ public class HiveDataFragmenter extends HdfsDataFragmenter {
     @Override
     public List<Fragment> getFragments() throws Exception {
         Metadata.Item tblDesc = hiveClientWrapper.extractTableFromName(context.getDataSource());
-        fetchTableMetaData(tblDesc);
+
+        try (HiveClientWrapper.MetaStoreClientHolder clientHolder = hiveClientWrapper.initHiveClient(context, configuration)) {
+            fetchTableMetaData(tblDesc, clientHolder.getClient());
+        }
         return fragments;
     }
 
@@ -135,7 +137,7 @@ public class HiveDataFragmenter extends HdfsDataFragmenter {
      * Goes over the table partitions metadata and extracts the splits and the
      * InputFormat and Serde per split.
      */
-    private void fetchTableMetaData(Metadata.Item tblDesc) throws Exception {
+    private void fetchTableMetaData(Metadata.Item tblDesc, IMetaStoreClient client) throws Exception {
 
         Table tbl = hiveClientWrapper.getHiveTable(client, tblDesc);
 
@@ -338,7 +340,10 @@ public class HiveDataFragmenter extends HdfsDataFragmenter {
     @Override
     public FragmentStats getFragmentStats() throws Exception {
         Metadata.Item tblDesc = hiveClientWrapper.extractTableFromName(context.getDataSource());
-        Table tbl = hiveClientWrapper.getHiveTable(client, tblDesc);
+        Table tbl;
+        try (HiveClientWrapper.MetaStoreClientHolder holder = hiveClientWrapper.initHiveClient(context, configuration)) {
+            tbl = hiveClientWrapper.getHiveTable(holder.getClient(), tblDesc);
+        }
         Metadata metadata = new Metadata(tblDesc);
         hiveClientWrapper.getSchema(tbl, metadata);
 

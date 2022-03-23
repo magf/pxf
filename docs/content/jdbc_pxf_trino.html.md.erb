@@ -2,6 +2,8 @@
 title: 'Example: Reading From and Writing to a Trino (formerly Presto SQL) Table'
 ---
 
+Because PXF accesses Trino using the JDBC connector, this example works for all PXF 6.x versions.
+
 In this example, you:
 
 - Create an in-memory Trino table and insert data into the table
@@ -30,7 +32,7 @@ You must create a JDBC server configuration for Trino, download the Trino driver
 
 This procedure will typically be performed by the Greenplum Database administrator.
 
-1. Log in to the Greenplum Database master node:
+1. Log in to the Greenplum Database master host:
 
     ```shell
     $ ssh gpadmin@<gpmaster>
@@ -41,10 +43,19 @@ This procedure will typically be performed by the Greenplum Database administrat
    See [Trino Documentation - JDBC Driver](https://trino.io/docs/current/installation/jdbc.html) for instructions on downloading the Trino JDBC driver.
    The following example downloads the driver and places it under `$PXF_BASE/lib`:
 
-    ```shell
-    $ cd /usr/local/pxf-gp<version>/lib
-    $ wget <url-to-trino-jdbc-driver>
-    ```
+    1. If you did not relocate `$PXF_BASE`, run the following from the Greenplum master:
+
+        ```shell
+        gpadmin@gpmaster$ cd /usr/local/pxf-gp<version>/lib
+        gpadmin@gpmaster$ wget <url-to-trino-jdbc-driver>
+        ```
+
+    2. If you relocated `$PXF_BASE`, run the following from the Greenplum master:
+
+        ```shell
+        gpadmin@gpmaster$ cd $PXF_BASE/lib
+        gpadmin@gpmaster$ wget <url-to-trino-jdbc-driver>
+        ```
 
 1. Synchronize the PXF configuration, and then restart PXF:
 

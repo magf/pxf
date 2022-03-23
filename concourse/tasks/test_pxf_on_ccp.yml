@@ -10,6 +10,8 @@ inputs:
   optional: true
 - name: dataproc_2_env_files
   optional: true
+- name: ipa_env_files
+  optional: true
 - name: pxf-automation-dependencies
   optional: true
 - name: singlecluster
@@ -30,7 +32,5 @@ params:
   PXF_JVM_OPTS:
   PXF_VERSION: 6
   SECRET_ACCESS_KEY:
-  TARGET_OS: centos
-  TARGET_OS_VERSION: 7
 run:
   path: pxf_src/concourse/scripts/test_pxf_multinode.bash

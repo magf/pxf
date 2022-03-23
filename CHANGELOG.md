@@ -1,5 +1,46 @@
 # Changelog
 
+## 6.3.0 (03/16/2022)
+
+### Enhancements:
+
+- [#703](https://github.com/greenplum-db/pxf/pull/703) Added Support for Avro Logical Types for Readable External Tables
+- [#707](https://github.com/greenplum-db/pxf/pull/707) Enabled Kerberos Constrained Delegation impersonation for secure clusters
+- [#752](https://github.com/greenplum-db/pxf/pull/752) Add support for GPDB6 on RHEL 8
+- [#754](https://github.com/greenplum-db/pxf/pull/754) Add scripts for modifying PXF extension to support gpupgrade
+
+### Bug Fixes:
+
+- [#738](https://github.com/greenplum-db/pxf/pull/738) Fix: For reading the records correctly from a MultiLine JSON file
+- [#756](https://github.com/greenplum-db/pxf/pull/756) Fixed HiveDataFragmenter not closing connections to Hive Metastore
+- [#760](https://github.com/greenplum-db/pxf/pull/760) Update bundled postgresql to 42.3.3
+
+## 6.2.3 (01/31/2022)
+
+### Bug Fixes:
+
+- [#720](https://github.com/greenplum-db/pxf/pull/720) Redirect PXF stdout and stderr to files in PXF_LOGDIR
+- [#735](https://github.com/greenplum-db/pxf/pull/735) Bumped Log4j2 version to 2.17.1
+- [#740](https://github.com/greenplum-db/pxf/pull/740) Bump go version to 1.17.6
+- [#741](https://github.com/greenplum-db/pxf/pull/741) Improved performance of iterating over a list of fragments
+
+## 6.2.2 (12/22/2021)
+
+### Bug Fixes:
+
+- [#732](https://github.com/greenplum-db/pxf/pull/732) Downgrade to Spring Boot 2.4.3
+- [#733](https://github.com/greenplum-db/pxf/pull/733) Bump log4j2 version to 2.17.0
+
+## 6.2.1 (12/16/2021)
+
+### Bug Fixes:
+
+- [#710](https://github.com/greenplum-db/pxf/pull/710) Allow skipping the header for *:text:multi profiles
+- [#719](https://github.com/greenplum-db/pxf/pull/719) Add explicit UnsupportedException for Hive transactional tables
+- [#721](https://github.com/greenplum-db/pxf/pull/721) Set default MySQL fetchSize to Integer.MIN_VALUE
+- [#726](https://github.com/greenplum-db/pxf/pull/726) pxf-hive: Catch TTransportException when working with metastore client
+- [#727](https://github.com/greenplum-db/pxf/pull/727) bump log4j2 version to 2.16.0
+
 ## 6.2.0 (09/08/2021)
 
 ### Enhancements:

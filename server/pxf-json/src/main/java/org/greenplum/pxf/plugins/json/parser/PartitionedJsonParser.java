@@ -42,10 +42,12 @@ public class PartitionedJsonParser {
 	private static final char BACKSLASH = '\\';
 	private static final char START_BRACE = '{';
 	private static final int EOF = -1;
+	private static final int CHARS_READ_LIMIT = 8192;
 	private final InputStreamReader inputStreamReader;
 	private final JsonLexer lexer;
 	private long bytesRead = 0;
 	private boolean endOfStream = false;
+	private final StringBuilder uncountedCharsReadFromStream;
 
 	public PartitionedJsonParser(InputStream is) {
 		this.lexer = new JsonLexer();
@@ -53,15 +55,16 @@ public class PartitionedJsonParser {
 		// You need to wrap the InputStream with an InputStreamReader, so that it can encode the incoming byte stream as
 		// UTF-8 characters
 		this.inputStreamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
+
+		this.uncountedCharsReadFromStream = new StringBuilder(CHARS_READ_LIMIT);
 	}
 
 	private boolean scanToFirstBeginObject() throws IOException {
 		// seek until we hit the first begin-object
 		char prev = ' ';
 		int i;
-		while ((i = inputStreamReader.read()) != EOF) {
+		while ((i = readNextChar()) != EOF) {
 			char c = (char) i;
-			bytesRead++;
 			if (c == START_BRACE && prev != BACKSLASH) {
 				lexer.setState(JsonLexer.JsonLexerState.BEGIN_OBJECT);
 				return true;
@@ -110,9 +113,8 @@ public class PartitionedJsonParser {
 		currentObject.append(START_BRACE);
 		objectStack.add(0);
 
-		while ((i = inputStreamReader.read()) != EOF) {
+		while ((i = readNextChar()) != EOF) {
 			char c = (char) i;
-			bytesRead++;
 
 			lexer.lex(c);
 
@@ -188,6 +190,7 @@ public class PartitionedJsonParser {
 	 * @return Returns the number of bytes read from the stream.
 	 */
 	public long getBytesRead() {
+		bytesRead += countBytesInReadChars();
 		return bytesRead;
 	}
 
@@ -196,5 +199,25 @@ public class PartitionedJsonParser {
 	 */
 	public boolean isEndOfStream() {
 		return endOfStream;
+	}
+
+	private int readNextChar() throws IOException {
+		int i = inputStreamReader.read();
+
+		if (i != EOF) {
+			uncountedCharsReadFromStream.append((char) i);
+			if (uncountedCharsReadFromStream.length() == CHARS_READ_LIMIT) {
+				bytesRead += countBytesInReadChars();
+			}
+		}
+
+		return i;
+	}
+
+	private int countBytesInReadChars() {
+		int length = uncountedCharsReadFromStream.toString().getBytes(StandardCharsets.UTF_8).length;
+		uncountedCharsReadFromStream.setLength(0);
+
+		return length;
 	}
 }

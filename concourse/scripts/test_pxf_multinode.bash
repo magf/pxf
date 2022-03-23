@@ -294,6 +294,80 @@ function setup_pxf_kerberos_on_cluster() {
 		sed -i "s/>second-hadoop</>${HADOOP_2_HOSTNAME}</g" "$multiNodesCluster"
 	fi
 
+	if [[ -d ipa_env_files ]]; then
+		# create the third hdfs-ipa cluster configuration
+		HADOOP_3_HOSTNAME="$(< ipa_env_files/nn01)"
+		HIVE_3_HOSTNAME="$(< ipa_env_files/nn02)"
+		# see ansible/ipa-multinode-hadoop/tasks/ipa-server.yml
+		HADOOP_3_USER=stout
+		PXF_3_USER=porter
+		HADOOP_3_SSH_OPTS=(-o 'UserKnownHostsFile=/dev/null' -o 'StrictHostKeyChecking=no' -i ipa_env_files/google_compute_engine)
+		HADOOP_3_DIR=$(find /tmp/build/ -name ipa_env_files)
+		DOMAIN3="$(< "${HADOOP_3_DIR}/domain")"
+		REALM3="$(< "${HADOOP_3_DIR}/REALM")"
+		REALM3="${REALM3^^}" # make sure REALM3 is upper-case
+		ssh gpadmin@mdw "
+			mkdir -p ${BASE_DIR}/servers/hdfs-ipa &&
+			cp ${TEMPLATES_DIR}/templates/pxf-site.xml ${BASE_DIR}/servers/hdfs-ipa &&
+			sed -i \
+				-e \"s|>gpadmin/_HOST@EXAMPLE.COM<|>${PXF_3_USER}@${REALM3}<|g\" \
+				-e 's|/pxf.service.keytab<|/pxf.service.3.keytab<|g' \
+				-e '/pxf.service.kerberos.constrained-delegation/{n;s|<value>.*</value>|<value>true</value>|}' ${BASE_DIR}/servers/hdfs-ipa/pxf-site.xml
+		"
+
+		scp ipa_env_files/conf/*-site.xml "gpadmin@mdw:${BASE_DIR}/servers/hdfs-ipa"
+
+		# optionally create a non-impersonation configuration servers with/without a service user for the IPA cluster for the proxy test
+		ssh gpadmin@mdw "
+			if [[ ${IMPERSONATION} == true ]]; then
+				cp -r ${BASE_DIR}/servers/hdfs-ipa ${BASE_DIR}/servers/hdfs-ipa-no-impersonation
+				sed -i \
+				-e '/<name>pxf.service.user.impersonation<\/name>/ {n;s|<value>.*</value>|<value>false</value>|g;}' \
+				-e 's|</configuration>|<property><name>pxf.service.user.name</name><value>foobar</value></property></configuration>|g' \
+				-e '/pxf.service.kerberos.constrained-delegation/{n;s|<value>.*</value>|<value>true</value>|}' \
+				${BASE_DIR}/servers/hdfs-ipa-no-impersonation/pxf-site.xml
+				cp -r ${BASE_DIR}/servers/hdfs-ipa ${BASE_DIR}/servers/hdfs-ipa-no-impersonation-no-svcuser
+				sed -i \
+				-e '/<name>pxf.service.user.impersonation<\/name>/ {n;s|<value>.*</value>|<value>false</value>|g;}' \
+				-e '/pxf.service.kerberos.constrained-delegation/{n;s|<value>.*</value>|<value>true</value>|}' \
+				${BASE_DIR}/servers/hdfs-ipa-no-impersonation-no-svcuser/pxf-site.xml
+			fi
+		"
+
+		# sync up PXF server configuration
+		ssh gpadmin@mdw "PXF_BASE=${BASE_DIR} ${PXF_HOME}/bin/pxf cluster sync"
+
+		# add configuration information to the SUT file for the automation suite
+		sed -i \
+			-e "s|</hdfsIpa>|<hadoopRoot>${HADOOP_3_DIR}</hadoopRoot></hdfsIpa>|g" \
+			-e "s|</hdfsIpa>|<testKerberosPrincipal>${HADOOP_3_USER}@${REALM3}</testKerberosPrincipal></hdfsIpa>|g" \
+			-e "s|</hdfsIpa>|<testKerberosKeytab>${HADOOP_3_DIR}/hadoop.user.keytab</testKerberosKeytab></hdfsIpa>|g" \
+			-e "s|</hdfsIpa>|<sshUserName>hdfs</sshUserName></hdfsIpa>|g" \
+			-e "s|</hdfsIpa>|<sshPrivateKey>${HADOOP_3_DIR}/google_compute_engine</sshPrivateKey></hdfsIpa>|g" \
+			-e "s|hive-ipa-host|${HIVE_3_HOSTNAME}.${DOMAIN3}|g" \
+			-e "s|IPA-REALM|${REALM3}|g" \
+			"$multiNodesCluster"
+
+		# add foreign Hadoop and IPA KDC hostfile to /etc/hosts
+		sudo tee --append /etc/hosts < ipa_env_files/etc_hostfile
+
+		# add foreign Hadoop and IPA KDC hostfile to /etc/hosts on all nodes
+		ssh gpadmin@mdw "
+			source ${GPHOME}/greenplum_path.sh &&
+			gpscp -f ~gpadmin/hostfile_all -v -r -u centos ~/ipa_env_files/etc_hostfile =:/tmp/etc_hostfile &&
+			gpssh -f ~gpadmin/hostfile_all -v -u centos -s -e 'sudo tee --append /etc/hosts < /tmp/etc_hostfile' &&
+			gpscp -f ~gpadmin/hostfile_all -v -r -u gpadmin ~/ipa_env_files/pxf.service.keytab =:${BASE_DIR}/keytabs/pxf.service.3.keytab
+			gpscp -f ~gpadmin/hostfile_all -v -r -u gpadmin ~/ipa_env_files/hadoop.user.keytab =:${BASE_DIR}/keytabs/hadoop.user.3.keytab
+		"
+
+		sudo cp "${HADOOP_3_DIR}/hadoop.user.keytab" "/etc/security/keytabs/${HADOOP_3_USER}.headless.keytab"
+		sudo chown gpadmin:gpadmin "/etc/security/keytabs/${HADOOP_3_USER}.headless.keytab"
+		sudo chown gpadmin:gpadmin "${HADOOP_3_DIR}/google_compute_engine"
+		sudo chown gpadmin:gpadmin "${HADOOP_3_DIR}/hadoop.user.keytab"
+		sed -i "s/>ipa-hadoop</>${HADOOP_3_HOSTNAME}</g" "$multiNodesCluster"
+
+	fi
+
 	# Create the non-secure cluster configuration
 	NON_SECURE_HADOOP_IP=$(grep < cluster_env_files/etc_hostfile edw0 | awk '{print $1}')
 	ssh gpadmin@mdw "
@@ -366,7 +440,12 @@ function run_pxf_automation() {
 	local multiNodesCluster=pxf_src/automation/src/test/resources/sut/MultiNodesCluster.xml
 
 	if [[ $KERBEROS == true ]]; then
-		multiNodesCluster=pxf_src/automation/src/test/resources/sut/MultiHadoopMultiNodesCluster.xml
+		if [[ -d ipa_env_files ]]; then
+			# use SUT file with configuration that includes IPA hadoop cluster
+			multiNodesCluster=pxf_src/automation/src/test/resources/sut/MultiHadoopIPAMultiNodesCluster.xml
+		else
+			multiNodesCluster=pxf_src/automation/src/test/resources/sut/MultiHadoopMultiNodesCluster.xml
+		fi
 	fi
 
 	if (( HIVE_VERSION == 2 )); then
@@ -387,10 +466,9 @@ function run_pxf_automation() {
 
 	if [[ $KERBEROS == true ]]; then
 		setup_pxf_kerberos_on_cluster
-		sed -i 's/sutFile=default.xml/sutFile=MultiHadoopMultiNodesCluster.xml/g' pxf_src/automation/jsystem.properties
-	else
-		sed -i 's/sutFile=default.xml/sutFile=MultiNodesCluster.xml/g' pxf_src/automation/jsystem.properties
 	fi
+	sed -i "s/sutFile=default.xml/sutFile=$(basename $multiNodesCluster)/g" pxf_src/automation/jsystem.properties
+
 	chown -R gpadmin:gpadmin ~gpadmin/.ssh pxf_src/automation
 
 	cat > ~gpadmin/run_pxf_automation_test.sh <<-EOF

@@ -168,14 +168,23 @@ public class FragmenterService {
      * @return the filtered list of fragments for the given segment
      */
     private List<Fragment> filterFragments(List<Fragment> fragments, int segmentId, int totalSegments, int gpSessionId, int gpCommandCount) {
-        int shift = gpSessionId % totalSegments;
-        int fragmentCount = fragments.size();
+        /*
+        We use a mod function inside the loop to distribute fragments across all N segments for processing
+        in a round-robin fashion, where each segment will be allocated to work on every N-th fragment.
 
-        List<Fragment> filteredFragments = new ArrayList<>((int) Math.ceil(fragmentCount / totalSegments));
-        for (int i = 0; i < fragmentCount; i++) {
-            if (segmentId == ((i + shift + gpCommandCount) % totalSegments)) {
-                filteredFragments.add(fragments.get(i));
+        We use an artificially shifted index so that queries with low fragment count are not always executed by
+        the low-numbered segments. This helps to spread out the workload across the cluster to different PXF JVMs.
+        Using gpCommandCount will ensure that consecutive queries for a single transaction are also shifted.
+        */
+        int shiftedIndex = gpSessionId % totalSegments + gpCommandCount; // index of fragment #0 to use for mod function
+
+        List<Fragment> filteredFragments = new ArrayList<>((int) Math.ceil(fragments.size() / totalSegments));
+        // do not use fragments.get(i) to iterate over fragments as the incoming fragment list is a LinkedList
+        for (Fragment fragment : fragments) {
+            if (segmentId == (shiftedIndex % totalSegments)) {
+                filteredFragments.add(fragment);
             }
+            shiftedIndex++;
         }
         return filteredFragments;
     }

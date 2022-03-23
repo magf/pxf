@@ -37,7 +37,7 @@ import java.util.Queue;
 public class QuotedLineBreakAccessor extends HdfsAtomicDataAccessor {
     private boolean fileAsRow;
     private boolean firstLine, lastLine;
-
+    private int skipHeaderCount;
     BufferedReader reader;
     Queue<String> lineQueue;
 
@@ -53,6 +53,9 @@ public class QuotedLineBreakAccessor extends HdfsAtomicDataAccessor {
                             "the table definition. %d columns were provided",
                     context.getTupleDescription().size()));
         }
+        skipHeaderCount = context.getFragmentIndex() == 0
+                ? context.getOption("SKIP_HEADER_COUNT", 0, true)
+                : 0;
     }
 
     @Override
@@ -70,8 +73,32 @@ public class QuotedLineBreakAccessor extends HdfsAtomicDataAccessor {
      */
     @Override
     public OneRow readNextObject() throws IOException {
+
         if (super.readNextObject() == null) /* check if working segment */ {
             return null;
+        }
+
+        /**
+         * When SKIP_HEADER_COUNT is set, this will skip the physical lines in a file based on the
+         * count provided. For eg. For a file with the following data:
+         *
+         *   Address-Month-Year
+         *   "4627 Star Rd.
+         *   San Francisco, CA  94107":Sept:2017
+         *   "113 Moon St.
+         *   San Diego, CA  92093":Jan:2018
+         *
+         * In the above example, if the skipHeaderCount = 3, it will skip the first 3 lines
+         * and read the following remaining lines
+         *
+         *   "113 Moon St.
+         *   San Diego, CA  92093":Jan:2018
+         */
+        while (skipHeaderCount > 0) {
+            if (reader.readLine() == null) {
+                return null;
+            }
+            skipHeaderCount--;
         }
 
         String nextLine = readLine();

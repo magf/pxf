@@ -8,9 +8,9 @@ package org.greenplum.pxf.plugins.hdfs;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,13 +20,13 @@ package org.greenplum.pxf.plugins.hdfs;
  */
 
 
+import org.apache.hadoop.io.Writable;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.apache.hadoop.io.Writable;
 
 /**
  * A class that provides a line reader from an input stream. Lines are
@@ -78,15 +78,14 @@ public class ChunkReader implements Closeable {
      * Reads data in chunks of DEFAULT_CHUNK_SIZE, until we reach
      * maxBytesToConsume.
      *
-     * @param str - output parameter, will contain the read chunk byte array
+     * @param str               - output parameter, will contain the read chunk byte array
      * @param maxBytesToConsume - requested chunk size
      * @return actual chunk size
      * @throws IOException if the first byte cannot be read for any reason
-     *         other than the end of the file, if the input stream has been closed,
-     *         or if some other I/O error occurs.
+     *                     other than the end of the file, if the input stream has been closed,
+     *                     or if some other I/O error occurs.
      */
-    public int readChunk(Writable str, int maxBytesToConsume) throws IOException
-           {
+    public int readChunk(Writable str, int maxBytesToConsume) throws IOException {
         ChunkWritable cw = (ChunkWritable) str;
         List<Node> list = new LinkedList<Node>();
 
@@ -116,28 +115,42 @@ public class ChunkReader implements Closeable {
 
         } while (bytesConsumed < maxBytesToConsume);
 
-        if (list.size() > 0) {
-            cw.box = new byte[(int) bytesConsumed];
-            int pos = 0;
-            for (int i = 0; i < list.size(); i++) {
-                Node n = list.get(i);
-                System.arraycopy(n.slice, 0, cw.box, pos, n.len);
-                pos += n.len;
-            }
-        }
+        copyListToChunkWritable(cw, list, bytesConsumed);
 
         return (int) bytesConsumed;
     }
 
     /**
+     * This function iterates over the list of nodes and copies data to ChunkWritable.box array
+     *
+     * @param cw            ChunkWritable Object
+     * @param nodeList      List containing the Node Object
+     * @param bytesConsumed chunk size
+     */
+    private void copyListToChunkWritable(ChunkWritable cw, List<Node> nodeList, long bytesConsumed) {
+
+        if (nodeList.isEmpty()) {
+            return;
+        }
+
+        cw.box = new byte[(int) bytesConsumed];
+        int pos = 0;
+        for (Node node : nodeList) {
+            int len = node.len;
+            System.arraycopy(node.slice, 0, cw.box, pos, len);
+            pos += len;
+        }
+    }
+
+    /**
      * Reads a line terminated by LF.
      *
-     * @param str - output parameter, will contain the read record
+     * @param str               - output parameter, will contain the read record
      * @param maxBytesToConsume - the line mustn't exceed this value
      * @return length of the line read
      * @throws IOException if the first byte cannot be read for any reason
-     *         other than the end of the file, if the input stream has been closed,
-     *         or if some other I/O error occurs.
+     *                     other than the end of the file, if the input stream has been closed,
+     *                     or if some other I/O error occurs.
      */
     public int readLine(Writable str, int maxBytesToConsume) throws IOException {
         ChunkWritable cw = (ChunkWritable) str;
@@ -147,8 +160,7 @@ public class ChunkReader implements Closeable {
         long bytesConsumed = 0;
 
         do {
-            int startPosn = bufferPosn; // starting from where we left off the
-                                        // last time
+            int startPosn = bufferPosn; // starting from where we left off the last time
             if (bufferPosn >= bufferLength) {
                 startPosn = bufferPosn = 0;
 
@@ -158,12 +170,10 @@ public class ChunkReader implements Closeable {
                 }
             }
 
-            for (; bufferPosn < bufferLength; ++bufferPosn) { // search for
-                                                              // newline
+            for (; bufferPosn < bufferLength; ++bufferPosn) { // search for newline
                 if (buffer[bufferPosn] == LF) {
                     newLine = true;
-                    ++bufferPosn; // at next invocation proceed from following
-                                  // byte
+                    ++bufferPosn; // at next invocation proceed from following byte
                     break;
                 }
             }
@@ -180,15 +190,7 @@ public class ChunkReader implements Closeable {
             }
         } while (!newLine && bytesConsumed < maxBytesToConsume);
 
-        if (list.size() > 0) {
-            cw.box = new byte[(int) bytesConsumed];
-            int pos = 0;
-            for (int i = 0; i < list.size(); i++) {
-                Node n = list.get(i);
-                System.arraycopy(n.slice, 0, cw.box, pos, n.len);
-                pos += n.len;
-            }
-        }
+        copyListToChunkWritable(cw, list, bytesConsumed);
 
         return (int) bytesConsumed;
     }

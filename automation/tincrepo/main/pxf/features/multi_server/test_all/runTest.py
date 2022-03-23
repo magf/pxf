@@ -1,7 +1,7 @@
 from mpp.models import SQLTestCase
 from mpp.models import SQLConcurrencyTestCase
 
-class PxfTwoSecureHdfsMultiServer(SQLConcurrencyTestCase):
+class PxfAllHdfsMultiServer(SQLConcurrencyTestCase):
     """
     @db_name pxfautomation
     @concurrency 1

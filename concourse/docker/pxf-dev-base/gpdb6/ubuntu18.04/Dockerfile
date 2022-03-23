@@ -2,11 +2,14 @@ ARG BASE_IMAGE=gcr.io/data-gpdb-public-images/gpdb6-ubuntu18.04-test:latest
 
 FROM ${BASE_IMAGE}
 
+ARG GO_VERSION
+ARG GINKGO_VERSION
+
 # install Go utilities
 RUN mkdir -p /tmp/pxf_src/ && cd /tmp \
-    && wget -O go.tgz -q https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz \
+    && wget -O go.tgz -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go.tgz && rm go.tgz \
-    && GOPATH=/opt/go /usr/local/go/bin/go get github.com/onsi/ginkgo/ginkgo
+    && GOPATH=/opt/go /usr/local/go/bin/go install github.com/onsi/ginkgo/ginkgo@v${GINKGO_VERSION}
 
 # install dependencies that are missing on the base images
 # install a specific version of perl for tinc
@@ -16,7 +19,7 @@ ARG USER_HOME_DIR="/root"
 ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 
 RUN apt-get update -y \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y python-dev curl sudo \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y python-dev curl sudo jq \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && mkdir -p /usr/share/maven /usr/share/maven/ref \
