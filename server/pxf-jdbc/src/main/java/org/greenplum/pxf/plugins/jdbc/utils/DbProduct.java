@@ -33,6 +33,11 @@ public enum DbProduct {
         }
 
         @Override
+        public String wrapDateWithTime(Object val) {
+            return wrapTimestamp(val);
+        }
+
+        @Override
         public String buildSessionQuery(String key, String value) {
             return String.format("SET %s %s", key, value);
         }
@@ -43,12 +48,27 @@ public enum DbProduct {
         public String wrapDate(Object val) {
             return "DATE('" + val + "')";
         }
+
+        @Override
+        public String wrapDateWithTime(Object val) {
+            return wrapTimestamp(val);
+        }
     },
 
     ORACLE {
         @Override
         public String wrapDate(Object val) {
             return "to_date('" + val + "', 'YYYY-MM-DD')";
+        }
+
+        @Override
+        public String wrapDateWithTime(Object val) {
+            String valStr = String.valueOf(val);
+            int index = valStr.lastIndexOf('.');
+            if (index != -1) {
+                valStr = valStr.substring(0, index);
+            }
+            return "to_date('" + valStr + "', 'YYYY-MM-DD HH24:MI:SS')";
         }
 
         @Override
@@ -67,6 +87,11 @@ public enum DbProduct {
         public String wrapDate(Object val) {
             return "date'" + val + "'";
         }
+
+        @Override
+        public String wrapDateWithTime(Object val) {
+            return wrapTimestamp(val);
+        }
     },
 
     S3_SELECT {
@@ -76,8 +101,28 @@ public enum DbProduct {
         }
 
         @Override
+        public String wrapDateWithTime(Object val) {
+            return wrapTimestamp(val);
+        }
+
+        @Override
         public String wrapTimestamp(Object val) {
             return "TO_TIMESTAMP('" + val + "')";
+        }
+    },
+
+    SYBASE {
+        @Override
+        public String wrapDate(Object val) { return "'" + val + "'"; }
+
+        @Override
+        public String wrapDateWithTime(Object val) {
+            return wrapTimestamp(val);
+        }
+
+        @Override
+        public String buildSessionQuery(String key, String value) {
+            return String.format("SET %s %s", key, value);
         }
     };
 
@@ -88,6 +133,15 @@ public enum DbProduct {
      * @return a string with a properly wrapped date object
      */
     public abstract String wrapDate(Object val);
+
+    /**
+     * Wraps a given date value to the date with time.
+     * It might be used in some special cases.
+     *
+     * @param val {@link java.sql.Date} object to wrap
+     * @return a string with a properly wrapped date object
+     */
+    public abstract String wrapDateWithTime(Object val);
 
     /**
      * Wraps a given timestamp value the way required by target database
@@ -131,6 +185,8 @@ public enum DbProduct {
             result = DbProduct.ORACLE;
         else if (dbName.contains("S3 SELECT"))
             result = DbProduct.S3_SELECT;
+        else if (dbName.contains("ADAPTIVE SERVER ENTERPRISE"))
+            result = DbProduct.SYBASE;
         else
             result = DbProduct.POSTGRES;
 

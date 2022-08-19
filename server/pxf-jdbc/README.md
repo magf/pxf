@@ -124,6 +124,35 @@ Whether PXF should quote column names when constructing SQL query to the externa
 
 When this setting is not set, PXF automatically checks whether some column name should be quoted, and if so, it quotes all column names in the query.
 
+#### Convert to Oracle date type
+*Can be set only in `LOCATION` clause of external table DDL.
+It is used by only PXF Oracle JDBC driver for pushdown.*
+
+The parameter is used for some specific cases when you need to convert Postgres `timestamp` type to `date` type in Oracle for pushdown filter.
+
+* **Option**: `CONVERT_ORACLE_DATE`
+* **Value**:
+    * not set &mdash; default value is `false`. Postgres `timestamp` type will be converted to Oracle `timestamp` type (default behaviour)
+    * `true` (case-insensitive) &mdash; convert Postgres `timestamp` type to Oracle `date` type
+    * any other value or `false` &mdash; Postgres `timestamp` type will be converted to Oracle `timestamp` type (default behaviour)
+
+If a field is `timestamp` type in the external GP table and `CONVERT_ORACLE_DATE=true` the fields that are used in the `where` filter will be cast to `date` type in Oracle.
+The milliseconds will be truncated. Example of the query where c3 field has `timestamp` type in the GP and `date` type in the Oracle:
+```
+query in gp:              SELECT c1, c2, c3 FROM ext_oracle_datetime_fix WHERE c3 >= '2022-01-01 14:00:00.123456' and c3 < '2022-01-02 03:00:00.232323';
+recieved query in oracle: SELECT c1, c2, c3 FROM system.tst_pxf_datetime WHERE (c3 >= to_date('2022-01-01 14:00:00', 'YYYY-MM-DD HH24:MI:SS') AND c3 < to_date('2022-01-02 03:00:00', 'YYYY-MM-DD HH24:MI:SS'))
+```
+
+If the parameter `CONVERT_ORACLE_DATE=false` or it is not declared in the `LOCATION` the c3 field will be converted to `timestamp` type in Oracle (default behaviour):
+
+```
+query in gp:              SELECT c1, c2, c3 FROM ext_oracle_datetime_fix where c3 >= '2022-01-01 12:01:00' and c3 < '2022-01-02 02:01:00';
+recieved query in oracle: SELECT c1, c2, c3 FROM system.tst_pxf_datetime WHERE (c3 >= to_timestamp('2022-01-01 12:01:00', 'YYYY-MM-DD HH24:MI:SS.FF') AND c3 < to_timestamp('2022-01-02 02:01:00', 'YYYY-MM-DD HH24:MI:SS.FF'))
+```
+
+**Notes:**
+The parameter `CONVERT_ORACLE_DATE` has impact only on the fields that are used in the `where` filter and does not apply for the other fields with `timestamp` type in the table.
+
 
 #### Partition by
 *Can be set only in `LOCATION` clause of external table DDL*
