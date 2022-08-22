@@ -14,6 +14,8 @@ public class BaseFragmenter extends BasePlugin implements Fragmenter {
 
     @Override
     public FragmentStats getFragmentStats() throws Exception {
-        throw new UnsupportedOperationException("Operation getFragmentStats is not supported");
+
+        String profile = context.getProfile();
+        throw new UnsupportedOperationException(String.format("Profile '%s' does not support statistics for fragments", profile));
     }
 }

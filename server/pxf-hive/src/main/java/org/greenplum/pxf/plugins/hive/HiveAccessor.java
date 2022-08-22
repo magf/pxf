@@ -45,6 +45,7 @@ import org.greenplum.pxf.api.filter.SupportedOperatorPruner;
 import org.greenplum.pxf.api.filter.ToStringTreeVisitor;
 import org.greenplum.pxf.api.filter.TreeTraverser;
 import org.greenplum.pxf.api.io.DataType;
+import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.api.utilities.SerializationService;
 import org.greenplum.pxf.api.utilities.SpringContext;
@@ -96,6 +97,7 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
     private static final Logger LOG = LoggerFactory.getLogger(HiveAccessor.class);
     private static final String PXF_PPD_HIVE = "pxf.ppd.hive";
     private static final String HIVE_DEFAULT_PARTITION = "__HIVE_DEFAULT_PARTITION__";
+    private static final String UNSUPPORTED_ERR_MESSAGE = "Hive accessor does not support write operation.";
 
     private List<HivePartition> partitions;
     private int skipHeaderCount;
@@ -212,6 +214,10 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
     public void afterPropertiesSet() {
         super.afterPropertiesSet();
 
+        // HiveAccessor requires fragment metadata which is available for read operations but not write operations
+        if (context.getRequestType() == RequestContext.RequestType.WRITE_BRIDGE)
+            throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
+
         // determine if predicate pushdown is allowed by configuration
         isPredicatePushdownAllowed = configuration.get(PXF_PPD_HIVE, "true").equalsIgnoreCase("true");
         if (isPredicatePushdownAllowed) {
@@ -309,7 +315,7 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
      */
     @Override
     public boolean openForWrite() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
     }
 
     /**
@@ -320,7 +326,7 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
      */
     @Override
     public boolean writeNextObject(OneRow onerow) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
     }
 
     /**
@@ -328,7 +334,7 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
      */
     @Override
     public void closeForWrite() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
     }
 
     /**

@@ -1,17 +1,17 @@
 ---
-title: PXF Service Host and Port
+title: Service Host and Port
 ---
 
 By default, a PXF Service started on a Greenplum host listens on port number `5888` on `localhost`. You can configure PXF to start on a different port number, or use a different hostname or IP address. To change the default configuration, you will set one or both of the environment variables identified below:
 
 |   Environment Variable  |  Description      |
---------------------------+--------------------
+|-------------------------|-------------------|
 |   PXF_HOST  | The name of the host or IP address. The default host name is `localhost`.  |
 |   PXF_PORT  | The port number on which the PXF Service listens for requests on the host. The default port number is `5888`.  |
 
 Set the environment variables in the `gpadmin` user's `.bashrc` shell login file on each Greenplum host.
 
-<div class="note">You must restart both Greenplum Database and PXF when you configure the service host and/or port in this manner. Consider performing this configuration during a scheduled down time.</div>
+<div class="note"><b>Note:</b> You must restart both Greenplum Database and PXF when you configure the service host and/or port in this manner. Consider performing this configuration during a scheduled down time.</div>
 
 ## <a id="proc"></a>Procedure
 
@@ -40,7 +40,7 @@ Perform the following procedure to configure the PXF Service host and/or port nu
         ```
     4. Save the file and exit the editor.
 
-3. Restart Greenplum Database as described in [Restarting Greenplum Database](https://gpdb.docs.pivotal.io/latest/admin_guide/managing/startstop.html#task_gpdb_restart) in the Greenplum Documentation.
+3. Restart Greenplum Database as described in [Restarting Greenplum Database](https://docs.vmware.com/en/VMware-Tanzu-Greenplum/6/greenplum-database/GUID-admin_guide-managing-startstop.html#restarting-greenplum-database) in the Greenplum Documentation.
 
 4. Restart PXF on each Greenplum Database host as described in [Restarting PXF](cfginitstart_pxf.html#restart_pxf).
 

@@ -35,6 +35,9 @@ import java.util.Queue;
  * multi-line records, that are read from a single source (non-parallel).
  */
 public class QuotedLineBreakAccessor extends HdfsAtomicDataAccessor {
+
+    private static final String UNSUPPORTED_ERR_MESSAGE = "Profile '%s' does not support write operation.";
+
     private boolean fileAsRow;
     private boolean firstLine, lastLine;
     private int skipHeaderCount;
@@ -155,7 +158,7 @@ public class QuotedLineBreakAccessor extends HdfsAtomicDataAccessor {
      */
     @Override
     public boolean openForWrite() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(String.format(UNSUPPORTED_ERR_MESSAGE, context.getProfile()));
     }
 
     /**
@@ -166,7 +169,7 @@ public class QuotedLineBreakAccessor extends HdfsAtomicDataAccessor {
      */
     @Override
     public boolean writeNextObject(OneRow onerow) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(String.format(UNSUPPORTED_ERR_MESSAGE, context.getProfile()));
     }
 
     /**
@@ -174,6 +177,6 @@ public class QuotedLineBreakAccessor extends HdfsAtomicDataAccessor {
      */
     @Override
     public void closeForWrite() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(String.format(UNSUPPORTED_ERR_MESSAGE, context.getProfile()));
     }
 }

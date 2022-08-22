@@ -98,4 +98,12 @@ public class HBaseResolverTest {
                 "Unsupported data type should throw exception");
         assertEquals("Unsupported data type point", e.getMessage());
     }
+
+    @Test
+    public void testSetFieldsIsUnsupported() {
+        Exception e = assertThrows(UnsupportedOperationException.class,
+                () -> new HBaseResolver().setFields(null));
+
+        assertEquals("HBase resolver does not support write operation", e.getMessage());
+    }
 }

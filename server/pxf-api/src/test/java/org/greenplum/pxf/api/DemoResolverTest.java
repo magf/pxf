@@ -102,4 +102,11 @@ public class DemoResolverTest {
                 () -> textResolver.setFields(Arrays.asList(field, field)));
     }
 
+    @Test
+    public void testSetFieldsIsUnsupported() {
+      Exception e = assertThrows(UnsupportedOperationException.class,
+                () -> customResolver.setFields(null));
+
+      assertEquals("Demo resolver does not support write operation", e.getMessage());
+    }
 }

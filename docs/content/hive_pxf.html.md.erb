@@ -25,7 +25,7 @@ Apache Hive is a distributed data warehousing infrastructure. Hive facilitates m
 
 The PXF Hive connector reads data stored in a Hive table. This section describes how to use the PXF Hive connector. 
 
-<div class="note">When accessing Hive 3, the PXF Hive connector supports using the <code>hive[:*]</code> profiles described below to access Hive 3 external tables only. The Connector does not support using the <code>hive[:*]</code> profiles to access Hive 3 managed (CRUD and insert-only transactional, and temporary) tables. Use the <a href="jdbc_pxf.html">PXF JDBC Connector</a> to access Hive 3 managed tables instead.</div>
+<div class="note"><b>Note:</b> When accessing Hive 3, the PXF Hive connector supports using the <code>hive[:*]</code> profiles described below to access Hive 3 external tables only. The Connector does not support using the <code>hive[:*]</code> profiles to access Hive 3 managed (CRUD and insert-only transactional, and temporary) tables. Use the <a href="jdbc_pxf.html">PXF JDBC Connector</a> to access Hive 3 managed tables instead.</div>
 
 ## <a id="prereq"></a>Prerequisites
 
@@ -101,7 +101,7 @@ Prepare the sample data set for use:
     $ vi /tmp/pxf_hive_datafile.txt
     ```
 
-2. Add the following data to `pxf_hive_datafile.txt`; notice the use of the comma `,` to separate the four field values:
+2. Add the following data to `pxf_hive_datafile.txt`; notice the use of the comma (`,`) to separate the four field values:
 
     ```
     Prague,Jan,101,4875.33
@@ -143,6 +143,7 @@ Create a Hive table to expose the sample data set.
     ```
 
     Notice that:
+
     - The `STORED AS textfile` subclause instructs Hive to create the table in Textfile (the default) format.  Hive Textfile format supports comma-, tab-, and space-separated values, as well as data specified in JSON notation.
     - The `DELIMITED FIELDS TERMINATED BY` subclause identifies the field delimiter within a data record (line). The `sales_info` table field delimiter is a comma (`,`).
 
@@ -193,7 +194,7 @@ LOCATION ('pxf://<hive-db-name>.<hive-table-name>
 FORMAT 'CUSTOM|TEXT' (FORMATTER='pxfwritable_import' | delimiter='<delim>')
 ```
 
-Hive connector-specific keywords and values used in the Greenplum Database [CREATE EXTERNAL TABLE](https://gpdb.docs.pivotal.io/latest/ref_guide/sql_commands/CREATE_EXTERNAL_TABLE.html) call are described below.
+Hive connector-specific keywords and values used in the Greenplum Database [CREATE EXTERNAL TABLE](https://docs.vmware.com/en/VMware-Tanzu-Greenplum/6/greenplum-database/GUID-ref_guide-sql_commands-CREATE_EXTERNAL_TABLE.html) call are described below.
 
 | Keyword  | Value |
 |-------|-------------------------------------|
@@ -206,7 +207,7 @@ Hive connector-specific keywords and values used in the Greenplum Database [CREA
 | FORMAT (`hive` and `hive:orc` profiles)   | The `FORMAT` clause must specify `'CUSTOM'`. The `CUSTOM` format requires the built-in `pxfwritable_import` `formatter`.   |
 | FORMAT (`hive:text` and `hive:rc` profiles) | The `FORMAT` clause must specify `TEXT`. Specify the single ascii character field delimiter in the `delimiter='<delim>'` formatting option. |
 
-<div class="note">Because Hive tables can be backed by one or more files and each file can have a unique layout or schema, PXF requires that the column names that you specify when you create the external table match the column names defined for the Hive table. This allows you to:<ul>
+<div class="note"><b>Note:</b> Because Hive tables can be backed by one or more files and each file can have a unique layout or schema, PXF requires that the column names that you specify when you create the external table match the column names defined for the Hive table. This allows you to:<ul>
 <li>Create the PXF external table with columns in a different order than the Hive table.</li>
 <li>Create a PXF external table that reads a subset of the columns in the Hive table.</li>
 <li>Read a Hive table where the files backing the table have a different number of columns.</li></ul></div>
@@ -530,7 +531,7 @@ When you specify an array field in a Hive table, you must identify the terminato
     $ vi /tmp/pxf_hive_complex.txt
     ```
 
-2. Add the following text to `pxf_hive_complex.txt`.  This data uses a comma `,` to separate field values, the percent symbol `%` to separate collection items, and a `:` to terminate map key values:
+2. Add the following text to `pxf_hive_complex.txt`.  This data uses a comma (`,`) to separate field values, the percent symbol `%` to separate collection items, and a `:` to terminate map key values:
 
     ```
     3,Prague,1%2%3,zone:euro%status:up
@@ -560,6 +561,7 @@ When you specify an array field in a Hive table, you must identify the terminato
     ```
 
     Notice that:
+
     - `FIELDS TERMINATED BY` identifies a comma as the field terminator.
     - The `COLLECTION ITEMS TERMINATED BY` subclause specifies the percent sign as the collection items (array item, map key/value pair) terminator.
     - `MAP KEYS TERMINATED BY` identifies a colon as the terminator for map keys.
@@ -704,7 +706,7 @@ The PXF Hive Connector partition filtering support for Hive string and integral 
 
 To take advantage of PXF partition filtering pushdown, the Hive and PXF partition field names must be the same. Otherwise, PXF ignores partition filtering and the filtering is performed on the Greenplum Database side, impacting performance.
 
-<div class="note">The PXF Hive connector filters only on partition columns, not on other table attributes. Additionally, filter pushdown is supported only for those data types and operators identified above.</div>
+<div class="note"><b>Note:</b> The PXF Hive connector filters only on partition columns, not on other table attributes. Additionally, filter pushdown is supported only for those data types and operators identified above.</div>
 
 PXF filter pushdown is enabled by default. You configure PXF filter pushdown as described in [About Filter Pushdown](filter_push.html).
 

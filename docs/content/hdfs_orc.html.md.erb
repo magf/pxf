@@ -1,5 +1,5 @@
 ---
-title: Reading ORC Data
+title: Reading ORC Data from HDFS
 ---
 
 Use the PXF HDFS connector `hdfs:orc` profile to read ORC-format data when the data resides in a Hadoop file system. This section describes how to read HDFS files that are stored in ORC format, including how to create and query an external table that references these files in the HDFS data store.
@@ -80,7 +80,7 @@ LOCATION ('pxf://<path-to-hdfs-file>
 FORMAT 'CUSTOM' (FORMATTER='pxfwritable_import')
 ```
 
-The specific keywords and values used in the Greenplum Database [CREATE EXTERNAL TABLE](https://gpdb.docs.pivotal.io/latest/ref_guide/sql_commands/CREATE_EXTERNAL_TABLE.html) command are described below.
+The specific keywords and values used in the Greenplum Database [CREATE EXTERNAL TABLE](https://docs.vmware.com/en/VMware-Tanzu-Greenplum/6/greenplum-database/GUID-ref_guide-sql_commands-CREATE_EXTERNAL_TABLE.html) command are described below.
 
 | Keyword  | Value |
 |-------|-------------------------------------|

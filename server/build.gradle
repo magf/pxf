@@ -94,18 +94,6 @@ configure(javaProjects) {
             dependency("org.apache.htrace:htrace-core:3.1.0-incubating")
             dependency("org.apache.htrace:htrace-core4:4.0.1-incubating")
 
-            // --- bump log4j2 to 2.17.1 for CVE-2021-44228, CVE-2021-45046, and CVE-2021-45105 fixes,
-            // more details: https://logging.apache.org/log4j/2.x/security.html
-            // revert once org.springframework.boot:spring-boot-starter-log4j2 is upgraded to bundle log4j2:2.17.1+
-            dependencySet(group:"org.apache.logging.log4j", version:"2.17.1") {
-                entry("log4j-jul")
-                entry("log4j-api")
-                entry("log4j-core")
-                entry("log4j-spring-boot")
-            }
-            dependency("org.apache.logging.log4j:log4j-slf4j-impl:2.17.1")
-            // --- end of CVE patch
-
             dependency("org.apache.zookeeper:zookeeper:3.4.6")
             dependency("org.codehaus.woodstox:stax2-api:3.1.4")
             dependency("org.datanucleus:datanucleus-api-jdo:4.2.4")
@@ -115,16 +103,16 @@ configure(javaProjects) {
             dependency("org.mortbay.jetty:jetty-util:6.1.26")
             dependency("org.objenesis:objenesis:2.1")
 
-            // ---- bump postgres to 42.3.3 for CVE-2022-21724 fixes
-            // more details: https://nvd.nist.gov/vuln/detail/CVE-2022-21724
-            // revert once springboot provided postgresql is upgraded to bundle postgresql:42.3.3+
-            dependency("org.postgresql:postgresql:42.3.3")
+            // ---- bump postgresql to 42.4.1 for CVE-2022-31197 fixes
+            // more details: https://nvd.nist.gov/vuln/detail/CVE-2022-31197
+            // revert once springboot provided postgresql is upgraded to bundle postgresql:42.4.1+
+            dependency("org.postgresql:postgresql:42.4.1")
 
             dependency("org.simplify4u:slf4j-mock:2.1.0")
             dependency("org.threeten:threeten-extra:1.5.0")
             dependency("org.tukaani:xz:1.8")
             dependency("org.wildfly.openssl:wildfly-openssl:1.0.7.Final")
-            dependency("org.xerial.snappy:snappy-java:1.1.7.5")
+            dependency("org.xerial.snappy:snappy-java:1.1.8.4")
 
             // Hadoop dependencies
             dependencySet(group:"org.apache.hadoop", version:"${hadoopVersion}") {

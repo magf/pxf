@@ -15,6 +15,55 @@ In order to run PXF automation tests the following are needed
 Build & Test
 ===================================
 
+### SSH Setup
+
+The PXF automation project uses an old SSH2 Java library that does not support newer key exchange algorithms (`KexAlgorithms`).
+Newer operating systems such as MacOS 12+ and Debian's openssh-server package (1:8.4p1-5) do not enable support for these algorithms by default.
+You can check the supported algorithms with
+
+```bash
+sudo sshd -T | grep 'kexalgorithms'
+```
+
+The following algorithms _must_ be included:
+
+- diffie-hellman-group-exchange-sha1
+- diffie-hellman-group14-sha1
+- diffie-hellman-group1-sha1
+
+If they are not, you can enable them with the following config file:
+
+```bash
+sudo tee -a /etc/ssh/sshd_config.d/pxf-automation-kex.conf <<EOF
+# pxf automation uses an old SSH2 Java library that doesn't support newer KexAlgorithms
+# this assumes that /etc/ssh/sshd_config contains "Include /etc/ssh/sshd_config.d/*.conf"
+# if it doesn't, try adding this directly to /etc/ssh/sshd_config
+KexAlgorithms +diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1,diffie-hellman-group1-sha1
+EOF
+```
+
+
+Then restart sshd based on your OS.
+For MacOS, either run in terminal
+```shell
+sudo launchctl unload /System/Library/LaunchDaemons/ssh.plist
+sudo launchctl load -w /System/Library/LaunchDaemons/ssh.plist
+```
+or go to System Preferences > Sharing and toggle `Remote Login`
+
+For Linux, run
+```shell
+sudo systemctl restart sshd
+```
+
+Recheck the support algorithms before proceeding
+
+```bash
+sudo sshd -T | grep 'kexalgorithms'
+```
+
+### General Automation Setup
+
 Set necessary Environment Vars
 ```
 export GPHD_ROOT=<parent directory containing hadoop,hive,etc>
@@ -38,10 +87,12 @@ Run specific method from a test
 make TEST=<testclassname>#<method>
 ```
 
-If you wish to remote debug your PXF Automation test case 
+If you wish to remote debug your PXF Automation test case, use the following:
 ```
-export MAVEN_DEBUG_OPTS=' -Dmaven.surefire.debug'
+PXF_TEST_DEBUG=true make TEST=<testclassname>
 ```
+This will allow you to attach to port 5005 for debugging purposes. See [IntelliJ Setup](#intellij-setup) for more details.
+
 
 If you wish to run with cache 
 ```
@@ -221,3 +272,32 @@ In every "class" directory will be files according to the following format: <tim
 
 TestNg report will generated into target/surefire-reports
 <img src="images/68125531.png" class="confluence-embedded-image confluence-content-image-border" width="1084" height="612" />
+
+# IDE Setup (IntelliJ) and Automation Debugging
+
+There are 2 flags that can be used to debug automation tests:
+
+1. `PXF_TEST_KEEP_DATA` - does not remove any test data after an automation test.
+2. `PXF_TEST_DEBUG` - will cause the automation application to wait for a debugger to attach to the session before proceeding.
+
+### Intelli Automation Debug Setup
+In IntelliJ, create an `Automation Debug` configuration:
+
+1. Click Run > Edit Configurations
+2. Select '+', and pick 'Remote JVM Debug'
+3. Name the configuration `Automation Debug` and set the host to `localhost` and the port to `5005`
+4. Set your breakpoints in the automation test of your choice.
+5. Run automation with `PXF_TEST_DEBUG=true`
+
+### PXF Server Debug during an Automation Debug
+
+There are 2 different JVMs running when automation tests. The first is the automation application itself that can be debugged. The second is the PXF server that the automation suite is testing.
+Setting the `PXF_TEST_DEBUG` flag in the automation app will also set the flag `PXF_DEBUG` to enable debugging of the PXF server itself if the automation restarts PXF server during some of the tests. This is done so that a debugger can be connected to a PXF server restarted by the automation tests.
+
+Follow the steps [here](https://github.com/greenplum-db/pxf#debugging-the-locally-running-instance-of-pxf-server-using-intellij) to set up a PXF server debug configuration if it is not already done.
+
+1. Run automation with `PXF_TEST_DEBUG=true` to connect to the automation debug session.
+2. Attach to the automation debug session
+3. Add a breakpoint at the beginning of the automation test case you are running, or at the end of the beforeClass block to ensure that the PXF server debug session properly attaches
+4. Attach to the PXF server debug session
+5. Debug as you would normally.

@@ -1,8 +1,8 @@
 ---
-title: About Accessing the S3 Object Store
+title: About Accessing the AWS S3 Object Store
 ---
 
-PXF is installed with a connector to the S3 object store. PXF supports the following additional runtime features with this connector:
+PXF is installed with a connector to the AWS S3 object store. PXF supports the following additional runtime features with this connector:
 
 - Overriding the S3 credentials specified in the server configuration by providing them in the `CREATE EXTERNAL TABLE` command DDL.
 - Using the Amazon S3 Select service to read certain CSV and Parquet data from S3.
@@ -13,15 +13,15 @@ If you are accessing an S3-compatible object store, you can override the credent
 
 | Custom Option  | Value Description |
 |-------|-------------------------------------|
-| accesskey    | The AWS account access key ID. |
-| secretkey    | The secret key associated with the AWS access key ID. |
+| accesskey    | The AWS S3 account access key ID. |
+| secretkey    | The secret key associated with the AWS S3 access key ID. |
 
 For example:
 <pre>CREATE EXTERNAL TABLE pxf_ext_tbl(name text, orders int)
   LOCATION ('pxf://S3_BUCKET/dir/file.txt?PROFILE=s3:text&SERVER=s3srvcfg<b>&accesskey=YOURKEY&secretkey=YOURSECRET</b>')
 FORMAT 'TEXT' (delimiter=E',');</pre>
 
-<div class="note warning">Credentials that you provide in this manner are visible as part of the external table definition. Do not use this method of passing credentials in a production environment.</div>
+<div class="note warning"><b>Warning:</b> Credentials that you provide in this manner are visible as part of the external table definition. Do not use this method of passing credentials in a production environment.</div>
 
 PXF does not support overriding Azure, Google Cloud Storage, and MinIO server credentials in this manner at this time.
 

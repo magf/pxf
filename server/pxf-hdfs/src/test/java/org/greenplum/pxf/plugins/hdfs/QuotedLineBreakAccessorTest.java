@@ -419,6 +419,23 @@ public class QuotedLineBreakAccessorTest {
         accessor.closeForRead();
     }
 
+    @Test
+    public void testWriteIsNotSupported() throws Exception {
+        context.setProfile("text:multi");
+        accessor.setRequestContext(context);
+
+        prepareTest("csv/simple.csv", false);
+
+        Exception e = assertThrows(UnsupportedOperationException.class, () -> accessor.openForWrite());
+        assertEquals("Profile 'text:multi' does not support write operation.", e.getMessage());
+
+        e = assertThrows(UnsupportedOperationException.class, () -> accessor.writeNextObject(new OneRow()));
+        assertEquals("Profile 'text:multi' does not support write operation.", e.getMessage());
+
+        e = assertThrows(UnsupportedOperationException.class, () -> accessor.closeForWrite());
+        assertEquals("Profile 'text:multi' does not support write operation.", e.getMessage());
+    }
+
     private void prepareTest(String resourceName, boolean fileAsRow) throws Exception {
         if (fileAsRow) {
             context.addOption("FILE_AS_ROW", "true");
