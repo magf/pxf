@@ -88,7 +88,7 @@ PXF uses the following data type mapping when writing Parquet data:
 | Text | utf8 | binary |
 | OTHERS | -- | UNSUPPORTED |
 
-</br><sup>1</sup>&nbsp;PXF localizes a <code>Timestamp</code> to the current system timezone and converts it to universal time (UTC) before finally converting to <code>int96</code>.
+</br><sup>1</sup>&nbsp;PXF localizes a <code>Timestamp</code> to the current system time zone and converts it to universal time (UTC) before finally converting to <code>int96</code>.
 </br><sup>2</sup>&nbsp;PXF converts a <code>Timestamptz</code> to a UTC <code>timestamp</code> and then converts to <code>int96</code>. PXF loses the time zone information during this conversion.
 
 
@@ -103,7 +103,7 @@ CREATE [WRITABLE] EXTERNAL TABLE <table_name>
     ( <column_name> <data_type> [, ...] | LIKE <other_table> )
 LOCATION ('pxf://<path-to-hdfs-dir>
     ?PROFILE=hdfs:parquet[&SERVER=<server_name>][&<custom-option>=<value>[...]]')
-FORMAT 'CUSTOM' (FORMATTER='pxfwritable_import'|'pxfwritable_export');
+FORMAT 'CUSTOM' (FORMATTER='pxfwritable_import'|'pxfwritable_export')
 [DISTRIBUTED BY (<column_name> [, ... ] ) | DISTRIBUTED RANDOMLY];
 ```
 
@@ -116,7 +116,7 @@ The specific keywords and values used in the Greenplum Database [CREATE EXTERNAL
 | SERVER=\<server_name\>    | The named server configuration that PXF uses to access the data. PXF uses the `default` server if not specified. |
 | \<custom&#8209;option\>  | \<custom-option\>s are described below.|
 | FORMAT 'CUSTOM' | Use `FORMAT` '`CUSTOM`' with `(FORMATTER='pxfwritable_export')` (write) or `(FORMATTER='pxfwritable_import')` (read). |
-| DISTRIBUTED BY    | If you want to load data from an existing Greenplum Database table into the writable external table, consider specifying the same distribution policy or \<column_name\> on both tables. Doing so will avoid extra motion of data between segments on the load operation. |
+| DISTRIBUTED BY    | If you want to load data from an existing Greenplum Database table into the writable external table, consider specifying the same distribution policy or `<column_name>` on both tables. Doing so will avoid extra motion of data between segments on the load operation. |
 
 <a id="customopts"></a>
 The PXF `hdfs:parquet` profile supports the following read option. You specify this option in the `CREATE EXTERNAL TABLE` `LOCATION` clause:
