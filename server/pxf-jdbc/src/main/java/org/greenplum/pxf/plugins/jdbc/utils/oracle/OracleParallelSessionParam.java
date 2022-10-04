@@ -5,30 +5,6 @@ public class OracleParallelSessionParam {
     private StatementType statementType;
     private String degreeOfParallelism;
 
-    public void setClause(Clause clause) {
-        this.clause = clause;
-    }
-
-    public void setStatementType(StatementType statementType) {
-        this.statementType = statementType;
-    }
-
-    public void setDegreeOfParallelism(String degreeOfParallelism) {
-        this.degreeOfParallelism = degreeOfParallelism;
-    }
-
-    public Clause getClause() {
-        return clause;
-    }
-
-    public StatementType getStatementType() {
-        return statementType;
-    }
-
-    public String getDegreeOfParallelism() {
-        return degreeOfParallelism;
-    }
-
     public enum Clause {
         ENABLE("ENABLE"),
         DISABLE("DISABLE"),
@@ -51,5 +27,29 @@ public class OracleParallelSessionParam {
         StatementType(String value) {
             this.value = value;
         }
+    }
+
+    public void setClause(Clause clause) {
+        this.clause = clause;
+    }
+
+    public void setStatementType(StatementType statementType) {
+        this.statementType = statementType;
+    }
+
+    public void setDegreeOfParallelism(String degreeOfParallelism) {
+        this.degreeOfParallelism = degreeOfParallelism;
+    }
+
+    public Clause getClause() {
+        return clause;
+    }
+
+    public StatementType getStatementType() {
+        return statementType;
+    }
+
+    public String getDegreeOfParallelism() {
+        return degreeOfParallelism;
     }
 }
