@@ -73,11 +73,11 @@ public class OracleParallelSessionParamFactory {
     }
 
     private boolean isClauseValid(String value) {
-        return Arrays.stream(OracleParallelSessionParam.Clause.values()).anyMatch(e -> e.value.equalsIgnoreCase(value));
+        return Arrays.stream(OracleParallelSessionParam.Clause.values()).anyMatch(e -> e.name().equalsIgnoreCase(value));
     }
 
     private boolean isStatementTypeValid(String value) {
-        return Arrays.stream(OracleParallelSessionParam.StatementType.values()).anyMatch(e -> e.value.equalsIgnoreCase(value));
+        return Arrays.stream(OracleParallelSessionParam.StatementType.values()).anyMatch(e -> e.name().equalsIgnoreCase(value));
     }
 
     private boolean isDegreeOfParallelismValid(String value) {

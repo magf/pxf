@@ -6,27 +6,15 @@ public class OracleParallelSessionParam {
     private String degreeOfParallelism;
 
     public enum Clause {
-        ENABLE("ENABLE"),
-        DISABLE("DISABLE"),
-        FORCE("FORCE");
-
-        public final String value;
-
-        Clause(String value) {
-            this.value = value;
-        }
+        ENABLE,
+        DISABLE,
+        FORCE
     }
 
     public enum StatementType {
-        DML("DML"),
-        DDL("DDL"),
-        QUERY("QUERY");
-
-        public final String value;
-
-        StatementType(String value) {
-            this.value = value;
-        }
+        DML,
+        DDL,
+        QUERY
     }
 
     public void setClause(Clause clause) {
