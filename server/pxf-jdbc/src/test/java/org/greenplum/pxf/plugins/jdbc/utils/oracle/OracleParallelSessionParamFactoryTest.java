@@ -51,7 +51,7 @@ class OracleParallelSessionParamFactoryTest {
     void createWithWrongClause() {
         String value = "fake_force.query.5";
         Exception exception = assertThrows(IllegalArgumentException.class, () -> oracleParallelSessionParamFactory.create(property, value));
-        String expectedMessage = "The 'clause' value FAKE_FORCE in the parameter jdbc.session.property.alter_session_parallel.1 is not valid";
+        String expectedMessage = "The 'clause' value 'FAKE_FORCE' in the parameter 'jdbc.session.property.alter_session_parallel.1' is not valid";
         String actualMessage = exception.getMessage();
         assertEquals(actualMessage, expectedMessage);
     }
@@ -60,7 +60,7 @@ class OracleParallelSessionParamFactoryTest {
     void createWithWrongStatement() {
         String value = "enable.fake_statement";
         Exception exception = assertThrows(IllegalArgumentException.class, () -> oracleParallelSessionParamFactory.create(property, value));
-        String expectedMessage = "The 'statement type' value FAKE_STATEMENT in the parameter jdbc.session.property.alter_session_parallel.1 is not valid";
+        String expectedMessage = "The 'statement type' value 'FAKE_STATEMENT' in the parameter 'jdbc.session.property.alter_session_parallel.1' is not valid";
         String actualMessage = exception.getMessage();
         assertEquals(expectedMessage, actualMessage);
     }
@@ -69,7 +69,7 @@ class OracleParallelSessionParamFactoryTest {
     void createWithWrongDegreeOfParallelism() {
         String value = "force.dml.fake_number";
         Exception exception = assertThrows(IllegalArgumentException.class, () -> oracleParallelSessionParamFactory.create(property, value));
-        String expectedMessage = "The 'degree of parallelism' value fake_number in the parameter jdbc.session.property.alter_session_parallel.1 is not valid";
+        String expectedMessage = "The 'degree of parallelism' value 'fake_number' in the parameter 'jdbc.session.property.alter_session_parallel.1' is not valid";
         String actualMessage = exception.getMessage();
         assertEquals(expectedMessage, actualMessage);
     }
@@ -78,7 +78,7 @@ class OracleParallelSessionParamFactoryTest {
     void createWithWrongValueMoreThen3() {
         String value = "force.dml.number.70";
         Exception exception = assertThrows(IllegalArgumentException.class, () -> oracleParallelSessionParamFactory.create(property, value));
-        String expectedMessage = "Parameter jdbc.session.property.alter_session_parallel.1 in jdbc-site.xml has to contain at least 2 but not more then 3 values delimited by \\.";
+        String expectedMessage = "The parameter 'jdbc.session.property.alter_session_parallel.1' in jdbc-site.xml has to contain at least 2 but not more then 3 values delimited by \\.";
         String actualMessage = exception.getMessage();
         assertEquals(expectedMessage, actualMessage);
     }
@@ -87,7 +87,7 @@ class OracleParallelSessionParamFactoryTest {
     void createWithWrongValueLessThen2() {
         String value = "force";
         Exception exception = assertThrows(IllegalArgumentException.class, () -> oracleParallelSessionParamFactory.create(property, value));
-        String expectedMessage = "Parameter jdbc.session.property.alter_session_parallel.1 in jdbc-site.xml has to contain at least 2 but not more then 3 values delimited by \\.";
+        String expectedMessage = "The parameter 'jdbc.session.property.alter_session_parallel.1' in jdbc-site.xml has to contain at least 2 but not more then 3 values delimited by \\.";
         String actualMessage = exception.getMessage();
         assertEquals(expectedMessage, actualMessage);
     }
@@ -96,7 +96,7 @@ class OracleParallelSessionParamFactoryTest {
     void createWithBlankValue() {
         String value = " ";
         Exception exception = assertThrows(IllegalArgumentException.class, () -> oracleParallelSessionParamFactory.create(property, value));
-        String expectedMessage = "Parameter jdbc.session.property.alter_session_parallel.1 is empty in jdbc-site.xml";
+        String expectedMessage = "The parameter 'jdbc.session.property.alter_session_parallel.1' is empty in jdbc-site.xml";
         String actualMessage = exception.getMessage();
         assertEquals(expectedMessage, actualMessage);
     }
