@@ -4,6 +4,7 @@ import org.apache.logging.log4j.util.Strings;
 
 public class OracleSessionQueryFactory {
     private static final String ORACLE_JDBC_SESSION_PARALLEL_PROPERTY_PREFIX = "alter_session_parallel";
+    private static final String ORACLE_JDBC_SESSION_PARALLEL_PROPERTY_DELIMITER = "\\.";
     private final OracleParallelSessionParamFactory oracleSessionParamFactory = new OracleParallelSessionParamFactory();
 
     public String create(String property, String value) {
@@ -14,7 +15,8 @@ public class OracleSessionQueryFactory {
     }
 
     private String getParallelSessionCommand(String property, String value) {
-        OracleParallelSessionParam param = oracleSessionParamFactory.create(property, value);
+        OracleParallelSessionParam param = oracleSessionParamFactory.create(property,
+                value, ORACLE_JDBC_SESSION_PARALLEL_PROPERTY_DELIMITER);
         return createParallelSessionCommand(param);
     }
 

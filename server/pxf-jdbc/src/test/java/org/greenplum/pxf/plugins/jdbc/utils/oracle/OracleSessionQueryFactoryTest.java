@@ -8,12 +8,14 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 class OracleSessionQueryFactoryTest {
+    private final String property = "jdbc.session.property.alter_session_parallel.1";
+    private final String delimiter = "\\.";
 
     @Test
     @SuppressWarnings("try")
     void createParallelSessionQueryWithForceAndDegreeOfParallelism() {
-        String property = "jdbc.session.property.alter_session_parallel.1";
         String value = "force.query.4";
+        String delimiter = "\\.";
         String expectedResult = "ALTER SESSION FORCE PARALLEL QUERY PARALLEL 4";
 
         OracleParallelSessionParam param = new OracleParallelSessionParam();
@@ -22,7 +24,7 @@ class OracleSessionQueryFactoryTest {
         param.setDegreeOfParallelism("4");
 
         try (MockedConstruction<OracleParallelSessionParamFactory> mocked = mockConstruction(OracleParallelSessionParamFactory.class,
-                (mock, context) -> when(mock.create(property, value)).thenReturn(param))) {
+                (mock, context) -> when(mock.create(property, value, delimiter)).thenReturn(param))) {
             OracleSessionQueryFactory oracleSessionQueryFactory = new OracleSessionQueryFactory();
             String result = oracleSessionQueryFactory.create(property, value);
             assertEquals(expectedResult, result);
@@ -32,7 +34,6 @@ class OracleSessionQueryFactoryTest {
     @Test
     @SuppressWarnings("try")
     void createParallelSessionQueryWithForce() {
-        String property = "jdbc.session.property.alter_session_parallel.1";
         String value = "force.dml";
         String expectedResult = "ALTER SESSION FORCE PARALLEL DML";
 
@@ -42,7 +43,7 @@ class OracleSessionQueryFactoryTest {
         param.setDegreeOfParallelism("");
 
         try (MockedConstruction<OracleParallelSessionParamFactory> mocked = mockConstruction(OracleParallelSessionParamFactory.class,
-                (mock, context) -> when(mock.create(property, value)).thenReturn(param))) {
+                (mock, context) -> when(mock.create(property, value, delimiter)).thenReturn(param))) {
             OracleSessionQueryFactory oracleSessionQueryFactory = new OracleSessionQueryFactory();
             String result = oracleSessionQueryFactory.create(property, value);
             assertEquals(expectedResult, result);
@@ -52,7 +53,6 @@ class OracleSessionQueryFactoryTest {
     @Test
     @SuppressWarnings("try")
     void createParallelSessionQueryWithEnable() {
-        String property = "jdbc.session.property.alter_session_parallel.1";
         String value = "enable.dml.2";
         String expectedResult = "ALTER SESSION ENABLE PARALLEL DDL";
 
@@ -62,7 +62,7 @@ class OracleSessionQueryFactoryTest {
         param.setDegreeOfParallelism("2");
 
         try (MockedConstruction<OracleParallelSessionParamFactory> mocked = mockConstruction(OracleParallelSessionParamFactory.class,
-                (mock, context) -> when(mock.create(property, value)).thenReturn(param))) {
+                (mock, context) -> when(mock.create(property, value, delimiter)).thenReturn(param))) {
             OracleSessionQueryFactory oracleSessionQueryFactory = new OracleSessionQueryFactory();
             String result = oracleSessionQueryFactory.create(property, value);
             assertEquals(expectedResult, result);
@@ -72,7 +72,6 @@ class OracleSessionQueryFactoryTest {
     @Test
     @SuppressWarnings("try")
     void createParallelSessionQueryWithDisable() {
-        String property = "jdbc.session.property.alter_session_parallel.1";
         String value = "disable.dml";
         String expectedResult = "ALTER SESSION DISABLE PARALLEL DML";
 
@@ -82,7 +81,7 @@ class OracleSessionQueryFactoryTest {
         param.setDegreeOfParallelism("");
 
         try (MockedConstruction<OracleParallelSessionParamFactory> mocked = mockConstruction(OracleParallelSessionParamFactory.class,
-                (mock, context) -> when(mock.create(property, value)).thenReturn(param))) {
+                (mock, context) -> when(mock.create(property, value, delimiter)).thenReturn(param))) {
             OracleSessionQueryFactory oracleSessionQueryFactory = new OracleSessionQueryFactory();
             String result = oracleSessionQueryFactory.create(property, value);
             assertEquals(expectedResult, result);
@@ -102,7 +101,7 @@ class OracleSessionQueryFactoryTest {
         param.setDegreeOfParallelism("2");
 
         try (MockedConstruction<OracleParallelSessionParamFactory> mocked = mockConstruction(OracleParallelSessionParamFactory.class,
-                (mock, context) -> when(mock.create(property, value)).thenReturn(param))) {
+                (mock, context) -> when(mock.create(property, value, delimiter)).thenReturn(param))) {
             OracleSessionQueryFactory oracleSessionQueryFactory = new OracleSessionQueryFactory();
             String result = oracleSessionQueryFactory.create(property, value);
             assertEquals(expectedResult, result);
