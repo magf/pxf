@@ -7,9 +7,9 @@ import java.util.HashMap;
 
 public class OracleParallelSessionParamFactory {
     public OracleParallelSessionParam create(String property, String value, String delimiter) {
-        validateValue(property, value, delimiter);
+        String[] values = splitValue(property, value, delimiter);
 
-        HashMap<String, String> map = getParallelSessionParam(value.split(delimiter));
+        HashMap<String, String> map = getParallelSessionParam(values);
         String clause = map.get("clause").toUpperCase();
         String statementType = map.get("statement_type").toUpperCase();
         String degreeOfParallelism = map.get("degree_of_parallelism");
@@ -21,18 +21,21 @@ public class OracleParallelSessionParamFactory {
         return param;
     }
 
-    private void validateValue(String property, String value, String delimiter) {
-        if (StringUtils.isBlank(value)) {
-            throw new IllegalArgumentException(String.format(
-                    "The parameter '%s' is empty in jdbc-site.xml", property)
-            );
-        }
+    private String[] splitValue(String property, String value, String delimiter) {
+        validateValue(property, value);
         String[] values = value.split(delimiter);
         if (values.length < 2 || values.length > 3) {
             throw new IllegalArgumentException(String.format(
                     "The parameter '%s' in jdbc-site.xml has to contain at least 2 but not more then 3 values delimited by %s",
                     property, delimiter)
             );
+        }
+        return values;
+    }
+
+    private void validateValue(String property, String value) {
+        if (StringUtils.isBlank(value)) {
+            throw new IllegalArgumentException(String.format("The parameter '%s' is blank in jdbc-site.xml", property));
         }
     }
 

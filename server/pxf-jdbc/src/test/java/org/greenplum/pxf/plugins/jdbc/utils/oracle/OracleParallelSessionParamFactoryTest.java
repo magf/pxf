@@ -103,7 +103,7 @@ class OracleParallelSessionParamFactoryTest {
         String value = " ";
         Exception exception = assertThrows(IllegalArgumentException.class,
                 () -> oracleParallelSessionParamFactory.create(property, value, delimiter));
-        String expectedMessage = "The parameter 'jdbc.session.property.alter_session_parallel.1' is empty in jdbc-site.xml";
+        String expectedMessage = "The parameter 'jdbc.session.property.alter_session_parallel.1' is blank in jdbc-site.xml";
         String actualMessage = exception.getMessage();
         assertEquals(expectedMessage, actualMessage);
     }
