@@ -19,11 +19,9 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
-import io.arenadata.security.encryption.model.EncryptorType;
-import io.arenadata.security.encryption.util.Util;
+import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.greenplum.pxf.api.configuration.PxfJksTextEncryptorConfiguration;
 import org.greenplum.pxf.api.model.BasePlugin;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.security.SecureLogin;
@@ -33,10 +31,8 @@ import org.greenplum.pxf.api.utilities.Utilities;
 import org.greenplum.pxf.plugins.jdbc.utils.ConnectionManager;
 import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 import org.greenplum.pxf.plugins.jdbc.utils.HiveJdbcUtils;
-import org.greenplum.pxf.plugins.jdbc.utils.JdbcDecryptService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import java.security.PrivilegedExceptionAction;
 import java.sql.Connection;
@@ -168,6 +164,7 @@ public class JdbcBasePlugin extends BasePlugin {
 
     private final ConnectionManager connectionManager;
     private final SecureLogin secureLogin;
+    private final DecryptClient decryptClient;
 
     static {
         // Deprecated as of Oct 22, 2019 in version 5.9.2+
@@ -178,10 +175,12 @@ public class JdbcBasePlugin extends BasePlugin {
 
     /**
      * Creates a new instance with default (singleton) instances of
-     * ConnectionManager and SecureLogin.
+     * ConnectionManager, SecureLogin and DecryptClient.
      */
     JdbcBasePlugin() {
-        this(SpringContext.getBean(ConnectionManager.class), SpringContext.getBean(SecureLogin.class));
+        this(SpringContext.getBean(ConnectionManager.class), SpringContext.getBean(SecureLogin.class),
+                SpringContext.getNullableBean(DecryptClient.class)
+        );
     }
 
     /**
@@ -189,9 +188,10 @@ public class JdbcBasePlugin extends BasePlugin {
      *
      * @param connectionManager connection manager instance
      */
-    JdbcBasePlugin(ConnectionManager connectionManager, SecureLogin secureLogin) {
+    JdbcBasePlugin(ConnectionManager connectionManager, SecureLogin secureLogin, DecryptClient decryptClient) {
         this.connectionManager = connectionManager;
         this.secureLogin = secureLogin;
+        this.decryptClient = decryptClient;
     }
 
     @Override
@@ -340,20 +340,11 @@ public class JdbcBasePlugin extends BasePlugin {
         if (jdbcUser != null) {
             String jdbcPassword = configuration.get(JDBC_PASSWORD_PROPERTY_NAME);
             if (jdbcPassword != null) {
-                if (jdbcPassword.startsWith(Util.getEncryptedMessagePrefix(EncryptorType.AES256))) {
-                    try {
-                        PxfJksTextEncryptorConfiguration pxfJksTextEncryptor = SpringContext.getBean(PxfJksTextEncryptorConfiguration.class);
-                        JdbcDecryptService jdbcDecryptService = new JdbcDecryptService(pxfJksTextEncryptor);
-                        jdbcPassword = jdbcDecryptService.decrypt(jdbcPassword);
-                    } catch (NoSuchBeanDefinitionException e) {
-                        throw new IllegalArgumentException(
-                                "Jdbc password is encrypted, but it is not possible to get encryption key. " +
-                                        "Check that encryption configuration properties with prefix 'pxf.ssl.*' " +
-                                        "are present in the pxf-application.properties file.");
-                    } catch (Exception e) {
-                        throw new RuntimeException(
-                                "Jdbc password is encrypted, but the encryption key is not available." + e.getMessage(), e);
-                    }
+                try {
+                    jdbcPassword = decryptClient == null ? jdbcPassword : decryptClient.decrypt(jdbcPassword);
+                } catch (Exception e) {
+                    throw new RuntimeException(
+                            "Failed to decrypt jdbc password. " + e.getMessage(), e);
                 }
                 LOG.debug("Connection password: {}", ConnectionManager.maskPassword(jdbcPassword));
                 connectionConfiguration.setProperty("password", jdbcPassword);

@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
+import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.OneRow;
@@ -78,8 +79,8 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      * @param connectionManager connection manager
      * @param secureLogin       the instance of the secure login
      */
-    JdbcAccessor(ConnectionManager connectionManager, SecureLogin secureLogin) {
-        super(connectionManager, secureLogin);
+    JdbcAccessor(ConnectionManager connectionManager, SecureLogin secureLogin, DecryptClient decryptClient) {
+        super(connectionManager, secureLogin, decryptClient);
     }
 
     /**
