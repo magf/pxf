@@ -19,8 +19,11 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
+import io.arenadata.security.encryption.model.EncryptorType;
+import io.arenadata.security.encryption.util.Util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.greenplum.pxf.api.configuration.PxfJksTextEncryptorConfiguration;
 import org.greenplum.pxf.api.model.BasePlugin;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.security.SecureLogin;
@@ -30,8 +33,10 @@ import org.greenplum.pxf.api.utilities.Utilities;
 import org.greenplum.pxf.plugins.jdbc.utils.ConnectionManager;
 import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 import org.greenplum.pxf.plugins.jdbc.utils.HiveJdbcUtils;
+import org.greenplum.pxf.plugins.jdbc.utils.JdbcDecryptService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import java.security.PrivilegedExceptionAction;
 import java.sql.Connection;
@@ -39,10 +44,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER_IMPERSONATION;
@@ -335,11 +337,24 @@ public class JdbcBasePlugin extends BasePlugin {
             );
         }
 
-        // This must be the last parameter parsed, as we output connectionConfiguration earlier
-        // Optional parameter. By default, corresponding connectionConfiguration property is not set
         if (jdbcUser != null) {
             String jdbcPassword = configuration.get(JDBC_PASSWORD_PROPERTY_NAME);
             if (jdbcPassword != null) {
+                if (jdbcPassword.startsWith(Util.getEncryptedMessagePrefix(EncryptorType.AES256))) {
+                    try {
+                        PxfJksTextEncryptorConfiguration pxfJksTextEncryptor = SpringContext.getBean(PxfJksTextEncryptorConfiguration.class);
+                        JdbcDecryptService jdbcDecryptService = new JdbcDecryptService(pxfJksTextEncryptor);
+                        jdbcPassword = jdbcDecryptService.decrypt(jdbcPassword);
+                    } catch (NoSuchBeanDefinitionException e) {
+                        throw new IllegalArgumentException(
+                                "Jdbc password is encrypted, but it is not possible to get encryption key. " +
+                                        "Check that encryption configuration properties with prefix 'pxf.ssl.*' " +
+                                        "are present in the pxf-application.properties file.");
+                    } catch (Exception e) {
+                        throw new RuntimeException(
+                                "Jdbc password is encrypted, but the encryption key is not available." + e.getMessage(), e);
+                    }
+                }
                 LOG.debug("Connection password: {}", ConnectionManager.maskPassword(jdbcPassword));
                 connectionConfiguration.setProperty("password", jdbcPassword);
             }

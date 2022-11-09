@@ -39,6 +39,7 @@ dependencies {
     implementation("commons-configuration:commons-configuration")
     implementation("commons-lang:commons-lang")
     implementation("org.apache.commons:commons-lang3")
+    implementation("io.arenadata.security:encryption")
 
     implementation("org.apache.hadoop:hadoop-auth")                  { transitive = false }
     implementation("org.codehaus.woodstox:stax2-api")                { transitive = false }
