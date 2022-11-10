@@ -507,15 +507,15 @@ function doEncrypt()
     if [[ -z $conf_file ]]; then
         fail "File 'pxf-application.properties' was not found in PXF_BASE/conf/ directory"
     fi
-    jarfile=$(find "$PXF_BASE/lib" -maxdepth 1 -type f -name 'encryption-*.jar')
-    if [[ -z $jarfile ]]; then
+    encr_jar_file=$(find "$PXF_BASE/lib" -maxdepth 1 -type f -name 'encryption-*.jar')
+    if [[ -z $encr_jar_file ]]; then
         fail "Encryption library was not found in $PXF_BASE/lib/ directory"
     fi
     jksPath=$(getProperty 'pxf.ssl.jks-store.path' "$conf_file")
     jksPassword=$(getProperty 'pxf.ssl.jks-store.password' "$conf_file")
     jksEncryptKeyAlias=$(getProperty 'pxf.ssl.salt.key' "$conf_file")
     checkJavaHome
-    java -jar $jarfile -command encrypt -jksPath $jksPath -jksPassword $jksPassword -jksEncryptKeyAlias $jksEncryptKeyAlias -message $pwd -encryptorType $encryptorType
+    java -jar $encr_jar_file -command encrypt -jksPath $jksPath -jksPassword $jksPassword -jksEncryptKeyAlias $jksEncryptKeyAlias -message $pwd -encryptorType $encryptorType
 }
 
 function getProperty {
