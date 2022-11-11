@@ -656,6 +656,10 @@ Follow these steps to enable connectivity to Hive:
 ## JDBC password encryption
 It is possible to use an encrypted password instead of the password in a paint text in the `$PXF_BASE/servers/<server_name>/jdbc-site.xml` file. 
 
+### Prerequisites
+There is a special library that is used to encrypt and decrypt password. The executable jar-file of this library has to be copied to `$PXF_BASE/lib/` directory on each segment.
+It is used to encrypt password. The original jar-file of the library is used to decrypt password. It is added as a dependency to the PXF project.
+
 ### How to enable encryption
 Before using an encrypted password you have to **create keystore and add encryption key** to the store.\
 The keystore is a file where the encryption key will be saved. And the encryption key will be used to encrypt and decrypt password.\
@@ -687,7 +691,7 @@ Example of the command to create a keystore:\
 `keytool -keystore /var/lib/pxf/conf/pxfkeystore.jks -storepass 12345678 -importpass -keypass 12345678 -alias PXF_PASS_KEY`\
 *Enter the password to be stored:* qwerty
 
-Finally, additional properties have to be added into the `$PXF_BASE/conf/pxf-application.properties` file on each segment:\
+Next, additional properties have to be added into the `$PXF_BASE/conf/pxf-application.properties` file on each segment:\
 `pxf.ssl.jks-store.path` - a Java keystore (JKS) absolute file path. It is a `keystore_file` from the command to create the keystore;\
 `pxf.ssl.jks-store.password` - a Java keystore password. It is a `keystore_password` from the command to create the keystore;\
 `pxf.ssl.salt.key` - an alias which is used to get encryption key from the keystore. It is an `encryption_key_alias` from the command to add encryption key to the keystore.
