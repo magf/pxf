@@ -139,7 +139,7 @@ configure(javaProjects) {
             dependency("org.xerial.snappy:snappy-java:1.1.8.4")
 
             // Arenadata encryption
-            dependency("io.arenadata.security:encryption:1.0.0-SNAPSHOT")
+            dependency("io.arenadata.security:encryption:1.0.0")
 
             // Hadoop dependencies
             dependencySet(group:"org.apache.hadoop", version:"${hadoopVersion}") {
