@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
+import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.greenplum.pxf.api.model.BasePlugin;
@@ -39,10 +40,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER_IMPERSONATION;
@@ -166,6 +164,7 @@ public class JdbcBasePlugin extends BasePlugin {
 
     private final ConnectionManager connectionManager;
     private final SecureLogin secureLogin;
+    private final DecryptClient decryptClient;
 
     static {
         // Deprecated as of Oct 22, 2019 in version 5.9.2+
@@ -176,10 +175,12 @@ public class JdbcBasePlugin extends BasePlugin {
 
     /**
      * Creates a new instance with default (singleton) instances of
-     * ConnectionManager and SecureLogin.
+     * ConnectionManager, SecureLogin and DecryptClient.
      */
     JdbcBasePlugin() {
-        this(SpringContext.getBean(ConnectionManager.class), SpringContext.getBean(SecureLogin.class));
+        this(SpringContext.getBean(ConnectionManager.class), SpringContext.getBean(SecureLogin.class),
+                SpringContext.getNullableBean(DecryptClient.class)
+        );
     }
 
     /**
@@ -187,9 +188,10 @@ public class JdbcBasePlugin extends BasePlugin {
      *
      * @param connectionManager connection manager instance
      */
-    JdbcBasePlugin(ConnectionManager connectionManager, SecureLogin secureLogin) {
+    JdbcBasePlugin(ConnectionManager connectionManager, SecureLogin secureLogin, DecryptClient decryptClient) {
         this.connectionManager = connectionManager;
         this.secureLogin = secureLogin;
+        this.decryptClient = decryptClient;
     }
 
     @Override
@@ -335,11 +337,15 @@ public class JdbcBasePlugin extends BasePlugin {
             );
         }
 
-        // This must be the last parameter parsed, as we output connectionConfiguration earlier
-        // Optional parameter. By default, corresponding connectionConfiguration property is not set
         if (jdbcUser != null) {
             String jdbcPassword = configuration.get(JDBC_PASSWORD_PROPERTY_NAME);
             if (jdbcPassword != null) {
+                try {
+                    jdbcPassword = decryptClient == null ? jdbcPassword : decryptClient.decrypt(jdbcPassword);
+                } catch (Exception e) {
+                    throw new RuntimeException(
+                            "Failed to decrypt jdbc password. " + e.getMessage(), e);
+                }
                 LOG.debug("Connection password: {}", ConnectionManager.maskPassword(jdbcPassword));
                 connectionConfiguration.setProperty("password", jdbcPassword);
             }

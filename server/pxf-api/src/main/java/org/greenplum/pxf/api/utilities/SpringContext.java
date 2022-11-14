@@ -26,6 +26,14 @@ public class SpringContext implements ApplicationContextAware {
         return context.getBean(requiredType);
     }
 
+    public static <T extends Object> T getNullableBean(Class<T> requiredType) {
+        try {
+            return context.getBean(requiredType);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @Override
     public void setApplicationContext(ApplicationContext context) throws BeansException {
 
