@@ -473,7 +473,6 @@ churl_read_check_connectivity(CHURL_HANDLE handle)
 	Assert(!context->upload);
 
 	fill_internal_buffer(context, 1);
-	check_response(context);
 }
 
 /*
@@ -626,6 +625,8 @@ multi_perform(churl_context *context)
 	if (curl_error != CURLM_OK)
 		elog(ERROR, "internal error: curl_multi_perform failed (%d - %s)",
 			 curl_error, curl_easy_strerror(curl_error));
+
+	check_response(context);
 }
 
 static bool
@@ -652,8 +653,6 @@ flush_internal_buffer(churl_context *context)
 
 		multi_perform(context);
 	}
-
-	check_response(context);
 
 	if ((context->curl_still_running == 0) &&
 		((context_buffer->top - context_buffer->bot) > 0))
@@ -709,8 +708,6 @@ finish_upload(churl_context *context)
 	 */
 	while (context->curl_still_running != 0)
 		multi_perform(context);
-
-	check_response(context);
 }
 
 static void
