@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-
 @RestController
 @RequestMapping("/service-metrics")
 public class ServiceMetricsRestController {
@@ -71,7 +70,6 @@ public class ServiceMetricsRestController {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList()));
     }
-
 
     @Getter
     @RequiredArgsConstructor
