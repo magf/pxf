@@ -687,9 +687,16 @@ The command to add encryption key to the keystore:\
 
 You will be asked to enter an encryption key you want to store after running the command. 
 
-Example of the command to create a keystore:\
+Example of the command to add encryption key:\
 `keytool -keystore /var/lib/pxf/conf/pxfkeystore.jks -storepass 12345678 -importpass -keypass 12345678 -alias PXF_PASS_KEY`\
 *Enter the password to be stored:* qwerty
+
+In case of error `keytool error: java.security.KeyStoreException: Cannot store non-PrivateKeys` run the following command before adding an encryption key:\
+`keytool -importkeystore -srckeystore <keystore_file> -destkeystore <keystore_file> -deststoretype pkcs12`, where\
+`<keystore_file>` - the file path of the keystore which has been created before;\
+Example of the command:\
+`keytool -importkeystore -srckeystore /var/lib/pxf/conf/pxfkeystore.jks -destkeystore /var/lib/pxf/conf/pxfkeystore.jks -deststoretype pkcs12`
+
 
 Next, additional properties have to be added into the `$PXF_BASE/conf/pxf-application.properties` file on each segment:\
 `pxf.ssl.jks-store.path` - a Java keystore (JKS) absolute file path. It is a `keystore_file` from the command to create the keystore;\
