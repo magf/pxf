@@ -20,6 +20,18 @@
 buildscript {
     repositories {
         mavenCentral()
+        maven {
+            url "https://rt.adsw.io/artifactory/maven-arenadata-release/"
+            mavenContent {
+                releasesOnly()
+            }
+        }
+        maven {
+            url "https://rt.adsw.io/artifactory/maven-arenadata-snapshot/"
+            mavenContent {
+                snapshotsOnly()
+            }
+        }
     }
 }
 
@@ -40,6 +52,18 @@ allprojects {
 
     repositories {
         mavenCentral()
+        maven {
+            url "https://rt.adsw.io/artifactory/maven-arenadata-release/"
+            mavenContent {
+                releasesOnly()
+            }
+        }
+        maven {
+            url "https://rt.adsw.io/artifactory/maven-arenadata-snapshot/"
+            mavenContent {
+                snapshotsOnly()
+            }
+        }
     }
 }
 
@@ -112,6 +136,9 @@ configure(javaProjects) {
             dependency("org.wildfly.openssl:wildfly-openssl:1.0.7.Final")
             dependency("org.xerial.snappy:snappy-java:1.1.8.4")
 
+            // Arenadata encryption
+            dependency("io.arenadata.security:encryption:1.0.0")
+
             // Hadoop dependencies
             dependencySet(group:"org.apache.hadoop", version:"${hadoopVersion}") {
                 entry("hadoop-annotations")
@@ -142,11 +169,13 @@ configure(javaProjects) {
                 entry("hive-metastore")
                 entry("hive-serde")
                 entry("hive-common")
+                entry("hive-service")
+                entry("hive-service-rpc")
             }
             // 1.2.2 breaks on CDH-5.x
-            dependencySet(group:"org.apache.hive", version:"1.1.0") {
+            // We use custom hive-jdbc driver from Arenadata
+            dependencySet(group:"io.arenadata.hive", version:"2.3.8-arenadata-pxf-3") {
                 entry("hive-jdbc")
-                entry("hive-service")
             }
             dependencySet(group:"org.apache.hive.shims", version:"${hiveVersion}") {
                 entry("hive-shims-common")
@@ -195,7 +224,6 @@ configure(javaProjects) {
                 entry("aws-java-sdk-kms")
                 entry("aws-java-sdk-s3")
             }
-
         }
     }
 

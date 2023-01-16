@@ -102,7 +102,8 @@ User name (login) to use to connect to external database.
 
 
 #### JDBC password
-Password to use to connect to external database.
+Password to use to connect to external database. The password might be encrypted. 
+How to use encrypted password is described in section [JDBC password encryption](#jdbc-password-encryption).
 
 * **Option**: `PASS`
 * **Configuration parameter**: `jdbc.password`
@@ -123,6 +124,35 @@ Whether PXF should quote column names when constructing SQL query to the externa
     * any other value &mdash; do not quote column names
 
 When this setting is not set, PXF automatically checks whether some column name should be quoted, and if so, it quotes all column names in the query.
+
+#### Convert to Oracle date type
+*Can be set only in `LOCATION` clause of external table DDL.
+It is used by only PXF Oracle JDBC driver for pushdown.*
+
+The parameter is used for some specific cases when you need to convert Postgres `timestamp` type to `date` type in Oracle for pushdown filter.
+
+* **Option**: `CONVERT_ORACLE_DATE`
+* **Value**:
+    * not set &mdash; default value is `false`. Postgres `timestamp` type will be converted to Oracle `timestamp` type (default behaviour)
+    * `true` (case-insensitive) &mdash; convert Postgres `timestamp` type to Oracle `date` type
+    * any other value or `false` &mdash; Postgres `timestamp` type will be converted to Oracle `timestamp` type (default behaviour)
+
+If a field is `timestamp` type in the external GP table and `CONVERT_ORACLE_DATE=true` the fields that are used in the `where` filter will be cast to `date` type in Oracle.
+The milliseconds will be truncated. Example of the query where c3 field has `timestamp` type in the GP and `date` type in the Oracle:
+```
+query in gp:              SELECT c1, c2, c3 FROM ext_oracle_datetime_fix WHERE c3 >= '2022-01-01 14:00:00.123456' and c3 < '2022-01-02 03:00:00.232323';
+recieved query in oracle: SELECT c1, c2, c3 FROM system.tst_pxf_datetime WHERE (c3 >= to_date('2022-01-01 14:00:00', 'YYYY-MM-DD HH24:MI:SS') AND c3 < to_date('2022-01-02 03:00:00', 'YYYY-MM-DD HH24:MI:SS'))
+```
+
+If the parameter `CONVERT_ORACLE_DATE=false` or it is not declared in the `LOCATION` the c3 field will be converted to `timestamp` type in Oracle (default behaviour):
+
+```
+query in gp:              SELECT c1, c2, c3 FROM ext_oracle_datetime_fix where c3 >= '2022-01-01 12:01:00' and c3 < '2022-01-02 02:01:00';
+recieved query in oracle: SELECT c1, c2, c3 FROM system.tst_pxf_datetime WHERE (c3 >= to_timestamp('2022-01-01 12:01:00', 'YYYY-MM-DD HH24:MI:SS.FF') AND c3 < to_timestamp('2022-01-02 02:01:00', 'YYYY-MM-DD HH24:MI:SS.FF'))
+```
+
+**Notes:**
+The parameter `CONVERT_ORACLE_DATE` has impact only on the fields that are used in the `where` filter and does not apply for the other fields with `timestamp` type in the table.
 
 
 #### Partition by
@@ -621,3 +651,109 @@ Follow these steps to enable connectivity to Hive:
             If you enable impersonation, do not explicitly specify `hive.server2.proxy.user` property in the URL.
 
     - if Hive is configured with `hive.server2.enable.doAs = FALSE`, Hive will run Hadoop operations with the identity provided by the PXF Kerberos principal (usually `gpadmin`)
+
+
+## JDBC password encryption
+It is possible to use an encrypted password instead of the password in a paint text in the `$PXF_BASE/servers/<server_name>/jdbc-site.xml` file. 
+
+### Prerequisites
+There is a special library that is used to encrypt and decrypt password. The executable jar-file of this library has to be copied to `$PXF_BASE/lib/` directory on each segment.
+It is used to encrypt password. The original jar-file of the library is used to decrypt password. It is added as a dependency to the PXF project.
+
+### How to enable encryption
+Before using an encrypted password you have to **create keystore and add encryption key** to the store.\
+The keystore is a file where the encryption key will be saved. And the encryption key will be used to encrypt and decrypt password.\
+The keystore and the encryption key have to be created on each segment server.
+
+The command to create the keystore:\
+```keytool -keystore <keystore_file> -storepass <keystore_password> -genkey -keypass <key_password> -alias <keystore_alias>```, where\
+`keystore_file` - the file path of the keystore;\
+`keystore_password` - password which will be used to access the keystore;\
+`key_password` - password for the specific `keystore_alias`. It might be the same as `keystore_password`;\
+`keystore_alias` - name of the keystore.
+
+You will be asked to enter some information about your organization, first and last name, etc. after running the command.
+
+Example of the command to create a keystore:\
+`keytool -keystore /var/lib/pxf/conf/pxfkeystore.jks -storepass 12345678 -genkey -keypass 12345678 -alias pxfkeystore`
+
+The next step is to add encryption key.\
+The command to add encryption key to the keystore:\
+`keytool -keystore <keystore_file> -storepass <keystore_password> -importpass -keypass <key_password> -alias <encryption_key_alias>`, where\
+`keystore_file` - the file path of the keystore that was created in the previous step;\
+`keystore_password` - password to access the keystore;\
+`key_password` - password for the specific `encryption_key_alias`. It might be the same as `keystore_password`;\
+`encryption_key_alias` - name of the encryption key. This name will be used to get encryption key from the keystore.
+
+You will be asked to enter an encryption key you want to store after running the command. 
+
+Example of the command to create a keystore:\
+`keytool -keystore /var/lib/pxf/conf/pxfkeystore.jks -storepass 12345678 -importpass -keypass 12345678 -alias PXF_PASS_KEY`\
+*Enter the password to be stored:* qwerty
+
+Next, additional properties have to be added into the `$PXF_BASE/conf/pxf-application.properties` file on each segment:\
+`pxf.ssl.jks-store.path` - a Java keystore (JKS) absolute file path. It is a `keystore_file` from the command to create the keystore;\
+`pxf.ssl.jks-store.password` - a Java keystore password. It is a `keystore_password` from the command to create the keystore;\
+`pxf.ssl.salt.key` - an alias which is used to get encryption key from the keystore. It is an `encryption_key_alias` from the command to add encryption key to the keystore.
+
+You have to restart PXF service after adding the properties.
+
+Example of the properties in the `pxf-application.properties` file:
+```
+# Encryption
+pxf.ssl.jks-store.path=/var/lib/pxf/conf/pxfkeystore.jks
+pxf.ssl.jks-store.password=12345678
+pxf.ssl.salt.key=PXF_PASS_KEY
+```
+
+### How to use encryption
+The first step is to encrypt password that is used to connect to the database.\
+There is a special command to do this action:\
+`pxf encrypt <password> <encryption_type>`, where\
+`<password>` - password in a plain text that is used to connect to the database. This password will be encrypted;\
+`<encryption_type>` - Optional. The algorithm to encrypt password. Default value: `aes256`
+
+The result of the command will be an encrypted password in a format `aes256:encrypted_password`  
+
+Example of the command to encrypt password:\
+`pxf encrypt biuserpassword`\
+*Output:* aes256:7BhhI+10ut+xM70iRlyxVDD/tokap3pbK2bmkLgPOYLH7NcfEYJSAIYkApjKM3Zu
+
+Next, you have to copy the encrypted password including aes256 prefix and paste it into `$PXF_BASE/servers/<server_name>/jdbc-site.xml` file
+instead of the password in a plain text.
+
+The example of the `jdbc-site.xml` with encrypted password:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property>
+        <name>jdbc.driver</name>
+        <value>org.postgresql.Driver</value>
+        <description>Class name of the JDBC driver (e.g. org.postgresql.Driver)</description>
+    </property>
+    <property>
+        <name>jdbc.url</name>
+        <value>jdbc:postgresql://10.10.10.20/adb</value>
+        <description>The URL that the JDBC driver can use to connect to the database (e.g. jdbc:postgresql://localhost/postgres)</description>
+    </property>
+    <property>
+        <name>jdbc.user</name>
+        <value>bi_user</value>
+        <description>User name for connecting to the database (e.g. postgres)</description>
+    </property>
+    <property>
+        <name>jdbc.password</name>
+        <value>aes256:7BhhI+10ut+xM70iRlyxVDD/tokap3pbK2bmkLgPOYLH7NcfEYJSAIYkApjKM3Zu</value>
+        <description>Password for connecting to the database (e.g. postgres)</description>
+    </property>
+</configuration>
+```
+
+You don't need to make any additional changes when you crate an external table. The decryption engine will recognize whether the password is encrypted or not.
+If the password is encrypted the decrypter will take care about the password. If the password is in plain text format it will be passed as is to the JDBC connection manager.  
+
+
+
+
+
+

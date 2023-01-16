@@ -39,6 +39,7 @@ import java.util.List;
 public class JdbcPredicateBuilder extends ColumnPredicateBuilder {
 
     private final DbProduct dbProduct;
+    private boolean wrapDateWithTime = false;
 
     public JdbcPredicateBuilder(DbProduct dbProduct,
                                 List<ColumnDescriptor> tupleDescription) {
@@ -50,6 +51,15 @@ public class JdbcPredicateBuilder extends ColumnPredicateBuilder {
                                 List<ColumnDescriptor> tupleDescription) {
         super(quoteString, tupleDescription);
         this.dbProduct = dbProduct;
+    }
+
+    public JdbcPredicateBuilder(DbProduct dbProduct,
+                                String quoteString,
+                                List<ColumnDescriptor> tupleDescription,
+                                boolean wrapDateWithTime) {
+        super(quoteString, tupleDescription);
+        this.dbProduct = dbProduct;
+        this.wrapDateWithTime = wrapDateWithTime;
     }
 
     @Override
@@ -79,7 +89,12 @@ public class JdbcPredicateBuilder extends ColumnPredicateBuilder {
                 return dbProduct.wrapDate(value);
             case TIMESTAMP:
                 // Timestamp field has different format in different databases
-                return dbProduct.wrapTimestamp(value);
+                // If wrapDateWithTime = true we have to convert timestamp to Oracle `date with time`
+                if (wrapDateWithTime) {
+                    return dbProduct.wrapDateWithTime(value);
+                } else {
+                    return dbProduct.wrapTimestamp(value);
+                }
             default:
                 throw new UnsupportedOperationException(String.format(
                         "Unsupported column type for filtering '%s' ", type.getOID()));
