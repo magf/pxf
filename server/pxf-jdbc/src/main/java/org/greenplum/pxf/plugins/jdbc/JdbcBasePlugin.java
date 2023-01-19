@@ -40,7 +40,10 @@ import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER_IMPERSONATION;
@@ -337,6 +340,8 @@ public class JdbcBasePlugin extends BasePlugin {
             );
         }
 
+        // This must be the last parameter parsed, as we output connectionConfiguration earlier
+        // Optional parameter. By default, corresponding connectionConfiguration property is not set
         if (jdbcUser != null) {
             String jdbcPassword = configuration.get(JDBC_PASSWORD_PROPERTY_NAME);
             if (jdbcPassword != null) {
@@ -494,7 +499,7 @@ public class JdbcBasePlugin extends BasePlugin {
      * @param connection connection to close
      * @throws SQLException throws when a SQLException occurs
      */
-    static void closeConnection(Connection connection) throws SQLException {
+    protected static void closeConnection(Connection connection) throws SQLException {
         if (connection == null) {
             LOG.warn("Call to close connection is ignored as connection provided was null");
             return;
