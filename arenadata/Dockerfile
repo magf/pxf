@@ -1,0 +1,33 @@
+FROM hub.adsw.io/library/gpdb6_regress:latest as base
+
+# install go, ginkgo and keep env variables which may be used as a part of base image
+RUN yum install -y go
+ENV GOPATH=$HOME/go
+ENV PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+RUN go install github.com/onsi/ginkgo/ginkgo@latest
+
+# leave pxf artifacts dir env also
+ENV OUTPUT_ARTIFACT_DIR="pxf_tarball"
+
+# remove unnecessary artifacts and create symlinks
+# concource scripts expects gpdb and pxf placed in the same folder
+RUN rm /home/gpadmin/bin_gpdb/server-*.tar.gz && \
+    mkdir /tmp/build && \
+    ln -s /home/gpadmin/gpdb_src /tmp/build/gpdb_src && \
+    ln -s /home/gpadmin/bin_gpdb /tmp/build/bin_gpdb
+# default working dir - the place where all sources and artifacts are placed
+WORKDIR /tmp/build
+
+# create separate image with files we don't want to keep in base image
+FROM base as build
+COPY . /tmp/build/pxf_src
+RUN source gpdb_src/concourse/scripts/common.bash && \
+    install_gpdb && \
+    source '/usr/local/greenplum-db-devel/greenplum_path.sh' && \
+    mkdir ${OUTPUT_ARTIFACT_DIR} && \
+    pxf_src/concourse/scripts/compile_pxf.bash
+
+# create test image which prepares base image and keeps only pxf artifacts from build image
+FROM base as test
+COPY --from=build /tmp/build/${OUTPUT_ARTIFACT_DIR}/pxf.tar.gz /tmp/build/${OUTPUT_ARTIFACT_DIR}/
+COPY --from=build /tmp/build/pxf_src /tmp/build/pxf_src
