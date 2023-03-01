@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
+import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.io.DataType;
@@ -36,6 +37,10 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -117,10 +122,25 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                     value = result.getString(colName);
                     break;
                 case DATE:
-                    value = result.getDate(colName);
+                    if (isDateWideRange) {
+                        value = getValueWithoutPrefix(result.getObject(colName, LocalDate.class));
+                    } else {
+                        value = result.getDate(colName);
+                    }
                     break;
                 case TIMESTAMP:
-                    value = result.getTimestamp(colName);
+                    if (isDateWideRange) {
+                        value = result.getObject(colName, LocalDateTime.class);
+                    } else {
+                        value = result.getTimestamp(colName);
+                    }
+                    break;
+                case TIMESTAMP_WITH_TIME_ZONE:
+                    if (isDateWideRange) {
+                        value = result.getObject(colName, OffsetDateTime.class).atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+                    } else {
+                        value = result.getTimestamp(colName);
+                    }
                     break;
                 default:
                     throw new UnsupportedOperationException(
@@ -211,10 +231,18 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                         oneField.val = new BigDecimal(rawVal);
                         break;
                     case TIMESTAMP:
-                        oneField.val = Timestamp.valueOf(rawVal);
+                        if (isDateWideRange) {
+                            oneField.val = getLocalDateTime(rawVal);
+                        } else {
+                            oneField.val = Timestamp.valueOf(rawVal);
+                        }
                         break;
                     case DATE:
-                        oneField.val = Date.valueOf(rawVal);
+                        if (isDateWideRange) {
+                            oneField.val = getLocalDate(rawVal);
+                        } else {
+                            oneField.val = Date.valueOf(rawVal);
+                        }
                         break;
                     default:
                         throw new UnsupportedOperationException(
@@ -311,19 +339,50 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                     if (field.val == null) {
                         statement.setNull(i, Types.TIMESTAMP);
                     } else {
-                        statement.setTimestamp(i, (Timestamp) field.val);
+                        if (field.val instanceof LocalDateTime) {
+                            statement.setObject(i, (LocalDateTime) field.val);
+                        } else {
+                            statement.setTimestamp(i, (Timestamp) field.val);
+                        }
                     }
                     break;
                 case DATE:
                     if (field.val == null) {
                         statement.setNull(i, Types.DATE);
                     } else {
-                        statement.setDate(i, (Date) field.val);
+                        if (field.val instanceof LocalDate) {
+                            statement.setObject(i, (LocalDate) field.val);
+                        } else {
+                            statement.setDate(i, (Date) field.val);
+                        }
                     }
                     break;
                 default:
                     throw new IOException("The data tuple from JdbcResolver is corrupted");
             }
         }
+    }
+
+    private Object getLocalDate(String rawVal) {
+        try {
+            String yearStr = rawVal.trim().substring(0, rawVal.indexOf("-"));
+            return yearStr.length() > 4 ? LocalDate.parse("+" + rawVal) : LocalDate.parse(rawVal);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to convert date '" + rawVal + "' to LocalDate class: " + e.getMessage(), e);
+        }
+    }
+
+    private Object getLocalDateTime(String rawVal) {
+        try {
+            String year = rawVal.trim().substring(0, rawVal.indexOf("-"));
+            String timestamp = year.length() > 4 ? "+" + rawVal : rawVal;
+            return LocalDateTime.parse(timestamp.trim().replace(" ", "T"));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to convert timestamp '" + rawVal + "' to the LocalDateTime class: " + e.getMessage(), e);
+        }
+    }
+
+    private String getValueWithoutPrefix(Object value) {
+        return StringUtils.removeStart(value.toString(), "+");
     }
 }
