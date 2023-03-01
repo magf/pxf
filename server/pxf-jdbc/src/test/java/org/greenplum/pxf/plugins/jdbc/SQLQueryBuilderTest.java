@@ -133,17 +133,17 @@ public class SQLQueryBuilderTest {
     }
 
     @Test
-    public void testUnsupportedOperationFilter() throws Exception {
+    public void testInOperator() throws Exception {
         when(mockMetaData.getDatabaseProductName()).thenReturn("mysql");
         when(mockMetaData.getExtraNameCharacters()).thenReturn("");
 
-        // IN 'bad'
+        // grade IN 'bad'
         context.setFilterString("a3c25s3dbado10");
 
         SQLQueryBuilder builder = new SQLQueryBuilder(context, mockMetaData);
         builder.autoSetQuoteString();
         String query = builder.buildSelectQuery();
-        assertEquals(SQL, query);
+        assertEquals(SQL + " WHERE grade IN 'bad'", query);
     }
 
     @Test
