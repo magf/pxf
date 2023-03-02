@@ -19,7 +19,6 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
-import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.io.DataType;
@@ -41,6 +40,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,6 +50,12 @@ import java.util.Set;
  * JDBC tables resolver
  */
 public class JdbcResolver extends JdbcBasePlugin implements Resolver {
+
+    private static final String LOCAL_DATE_PATTERN = "y-M-d G";
+    private static final String LOCAL_DATE_OPTIONAL_PATTERN = "y-M-d[ G]";
+    private static final String LOCAL_DATE_TIME_PATTERN = "y-MM-dd HH:mm:ss.SSSSSSSSS G";
+    private static final String LOCAL_DATE_TIME_OPTIONAL_PATTERN = "y-MM-dd HH:mm:ss[.[SSSSSSSSS][SSSSSSSS][SSSSSSS][SSSSSS][SSSSS][SSSS][SSS][SS][S]][ G]";
+
     private static final Set<DataType> DATATYPES_SUPPORTED = EnumSet.of(
             DataType.VARCHAR,
             DataType.BPCHAR,
@@ -123,21 +129,26 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                     break;
                 case DATE:
                     if (isDateWideRange) {
-                        value = getValueWithoutPrefix(result.getObject(colName, LocalDate.class));
+                        value = result.getObject(colName, LocalDate.class)
+                                .format(DateTimeFormatter.ofPattern(LOCAL_DATE_PATTERN));
                     } else {
                         value = result.getDate(colName);
                     }
                     break;
                 case TIMESTAMP:
                     if (isDateWideRange) {
-                        value = result.getObject(colName, LocalDateTime.class);
+                        value = result.getObject(colName, LocalDateTime.class)
+                                .format(DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_PATTERN));
                     } else {
                         value = result.getTimestamp(colName);
                     }
                     break;
                 case TIMESTAMP_WITH_TIME_ZONE:
                     if (isDateWideRange) {
-                        value = result.getObject(colName, OffsetDateTime.class).atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+                        value = result.getObject(colName, OffsetDateTime.class)
+                                .atZoneSameInstant(ZoneId.systemDefault())
+                                .toLocalDateTime()
+                                .format(DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_PATTERN));
                     } else {
                         value = result.getTimestamp(colName);
                     }
@@ -365,8 +376,11 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
 
     private Object getLocalDate(String rawVal) {
         try {
-            String yearStr = rawVal.trim().substring(0, rawVal.indexOf("-"));
-            return yearStr.length() > 4 ? LocalDate.parse("+" + rawVal) : LocalDate.parse(rawVal);
+            if (rawVal.startsWith("-")) {
+                return LocalDate.parse(rawVal);
+            } else {
+                return LocalDate.parse(rawVal, DateTimeFormatter.ofPattern(LOCAL_DATE_OPTIONAL_PATTERN));
+            }
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to convert date '" + rawVal + "' to LocalDate class: " + e.getMessage(), e);
         }
@@ -374,15 +388,14 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
 
     private Object getLocalDateTime(String rawVal) {
         try {
-            String year = rawVal.trim().substring(0, rawVal.indexOf("-"));
-            String timestamp = year.length() > 4 ? "+" + rawVal : rawVal;
-            return LocalDateTime.parse(timestamp.trim().replace(" ", "T"));
+            if (rawVal.trim().startsWith("-")) {
+                String timestamp = rawVal.trim().replace(" ", "T");
+                return LocalDateTime.parse(timestamp);
+            } else {
+                return LocalDateTime.parse(rawVal, DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_OPTIONAL_PATTERN));
+            }
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to convert timestamp '" + rawVal + "' to the LocalDateTime class: " + e.getMessage(), e);
         }
-    }
-
-    private String getValueWithoutPrefix(Object value) {
-        return StringUtils.removeStart(value.toString(), "+");
     }
 }
