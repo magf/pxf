@@ -41,20 +41,65 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
 
 /**
  * JDBC tables resolver
  */
 public class JdbcResolver extends JdbcBasePlugin implements Resolver {
 
-    private static final String LOCAL_DATE_PATTERN = "y-M-d G";
-    private static final String LOCAL_DATE_OPTIONAL_PATTERN = "y-M-d[ G]";
-    private static final String LOCAL_DATE_TIME_PATTERN = "y-MM-dd HH:mm:ss.SSSSSSSSS G";
-    private static final String LOCAL_DATE_TIME_OPTIONAL_PATTERN = "y-MM-dd HH:mm:ss[.[SSSSSSSSS][SSSSSSSS][SSSSSSS][SSSSSS][SSSSS][SSSS][SSS][SS][S]][ G]";
+    private static final Logger LOG = LoggerFactory.getLogger(JdbcResolver.class);
+
+    private static final DateTimeFormatter LOCAL_DATE_FORMATTER = (new DateTimeFormatterBuilder())
+            .appendPattern("y-MM-dd[ G]")
+            .toFormatter();
+
+    private static final DateTimeFormatter LOCAL_DATE_LONG_YEAR_FORMATTER = (new DateTimeFormatterBuilder())
+            .appendPattern("yyyy-MM-dd[ G]")
+            .toFormatter();
+
+    private static final DateTimeFormatter LOCAL_DATE_TIME_FORMATTER = (new DateTimeFormatterBuilder())
+            .appendPattern("y").appendLiteral('-')
+            .appendValue(ChronoField.MONTH_OF_YEAR, 2).appendLiteral('-')
+            .appendValue(ChronoField.DAY_OF_MONTH, 2)
+            .appendLiteral(" ")
+            .append(ISO_LOCAL_TIME)
+            .appendPattern(" G")
+            .toFormatter();
+
+    private static final DateTimeFormatter LOCAL_DATE_TIME_LONG_YEAR_FORMATTER = (new DateTimeFormatterBuilder())
+            .appendPattern("yyyy").appendLiteral('-')
+            .appendValue(ChronoField.MONTH_OF_YEAR, 2).appendLiteral('-')
+            .appendValue(ChronoField.DAY_OF_MONTH, 2)
+            .appendLiteral(" ")
+            .append(ISO_LOCAL_TIME)
+            .appendPattern(" G")
+            .toFormatter();
+
+    private static final DateTimeFormatter LOCAL_DATE_OPTIONAL_FORMATTER = (new DateTimeFormatterBuilder())
+            .optionalStart().appendPattern("-").optionalEnd()
+            .appendPattern("y").appendLiteral('-')
+            .appendValue(ChronoField.MONTH_OF_YEAR, 2).appendLiteral('-')
+            .appendValue(ChronoField.DAY_OF_MONTH, 2)
+            .optionalStart().appendPattern(" G").optionalEnd()
+            .toFormatter();
+
+    private static final DateTimeFormatter LOCAL_DATE_TIME_OPTIONAL_FORMATTER = (new DateTimeFormatterBuilder())
+            .optionalStart().appendPattern("-").optionalEnd()
+            .appendPattern("y").appendLiteral('-')
+            .appendValue(ChronoField.MONTH_OF_YEAR, 2).appendLiteral('-')
+            .appendValue(ChronoField.DAY_OF_MONTH, 2)
+            .appendLiteral(" ")
+            .append(ISO_LOCAL_TIME)
+            .optionalStart().appendPattern(" G").optionalEnd()
+            .toFormatter();
 
     private static final Set<DataType> DATATYPES_SUPPORTED = EnumSet.of(
             DataType.VARCHAR,
@@ -71,8 +116,6 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
             DataType.TIMESTAMP,
             DataType.DATE
     );
-
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcResolver.class);
 
     /**
      * getFields() implementation
@@ -129,26 +172,53 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                     break;
                 case DATE:
                     if (isDateWideRange) {
-                        value = result.getObject(colName, LocalDate.class)
-                                .format(DateTimeFormatter.ofPattern(LOCAL_DATE_PATTERN));
+                        LocalDate localDate = result.getObject(colName, LocalDate.class);
+                        if (localDate == null) {
+                            value = null;
+                            break;
+                        }
+                        if (localDate.getYear() >= -999 && localDate.getYear() <= 999) {
+                            // Return at least 4-digits year string with leading zero if year contains less than 4
+                            value = localDate.format(LOCAL_DATE_LONG_YEAR_FORMATTER);
+                        } else {
+                            // For year with more 4 digits 'LOCAL_DATE_FORMATTER' is used.
+                            // We cannot use 'LOCAL_DATE_LONG_YEAR_FORMATTER' as it doesn't correctly format
+                            // some years with minus sign and more than 4 digits, i.e. -123456
+                            value = localDate.format(LOCAL_DATE_FORMATTER);
+                        }
                     } else {
                         value = result.getDate(colName);
                     }
                     break;
                 case TIMESTAMP:
                     if (isDateWideRange) {
-                        value = result.getObject(colName, LocalDateTime.class)
-                                .format(DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_PATTERN));
+                        LocalDateTime localDateTime = result.getObject(colName, LocalDateTime.class);
+                        if (localDateTime == null) {
+                            value = null;
+                            break;
+                        }
+                        if (localDateTime.getYear() >= -999 && localDateTime.getYear() <= 999) {
+                            value = localDateTime.format(LOCAL_DATE_TIME_LONG_YEAR_FORMATTER);
+                        } else {
+                            value = localDateTime.format(LOCAL_DATE_TIME_FORMATTER);
+                        }
                     } else {
                         value = result.getTimestamp(colName);
                     }
                     break;
                 case TIMESTAMP_WITH_TIME_ZONE:
                     if (isDateWideRange) {
-                        value = result.getObject(colName, OffsetDateTime.class)
-                                .atZoneSameInstant(ZoneId.systemDefault())
-                                .toLocalDateTime()
-                                .format(DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_PATTERN));
+                        OffsetDateTime offsetDateTime = result.getObject(colName, OffsetDateTime.class);
+                        if (offsetDateTime == null) {
+                            value = null;
+                            break;
+                        }
+                        LocalDateTime localDateTime = offsetDateTime.atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+                        if (localDateTime.getYear() >= -999 && localDateTime.getYear() <= 999) {
+                            value = localDateTime.format(LOCAL_DATE_TIME_LONG_YEAR_FORMATTER);
+                        } else {
+                            value = localDateTime.format(LOCAL_DATE_TIME_FORMATTER);
+                        }
                     } else {
                         value = result.getTimestamp(colName);
                     }
@@ -376,11 +446,7 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
 
     private Object getLocalDate(String rawVal) {
         try {
-            if (rawVal.startsWith("-")) {
-                return LocalDate.parse(rawVal);
-            } else {
-                return LocalDate.parse(rawVal, DateTimeFormatter.ofPattern(LOCAL_DATE_OPTIONAL_PATTERN));
-            }
+            return LocalDate.parse(rawVal, LOCAL_DATE_OPTIONAL_FORMATTER);
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to convert date '" + rawVal + "' to LocalDate class: " + e.getMessage(), e);
         }
@@ -388,12 +454,7 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
 
     private Object getLocalDateTime(String rawVal) {
         try {
-            if (rawVal.trim().startsWith("-")) {
-                String timestamp = rawVal.trim().replace(" ", "T");
-                return LocalDateTime.parse(timestamp);
-            } else {
-                return LocalDateTime.parse(rawVal, DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_OPTIONAL_PATTERN));
-            }
+            return LocalDateTime.parse(rawVal, LOCAL_DATE_TIME_OPTIONAL_FORMATTER);
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to convert timestamp '" + rawVal + "' to the LocalDateTime class: " + e.getMessage(), e);
         }
