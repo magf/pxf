@@ -152,7 +152,7 @@ public class SQLQueryBuilderTest {
         when(mockMetaData.getDatabaseProductName()).thenReturn("mysql");
         when(mockMetaData.getExtraNameCharacters()).thenReturn("");
 
-        // grade IN ('bad')
+        // grade IN ('bad','good')
         context.setFilterString("a3m1009s3dbads4dgoodo10");
 
         SQLQueryBuilder builder = new SQLQueryBuilder(context, mockMetaData);
