@@ -261,7 +261,7 @@ class JdbcResolverTest {
             resolver.columns = context.getTupleDescription();
             resolver.isDateWideRange = isDateWideRange;
             List<OneField> oneFields = resolver.getFields(row);
-            assertEquals("1977-12-11 05:15:30.1234 AD", oneFields.get(0).val);
+            assertEquals("1977-12-11 10:15:30.1234+05:00 AD", oneFields.get(0).val);
         }
     }
 
@@ -300,7 +300,7 @@ class JdbcResolverTest {
             resolver.columns = context.getTupleDescription();
             resolver.isDateWideRange = isDateWideRange;
             List<OneField> oneFields = resolver.getFields(row);
-            assertEquals("0003-01-02 01:05:06.0000015 AD", oneFields.get(0).val);
+            assertEquals("0003-01-02 04:05:06.0000015+03:00 AD", oneFields.get(0).val);
         }
     }
 
@@ -320,7 +320,7 @@ class JdbcResolverTest {
             resolver.columns = context.getTupleDescription();
             resolver.isDateWideRange = isDateWideRange;
             List<OneField> oneFields = resolver.getFields(row);
-            assertEquals("9876543-12-11 14:15:30.1234 AD", oneFields.get(0).val);
+            assertEquals("9876543-12-11 11:15:30.1234-03:00 AD", oneFields.get(0).val);
         }
     }
 
@@ -341,7 +341,7 @@ class JdbcResolverTest {
             resolver.isDateWideRange = isDateWideRange;
             List<OneField> oneFields = resolver.getFields(row);
             // The year -3456 is transferred to 3457 BC: https://en.wikipedia.org/wiki/Astronomical_year_numbering
-            assertEquals("3457-12-11 09:15:30 BC", oneFields.get(0).val);
+            assertEquals("3457-12-11 11:15:30+02:00 BC", oneFields.get(0).val);
         }
     }
 
