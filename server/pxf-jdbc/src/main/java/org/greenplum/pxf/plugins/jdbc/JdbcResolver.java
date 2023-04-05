@@ -39,7 +39,6 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.SignStyle;
@@ -50,6 +49,7 @@ import java.util.List;
 import java.util.Set;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_TIME;
 
 /**
  * JDBC tables resolver
@@ -70,6 +70,14 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
             .appendValue(ChronoField.MONTH_OF_YEAR, 2).appendLiteral('-')
             .appendValue(ChronoField.DAY_OF_MONTH, 2).appendLiteral(" ")
             .append(ISO_LOCAL_TIME)
+            .appendPattern(" G")
+            .toFormatter();
+
+    private static final DateTimeFormatter OFFSET_DATE_TIME_GET_FORMATTER = (new DateTimeFormatterBuilder())
+            .appendValue(ChronoField.YEAR_OF_ERA, 4, 9, SignStyle.NORMAL).appendLiteral("-")
+            .appendValue(ChronoField.MONTH_OF_YEAR, 2).appendLiteral('-')
+            .appendValue(ChronoField.DAY_OF_MONTH, 2).appendLiteral(" ")
+            .append(ISO_OFFSET_TIME)
             .appendPattern(" G")
             .toFormatter();
 
@@ -177,14 +185,12 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                 case TIMESTAMP_WITH_TIME_ZONE:
                     if (isDateWideRange) {
                         OffsetDateTime offsetDateTime = result.getObject(colName, OffsetDateTime.class);
-                        if (offsetDateTime != null) {
-                            LocalDateTime localDateTime = offsetDateTime.atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
-                            value = localDateTime.format(LOCAL_DATE_TIME_GET_FORMATTER);
-                        } else {
-                            value = null;
-                        }
+                        value = offsetDateTime != null ? offsetDateTime.format(OFFSET_DATE_TIME_GET_FORMATTER) : null;
                     } else {
-                        value = result.getTimestamp(colName);
+                        throw new UnsupportedOperationException(
+                                String.format("Field type '%s' (column '%s') is not supported",
+                                        DataType.get(oneField.type),
+                                        column));
                     }
                     break;
                 default:
