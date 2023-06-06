@@ -596,7 +596,7 @@ public class AvroResolverTest {
         // add a RECORD with a float, int, and string inside
         fields.add(new Schema.Field(
                 Schema.Type.RECORD.getName(),
-                createRecord(new Schema.Type[]{Schema.Type.FLOAT, Schema.Type.INT, Schema.Type.STRING}),
+                    createRecord(new Schema.Type[]{Schema.Type.FLOAT, Schema.Type.INT, Schema.Type.STRING}),
                 "",
                 null)
         );

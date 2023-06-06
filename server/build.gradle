@@ -20,6 +20,18 @@
 buildscript {
     repositories {
         mavenCentral()
+        maven {
+            url "https://rt.adsw.io/artifactory/maven-arenadata-release/"
+            mavenContent {
+                releasesOnly()
+            }
+        }
+        maven {
+            url "https://rt.adsw.io/artifactory/maven-arenadata-snapshot/"
+            mavenContent {
+                snapshotsOnly()
+            }
+        }
     }
 }
 
@@ -40,6 +52,18 @@ allprojects {
 
     repositories {
         mavenCentral()
+        maven {
+            url "https://rt.adsw.io/artifactory/maven-arenadata-release/"
+            mavenContent {
+                releasesOnly()
+            }
+        }
+        maven {
+            url "https://rt.adsw.io/artifactory/maven-arenadata-snapshot/"
+            mavenContent {
+                snapshotsOnly()
+            }
+        }
     }
 }
 
@@ -94,6 +118,18 @@ configure(javaProjects) {
             dependency("org.apache.htrace:htrace-core:3.1.0-incubating")
             dependency("org.apache.htrace:htrace-core4:4.0.1-incubating")
 
+            // --- bump log4j2 to 2.17.1 for CVE-2021-44228, CVE-2021-45046, and CVE-2021-45105 fixes,
+            // more details: https://logging.apache.org/log4j/2.x/security.html
+            // revert once org.springframework.boot:spring-boot-starter-log4j2 is upgraded to bundle log4j2:2.17.1+
+            dependencySet(group:"org.apache.logging.log4j", version:"2.17.1") {
+                entry("log4j-jul")
+                entry("log4j-api")
+                entry("log4j-core")
+                entry("log4j-spring-boot")
+            }
+            dependency("org.apache.logging.log4j:log4j-slf4j-impl:2.17.1")
+            // --- end of CVE patch
+
             dependency("org.apache.zookeeper:zookeeper:3.4.6")
             dependency("org.codehaus.woodstox:stax2-api:3.1.4")
             dependency("org.datanucleus:datanucleus-api-jdo:4.2.4")
@@ -111,6 +147,9 @@ configure(javaProjects) {
             dependency("org.tukaani:xz:1.8")
             dependency("org.wildfly.openssl:wildfly-openssl:1.0.7.Final")
             dependency("org.xerial.snappy:snappy-java:1.1.8.4")
+
+            // Arenadata encryption
+            dependency("io.arenadata.security:encryption:1.0.0")
 
             // Hadoop dependencies
             dependencySet(group:"org.apache.hadoop", version:"${hadoopVersion}") {
@@ -142,11 +181,13 @@ configure(javaProjects) {
                 entry("hive-metastore")
                 entry("hive-serde")
                 entry("hive-common")
+                entry("hive-service")
+                entry("hive-service-rpc")
             }
             // 1.2.2 breaks on CDH-5.x
-            dependencySet(group:"org.apache.hive", version:"1.1.0") {
+            // We use custom hive-jdbc driver from Arenadata
+            dependencySet(group:"io.arenadata.hive", version:"2.3.8-arenadata-pxf-3") {
                 entry("hive-jdbc")
-                entry("hive-service")
             }
             dependencySet(group:"org.apache.hive.shims", version:"${hiveVersion}") {
                 entry("hive-shims-common")

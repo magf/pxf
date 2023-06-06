@@ -26,6 +26,8 @@ import org.greenplum.pxf.api.model.RequestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +57,7 @@ public class DemoResolverTest {
         textResolver = new DemoTextResolver();
 
         row = new OneRow("0.0", DATA);
-        field = new OneField(VARCHAR.getOID(), DATA.getBytes());
+        field = new OneField(VARCHAR.getOID(), new DataInputStream(new ByteArrayInputStream(DATA.getBytes())));
     }
 
     @Test
@@ -79,7 +81,7 @@ public class DemoResolverTest {
 
     @Test
     public void testSetEmptyTextData() throws Exception {
-        OneField field = new OneField(VARCHAR.getOID(), new byte[]{});
+        OneField field = new OneField(VARCHAR.getOID(), new DataInputStream(new ByteArrayInputStream(new byte[]{})));
         OneRow output = textResolver.setFields(Collections.singletonList(field));
         assertNull(output);
     }

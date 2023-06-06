@@ -31,13 +31,15 @@ dependencies {
      * Transitive Dependencies for JDBC Hive Access
      *******************************/
 
-    implementation("org.apache.hive:hive-jdbc")                      { transitive = false }
+    implementation("io.arenadata.hive:hive-jdbc")                    { transitive = false }
     implementation("org.apache.hive:hive-service")                   { transitive = false }
+    implementation("org.apache.hive:hive-service-rpc")               { transitive = false }
     implementation("org.apache.thrift:libthrift")                    { transitive = false }
     implementation("org.apache.hive:hive-common")                    { transitive = false }
     implementation("org.apache.hive.shims:hive-shims-0.23")          { transitive = false }
     implementation("org.apache.hive.shims:hive-shims-common")        { transitive = false }
     implementation("org.springframework.boot:spring-boot-starter-log4j2")
+    implementation("io.arenadata.security:encryption")
 
     /*******************************
      * Test Dependencies

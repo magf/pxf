@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
+import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.greenplum.pxf.api.model.BasePlugin;
@@ -96,6 +97,7 @@ public class JdbcBasePlugin extends BasePlugin {
     private static final String HIVE_URL_PREFIX = "jdbc:hive2://";
     private static final String HIVE_DEFAULT_DRIVER_CLASS = "org.apache.hive.jdbc.HiveDriver";
     private static final String MYSQL_DRIVER_PREFIX = "com.mysql.";
+    private static final String JDBC_DATE_WIDE_RANGE = "jdbc.date.wide-range";
 
     private enum TransactionIsolation {
         READ_UNCOMMITTED(1),
@@ -138,6 +140,9 @@ public class JdbcBasePlugin extends BasePlugin {
     // Query timeout.
     protected Integer queryTimeout;
 
+    // Convert Postgres timestamp to Oracle date with time
+    protected boolean wrapDateWithTime = false;
+
     // Quote columns setting set by user (three values are possible)
     protected Boolean quoteColumns = null;
 
@@ -163,6 +168,10 @@ public class JdbcBasePlugin extends BasePlugin {
 
     private final ConnectionManager connectionManager;
     private final SecureLogin secureLogin;
+    private final DecryptClient decryptClient;
+
+    // Flag which is used when the year might contain more than 4 digits in `date` or 'timestamp'
+    protected boolean isDateWideRange;
 
     static {
         // Deprecated as of Oct 22, 2019 in version 5.9.2+
@@ -173,10 +182,12 @@ public class JdbcBasePlugin extends BasePlugin {
 
     /**
      * Creates a new instance with default (singleton) instances of
-     * ConnectionManager and SecureLogin.
+     * ConnectionManager, SecureLogin and DecryptClient.
      */
     JdbcBasePlugin() {
-        this(SpringContext.getBean(ConnectionManager.class), SpringContext.getBean(SecureLogin.class));
+        this(SpringContext.getBean(ConnectionManager.class), SpringContext.getBean(SecureLogin.class),
+                SpringContext.getNullableBean(DecryptClient.class)
+        );
     }
 
     /**
@@ -184,9 +195,10 @@ public class JdbcBasePlugin extends BasePlugin {
      *
      * @param connectionManager connection manager instance
      */
-    JdbcBasePlugin(ConnectionManager connectionManager, SecureLogin secureLogin) {
+    JdbcBasePlugin(ConnectionManager connectionManager, SecureLogin secureLogin, DecryptClient decryptClient) {
         this.connectionManager = connectionManager;
         this.secureLogin = secureLogin;
+        this.decryptClient = decryptClient;
     }
 
     @Override
@@ -255,6 +267,12 @@ public class JdbcBasePlugin extends BasePlugin {
                         "Property %s has incorrect value %s : must be a non-negative integer",
                         JDBC_STATEMENT_QUERY_TIMEOUT_PROPERTY_NAME, queryTimeoutString), e);
             }
+        }
+
+        // Optional parameter. The default value is false
+        String wrapDateWithTimeRaw = context.getOption("CONVERT_ORACLE_DATE");
+        if (wrapDateWithTimeRaw != null) {
+            wrapDateWithTime = Boolean.parseBoolean(wrapDateWithTimeRaw);
         }
 
         // Optional parameter. The default value is null
@@ -331,6 +349,12 @@ public class JdbcBasePlugin extends BasePlugin {
         if (jdbcUser != null) {
             String jdbcPassword = configuration.get(JDBC_PASSWORD_PROPERTY_NAME);
             if (jdbcPassword != null) {
+                try {
+                    jdbcPassword = decryptClient == null ? jdbcPassword : decryptClient.decrypt(jdbcPassword);
+                } catch (Exception e) {
+                    throw new RuntimeException(
+                            "Failed to decrypt jdbc password. " + e.getMessage(), e);
+                }
                 LOG.debug("Connection password: {}", ConnectionManager.maskPassword(jdbcPassword));
                 connectionConfiguration.setProperty("password", jdbcPassword);
             }
@@ -358,6 +382,14 @@ public class JdbcBasePlugin extends BasePlugin {
             // get the qualifier for connection pool, if configured. Might be used when connection session authorization is employed
             // to switch effective user once connection is established
             poolQualifier = configuration.get(JDBC_POOL_QUALIFIER_PROPERTY_NAME);
+        }
+
+        // Optional parameter. Get the flag whether the year might contain more than 4 digits in `date` or 'timestamp' or not
+        String dateWideRange = context.getOption(JDBC_DATE_WIDE_RANGE);
+        if (dateWideRange != null) {
+            isDateWideRange = Boolean.parseBoolean(dateWideRange);
+        } else {
+            isDateWideRange = configuration.getBoolean(JDBC_DATE_WIDE_RANGE, false);
         }
     }
 
