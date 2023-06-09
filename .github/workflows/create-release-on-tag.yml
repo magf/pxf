@@ -22,24 +22,18 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: PXF Version ${{ github.ref }}
           body: |
-            ## 6.5.0 (12/21/2022)
+            ## 6.6.0 (04/06/2023)
 
             ### Enhancements:
 
-            - [#872](https://github.com/greenplum-db/pxf/pull/872) Enable automation tests to run against PXF FDW extension
-            - [#876](https://github.com/greenplum-db/pxf/pull/876) Parquet write array
-            - [#879](https://github.com/greenplum-db/pxf/pull/879) Add new SPLIT_BY_FILE option for json profiles
-            - [#880](https://github.com/greenplum-db/pxf/pull/880) Allow setting JDBC session-level parallel instructions for Oracle
-            - [#885](https://github.com/greenplum-db/pxf/pull/885) Prevent out-of-bounds buffer access
-            - [#886](https://github.com/greenplum-db/pxf/pull/886) Update jackson-databind to 2.13.4.1
-            - [#895](https://github.com/greenplum-db/pxf/pull/895) Parquet read array
-            - [#903](https://github.com/greenplum-db/pxf/pull/903) Bump postgresql from 42.4.1 to 42.4.3
+            - [#949](https://github.com/greenplum-db/pxf/pull/949) Support for fixedwidth formatter with new `*:fixedwidth` PXF profiles
+            - [#954](https://github.com/greenplum-db/pxf/pull/954) Update table options names to not include dash character
+            - [#955](https://github.com/greenplum-db/pxf/pull/955) Bump jackson-databind from 2.13.4.1 to 2.13.4.2 in /automation
 
             ### Bug Fixes:
 
-            - [#875](https://github.com/greenplum-db/pxf/pull/875) Fix projection of boolean qualifiers whose attrs are not in SELECT list
-            - [#879](https://github.com/greenplum-db/pxf/pull/879) Refactor JsonRecordReader and fix incorrect parsing of JSON objects for multi-line JSON
-            - [#897](https://github.com/greenplum-db/pxf/pull/897) Add close connection if statementRead is null
+            - [#940](https://github.com/greenplum-db/pxf/pull/940) Introduced options to handle decimal overflow when writing Parquet files
 
           draft: false
           prerelease: false
+

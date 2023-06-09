@@ -11,7 +11,15 @@ GPDB_VERSION=$(<"${GPDB_PKG_DIR}/version")
 function install_gpdb() {
     local pkg_file
     if command -v rpm; then
-        pkg_file=$(find "${GPDB_PKG_DIR}" -name "greenplum-db-${GPDB_VERSION}-rhel*-x86_64.rpm")
+        # For GP7 and above, a new rhel8 & rocky8 distro identifier
+        # (el8) has been introduced.
+        if [[ ${GPDB_VERSION%%.*} -ge 7 ]]; then
+            DISTRO_MATCHING_PATTERN="el"
+        else
+            DISTRO_MATCHING_PATTERN="r"
+        fi
+        pkg_file=$(find "${GPDB_PKG_DIR}" -name "greenplum-db-${GPDB_VERSION}-${DISTRO_MATCHING_PATTERN}*-x86_64.rpm")
+
         echo "Installing RPM ${pkg_file}..."
         rpm --quiet -ivh "${pkg_file}" >/dev/null
     elif command -v apt-get; then
@@ -60,6 +68,32 @@ function package_pxf() {
     cp pxf_src/build/${DIST_DIR}/pxf-*.tar.gz dist
 }
 
+function package_pxf_fdw() {
+    # verify contents
+    if [[ -f /etc/redhat-release ]]; then
+        DIST_DIR=distrpm
+    elif [[ -f /etc/debian_version ]]; then
+        DIST_DIR=distdeb
+    else
+        echo "Unsupported operating system '$(source /etc/os-release && echo "${PRETTY_NAME}")'. Exiting..."
+        exit 1
+    fi
+
+    # build PXF FDW extension separately
+    bash -c "
+        source ~/.pxfrc
+        make -C '${PWD}/pxf_src/fdw' stage
+    "
+    # get the filename of previously built main PXF tarball to use its full name as a suffix
+    local pxf_tarball=$(ls pxf_src/build/${DIST_DIR}/pxf-*.tar.gz | xargs -n 1 basename)
+    local pxf_fdw_tarball="pxf_src/build/${DIST_DIR}/pxf-fdw${pxf_tarball#pxf}"
+
+    # build the tarball and copy it to the output directory
+    ls -al pxf_src/fdw/build/stage/fdw
+    tar -cvzf "${pxf_fdw_tarball}" -C pxf_src/fdw/build/stage/fdw .
+    cp pxf_src/build/${DIST_DIR}/pxf-fdw-*.tar.gz dist
+}
+
 install_gpdb
 # installation of GPDB from RPM/DEB doesn't ensure that the installation location will match the version
 # given in the gpdb_package, so set the GPHOME after installation
@@ -67,3 +101,7 @@ GPHOME=$(find /usr/local/ -name "greenplum-db-${GPDB_VERSION}*")
 inflate_dependencies
 compile_pxf
 package_pxf
+# package FDW extension for GP6 separately for downstream testing as it is not shipped
+if [[ ${GPDB_VERSION%%.*} == 6 ]]; then
+    package_pxf_fdw
+fi

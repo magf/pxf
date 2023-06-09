@@ -1,13 +1,16 @@
 package org.greenplum.pxf.automation.features.columnprojection;
 
+import annotations.FailsWithFDW;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
+import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
 
 import java.io.File;
 
 /** Functional PXF column projection cases */
+@FailsWithFDW
 public class ColumnProjectionTest extends BaseFeature {
 
     String testPackageLocation = "/org/greenplum/pxf/automation/testplugin/";
@@ -35,22 +38,25 @@ public class ColumnProjectionTest extends BaseFeature {
     public void checkColumnProjection() throws Exception {
 
         // Create PXF external table for column projection testing
-        ReadableExternalTable pxfExternalTable = new ReadableExternalTable("test_column_projection", new String[] {
+        ReadableExternalTable pxfExternalTable = TableFactory.getPxfReadableTestTextTable("test_column_projection", new String[] {
                 "t0    text",
                 "a1    integer",
                 "b2    boolean",
                 "colprojValue  text"
-        }, "dummy_path","TEXT");
+        }, "dummy_path",",");
 
         pxfExternalTable.setFragmenter(testPackage + "ColumnProjectionVerifyFragmenter");
         pxfExternalTable.setAccessor(testPackage + "ColumnProjectionVerifyAccessor");
         pxfExternalTable.setResolver("org.greenplum.pxf.plugins.hdfs.StringPassResolver");
-        pxfExternalTable.setDelimiter(",");
-        pxfExternalTable.setHost(pxfHost);
-        pxfExternalTable.setPort(pxfPort);
-
         gpdb.createTableAndVerify(pxfExternalTable);
 
-        runTincTest("pxf.features.columnprojection.checkColumnProjection.runTest");
+        // TODO: revert when 2 queries with GP7 planner start propagating projection info to foreign scans
+        // SELECT t0, colprojvalue FROM test_column_projection GROUP BY t0, colprojvalue HAVING AVG(a1) < 5 ORDER BY t0;
+        // SELECT b.value, a.colprojvalue FROM test_column_projection a JOIN t0_values b ON a.t0 = b.key;
+        if (gpdb.getVersion() >= 7) {
+            runTincTest("pxf.features.columnprojection.checkColumnProjection_gp7.runTest");
+        } else {
+            runTincTest("pxf.features.columnprojection.checkColumnProjection.runTest");
+        }
     }
 }

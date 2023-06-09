@@ -2,10 +2,12 @@ ARG BASE_IMAGE=gcr.io/data-gpdb-private-images/gpdb7-rhel8-test:latest
 
 FROM ${BASE_IMAGE}
 
-ARG GINKGO_VERSION
+ARG GO_VERSION
 
 # install Go utilities
-RUN GOPATH=/opt/go /usr/local/go/bin/go install github.com/onsi/ginkgo/ginkgo@v${GINKGO_VERSION}
+RUN mkdir -p /tmp/pxf_src/ && cd /tmp \
+    && wget -O go.tgz -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
+    && rm -rf /usr/local/go && tar -C /usr/local -xzf go.tgz && rm go.tgz
 
 # add minio software
 RUN useradd -s /sbin/nologin -d /opt/minio minio \
@@ -26,6 +28,7 @@ RUN curl -fsSL -o /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERS
     && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
     && rm -f /tmp/apache-maven.tar.gz \
     && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn \
+    && dnf install -y -d1 python2 python2-pip \
     && /usr/bin/pip2 install paramiko --no-cache-dir
 
 # create rsa key for the root user

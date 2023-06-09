@@ -152,12 +152,18 @@ public class HttpRequestParser implements RequestParser<MultiValueMap<String, St
         String config = params.removeUserProperty("CONFIG");
         context.setConfig(StringUtils.isNotBlank(config) ? config : context.getServerName());
 
-        String maxFrags = params.removeUserProperty("STATS-MAX-FRAGMENTS");
+        // STATS-MAX-FRAGMENTS is deprecated in favor of STATS_MAX_FRAGMENTS for FDW options support
+        String maxFrags = StringUtils.defaultString(
+                params.removeUserProperty("STATS_MAX_FRAGMENTS"),
+                params.removeUserProperty("STATS-MAX-FRAGMENTS"));
         if (!StringUtils.isBlank(maxFrags)) {
             context.setStatsMaxFragments(Integer.parseInt(maxFrags));
         }
 
-        String sampleRatioStr = params.removeUserProperty("STATS-SAMPLE-RATIO");
+        // STATS-SAMPLE-RATIO is deprecated in favor of STATS_SAMPLE_RATIO for FDW options support
+        String sampleRatioStr = StringUtils.defaultString(
+                params.removeUserProperty("STATS_SAMPLE_RATIO"),
+                params.removeUserProperty("STATS-SAMPLE-RATIO"));
         if (!StringUtils.isBlank(sampleRatioStr)) {
             context.setStatsSampleRatio(Float.parseFloat(sampleRatioStr));
         }
@@ -233,7 +239,9 @@ public class HttpRequestParser implements RequestParser<MultiValueMap<String, St
         // Call the protocol handler for any protocol-specific logic handling
         if (StringUtils.isNotBlank(profile)) {
             String handlerClassName = pluginConf.getHandler(profile);
-            Utilities.updatePlugins(context, handlerClassName);
+            if (handlerClassName != null) {
+                Utilities.updatePlugins(context, handlerClassName);
+            }
         }
 
         // validate that the result has all required fields, and values are in valid ranges
@@ -272,6 +280,10 @@ public class HttpRequestParser implements RequestParser<MultiValueMap<String, St
 
         // get Profile's plugins from the configuration file
         Map<String, String> pluginsMap = pluginConf.getPlugins(profile);
+        if (pluginsMap == null) {
+            // a dynamic profile will have no plugins predefined
+            return;
+        }
 
         // create sets of keys to find out duplicates between what user has specified in the request
         // and what is configured in the configuration file -- DO NOT ALLOW DUPLICATES
@@ -288,7 +300,10 @@ public class HttpRequestParser implements RequestParser<MultiValueMap<String, St
         // add properties defined by profiles to the request map as if they were specified by the user
         pluginsMap.forEach((k, v) -> params.put(RequestMap.USER_PROP_PREFIX + k, v));
 
-        params.put(RequestMap.USER_PROP_PREFIX + PROFILE_SCHEME, pluginConf.getProtocol(profile));
+        String profileProtocol = pluginConf.getProtocol(profile);
+        if (profileProtocol != null) {
+            params.put(RequestMap.USER_PROP_PREFIX + PROFILE_SCHEME, profileProtocol);
+        }
     }
 
     /*

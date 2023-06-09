@@ -9,6 +9,7 @@ You can use PXF to read data that resides on a network file system mounted on yo
 | delimited single line text | file:text | read, write |
 | delimited single line comma-separated values of text | file:csv | read, write |
 | delimited text with quoted linefeeds | file:text:multi | read |
+| fixed width single line text | file:fixedwidth | read, write |
 | Avro | file:avro | read, write |
 | JSON | file:json | read |
 | ORC | file:orc | read, write |
@@ -99,7 +100,7 @@ FORMAT '[TEXT|CSV|CUSTOM]' (&lt;formatting-properties>);
 </pre>
 
 
-The specific keywords and values used in the Greenplum Database [CREATE EXTERNAL TABLE](https://docs.vmware.com/en/VMware-Tanzu-Greenplum/6/greenplum-database/GUID-ref_guide-sql_commands-CREATE_EXTERNAL_TABLE.html) command are described in the table below.
+The specific keywords and values used in the Greenplum Database [CREATE EXTERNAL TABLE](https://docs.vmware.com/en/VMware-Greenplum/6/greenplum-database/ref_guide-sql_commands-CREATE_EXTERNAL_TABLE.html) command are described in the table below.
 
 | Keyword  | Value |
 |-------|-------------------------------------|
@@ -213,4 +214,10 @@ Perform the following procedure to insert some data into the `ex1` directory and
     ```
 
     When you select from the `pxf_read_nfs` table here, PXF reads the `somedata.csv` file and the new files that it added to the `ex1/` directory in the previous step.
+
+## <a id="about_schema"></a>About Specifying a Parquet Schema File Location
+
+If you use the `file:parquet` profile to write to an external table that references a Parquet file and you want to provide the Parquet schema, specify the `SCHEMA` custom option in the `LOCATION` clause when you create the writable external table. Refer to the [Creating the External Table](hdfs_parquet.html#profile_cet) discussion in the PXF HDFS Parquet documentation for more information on the options available when you create an external table.
+
+You must set `SCHEMA` to the location of the Parquet schema file on the file system of the specified `SERVER=<server_name>`. When the `<server_name>` configuration includes a [`pxf.fs.basePath`](cfg_server.html#pxf-fs-basepath) property setting, PXF considers the schema file that you specify to be relative to the mount point specified.
 

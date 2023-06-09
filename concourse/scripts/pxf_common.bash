@@ -2,7 +2,7 @@
 
 GPHOME=${GPHOME:=/usr/local/greenplum-db-devel}
 PXF_HOME=${PXF_HOME:=${GPHOME}/pxf}
-MDD_VALUE=/data/gpdata/master/gpseg-1
+CDD_VALUE=/data/gpdata/coordinator/gpseg-1
 PXF_COMMON_SRC_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PXF_VERSION=${PXF_VERSION:=6}
 PROXY_USER=${PROXY_USER:-pxfuser}
@@ -208,10 +208,10 @@ function remote_access_to_gpdb() {
 	cp cluster_env_files/.ssh/*.pem /home/gpadmin/.ssh/id_rsa
 	cp cluster_env_files/public_key.openssh /home/gpadmin/.ssh/authorized_keys
 	{ ssh-keyscan localhost; ssh-keyscan 0.0.0.0; } >> /home/gpadmin/.ssh/known_hosts
-	ssh "${SSH_OPTS[@]}" gpadmin@mdw "
+	ssh "${SSH_OPTS[@]}" gpadmin@cdw "
 		source ${GPHOME}/greenplum_path.sh &&
-		export MASTER_DATA_DIRECTORY=${MDD_VALUE} &&
-		echo 'host all all 10.0.0.0/16 trust' >> ${MDD_VALUE}/pg_hba.conf &&
+		export MASTER_DATA_DIRECTORY=${CDD_VALUE} &&
+		echo 'host all all 10.0.0.0/16 trust' >> ${CDD_VALUE}/pg_hba.conf &&
 		psql -d template1 <<-EOF && gpstop -u
 			CREATE EXTENSION pxf;
 			CREATE DATABASE gpadmin;
@@ -299,9 +299,20 @@ function install_pxf_server() {
 
 function install_pxf_tarball() {
 	local tarball_dir=${PXF_PKG_DIR:-pxf_tarball}
-	tar -xzf "${tarball_dir}/"pxf-*.tar.gz -C /tmp
+	tar -xzf "${tarball_dir}/"pxf-gp*.tar.gz -C /tmp
 	/tmp/pxf*/install_component
 	chown -R gpadmin:gpadmin "${PXF_HOME}"
+
+	# install separately built PXF FDW extension if it is available on the inputs
+	local fdw_tarball_dir=${PXF_PKG_DIR:-pxf_fdw_tarball}
+	if compgen -G "${fdw_tarball_dir}/pxf-fdw-*.tar.gz" > /dev/null; then
+		tar -xzf "${fdw_tarball_dir}/"pxf-fdw-*.tar.gz -C /tmp
+		chmod 777 /tmp
+		ls -al /tmp
+		/usr/bin/install -c -m 755 /tmp/pxf_fdw.so "$("${GPHOME}/bin/pg_config" --pkglibdir)"
+		/usr/bin/install -c -m 644 /tmp/pxf_fdw.control "$("${GPHOME}/bin/pg_config" --sharedir)/extension/"
+		/usr/bin/install -c -m 644 /tmp/pxf_fdw*.sql "$("${GPHOME}/bin/pg_config" --sharedir)/extension/"
+	fi
 }
 
 function install_pxf_package() {
@@ -502,6 +513,9 @@ function configure_pxf_server() {
 		echo 'JDK 11 requested for runtime, setting PXF JAVA_HOME=/usr/lib/jvm/jdk-11 in pxf-env.sh'
 		su gpadmin -c "echo 'export JAVA_HOME=/usr/lib/jvm/jdk-11' >> ${BASE_DIR}/conf/pxf-env.sh"
 	fi
+
+	# add property to allow dynamic test: profiles that are used when testing against FDW
+	echo -e "\npxf.profile.dynamic.regex=test:.*" >> "${BASE_DIR}/conf/pxf-application.properties"
 }
 
 function configure_hdfs_client_for_s3() {

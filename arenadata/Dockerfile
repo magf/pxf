@@ -25,6 +25,7 @@ RUN source gpdb_src/concourse/scripts/common.bash && \
     install_gpdb && \
     source '/usr/local/greenplum-db-devel/greenplum_path.sh' && \
     mkdir ${OUTPUT_ARTIFACT_DIR} && \
+    export SKIP_FDW_BUILD_REASON=0 && \
     pxf_src/concourse/scripts/compile_pxf.bash
 
 # create test image which prepares base image and keeps only pxf artifacts from build image
