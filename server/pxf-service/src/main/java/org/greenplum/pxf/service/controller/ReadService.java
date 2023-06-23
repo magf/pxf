@@ -17,4 +17,6 @@ public interface ReadService {
      * @param outputStream output stream to write data to
      */
     void readData(RequestContext context, OutputStream outputStream);
+
+    boolean cancelRead(RequestContext context);
 }

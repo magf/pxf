@@ -21,8 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 @Slf4j
 public abstract class PxfBaseResource<T> extends PxfErrorReporter<T> {
 
-    private final RequestContext.RequestType requestType;
-    private final RequestParser<MultiValueMap<String, String>> parser;
+    protected final RequestContext.RequestType requestType;
+    protected final RequestParser<MultiValueMap<String, String>> parser;
 
     /**
      * Creates a new instance of the resource.

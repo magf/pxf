@@ -619,6 +619,12 @@ multi_perform(churl_context *context)
 {
 	int			curl_error;
 
+
+	/*
+	 * Allow canceling a query while waiting for input from remote service
+	 */
+	CHECK_FOR_INTERRUPTS();
+
 	while (CURLM_CALL_MULTI_PERFORM ==
 		   (curl_error = curl_multi_perform(context->multi_handle, &context->curl_still_running)));
 
@@ -649,7 +655,7 @@ flush_internal_buffer(churl_context *context)
 		/*
 		 * Allow canceling a query while waiting for input from remote service
 		 */
-		CHECK_FOR_INTERRUPTS();
+		// CHECK_FOR_INTERRUPTS();
 
 		multi_perform(context);
 	}

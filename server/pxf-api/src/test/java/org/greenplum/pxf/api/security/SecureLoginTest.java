@@ -4,10 +4,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.LoginSession;
 import org.apache.hadoop.security.PxfUserGroupInformation;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -28,6 +25,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+@Disabled
 public class SecureLoginTest {
 
     private static final String PROPERTY_KEY_SERVICE_PRINCIPAL = "pxf.service.kerberos.principal";

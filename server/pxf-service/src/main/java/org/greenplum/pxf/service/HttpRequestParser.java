@@ -244,6 +244,8 @@ public class HttpRequestParser implements RequestParser<MultiValueMap<String, St
             }
         }
 
+        context.setClientPort(params.removeIntProperty("CLIENT-PORT"));
+
         // validate that the result has all required fields, and values are in valid ranges
         context.validate();
 

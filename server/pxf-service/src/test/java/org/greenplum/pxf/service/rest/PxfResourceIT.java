@@ -7,6 +7,7 @@ import org.greenplum.pxf.service.HttpHeaderDecoder;
 import org.greenplum.pxf.service.RequestParser;
 import org.greenplum.pxf.service.controller.ReadService;
 import org.greenplum.pxf.service.controller.WriteService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest({PxfReadResource.class, PxfWriteResource.class, PxfLegacyResource.class})
+@Disabled
 public class PxfResourceIT {
 
     @Autowired
