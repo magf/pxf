@@ -32,7 +32,6 @@ import static org.mockito.Mockito.when;
 @AutoConfigureMetrics
 // on MacOS with Intel chip (and JDK 8) this test crashes the JVM. Commenting out for now to not run on Mac.
 @DisabledOnOs(MAC)
-@Disabled
 public class PxfMetricsIT {
 
     @LocalServerPort

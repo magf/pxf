@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,7 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest({PxfReadResource.class, PxfWriteResource.class, PxfLegacyResource.class})
-@Disabled
 public class PxfResourceIT {
 
     @Autowired
@@ -112,11 +112,19 @@ public class PxfResourceIT {
     static class PxfResourceTestConfiguration {
         @Bean
         ReadService createReadService() {
-            return (ctx, out) -> {
-                try {
-                    out.write("Hello from read!".getBytes(Charsets.UTF_8));
-                } catch (IOException e) {
-                    e.printStackTrace();
+            return new ReadService() {
+                @Override
+                public void readData(RequestContext context, OutputStream out) {
+                    try {
+                        out.write("Hello from read!".getBytes(Charsets.UTF_8));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public boolean cancelRead(RequestContext context) {
+                    return false;
                 }
             };
         }

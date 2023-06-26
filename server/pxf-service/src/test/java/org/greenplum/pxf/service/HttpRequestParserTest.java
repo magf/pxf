@@ -97,6 +97,7 @@ public class HttpRequestParserTest {
         parameters.add("X-GP-DATABASE-ENCODING", "UTF8");
         parameters.add("X-GP-SCHEMA-NAME", "public");
         parameters.add("X-GP-TABLE-NAME", "foobar");
+        parameters.add("X-GP-CLIENT-PORT", "666");
 
         parser = new HttpRequestParser(mockPluginConf, new CharsetUtils(), new HttpHeaderDecoder(), mockBuildProperties, mockApiVersionChecker);
 
