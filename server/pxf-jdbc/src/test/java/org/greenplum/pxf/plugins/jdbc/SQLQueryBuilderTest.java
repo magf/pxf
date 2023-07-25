@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -133,17 +134,59 @@ public class SQLQueryBuilderTest {
     }
 
     @Test
-    public void testUnsupportedOperationFilter() throws Exception {
+    public void testInOperatorWithWhere() throws Exception {
         when(mockMetaData.getDatabaseProductName()).thenReturn("mysql");
         when(mockMetaData.getExtraNameCharacters()).thenReturn("");
 
-        // IN 'bad'
-        context.setFilterString("a3c25s3dbado10");
+        // grade IN ('bad')
+        context.setFilterString("a3m1009s3dbado10");
 
         SQLQueryBuilder builder = new SQLQueryBuilder(context, mockMetaData);
         builder.autoSetQuoteString();
         String query = builder.buildSelectQuery();
-        assertEquals(SQL, query);
+        assertEquals(SQL + " WHERE grade IN ('bad')", query);
+    }
+
+    @Test
+    public void testInOperatorWithWhereAndFewIn() throws Exception {
+        when(mockMetaData.getDatabaseProductName()).thenReturn("mysql");
+        when(mockMetaData.getExtraNameCharacters()).thenReturn("");
+
+        // grade IN ('bad','good')
+        context.setFilterString("a3m1009s3dbads4dgoodo10");
+
+        SQLQueryBuilder builder = new SQLQueryBuilder(context, mockMetaData);
+        builder.autoSetQuoteString();
+        String query = builder.buildSelectQuery();
+        assertEquals(SQL + " WHERE grade IN ('bad','good')", query);
+    }
+
+    @Test
+    public void testInOperatorShouldContainWhere() throws Exception {
+        when(mockMetaData.getDatabaseProductName()).thenReturn("mysql");
+        when(mockMetaData.getExtraNameCharacters()).thenReturn("");
+
+        // grade IN ('bad')
+        context.setFilterString("a3m1009s3dbado10");
+
+        SQLQueryBuilder builder = new SQLQueryBuilder(context, mockMetaData);
+        builder.autoSetQuoteString();
+        String query = builder.buildSelectQuery();
+        assertNotEquals(SQL, query);
+    }
+
+    @Test
+    public void testInOperatorShouldContainBrackets() throws Exception {
+        when(mockMetaData.getDatabaseProductName()).thenReturn("mysql");
+        when(mockMetaData.getExtraNameCharacters()).thenReturn("");
+
+        // grade IN ('bad')
+        context.setFilterString("a3m1009s3dbado10");
+
+        SQLQueryBuilder builder = new SQLQueryBuilder(context, mockMetaData);
+        builder.autoSetQuoteString();
+        String query = builder.buildSelectQuery();
+        assertNotEquals(SQL + " WHERE grade IN 'bad'", query);
     }
 
     @Test
