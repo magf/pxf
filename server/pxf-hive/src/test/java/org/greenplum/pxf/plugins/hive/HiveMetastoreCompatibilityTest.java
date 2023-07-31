@@ -295,6 +295,7 @@ public class HiveMetastoreCompatibilityTest {
                      },
                      // placebo run through
                      // the second to last invocation keeps getting skipped so place this here as a placebo
+                     // https://github.com/mockito/mockito/pull/2545
                      invocation -> {
                          if (invocation.getMethod().getName().equals("get_table_req")) {
                              throw new TApplicationException("fallback ???");

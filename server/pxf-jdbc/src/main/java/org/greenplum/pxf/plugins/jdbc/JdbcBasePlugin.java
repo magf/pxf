@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER_IMPERSONATION;
 
@@ -97,8 +98,8 @@ public class JdbcBasePlugin extends BasePlugin {
     private static final String HIVE_URL_PREFIX = "jdbc:hive2://";
     private static final String HIVE_DEFAULT_DRIVER_CLASS = "org.apache.hive.jdbc.HiveDriver";
     private static final String MYSQL_DRIVER_PREFIX = "com.mysql.";
-    private static final String JDBC_DATE_WIDE_RANGE = "jdbc.date.wide-range";
-
+    private static final String JDBC_DATE_WIDE_RANGE = "jdbc.date.wideRange";
+    private static final String JDBC_DATE_WIDE_RANGE_LEGACY = "jdbc.date.wide-range";
     private enum TransactionIsolation {
         READ_UNCOMMITTED(1),
         READ_COMMITTED(2),
@@ -384,10 +385,15 @@ public class JdbcBasePlugin extends BasePlugin {
             poolQualifier = configuration.get(JDBC_POOL_QUALIFIER_PROPERTY_NAME);
         }
 
-        // Optional parameter. Get the flag whether the year might contain more than 4 digits in `date` or 'timestamp' or not
-        String dateWideRange = context.getOption(JDBC_DATE_WIDE_RANGE);
-        if (dateWideRange != null) {
-            isDateWideRange = Boolean.parseBoolean(dateWideRange);
+        // Optional parameter to determine if the year might contain more than 4 digits in `date` or 'timestamp'.
+        // The default value is false.
+        // We need to check the legacy parameter name for backward compatability with the open source project
+        String dateWideRangeConfig = configuration.get(JDBC_DATE_WIDE_RANGE_LEGACY);
+        String dateWideRangeContext = context.getOption(JDBC_DATE_WIDE_RANGE_LEGACY);
+        if (Objects.nonNull(dateWideRangeContext) || Objects.nonNull(dateWideRangeConfig)) {
+            LOG.warn("'{}' is a deprecated name of the parameter. Use 'date_wide_range' in the external table definition or " +
+                    "'{}' in the jdbc-site.xml configuration file", JDBC_DATE_WIDE_RANGE_LEGACY, JDBC_DATE_WIDE_RANGE);
+            isDateWideRange = isDateWideRange(dateWideRangeContext);
         } else {
             isDateWideRange = configuration.getBoolean(JDBC_DATE_WIDE_RANGE, false);
         }
@@ -619,4 +625,17 @@ public class JdbcBasePlugin extends BasePlugin {
         return configMap;
     }
 
+    /**
+     * Determine if the year might contain more than 4 digits in 'date' or 'timestamp' using the legacy parameter name.
+     *
+     * @param dateWideRangeContext value of the parameter from the context
+     * @return true if the year might contain more than 4 digits
+     */
+    private boolean isDateWideRange(String dateWideRangeContext) {
+        if (Objects.nonNull(dateWideRangeContext)) {
+            return Boolean.parseBoolean(dateWideRangeContext);
+        } else {
+            return configuration.getBoolean(JDBC_DATE_WIDE_RANGE_LEGACY, false);
+        }
+    }
 }

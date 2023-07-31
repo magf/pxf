@@ -39,7 +39,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.anyInt;
@@ -487,6 +490,15 @@ public class JdbcBasePluginTest {
 
     @Test
     public void testDateWideRangeFromConfiguration() throws SQLException {
+        configuration.set("jdbc.driver", "org.greenplum.pxf.plugins.jdbc.FakeJdbcDriver");
+        configuration.set("jdbc.url", "test-url");
+        configuration.set("jdbc.date.wideRange", "true");
+        JdbcBasePlugin plugin = getPlugin(mockConnectionManager, mockSecureLogin, context);
+        assertTrue(plugin.isDateWideRange);
+    }
+
+    @Test
+    public void testDateWideRangeLegacyFromConfiguration() throws SQLException {
         configuration.set("jdbc.driver", "org.greenplum.pxf.plugins.jdbc.FakeJdbcDriver");
         configuration.set("jdbc.url", "test-url");
         configuration.set("jdbc.date.wide-range", "true");

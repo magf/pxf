@@ -22,6 +22,7 @@ package org.greenplum.pxf.api.examples;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.io.DataType;
+import org.greenplum.pxf.api.model.InputStreamHandler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -33,6 +34,7 @@ import java.util.List;
  * <p>
  * Demo implementation of resolver that returns text format
  */
+@InputStreamHandler
 public class DemoTextResolver extends DemoResolver {
 
     /**

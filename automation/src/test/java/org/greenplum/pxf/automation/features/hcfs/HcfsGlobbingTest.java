@@ -1,8 +1,10 @@
 package org.greenplum.pxf.automation.features.hcfs;
 
+import annotations.WorksWithFDW;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.greenplum.pxf.automation.utils.system.ProtocolEnum;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
 import org.testng.annotations.Test;
@@ -11,6 +13,7 @@ import org.testng.annotations.Test;
  * Functional Globbing Tests. Tests are based on Hadoop Glob Tests
  * https://github.com/apache/hadoop/blob/rel/release-3.2.1/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/fs/TestGlobPaths.java
  */
+@WorksWithFDW
 public class HcfsGlobbingTest extends BaseFeature {
 
     public static final String[] FIELDS = {
@@ -85,6 +88,7 @@ public class HcfsGlobbingTest extends BaseFeature {
         prepareTestScenario("match_string_from_string_set_4", "match_string_from_string_set_10", null, null, null, null, "}{ac,?}");
         // test ill-formed curly
         prepareTestScenario("match_string_from_string_set_4", "match_string_from_string_set_11", null, null, null, null, "}{bc");
+
         // test escape curly
         prepareTestScenario("match_string_from_string_set_12", "}{bc", "}bc", null, null, "}\\\\{bc");
         runTestScenario("match_string_from_string_set");
@@ -125,10 +129,16 @@ public class HcfsGlobbingTest extends BaseFeature {
         ProtocolEnum protocol = ProtocolUtils.getProtocol();
 
         // Create GPDB external table directed to the HDFS file
+
+        String updatedPath = protocol.getExternalTablePath(hdfs.getBasePath(), hdfs.getWorkingDirectory()) + "/" + path + "/" + glob;
+        if (FDWUtils.useFDW) {
+            updatedPath = "E'"+ updatedPath +"'";
+        }
+
         exTable = TableFactory.getPxfReadableTextTable(
                 "hcfs_glob_" + testName,
                 FIELDS,
-                protocol.getExternalTablePath(hdfs.getBasePath(), hdfs.getWorkingDirectory()) + "/" + path + "/" + glob,
+                updatedPath,
                 ",");
         exTable.setHost(pxfHost);
         exTable.setPort(pxfPort);

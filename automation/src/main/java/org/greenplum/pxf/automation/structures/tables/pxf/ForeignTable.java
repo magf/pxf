@@ -39,20 +39,24 @@ public class ForeignTable extends WritableExternalTable {
         String[] serverParameters = StringUtils.defaultIfBlank(getServer(), "default").split("=");
         // getServer() might return a string "server=<..>", strip the prefix
         int index = serverParameters.length > 1 ? 1 : 0;
-        return String.format(" SERVER %s_%s", serverParameters[index], getProtocol());
+        // foreign server names will have underscores instead of dashes
+        return String.format(" SERVER %s_%s", serverParameters[index].replace("-","_"), getProtocol());
     }
 
     protected String createOptions() {
         // foreign tables do not have locations, parameters go into options
         // path (resource option for FDW) should always be present
         StringJoiner joiner = new StringJoiner(",", " OPTIONS (", ")");
-        appendOption(joiner,"resource", getPath(), true);
+        appendOption(joiner,"resource ", getPath(), !getPath().startsWith("E"));
 
         String formatOption = getFormatOption();
         if (formatOption != null) {
             appendOption(joiner, "format", formatOption);
         }
 
+        if (getCompressionCodec() != null) {
+            appendOption(joiner, "compression_codec", getCompressionCodec());
+        }
         // process F/A/R as options, they are used in tests to test column projection / predicate pushdown
         if (getFragmenter() != null) {
             appendOption(joiner, "fragmenter", getFragmenter());
@@ -72,7 +76,7 @@ public class ForeignTable extends WritableExternalTable {
 
         if (getEscape() != null) {
             // if Escape character, no need for "'"
-            appendOption(joiner,"delimiter", getEscape(), !getEscape().startsWith("E"));
+            appendOption(joiner,"escape", getEscape(), !getEscape().startsWith("E"));
         }
 
         if (getNewLine() != null) {
@@ -184,7 +188,8 @@ public class ForeignTable extends WritableExternalTable {
 
     private String[] getProfileParts() {
         if (getProfile() == null) {
-            // TODO: what will we do with tests that set F/A/R directly without a profile ?
+            // tests that set F/A/R directly without a profile need to be registered to 'test_fdw' created for testing
+            // specifically that defines pseudo protocol 'test'
             throw new IllegalStateException("Cannot create foreign table when profile is not specified");
         }
         return getProfile().split(":");
