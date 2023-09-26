@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
+import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.io.DataType;
@@ -152,8 +153,8 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
      * @param connectionManager connection manager
      * @param secureLogin       the instance of the secure login
      */
-    JdbcResolver(ConnectionManager connectionManager, SecureLogin secureLogin) {
-        super(connectionManager, secureLogin);
+    JdbcResolver(ConnectionManager connectionManager, SecureLogin secureLogin, DecryptClient decryptClient) {
+        super(connectionManager, secureLogin, decryptClient);
     }
 
     /**

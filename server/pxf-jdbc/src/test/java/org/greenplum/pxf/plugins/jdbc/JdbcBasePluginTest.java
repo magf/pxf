@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
+import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.apache.hadoop.conf.Configuration;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.security.SecureLogin;
@@ -65,6 +66,8 @@ public class JdbcBasePluginTest {
     private PreparedStatement mockStatement;
     @Mock
     private SecureLogin mockSecureLogin;
+    @Mock
+    private DecryptClient mockDecryptClient;
 
     private final SQLException exception = new SQLException("some error");
     private Configuration configuration;
@@ -239,7 +242,7 @@ public class JdbcBasePluginTest {
         when(mockConnectionManager.getConnection(any(), any(), any(), anyBoolean(), any(), any())).thenReturn(mockConnection);
         when(mockConnection.getMetaData()).thenReturn(mockMetaData);
 
-        JdbcBasePlugin plugin = new JdbcBasePlugin(mockConnectionManager, mockSecureLogin);
+        JdbcBasePlugin plugin = new JdbcBasePlugin(mockConnectionManager, mockSecureLogin, mockDecryptClient);
         plugin.setRequestContext(context);
         Connection conn = plugin.getConnection();
 
@@ -298,7 +301,7 @@ public class JdbcBasePluginTest {
         when(mockConnectionManager.getConnection(anyString(), anyString(), any(), anyBoolean(), any(), anyString())).thenReturn(mockConnection);
         doThrow(new SQLException("")).when(mockConnection).getMetaData();
 
-        JdbcBasePlugin plugin = new JdbcBasePlugin(mockConnectionManager, mockSecureLogin);
+        JdbcBasePlugin plugin = new JdbcBasePlugin(mockConnectionManager, mockSecureLogin, mockDecryptClient);
         plugin.setRequestContext(context);
         assertThrows(SQLException.class, plugin::getConnection);
     }
@@ -324,7 +327,7 @@ public class JdbcBasePluginTest {
 
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockStatement);
 
-        JdbcBasePlugin plugin = new JdbcBasePlugin(mockConnectionManager, mockSecureLogin);
+        JdbcBasePlugin plugin = new JdbcBasePlugin(mockConnectionManager, mockSecureLogin, mockDecryptClient);
         plugin.setRequestContext(context);
         plugin.getPreparedStatement(mockConnection, "foo");
 
@@ -494,8 +497,17 @@ public class JdbcBasePluginTest {
         assertTrue(plugin.isDateWideRange);
     }
 
+    @Test
+    public void testDateWideRangeLegacyFromConfiguration() throws SQLException {
+        configuration.set("jdbc.driver", "org.greenplum.pxf.plugins.jdbc.FakeJdbcDriver");
+        configuration.set("jdbc.url", "test-url");
+        configuration.set("jdbc.date.wide-range", "true");
+        JdbcBasePlugin plugin = getPlugin(mockConnectionManager, mockSecureLogin, context);
+        assertTrue(plugin.isDateWideRange);
+    }
+
     private JdbcBasePlugin getPlugin(ConnectionManager mockConnectionManager, SecureLogin mockSecureLogin, RequestContext context) {
-        JdbcBasePlugin plugin = new JdbcBasePlugin(mockConnectionManager, mockSecureLogin);
+        JdbcBasePlugin plugin = new JdbcBasePlugin(mockConnectionManager, mockSecureLogin, mockDecryptClient);
         plugin.setRequestContext(context);
         plugin.afterPropertiesSet();
         return plugin;

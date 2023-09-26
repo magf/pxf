@@ -1,5 +1,6 @@
 package org.greenplum.pxf.plugins.jdbc;
 
+import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.io.DataType;
@@ -42,6 +43,8 @@ class JdbcResolverTest {
     private ConnectionManager mockConnectionManager;
     @Mock
     private SecureLogin mockSecureLogin;
+    @Mock
+    DecryptClient decryptClient;
     RequestContext context = new RequestContext();
     List<ColumnDescriptor> columnDescriptors = new ArrayList<>();
     List<OneField> oneFieldList = new ArrayList<>();
@@ -50,7 +53,7 @@ class JdbcResolverTest {
 
     @BeforeEach
     void setup() {
-        resolver = new JdbcResolver(mockConnectionManager, mockSecureLogin);
+        resolver = new JdbcResolver(mockConnectionManager, mockSecureLogin, decryptClient);
     }
 
     @Test

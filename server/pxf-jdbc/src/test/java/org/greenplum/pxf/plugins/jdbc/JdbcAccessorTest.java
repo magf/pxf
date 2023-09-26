@@ -1,5 +1,6 @@
 package org.greenplum.pxf.plugins.jdbc;
 
+import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.apache.hadoop.conf.Configuration;
 import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.RequestContext;
@@ -52,11 +53,13 @@ public class JdbcAccessorTest {
     private PreparedStatement mockPreparedStatement;
     @Mock
     private ResultSet mockResultSet;
+    @Mock
+    private DecryptClient mockDecryptClient;
 
     @BeforeEach
     public void setup() {
 
-        accessor = new JdbcAccessor(mockConnectionManager, mockSecureLogin);
+        accessor = new JdbcAccessor(mockConnectionManager, mockSecureLogin, mockDecryptClient);
         configuration = new Configuration();
         context = new RequestContext();
         context.setConfig("default");

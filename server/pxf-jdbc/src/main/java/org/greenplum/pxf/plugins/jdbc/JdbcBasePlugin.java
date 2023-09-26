@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
+import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.greenplum.pxf.api.model.BasePlugin;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER_IMPERSONATION;
 
@@ -97,7 +99,7 @@ public class JdbcBasePlugin extends BasePlugin {
     private static final String HIVE_DEFAULT_DRIVER_CLASS = "org.apache.hive.jdbc.HiveDriver";
     private static final String MYSQL_DRIVER_PREFIX = "com.mysql.";
     private static final String JDBC_DATE_WIDE_RANGE = "jdbc.date.wideRange";
-
+    private static final String JDBC_DATE_WIDE_RANGE_LEGACY = "jdbc.date.wide-range";
     private enum TransactionIsolation {
         READ_UNCOMMITTED(1),
         READ_COMMITTED(2),
@@ -139,6 +141,9 @@ public class JdbcBasePlugin extends BasePlugin {
     // Query timeout.
     protected Integer queryTimeout;
 
+    // Convert Postgres timestamp to Oracle date with time
+    protected boolean wrapDateWithTime = false;
+
     // Quote columns setting set by user (three values are possible)
     protected Boolean quoteColumns = null;
 
@@ -164,6 +169,7 @@ public class JdbcBasePlugin extends BasePlugin {
 
     private final ConnectionManager connectionManager;
     private final SecureLogin secureLogin;
+    private final DecryptClient decryptClient;
 
     // Flag which is used when the year might contain more than 4 digits in `date` or 'timestamp'
     protected boolean isDateWideRange;
@@ -177,10 +183,12 @@ public class JdbcBasePlugin extends BasePlugin {
 
     /**
      * Creates a new instance with default (singleton) instances of
-     * ConnectionManager and SecureLogin.
+     * ConnectionManager, SecureLogin and DecryptClient.
      */
     JdbcBasePlugin() {
-        this(SpringContext.getBean(ConnectionManager.class), SpringContext.getBean(SecureLogin.class));
+        this(SpringContext.getBean(ConnectionManager.class), SpringContext.getBean(SecureLogin.class),
+                SpringContext.getNullableBean(DecryptClient.class)
+        );
     }
 
     /**
@@ -188,9 +196,10 @@ public class JdbcBasePlugin extends BasePlugin {
      *
      * @param connectionManager connection manager instance
      */
-    JdbcBasePlugin(ConnectionManager connectionManager, SecureLogin secureLogin) {
+    JdbcBasePlugin(ConnectionManager connectionManager, SecureLogin secureLogin, DecryptClient decryptClient) {
         this.connectionManager = connectionManager;
         this.secureLogin = secureLogin;
+        this.decryptClient = decryptClient;
     }
 
     @Override
@@ -259,6 +268,12 @@ public class JdbcBasePlugin extends BasePlugin {
                         "Property %s has incorrect value %s : must be a non-negative integer",
                         JDBC_STATEMENT_QUERY_TIMEOUT_PROPERTY_NAME, queryTimeoutString), e);
             }
+        }
+
+        // Optional parameter. The default value is false
+        String wrapDateWithTimeRaw = context.getOption("CONVERT_ORACLE_DATE");
+        if (wrapDateWithTimeRaw != null) {
+            wrapDateWithTime = Boolean.parseBoolean(wrapDateWithTimeRaw);
         }
 
         // Optional parameter. The default value is null
@@ -335,6 +350,12 @@ public class JdbcBasePlugin extends BasePlugin {
         if (jdbcUser != null) {
             String jdbcPassword = configuration.get(JDBC_PASSWORD_PROPERTY_NAME);
             if (jdbcPassword != null) {
+                try {
+                    jdbcPassword = decryptClient == null ? jdbcPassword : decryptClient.decrypt(jdbcPassword);
+                } catch (Exception e) {
+                    throw new RuntimeException(
+                            "Failed to decrypt jdbc password. " + e.getMessage(), e);
+                }
                 LOG.debug("Connection password: {}", ConnectionManager.maskPassword(jdbcPassword));
                 connectionConfiguration.setProperty("password", jdbcPassword);
             }
@@ -366,7 +387,16 @@ public class JdbcBasePlugin extends BasePlugin {
 
         // Optional parameter to determine if the year might contain more than 4 digits in `date` or 'timestamp'.
         // The default value is false.
-        isDateWideRange = configuration.getBoolean(JDBC_DATE_WIDE_RANGE, false);
+        // We need to check the legacy parameter name for backward compatability with the open source project
+        String dateWideRangeConfig = configuration.get(JDBC_DATE_WIDE_RANGE_LEGACY);
+        String dateWideRangeContext = context.getOption(JDBC_DATE_WIDE_RANGE_LEGACY);
+        if (Objects.nonNull(dateWideRangeContext) || Objects.nonNull(dateWideRangeConfig)) {
+            LOG.warn("'{}' is a deprecated name of the parameter. Use 'date_wide_range' in the external table definition or " +
+                    "'{}' in the jdbc-site.xml configuration file", JDBC_DATE_WIDE_RANGE_LEGACY, JDBC_DATE_WIDE_RANGE);
+            isDateWideRange = isDateWideRange(dateWideRangeContext);
+        } else {
+            isDateWideRange = configuration.getBoolean(JDBC_DATE_WIDE_RANGE, false);
+        }
     }
 
     /**
@@ -595,4 +625,17 @@ public class JdbcBasePlugin extends BasePlugin {
         return configMap;
     }
 
+    /**
+     * Determine if the year might contain more than 4 digits in 'date' or 'timestamp' using the legacy parameter name.
+     *
+     * @param dateWideRangeContext value of the parameter from the context
+     * @return true if the year might contain more than 4 digits
+     */
+    private boolean isDateWideRange(String dateWideRangeContext) {
+        if (Objects.nonNull(dateWideRangeContext)) {
+            return Boolean.parseBoolean(dateWideRangeContext);
+        } else {
+            return configuration.getBoolean(JDBC_DATE_WIDE_RANGE_LEGACY, false);
+        }
+    }
 }
