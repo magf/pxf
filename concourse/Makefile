@@ -16,6 +16,7 @@ PERF_PIPELINE_NAME          ?= pxf_perf-$(SCALE)g-RHEL$(REDHAT_MAJOR_VERSION)
 PIVNET_PIPELINE_NAME        ?= pivnet_artifacts
 NUM_GPDB5_VERSIONS          ?= 10
 NUM_GPDB6_VERSIONS          ?=  9
+NUM_GPDB7_VERSIONS          ?=  1
 REDHAT_MAJOR_VERSION        ?= 7
 FLY_CMD                     ?= fly
 CHECK_CREDS                 ?= true
@@ -33,10 +34,15 @@ MAPR                        ?= false
 AMBARI                      ?= false
 S3                          ?= false
 ADL                         ?= false
+WASB                        ?= false
 GS                          ?= false
 MINIO                       ?= false
 OEL7                        ?= false
 FILE                        ?= false
+GP7_CLI                     ?= false
+GP7_MULTINODE               ?= false
+# used to quickly modify the docker image tag being pulled ONLY in the dev_build_pipeline
+PXF_DEV_IMAGE_TAG           ?= latest
 
 SET_PIPELINE := set-pipeline
 ifeq ($(CHECK_CREDS), true)
@@ -61,7 +67,8 @@ set-build-pipeline:
 		environment=prod \
 		slack_notification=$(SLACK) \
 		num_gpdb5_versions=$(NUM_GPDB5_VERSIONS) \
-		num_gpdb6_versions=$(NUM_GPDB6_VERSIONS) >"$${PIPELINE_FILE}" && \
+		num_gpdb6_versions=$(NUM_GPDB6_VERSIONS) \
+		num_gpdb7_versions=$(NUM_GPDB7_VERSIONS) >"$${PIPELINE_FILE}" && \
 	$(FLY_CMD) --target=$(CONCOURSE) \
 		$(SET_PIPELINE) \
 		--pipeline=$(BUILD_PIPELINE_NAME) \
@@ -82,7 +89,8 @@ set-dev-release-pipeline:
 		slack_notification=false \
 		git_branch=$(BRANCH) \
 		num_gpdb5_versions=$(NUM_GPDB5_VERSIONS) \
-		num_gpdb6_versions=$(NUM_GPDB6_VERSIONS) >"$${PIPELINE_FILE}" && \
+		num_gpdb6_versions=$(NUM_GPDB6_VERSIONS) \
+		num_gpdb7_versions=$(NUM_GPDB7_VERSIONS) >"$${PIPELINE_FILE}" && \
 	$(FLY_CMD) --target=$(CONCOURSE) \
 		$(SET_PIPELINE) \ \
 		--pipeline=$(DEV_BUILD_PIPELINE_NAME) \
@@ -103,6 +111,7 @@ set-dev-build-pipeline:
 	$(TEMPLATE_CMD) --template dev_build_pipeline-tpl.yml --vars \
 		slack_notification=$(SLACK) \
 		multinode=$(MULTINODE) \
+		gp7_multinode=$(GP7_MULTINODE) \
 		multinode_no_impersonation=$(MULTINODE_NO_IMPERSONATION) \
 		jdk11=$(JDK11) \
 		cdh=$(CDH) \
@@ -113,20 +122,24 @@ set-dev-build-pipeline:
 		file=$(FILE) \
 		s3=$(S3) \
 		adl=$(ADL) \
+		wasb=$(WASB) \
 		gs=$(GS) \
 		minio=$(MINIO) \
 		oel7=$(OEL7) \
+		gp7_cli=$(GP7_CLI) \
 		dev_pipeline=true \
 		user=$(USER) \
 		branch=$(BRANCH) \
 		num_gpdb5_versions=1 \
-		num_gpdb6_versions=1 >"$${PIPELINE_FILE}" && \
+		num_gpdb6_versions=1 \
+		num_gpdb7_versions=1 >"$${PIPELINE_FILE}" && \
 	$(FLY_CMD) --target=$(CONCOURSE) \
 		$(SET_PIPELINE) \
 		--pipeline=$(DEV_BUILD_PIPELINE_NAME) \
 		--config "$${PIPELINE_FILE}" \
 		--load-vars-from=$(HOME)/workspace/pxf/concourse/settings/pxf-multinode-params.yml \
 		--var=pxf-git-branch=${BRANCH} \
+		--var=pxf-dev-image-tag=$(PXF_DEV_IMAGE_TAG) \
 		${FLY_OPTION_NON-INTERACTIVE} || echo "Generated yaml has errors: check $${PIPELINE_FILE}"
 
 	@echo using the following command to unpause the pipeline:
@@ -151,7 +164,8 @@ set-pr-build-pipeline:
 		slack_notification=false \
 		pr_pipeline=true \
 		num_gpdb5_versions=1 \
-		num_gpdb6_versions=1 >"$${PIPELINE_FILE}" && \
+		num_gpdb6_versions=1 \
+		num_gpdb7_versions=1 >"$${PIPELINE_FILE}" && \
 	$(FLY_CMD) --target=$(CONCOURSE) \
 		$(SET_PIPELINE) \
 		--pipeline=$(PR_BUILD_PIPELINE_NAME) \

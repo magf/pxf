@@ -26,6 +26,9 @@ groups:
 {% for gp_ver in range(5, 7) %}
   - Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL7
 {% endfor %}
+{% set gp_ver = 7 %}
+  - Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL8
+{% set gp_ver = None %}
 {% set gp_ver = 6 %}
   - Test PXF-GP[[gp_ver]] Backward Compatibility on Ubuntu18
   - Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL8
@@ -45,9 +48,13 @@ groups:
   - Test PXF-GP[[gp_ver]]-HDP2-SECURE-MULTI-NO-IMPERS on RHEL7
   - Test PXF-GP[[gp_ver]]-HDP2-Upgrade-Extension on RHEL7
 {% set gp_ver = None %}
+{% set gp_ver = 7 %}
+  - Test PXF-GP[[gp_ver]]-HDP2-SECURE-MULTI-IMPERS on RHEL8
+  - Test PXF-GP[[gp_ver]]-CLI on RHEL8
+{% set gp_ver = None %}
   - Compatibility Gate for PXF-GP
-  - Promote PXF-GP5 and PXF-GP6 Artifacts
-  - Publish_PXF-GP5_and_PXF-GP6_Artifacts_to_GP-RelEng
+  - Promote PXF for GP5_GP6_GP7 Artifacts
+  - Publish_PXF-GP5_GP6_GP7_Artifacts_to_GP-RelEng
 
 {% set gp_ver = None %}
 {% for gp_ver in range(5, 7) %}
@@ -92,20 +99,29 @@ groups:
   - Test PXF-GP[[gp_ver]]-HDP2-SECURE-MULTI-NO-IMPERS on RHEL7
   - Test PXF-GP[[gp_ver]]-HDP2-Upgrade-Extension on RHEL7
 {% set gp_ver = None %}
+{% set gp_ver = 7 %}
+- name: PXF Tests - GP[[gp_ver]] on RHEL8
+  jobs:
+  - Test PXF-GP[[gp_ver]]-HDP2-SECURE-MULTI-IMPERS on RHEL8
+  - Test PXF-GP[[gp_ver]]-CLI on RHEL8
+{% set gp_ver = None %}
 - name: Backwards Compatibility
   jobs:
 {% set gp_ver = None %}
 {% for gp_ver in range(5, 7) %}
   - Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL7
 {% endfor %}
+{% set gp_ver = None %}
+{% for gp_ver in range(6, 8) %}
+  - Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL8
+{% endfor %}
 {% set gp_ver = 6 %}
   - Test PXF-GP[[gp_ver]] Backward Compatibility on Ubuntu18
-  - Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL8
 {% set gp_ver = None %}
 - name: Promote and Publish
   jobs:
-  - Promote PXF-GP5 and PXF-GP6 Artifacts
-  - Publish_PXF-GP5_and_PXF-GP6_Artifacts_to_GP-RelEng
+  - Promote PXF for GP5_GP6_GP7 Artifacts
+  - Publish_PXF-GP5_GP6_GP7_Artifacts_to_GP-RelEng
 
 ## ======================================================================
 ## ANCHORS
@@ -229,6 +245,7 @@ resources:
     json_key: ((ud/pxf/secrets/pxf-storage-service-account-key))
     versioned_file: automation-dependencies/pxf-automation-dependencies.tar.gz
 
+## TODO Remove gp6-python-libs resource once Tinc is replaced.
 - name: gp6-python-libs
   type: gcs
   icon: google-drive
@@ -505,14 +522,17 @@ resources:
 {% endfor %} {# range(num_gpdb6_versions) #}
 {% set gp_ver = None %}
 
-## ---------- Greenplum 7 Beta Builds ----------
-- name: gpdb7_rhel8_rpm_latest-0
+{% set gp_ver = 7 %}
+{% for i in range(num_gpdb7_versions) %}
+- name: gpdb[[gp_ver]]_rhel8_rpm_latest-[[i]]
   type: gcs
   icon: google-drive
   source:
-    bucket: ((ud/pxf/common/gpdb-concourse-resources-prod-bucket-name))
-    json_key: ((concourse-gcs-resources-service-account-key))
-    regexp: server/released/gpdb7/greenplum-db-(7.*)-el8-x86_64.rpm
+    bucket: ((ud/pxf/common/pivnet-artifacts-bucket-name))
+    json_key: ((ud/pxf/secrets/pxf-storage-service-account-key))
+    regexp: latest-[[i]]_gpdb[[gp_ver]]/greenplum-db-([[gp_ver]].*)-el8-x86_64.rpm
+{% endfor %} {# range(num_gpdb7_versions) #}
+{% set gp_ver = None %}
 
 ## ---------- PXF 5 (for GPDB 6) Artifact ---------------
 - name: pxf5_gp6_rhel7_released
@@ -1518,6 +1538,16 @@ jobs:
     file: pxf_src/concourse/tasks/test_pxf_cli.yml
 {% set gp_ver = None %}
 
+## ---------- Multi-node test for GP7 ----------
+{% set gp_ver = 7 %}
+{% set passed = '[Testing Gate for PXF-GP]' %}
+{% include 'jobs/multinode-tpl.yml'%}
+
+## ---------- GP7 PXF CLI tests ----------
+{% include 'jobs/cli-tpl.yml' %}
+{% set passed = None %}
+{% set gp_ver = None %}
+
 ## ---------- Compatibility Gate ----------
 {% set gp_ver = 6 %}
 - name: Compatibility Gate for PXF-GP
@@ -1539,8 +1569,11 @@ jobs:
       - Test PXF-GP[[gp_ver]]-HDP2-SECURE-MULTI-IMPERS on RHEL7
       - Test PXF-GP[[gp_ver]]-HDP2-SECURE-MULTI-NO-IMPERS on RHEL7
       - Test PXF-GP[[gp_ver]]-HDP2-Upgrade-Extension on RHEL7
-      trigger: true
+{% set gp_ver = 7 %}
+      - Test PXF-GP[[gp_ver]]-HDP2-SECURE-MULTI-IMPERS on RHEL8
+      - Test PXF-GP[[gp_ver]]-CLI on RHEL8
 {% set gp_ver = None %}
+      trigger: true
 {% set gp_ver = 5 %}
     - get: pxf_gp[[gp_ver]]_tarball_rhel7
       passed:
@@ -1571,7 +1604,8 @@ jobs:
 {% set gp_ver = 7 %}
     - get: pxf_gp[[gp_ver]]_tarball_rhel8
       passed:
-      - Testing Gate for PXF-GP
+      - Test PXF-GP[[gp_ver]]-HDP2-SECURE-MULTI-IMPERS on RHEL8
+      - Test PXF-GP[[gp_ver]]-CLI on RHEL8
 {% set gp_ver = None %}
 
 ## ---------- Compatibility Testing ----------
@@ -1712,47 +1746,56 @@ jobs:
 {% endfor %}
 {% set gp_ver = None %}
 
-## ---------- Artifact Promotion Gate ----------
-- name: Promote PXF-GP5 and PXF-GP6 Artifacts
+## ---------- This is a No-Op job for GP7 and once the GP7 ----------
+## ---------- is released this can be updated and like the GP6 job above ----------
+{% set gp_ver = 7 %}
+- name: Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL8
   plan:
   - in_parallel:
     - get: pxf_src
+      passed: [Compatibility Gate for PXF-GP]
+      trigger: true
+    - get: pxf_tarball
+      passed: [Compatibility Gate for PXF-GP]
+      resource: pxf_gp[[gp_ver]]_tarball_rhel8
+{% set gp_ver = None %}
+
+## ---------- Artifact Promotion Gate ----------
+- name: Promote PXF for GP5_GP6_GP7 Artifacts
+  old_name: Promote PXF-GP5 and PXF-GP6 Artifacts
+  plan:
+  - in_parallel:
+    - get: pxf_src
+      trigger: true
       passed:
 {% for gp_ver in range(5, 7) %}
       - Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL7
 {% endfor %}
 {% set gp_ver = None %}
-{% set gp_ver = 6 %}
+{% for gp_ver in range(6, 8) %}
       - Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL8
+{% endfor %}
+{% set gp_ver = 6 %}
       - Test PXF-GP[[gp_ver]] Backward Compatibility on Ubuntu18
 {% set gp_ver = None %}
 {% for gp_ver in range(5, 7) %}
     - get: pxf_gp[[gp_ver]]_tarball_rhel7
-      trigger: true
       passed:
       - Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL7
 {% endfor %}
 {% set gp_ver = None %}
+{% for gp_ver in range(6, 8) %}
+    - get: pxf_gp[[gp_ver]]_tarball_rhel8
+      passed:
+      - Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL8
+{% endfor %}
 {% set gp_ver = 6 %}
     - get: pxf_gp[[gp_ver]]_tarball_ubuntu18
-      trigger: true
       passed:
       - Test PXF-GP[[gp_ver]] Backward Compatibility on Ubuntu18
 {% set gp_ver = None %}
-{% set gp_ver = 6 %}
-    - get: pxf_gp[[gp_ver]]_tarball_rhel8
-      trigger: true
-      passed:
-      - Test PXF-GP[[gp_ver]] Backward Compatibility on RHEL8
-{% set gp_ver = None %}
-{% set gp_ver = 7 %}
-    - get: pxf_gp[[gp_ver]]_tarball_rhel8
-      trigger: true
-      passed:
-      - Compatibility Gate for PXF-GP
-{% set gp_ver = None %}
     - get: google-cloud-sdk-slim-image
-  - task: Promote PXF-GP5 and PXF-GP6 Artifacts
+  - task: Promote PXF for GP5_GP6_GP7 Artifacts
     image: google-cloud-sdk-slim-image
     file: pxf_src/concourse/tasks/promote_pxf_artifacts.yml
     params:
@@ -1769,12 +1812,13 @@ jobs:
     <<: *slack_alert
 {% endif %}
 
-- name: Publish_PXF-GP5_and_PXF-GP6_Artifacts_to_GP-RelEng
+- name: Publish_PXF-GP5_GP6_GP7_Artifacts_to_GP-RelEng
+  old_name: Publish_PXF-GP5_and_PXF-GP6_Artifacts_to_GP-RelEng
   plan:
   - in_parallel:
     - get: pxf_src
       passed:
-      - Promote PXF-GP5 and PXF-GP6 Artifacts
+      - Promote PXF for GP5_GP6_GP7 Artifacts
     - get: pxf_shipit_file
       trigger: true
     - get: google-cloud-sdk-slim-image

@@ -73,7 +73,7 @@ anchors:
 ## ======================================================================
 resource_types:
 
-{% if multinode or multinode_no_impersonation or file %}
+{% if multinode or multinode_no_impersonation or file or gp7_cli or gp7_multinode %}
 - name: terraform
   type: registry-image
   source:
@@ -83,7 +83,7 @@ resource_types:
     password: ((ud/pxf/secrets/pxf-cloudbuild-service-account-key))
 {% endif %}
 
-{% if multinode %}
+{% if multinode or gp7_multinode %}
 - name: terraform-0.14.10
   type: registry-image
   source:
@@ -169,7 +169,7 @@ resources:
     branch: ((pxf-git-branch))
     uri: ((ud/pxf/common/git-remote))
 
-{% if multinode or multinode_no_impersonation or file %}
+{% if multinode or multinode_no_impersonation or file or gp7_cli or gp7_multinode %}
 - name: ccp_src
   type: git
   source:
@@ -187,7 +187,7 @@ resources:
   icon: docker
   source:
     repository: gcr.io/data-gpdb-ud/gpdb-pxf-dev/gpdb[[gp_ver]]-centos7-test-pxf
-    tag: latest
+    tag: ((pxf-dev-image-tag))
     username: _json_key
     password: ((ud/pxf/secrets/pxf-cloudbuild-service-account-key))
 {% endfor %} {# gp5, gp6, and gp7 #}
@@ -198,11 +198,10 @@ resources:
   icon: docker
   source:
     repository: gcr.io/data-gpdb-ud/gpdb-pxf-dev/gpdb[[gp_ver]]-rocky8-test-pxf
-    tag: latest
+    tag: ((pxf-dev-image-tag))
     username: _json_key
     password: ((ud/pxf/secrets/pxf-cloudbuild-service-account-key))
 {% endfor %}
-{% set gp_ver = None %}
 
 {% if oel7 %}
 - name: gpdb6-pxf-dev-oel7-image
@@ -210,7 +209,7 @@ resources:
   icon: docker
   source:
     repository: gcr.io/data-gpdb-ud/gpdb-pxf-dev/gpdb6-oel7-test-pxf
-    tag: latest
+    tag: ((pxf-dev-image-tag))
     username: _json_key
     password: ((ud/pxf/secrets/pxf-cloudbuild-service-account-key))
 {% endif %}
@@ -221,7 +220,7 @@ resources:
   icon: docker
   source:
     repository: gcr.io/data-gpdb-ud/gpdb-pxf-dev/gpdb[[gp_ver]]-ubuntu18.04-test-pxf
-    tag: latest
+    tag: ((pxf-dev-image-tag))
     username: _json_key
     password: ((ud/pxf/secrets/pxf-cloudbuild-service-account-key))
 
@@ -237,7 +236,7 @@ resources:
 {% endif %}
 {% set gp_ver = None %}
 
-{% if multinode or multinode_no_impersonation or ambari or file %}
+{% if multinode or multinode_no_impersonation or ambari or file or gp7_cli or gp7_multinode %}
 - name: ccp-7-image
   type: registry-image
   icon: docker
@@ -290,14 +289,15 @@ resources:
     regexp: latest-0_gpdb[[gp_ver]]/greenplum-db-([[gp_ver]].*)-rhel8-x86_64.rpm
 {% set gp_ver = None %}
 
-## ---------- Greenplum 7 Beta Builds ----------
-- name: gpdb7_rhel8_rpm_latest-0
+{% set gp_ver = 7 %}
+- name: gpdb[[gp_ver]]_rhel8_rpm_latest-0
   type: gcs
   icon: google-drive
   source:
-    bucket: ((ud/pxf/common/gpdb-concourse-resources-prod-bucket-name))
-    json_key: ((concourse-gcs-resources-service-account-key))
-    regexp: server/released/gpdb7/greenplum-db-(7.*)-el8-x86_64.rpm
+    bucket: ((ud/pxf/common/pivnet-artifacts-bucket-name))
+    json_key: ((ud/pxf/secrets/pxf-storage-service-account-key))
+    regexp: latest-0_gpdb[[gp_ver]]/greenplum-db-([[gp_ver]].*)-el8-x86_64.rpm
+{% set gp_ver = None %}
 
 ## ---------- PXF 5 Artifact ---------------
 {% if multinode %}
@@ -351,7 +351,7 @@ resources:
 {% endfor %}
 
 ## ---------- Auxiliary Resources ----------
-{% if multinode or multinode_no_impersonation or file %}
+{% if multinode or multinode_no_impersonation or file or gp7_cli or gp7_multinode %}
 - name: terraform
   type: terraform
   source:
@@ -369,7 +369,7 @@ resources:
       bucket_path: ((tf-bucket-path))
 {% endif %}
 
-{% if multinode %}
+{% if multinode or gp7_multinode %}
 - name: terraform_ipa_hadoop
   type: terraform-0.14.10
   source:
@@ -616,6 +616,19 @@ jobs:
       SECRET_ACCESS_KEY: ((tf-machine-secret-access-key))
       USE_FDW: true
 {% endfor %}
+{% set gp_ver = None %}
+
+## ---------- GP7 PXF CLI tests ----------
+
+{% if gp7_cli %}
+{% set gp_ver = 7 %}
+{% set passed = '[Build PXF-GP7 on RHEL8]' %}
+{% include 'jobs/cli-tpl.yml' %}
+{% set passed = None %}
+{% if slack_notification %}
+    <<: *slack_alert
+{% endif %}
+{% endif %} # if gp7_cli ends here
 {% set gp_ver = None %}
 
 ## ---------- Extended Tests ----------
@@ -1000,6 +1013,38 @@ jobs:
 {% endif %}
 {% endif %}
 
+{% if wasb %}
+- name: Test PXF-GP[[gp_ver]]-WASB-NO-IMPERS on RHEL7
+  plan:
+  - in_parallel:
+    - get: pxf_src
+      passed: [Build PXF-GP[[gp_ver]] on RHEL7]
+      trigger: true
+    - get: pxf_tarball
+      resource: pxf_gp[[gp_ver]]_tarball_rhel7
+      passed: [Build PXF-GP[[gp_ver]] on RHEL7]
+    - get: gpdb_package
+      resource: gpdb[[gp_ver]]_rhel7_rpm_latest-0
+      passed: [Build PXF-GP[[gp_ver]] on RHEL7]
+    - get: gpdb[[gp_ver]]-pxf-dev-centos7-image
+    - get: pxf-automation-dependencies
+    - get: singlecluster
+      resource: singlecluster-hdp2
+  - task: Test PXF-GP[[gp_ver]]-WASB-NO-IMPERS on RHEL7
+    file: pxf_src/concourse/tasks/test.yml
+    image: gpdb[[gp_ver]]-pxf-dev-centos7-image
+    params:
+      WASB_ACCOUNT_NAME: ((ud/pxf/common/wasb-account-name))
+      WASB_ACCOUNT_KEY: ((ud/pxf/secrets/wasb-account-key))
+      GP_VER: [[gp_ver]]
+      GROUP: hcfs
+      IMPERSONATION: false
+      PROTOCOL: wasbs
+{% if slack_notification %}
+    <<: *slack_alert
+{% endif %}
+{% endif %}
+
 {% if gs %}
 - name: Test PXF-GP[[gp_ver]]-GS-NO-IMPERS on RHEL7
   plan:
@@ -1357,3 +1402,15 @@ jobs:
     <<: *slack_alert
 {% endif %}
 {% endif %}
+
+## ---------- Multi-node test for GP7 ----------
+{% if gp7_multinode %}
+{% set gp_ver = 7 %}
+{% set passed = '[Build PXF-GP7 on RHEL8]' %}
+{% include 'jobs/multinode-tpl.yml'%}
+{% set passed = None %}
+{% if slack_notification %}
+    <<: *slack_alert
+{% endif %}
+{% endif %} # if gp7_multinode ends here
+{% set gp_ver = None %}

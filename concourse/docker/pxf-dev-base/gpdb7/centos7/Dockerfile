@@ -3,11 +3,15 @@ ARG BASE_IMAGE=gcr.io/data-gpdb-public-images/gpdb7-centos7-test:latest
 FROM ${BASE_IMAGE}
 
 ARG GO_VERSION
+ARG GO_SHA256SUM
+
+ADD apache-maven.tar.gz /usr/share
 
 # install Go utilities
 RUN mkdir -p /tmp/pxf_src/ && cd /tmp \
     && wget -O go.tgz -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
-    && rm -rf /usr/local/go && tar -C /usr/local -xzf go.tgz && rm go.tgz
+    && echo "${GO_SHA256SUM} /tmp/go.tgz" | sha256sum --check \
+    && rm -rf /usr/local/go && mkdir /opt/pxf && tar -C /opt/pxf -xzf go.tgz && rm go.tgz
 
 # add minio software
 RUN useradd -s /sbin/nologin -d /opt/minio minio \
@@ -18,16 +22,10 @@ RUN useradd -s /sbin/nologin -d /opt/minio minio \
     && chmod +x /opt/minio/bin/minio \
     && chown -R minio:minio /opt/minio
 
-ARG MAVEN_VERSION
 ARG USER_HOME_DIR="/root"
-ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 
 # install dependencies that are missing on the base images
-RUN curl -fsSL -o /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
-    && mkdir -p /usr/share/maven \
-    && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
-    && rm -f /tmp/apache-maven.tar.gz \
-    && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn \
+RUN ln -s /usr/share/apache-maven-*/bin/mvn /usr/bin/mvn \
     && yum install -y rpm-build python-devel jq sudo java-1.8.0-openjdk-devel java-11-openjdk-devel && yum clean all \
     && cd /tmp && /usr/bin/pip install --upgrade pip==20.3.3 \
     && /usr/bin/pip install paramiko --no-cache-dir
@@ -70,7 +68,7 @@ RUN ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa \
     && echo >> ~gpadmin/.pxfrc 'export PXF_HOME=/usr/local/pxf-gp7' \
     && echo >> ~gpadmin/.pxfrc 'export PXF_CONF=/home/gpadmin/pxf' \
     && echo >> ~gpadmin/.pxfrc 'export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk' \
-    && echo >> ~gpadmin/.pxfrc 'export PATH=${GPHOME}/bin:${PXF_HOME}/bin:${GOPATH}/bin:/usr/local/go/bin:$JAVA_HOME/bin:$PATH' \
+    && echo >> ~gpadmin/.pxfrc 'export PATH=${GPHOME}/bin:${PXF_HOME}/bin:${GOPATH}/bin:/opt/pxf/go/bin:$JAVA_HOME/bin:$PATH' \
     && ln -s ~gpadmin/.pxfrc ~root \
     && echo >> ~gpadmin/.bashrc 'source ~/.pxfrc' \
     && chown -R gpadmin:gpadmin ~gpadmin
