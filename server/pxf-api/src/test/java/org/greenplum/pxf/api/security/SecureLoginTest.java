@@ -58,7 +58,8 @@ public class SecureLoginTest {
 
     static {
         try {
-            hostname = InetAddress.getLocalHost().getCanonicalHostName();
+            // lowercase is used as SecurityUtil used for SecureLogin in hadoop-common also does lowercase conversion
+            hostname = InetAddress.getLocalHost().getCanonicalHostName().toLowerCase();
             RESOLVED_PRINCIPAL = String.format("principal/%s@REALM", hostname);
         } catch (Exception e) {
             throw new RuntimeException(e);
