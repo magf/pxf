@@ -4,6 +4,7 @@ import com.google.common.io.CountingOutputStream;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.io.Writable;
@@ -151,12 +152,15 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
         RequestIdentifier requestIdentifier = getRequestIdentifier(context);
         Bridge bridge = readExecutionMap.remove(requestIdentifier);
         if (bridge == null) {
+            log.debug("Couldn't cancel read request, request {} not found", requestIdentifier);
             return false;
         }
         try {
+            log.debug("Cancelling read request {}", requestIdentifier);
             bridge.endIteration();
         } catch (Exception e) {
             log.warn("Ignoring error encountered during bridge.endIteration()", e);
+            return false;
         }
         return true;
     }
@@ -258,6 +262,7 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
     @RequiredArgsConstructor
     @Getter
     @EqualsAndHashCode
+    @ToString
     private static class RequestIdentifier {
         private final String transactionId;
         private final int segmentId;

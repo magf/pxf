@@ -18,5 +18,12 @@ public interface ReadService {
      */
     void readData(RequestContext context, OutputStream outputStream);
 
+    /**
+     * Tries to cancel active read request to the external system specified by the RequestContext.
+     * Returns true if read request was found and cancelled, false otherwise
+     *
+     * @param context request context
+     * @return if read request cancellation succeeded
+     */
     boolean cancelRead(RequestContext context);
 }

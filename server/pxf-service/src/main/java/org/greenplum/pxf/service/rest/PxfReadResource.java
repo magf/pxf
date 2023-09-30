@@ -29,8 +29,8 @@ public class PxfReadResource extends PxfBaseResource<StreamingResponseBody> {
     /**
      * Creates a new instance of the resource with Request parser and read service implementation.
      *
-     * @param parser                 http request parser
-     * @param readService            read service implementation
+     * @param parser      http request parser
+     * @param readService read service implementation
      */
     public PxfReadResource(RequestParser<MultiValueMap<String, String>> parser,
                            ReadService readService) {

@@ -7,7 +7,6 @@ import org.greenplum.pxf.service.HttpHeaderDecoder;
 import org.greenplum.pxf.service.RequestParser;
 import org.greenplum.pxf.service.controller.ReadService;
 import org.greenplum.pxf.service.controller.WriteService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +71,15 @@ public class PxfResourceIT {
     }
 
     @Test
+    public void testCancelReadEndpoint() throws Exception {
+        when(mockParser.parseRequest(any(), eq(RequestContext.RequestType.READ_BRIDGE))).thenReturn(mockContext);
+
+        mvc.perform(post("/pxf/cancel"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
+
+    @Test
     public void testLegacyFragmenterEndpoint() throws Exception {
         ResultActions result = mvc.perform(
                 get("/pxf/v15/Fragmenter/getFragments").contentType(MediaType.APPLICATION_JSON))
@@ -124,7 +132,7 @@ public class PxfResourceIT {
 
                 @Override
                 public boolean cancelRead(RequestContext context) {
-                    return false;
+                    return true;
                 }
             };
         }

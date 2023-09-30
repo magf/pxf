@@ -255,6 +255,35 @@ public class ReadServiceImplTest {
         inOrder.verifyNoMoreInteractions();
     }
 
+    @Test
+    public void testReadWithCancel() throws Exception {
+        when(mockMetricReporter.getReportFrequency()).thenReturn(1L);
+        when(mockFragmentList.size()).thenReturn(1);
+        when(mockFragmentList.get(0)).thenReturn(mockFragment1);
+        when(mockBridgeFactory.getBridge(mockContext)).thenReturn(mockBridge1);
+        when(mockBridge1.beginIteration()).thenReturn(true);
+        when(mockBridge1.getNext()).thenReturn(mockRecord1, mockRecord2, mockRecord3, null);
+        doAnswer(writeTestData("hello")).when(mockRecord1).write(any(DataOutputStream.class));
+        doAnswer(s -> {
+            Thread.sleep(10000);
+            return null;
+        }).when(mockRecord2).write(any(DataOutputStream.class));
+
+        Thread readThread = new Thread(() -> readService.readData(mockContext, mockOutputStream));
+        readThread.setName("readThread");
+        readThread.start();
+        Thread.sleep(200);
+        readService.cancelRead(mockContext);
+
+
+        InOrder inOrder = inOrder(mockOutputStream, mockMetricReporter, mockBridge1);
+        inOrder.verify(mockOutputStream).write("hello".getBytes(StandardCharsets.UTF_8), 0, 5);
+        inOrder.verify(mockMetricReporter).reportCounter(MetricsReporter.PxfMetric.RECORDS_SENT, 1, mockContext);
+        inOrder.verify(mockMetricReporter).reportCounter(MetricsReporter.PxfMetric.BYTES_SENT, 5, mockContext);
+        inOrder.verify(mockBridge1).endIteration();
+        inOrder.verifyNoMoreInteractions();
+    }
+
     // helper for writing mock record to a mock output stream
     // mockOutputStream -> CountingOutputStream -> DataOutputStream
     // in order for the us to see the side-effect of CountingOutputStream,
