@@ -1,15 +1,10 @@
 package org.greenplum.pxf.service.rest;
 
 import org.greenplum.pxf.api.model.RequestContext;
-import org.greenplum.pxf.service.HttpHeaderDecoder;
 import org.greenplum.pxf.service.RequestParser;
-import org.greenplum.pxf.service.controller.PxfErrorReporter;
 import org.greenplum.pxf.service.controller.ReadService;
-import org.greenplum.pxf.service.spring.PxfThreadPoolTaskExecutor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
