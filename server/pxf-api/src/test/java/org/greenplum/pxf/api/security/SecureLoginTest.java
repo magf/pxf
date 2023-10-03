@@ -4,10 +4,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.LoginSession;
 import org.apache.hadoop.security.PxfUserGroupInformation;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -61,7 +58,8 @@ public class SecureLoginTest {
 
     static {
         try {
-            hostname = InetAddress.getLocalHost().getCanonicalHostName();
+            // lowercase is used as SecurityUtil used for SecureLogin in hadoop-common also does lowercase conversion
+            hostname = InetAddress.getLocalHost().getCanonicalHostName().toLowerCase();
             RESOLVED_PRINCIPAL = String.format("principal/%s@REALM", hostname);
         } catch (Exception e) {
             throw new RuntimeException(e);

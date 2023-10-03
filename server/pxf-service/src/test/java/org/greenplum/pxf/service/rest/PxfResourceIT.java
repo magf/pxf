@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -70,6 +71,15 @@ public class PxfResourceIT {
     }
 
     @Test
+    public void testCancelReadEndpoint() throws Exception {
+        when(mockParser.parseRequest(any(), eq(RequestContext.RequestType.READ_BRIDGE))).thenReturn(mockContext);
+
+        mvc.perform(post("/pxf/cancel"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
+
+    @Test
     public void testLegacyFragmenterEndpoint() throws Exception {
         ResultActions result = mvc.perform(
                 get("/pxf/v15/Fragmenter/getFragments").contentType(MediaType.APPLICATION_JSON))
@@ -110,11 +120,19 @@ public class PxfResourceIT {
     static class PxfResourceTestConfiguration {
         @Bean
         ReadService createReadService() {
-            return (ctx, out) -> {
-                try {
-                    out.write("Hello from read!".getBytes(Charsets.UTF_8));
-                } catch (IOException e) {
-                    e.printStackTrace();
+            return new ReadService() {
+                @Override
+                public void readData(RequestContext context, OutputStream out) {
+                    try {
+                        out.write("Hello from read!".getBytes(Charsets.UTF_8));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public boolean cancelRead(RequestContext context) {
+                    return true;
                 }
             };
         }
