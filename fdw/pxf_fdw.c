@@ -568,6 +568,8 @@ pxfEndForeignScan(ForeignScanState *node)
 	if (pxfsstate)
 		EndCopyFrom(pxfsstate->cstate);
 
+	PxfBridgeScanCleanup(pxfsstate);
+
 	elog(DEBUG5, "pxf_fdw: pxfEndForeignScan ends on segment: %d", PXF_SEGMENT_ID);
 }
 
