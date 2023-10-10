@@ -28,7 +28,7 @@
     <repositories>
         <repository>
             <id>test-dependencies</id>
-            <url>artifactregistry://us-central1-maven.pkg.dev/data-gpdb-ud/pxf-automation-test</url>
+            <url>https://jcenter.bintray.com/</url>
         </repository>
     </repositories>
 

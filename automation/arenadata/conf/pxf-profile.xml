@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<profiles>
+    <profile>
+        <name>test:text</name>
+        <plugins>
+            <metadata>Y</metadata>
+        </plugins>
+    </profile>
+    <profile>
+        <name>test:csv</name>
+        <plugins>
+            <metadata>Y</metadata>
+        </plugins>
+    </profile>
+</profiles>

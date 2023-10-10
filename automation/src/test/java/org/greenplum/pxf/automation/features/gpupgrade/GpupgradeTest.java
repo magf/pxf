@@ -34,7 +34,7 @@ public class GpupgradeTest extends BaseFunctionality {
         super.afterMethod();
     }
 
-    @Test(groups = {"features", "gpdb"})
+    @Test(groups = {"features"})
     public void testGpdbUpgradeExtensionVersion2_0Scenario() throws Exception {
 
         // Skipping this test for GP7 since this isn't passing for GP7
@@ -51,7 +51,7 @@ public class GpupgradeTest extends BaseFunctionality {
         runTincTest("pxf.features.gpupgrade.extension2_0.step_3_after_running_pxf_post_gpupgrade.runTest");
     }
 
-    @Test(groups = {"features", "gpdb"})
+    @Test(groups = {"features"})
     public void testGpdbUpgradeScenario() throws Exception {
 
         // Skipping this test for GP7 since this isn't passing for GP7

@@ -1,0 +1,117 @@
+version: "3"
+services:
+  mdw:
+    image: "gpdb6_pxf_automation:it"
+    restart: unless-stopped
+    working_dir: /home/gpadmin
+    hostname: mdw
+    ports:
+      - "5435:5432"
+      - "5005:5005"
+    environment:
+      - HOSTNAME=mdw
+      - DOCKER_GP_CLUSTER_HOSTS=mdw,sdw1
+      - DOCKER_GP_MASTER_SERVER=mdw
+      - DOCKER_GP_SEGMENT_SERVERS=sdw1
+      - DOCKER_GP_PRIMARY_SEGMENTS_PER_HOST=2
+      - DOCKER_GP_WITH_MIRROR=false
+      - HIVE_SERVER_HOST=hadoop
+    volumes:
+      - "m2:/home/gpadmin/.m2:rw"
+      - "share-lib:/usr/local/greenplum-db-devel/pxf/share/:rw"
+      - "./conf/cluster.xml:/home/gpadmin/workspace/pxf/automation/src/test/resources/sut/default.xml:ro"
+      - "./conf/hbase-site.xml:/etc/hbase/conf/hbase-site.xml:ro"
+    healthcheck:
+      test:  sudo -H -u gpadmin bash -l -c "psql -d postgres -U gpadmin -Atc 'SELECT 1;'"
+      interval: 30s
+      timeout: 15s
+      retries: 3
+    depends_on:
+      - sdw1
+    privileged: true
+    sysctls:
+      kernel.sem: 500 1024000 200 4096
+      net.unix.max_dgram_qlen: 4096
+
+  sdw1:
+    image: "gpdb6_pxf_automation:it"
+    restart: unless-stopped
+    privileged: true
+    hostname: sdw1
+    ports:
+      - "8001:8000"
+    environment:
+      - HOSTNAME=sdw1
+      - DOCKER_GP_CLUSTER_HOSTS=mdw,sdw1
+      - DOCKER_GP_MASTER_SERVER=mdw
+      - DOCKER_GP_SEGMENT_SERVERS=sdw1
+      - DOCKER_GP_PRIMARY_SEGMENTS_PER_HOST=2
+      - DOCKER_GP_WITH_MIRROR=false
+      - HIVE_SERVER_HOST=hadoop
+    volumes:
+      - "./conf/core-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/core-site.xml:ro"
+      - "./conf/hdfs-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/hdfs-site.xml:ro"
+      - "./conf/hive-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/hive-site.xml:ro"
+      - "./conf/hbase-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/hbase-site.xml:ro"
+      - "./conf/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/jdbc-site.xml:ro"
+      - "./conf/pxf-profile.xml:/usr/local/greenplum-db-devel/pxf/conf/pxf-profiles.xml:ro"
+    healthcheck:
+      test:  netstat -an | grep 5888 > /dev/null; if [ 0 != $$? ]; then exit 1; fi;
+      interval: 30s
+      timeout: 15s
+      retries: 3
+    sysctls:
+      kernel.sem: 500 1024000 200 4096
+      net.unix.max_dgram_qlen: 4096
+
+  hadoop:
+    image: pxf-hadoop:3.1.3
+    restart: unless-stopped
+    container_name: hadoop
+    environment:
+      - CLUSTER_NAME=pxf-hadoop
+    env_file:
+      - ./hadoop/hadoop.env
+    ports:
+      - "50070:50070"
+      - "10000:10000"
+      - "10002:10002"
+      - "16010:16010" # HBase UI
+      - "8088:8088"
+      - "8042:8042"
+      - "9864:9864"
+    volumes:
+      - "share-lib:/usr/local/greenplum-db-devel/pxf/share/:rw"
+      - "./hadoop/hive-env.sh:/opt/hive/conf/hive-env.sh:ro"
+    healthcheck:
+      test: bash /healthcheck_hadoop.sh
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    depends_on:
+      - hive-metastore-db
+
+  hive-metastore-db:
+    image: "docker.io/library/postgres:12.0"
+    restart: unless-stopped
+    container_name: hive-metastore-db
+    hostname: hive-metastore-db
+    environment:
+      POSTGRES_DB: 'metastore'
+      POSTGRES_USER: 'hive'
+      POSTGRES_PASSWORD: 'hive'
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: psql -d metastore -U hive -Atc 'SELECT 1;'
+      interval: 30s
+      timeout: 15s
+      retries: 3
+
+networks:
+  default:
+    name: pxf-automation
+
+volumes:
+  m2:
+  share-lib:
