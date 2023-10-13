@@ -41,6 +41,10 @@ gpbridge_cleanup(gphadoop_context *context)
 		return;
 
 	churl_cleanup(context->churl_handle, false);
+	context->churl_handle = NULL;
+
+	churl_headers_cleanup(context->churl_headers);
+	context->churl_headers = NULL;
 
 	if (context->gphd_uri != NULL)
 	{

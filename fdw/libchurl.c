@@ -29,7 +29,6 @@
 #include "utils/fmgroids.h"
 #include "utils/guc.h"
 #include "utils/jsonapi.h"
-#include "utils/resowner.h"
 
 /* include libcurl without typecheck.
  * This allows wrapping curl_easy_setopt to be wrapped
@@ -53,17 +52,9 @@ typedef struct churl_buffer
 } churl_buffer;
 
 /*
- * holds http header properties
- */
-typedef struct
-{
-	struct curl_slist *headers;
-} churl_settings;
-
-/*
  * internal context of libchurl
  */
-typedef struct churl_context
+typedef struct churl_handle
 {
 	/* curl easy API handle */
 	CURL	   *curl_handle;
@@ -72,8 +63,6 @@ typedef struct churl_context
 	 * curl multi API handle used to allow non-blocking callbacks
 	 */
 	CURLM	   *multi_handle;
-
-	churl_settings churl_headers;
 
 	/*
 	 * curl API puts internal errors in this buffer used for error reporting
@@ -87,10 +76,10 @@ typedef struct churl_context
 	int			curl_still_running;
 
 	/* internal buffer for download */
-	churl_buffer download_buffer;
+	churl_buffer *download_buffer;
 
 	/* internal buffer for upload */
-	churl_buffer upload_buffer;
+	churl_buffer *upload_buffer;
 
 	/*
 	 * holds http error code returned from remote server
@@ -99,11 +88,15 @@ typedef struct churl_context
 
 	/* true on upload, false on download */
 	bool		upload;
-
-	ResourceOwner owner; /* owner of this handle */
-	struct churl_context *next;
-	struct churl_context *prev;
 } churl_context;
+
+/*
+ * holds http header properties
+ */
+typedef struct churl_settings
+{
+	struct curl_slist *headers;
+} churl_settings;
 
 /* the null action object used for pure validation */
 static JsonSemAction nullSemAction =
@@ -112,10 +105,7 @@ static JsonSemAction nullSemAction =
 	NULL, NULL, NULL, NULL, NULL
 };
 
-static churl_context *open_curl_handles;
-static bool churl_resowner_callback_registered;
-
-static churl_context *churl_new_context(void);
+churl_context *churl_new_context(void);
 static void		create_curl_handle(churl_context *context);
 static void		set_curl_option(churl_context *context, CURLoption option, const void *data);
 static size_t	read_callback(void *ptr, size_t size, size_t nmemb, void *userdata);
@@ -128,6 +118,7 @@ static void		enlarge_internal_buffer(churl_buffer *buffer, size_t required);
 static void		finish_upload(churl_context *context);
 static void		cleanup_curl_handle(churl_context *context);
 static void		multi_remove_handle(churl_context *context);
+static void		cleanup_internal_buffer(churl_buffer *buffer);
 static void		churl_cleanup_context(churl_context *context);
 static size_t	write_callback(char *buffer, size_t size, size_t nitems, void *userp);
 static void		fill_internal_buffer(churl_context *context, int want);
@@ -322,6 +313,8 @@ churl_headers_cleanup(CHURL_HEADERS headers)
 
 	if (settings->headers)
 		curl_slist_free_all(settings->headers);
+
+	pfree(settings);
 }
 
 /*
@@ -365,9 +358,7 @@ log_curl_debug(CURL *handle, curl_infotype type, char *data, size_t size, void *
 static CHURL_HANDLE
 churl_init(const char *url, CHURL_HEADERS headers)
 {
-	churl_settings *settings = headers;
 	churl_context *context = churl_new_context();
-	context->churl_headers.headers = settings->headers;
 
 	create_curl_handle(context);
 	clear_error_buffer(context);
@@ -461,7 +452,7 @@ size_t
 churl_write(CHURL_HANDLE handle, const char *buf, size_t bufsize)
 {
 	churl_context *context = (churl_context *) handle;
-	churl_buffer *context_buffer = &context->upload_buffer;
+	churl_buffer *context_buffer = context->upload_buffer;
 
 	Assert(context->upload);
 
@@ -499,7 +490,7 @@ churl_read(CHURL_HANDLE handle, char *buf, size_t max_size)
 {
 	int			n = 0;
 	churl_context *context = (churl_context *) handle;
-	churl_buffer *context_buffer = &context->download_buffer;
+	churl_buffer *context_buffer = context->download_buffer;
 
 	Assert(!context->upload);
 
@@ -541,59 +532,18 @@ churl_cleanup(CHURL_HANDLE handle, bool after_error)
 	}
 
 	cleanup_curl_handle(context);
-	churl_headers_cleanup(&context->churl_headers);
+	cleanup_internal_buffer(context->download_buffer);
+	cleanup_internal_buffer(context->upload_buffer);
 	churl_cleanup_context(context);
 }
 
-static void
-churl_abort_callback(ResourceReleasePhase phase,
-						bool isCommit,
-						bool isTopLevel,
-						void *arg)
+churl_context *
+churl_new_context()
 {
-	churl_context *curr;
-	churl_context *next;
+	churl_context *context = palloc0(sizeof(churl_context));
 
-	if (phase != RESOURCE_RELEASE_AFTER_LOCKS)
-		return;
-
-	next = open_curl_handles;
-	while (next)
-	{
-		curr = next;
-		next = curr->next;
-
-		if (curr->owner == CurrentResourceOwner)
-		{
-			if (isCommit)
-				elog(LOG, "pxf reference leak: %p still referenced", curr);
-
-			churl_cleanup(curr, !isCommit);
-		}
-	}
-}
-
-static churl_context *
-churl_new_context(void)
-{
-	churl_context *context = MemoryContextAllocZero(TopMemoryContext, sizeof(churl_context));
-
-	context->owner = CurrentResourceOwner;
-
-	if (open_curl_handles)
-	{
-		context->next = open_curl_handles;
-		open_curl_handles->prev = context;
-	}
-
-	open_curl_handles = context;
-
-	if (!churl_resowner_callback_registered)
-	{
-		RegisterResourceReleaseCallback(churl_abort_callback, NULL);
-		churl_resowner_callback_registered = true;
-	}
-
+	context->download_buffer = palloc0(sizeof(churl_buffer));
+	context->upload_buffer = palloc0(sizeof(churl_buffer));
 	return context;
 }
 
@@ -632,7 +582,7 @@ static size_t
 read_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
 	churl_context *context = (churl_context *) userdata;
-	churl_buffer *context_buffer = &context->upload_buffer;
+	churl_buffer *context_buffer = context->upload_buffer;
 
 	int			written = Min(size * nmemb, context_buffer->top - context_buffer->bot);
 
@@ -695,7 +645,7 @@ internal_buffer_large_enough(churl_buffer *buffer, size_t required)
 static void
 flush_internal_buffer(churl_context *context)
 {
-	churl_buffer *context_buffer = &context->upload_buffer;
+	churl_buffer *context_buffer = context->upload_buffer;
 
 	if (context_buffer->top == 0)
 		return;
@@ -710,6 +660,8 @@ flush_internal_buffer(churl_context *context)
 
 		multi_perform(context);
 	}
+
+	check_response(context);
 
 	if ((context->curl_still_running == 0) &&
 		((context_buffer->top - context_buffer->bot) > 0))
@@ -795,17 +747,35 @@ multi_remove_handle(churl_context *context)
 }
 
 static void
+cleanup_internal_buffer(churl_buffer *buffer)
+{
+	if ((buffer) && (buffer->ptr))
+	{
+		pfree(buffer->ptr);
+		buffer->ptr = NULL;
+		buffer->bot = 0;
+		buffer->top = 0;
+		buffer->max = 0;
+	}
+}
+
+static void
 churl_cleanup_context(churl_context *context)
 {
 	if (context)
 	{
-		/* unlink from linked list first */
-		if (context->prev)
-			context->prev->next = context->next;
-		else
-			open_curl_handles = open_curl_handles->next;
-		if (context->next)
-			context->next->prev = context->prev;
+		if (context->download_buffer)
+		{
+			if (context->download_buffer->ptr)
+				pfree(context->download_buffer->ptr);
+			pfree(context->download_buffer);
+		}
+		if (context->upload_buffer)
+		{
+			if (context->upload_buffer->ptr)
+				pfree(context->upload_buffer->ptr);
+			pfree(context->upload_buffer);
+		}
 
 		pfree(context);
 	}
@@ -820,7 +790,7 @@ static size_t
 write_callback(char *buffer, size_t size, size_t nitems, void *userp)
 {
 	churl_context *context = (churl_context *) userp;
-	churl_buffer *context_buffer = &context->download_buffer;
+	churl_buffer *context_buffer = context->download_buffer;
 	const int	nbytes = size * nitems;
 
 	if (!internal_buffer_large_enough(context_buffer, nbytes))
@@ -852,7 +822,7 @@ fill_internal_buffer(churl_context *context, int want)
 
 	/* attempt to fill buffer */
 	while (context->curl_still_running &&
-		   ((context->download_buffer.top - context->download_buffer.bot) < want))
+		   ((context->download_buffer->top - context->download_buffer->bot) < want))
 	{
 		FD_ZERO(&fdread);
 		FD_ZERO(&fdwrite);
@@ -1014,10 +984,10 @@ check_response_code(churl_context *context)
 		initStringInfo(&err);
 
 		/* prepare response text if any */
-		if (context->download_buffer.ptr)
+		if (context->download_buffer->ptr)
 		{
-			context->download_buffer.ptr[context->download_buffer.top] = '\0';
-			response_text = context->download_buffer.ptr + context->download_buffer.bot;
+			context->download_buffer->ptr[context->download_buffer->top] = '\0';
+			response_text = context->download_buffer->ptr + context->download_buffer->bot;
 		}
 
 		appendStringInfo(&err, "PXF server error");
