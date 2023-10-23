@@ -21,6 +21,11 @@ services:
       - "share-lib:/usr/local/greenplum-db-devel/pxf/share/:rw"
       - "./conf/cluster.xml:/home/gpadmin/workspace/pxf/automation/src/test/resources/sut/default.xml:ro"
       - "./conf/hbase-site.xml:/etc/hbase/conf/hbase-site.xml:ro"
+      - "./conf/encryption/pxfkeystore.jks:/usr/local/greenplum-db-devel/pxf/conf/pxfkeystore.jks:ro"
+      - "./conf/encryption/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/templates/encryption/jdbc-site.xml:ro"
+      - "./conf/oracle/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/templates/oracle/jdbc-site.xml:ro"
+      - "./conf/named-query/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/templates/named-query/jdbc-site.xml:ro"
+      - "./conf/named-query/named_query.sql:/usr/local/greenplum-db-devel/pxf/templates/named-query/named_query.sql:ro"
     healthcheck:
       test:  sudo -H -u gpadmin bash -l -c "psql -d postgres -U gpadmin -Atc 'SELECT 1;'"
       interval: 30s
@@ -55,6 +60,7 @@ services:
       - "./conf/hbase-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/hbase-site.xml:ro"
       - "./conf/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/jdbc-site.xml:ro"
       - "./conf/pxf-profile.xml:/usr/local/greenplum-db-devel/pxf/conf/pxf-profiles.xml:ro"
+      - "./conf/encryption/pxfkeystore.jks:/usr/local/greenplum-db-devel/pxf/conf/pxfkeystore.jks:ro"
     healthcheck:
       test:  netstat -an | grep 5888 > /dev/null; if [ 0 != $$? ]; then exit 1; fi;
       interval: 30s
@@ -104,6 +110,21 @@ services:
       - '5432:5432'
     healthcheck:
       test: psql -d metastore -U hive -Atc 'SELECT 1;'
+      interval: 30s
+      timeout: 15s
+      retries: 3
+
+  oracle:
+    image: "absolutapps/oracle-12c-ee"
+    restart: unless-stopped
+    container_name: oracle
+    hostname: oracle
+    privileged: true
+    ports:
+      - '1521:1521'
+      - '8080:8080'
+    healthcheck:
+      test: echo "SELECT 333 from dual;" | sqlplus -L system/oracle@ORCL | grep 333 > /dev/null; if [ 0 != $$? ]; then exit 1; fi;
       interval: 30s
       timeout: 15s
       retries: 3

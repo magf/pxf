@@ -64,6 +64,14 @@
         <userName>gpadmin</userName>
     </hive>
 
+    <oracle>
+        <class>org.greenplum.pxf.automation.components.oracle.Oracle</class>
+        <host>oracle</host>
+        <port>1521</port>
+        <userName>system</userName>
+        <password>oracle</password>
+    </oracle>
+
     <file>
         <class>org.greenplum.pxf.automation.components.hdfs.Hdfs</class>
         <workingDirectory>${base.path}/tmp/pxf_automation_data/__UUID__</workingDirectory>

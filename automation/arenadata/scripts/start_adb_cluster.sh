@@ -147,8 +147,9 @@ if [ "$HOSTNAME" == "$DOCKER_GP_MASTER_SERVER" ]; then
     sudo -H -u gpadmin bash -c "source /home/gpadmin/.bash_profile &&
         psql -d postgres -Atc 'CREATE EXTENSION IF NOT EXISTS pxf;' &&
         psql -d postgres -Atc 'CREATE EXTENSION IF NOT EXISTS pxf_fdw;' &&
-        echo 'host all all 0.0.0.0/0 trust' >> /data1/master/gpseg-1/pg_hba.conf &&
         echo 'local all testuser trust' >> /data1/master/gpseg-1/pg_hba.conf &&
+        echo 'host all gpadmin 0.0.0.0/0 trust' >> /data1/master/gpseg-1/pg_hba.conf &&
+        echo 'host all all 0.0.0.0/0 md5' >> /data1/master/gpseg-1/pg_hba.conf &&
         gpconfig -c gp_resource_manager -v group &&
         gpstop -aM fast && gpstart -a"
 

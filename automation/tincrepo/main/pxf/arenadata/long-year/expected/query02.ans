@@ -1,0 +1,30 @@
+-- start_ignore
+-- end_ignore
+-- @description query02 for PXF test date with year with more than 4 digits - writable table
+INSERT INTO long_year_write_ext_table SELECT id, birth_date, birth_date_dad FROM long_year_source_table;
+INSERT 0 7
+SELECT * FROM long_year_target_table ORDER BY 1;
+ id |  birth_date   |       birth_date_dad
+----+---------------+----------------------------
+  1 | 456789-12-11  | 123456-10-19 11:12:13
+  2 | 1977-12-11    | 1954-10-19 10:11:15.456788
+  3 | 0010-12-11 BC | 1234-10-19 10:11:15.456 BC
+  4 | 2016-12-11    | 2018-10-19 10:11:00
+  5 | 1950-05-15    |
+  6 |               | 1980-08-10 17:10:20
+  7 |               |
+(7 rows)
+
+INSERT INTO long_year_write_legacy_ext_table SELECT id, birth_date, birth_date_dad FROM long_year_source_table;
+INSERT 0 7
+SELECT * FROM long_year_target_legacy_table ORDER BY 1;
+ id |  birth_date   |       birth_date_dad
+----+---------------+----------------------------
+  1 | 456789-12-11  | 123456-10-19 11:12:13
+  2 | 1977-12-11    | 1954-10-19 10:11:15.456788
+  3 | 0010-12-11 BC | 1234-10-19 10:11:15.456 BC
+  4 | 2016-12-11    | 2018-10-19 10:11:00
+  5 | 1950-05-15    |
+  6 |               | 1980-08-10 17:10:20
+  7 |               |
+(7 rows)

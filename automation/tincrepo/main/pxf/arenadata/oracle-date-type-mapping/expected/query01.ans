@@ -1,0 +1,9 @@
+-- start_ignore
+-- end_ignore
+-- @description query01 for PXF test without Oracle date type mapping
+SELECT * FROM date_type_without_mapping_ext_table WHERE ts = '2022-02-01 12:01:00.777777';
+ id |       v_date        |             ts
+----+---------------------+----------------------------
+  1 | 2022-01-01 14:00:00 | 2022-02-01 12:01:00.777777
+(1 row)
+
