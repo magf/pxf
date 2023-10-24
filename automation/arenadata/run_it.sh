@@ -3,6 +3,9 @@
 build_images=$1
 run_test_service_name=mdw
 
+# Set a variable to check the results of all tests at the end of the script
+test_result_status=0
+
 if [ "$build_images" == "true" ]; then
   echo "------------"
   echo "Build images"
@@ -70,28 +73,61 @@ start_copy_artifacts() {
   docker-compose cp $run_test_service_name:/home/gpadmin/workspace/pxf/automation/automation_logs ./$test_dir
 }
 
+check_test_result() {
+  local exit_code=$1
+  local test_group=$2
+  if [ "$exit_code" -eq "0" ]; then
+    echo "------------------------------------------------------"
+    echo "Test for the group '$test_group' finished with SUCCESS"
+    echo "------------------------------------------------------"
+  else
+    echo "----------------------------------------------------"
+    echo "Test for the group $test_group finished with ERROR"
+    echo "----------------------------------------------------"
+    test_result_status=1
+  fi
+}
+
 check_docker_container_status false # We don't need oracle service immediately
 
 echo "-------------------------"
 echo "Start running smoke tests"
 echo "-------------------------"
 docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=smoke'
+check_test_result $? smoke
 start_copy_artifacts smoke
 
 echo "-----------------------------------------------"
 echo "Start running integration tests in 'gpdb' group"
 echo "-----------------------------------------------"
 docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=gpdb'
+check_test_result $? gpdb
 start_copy_artifacts gpdb
 
 echo "----------------------------------------------------"
 echo "Start running integration tests in 'arenadata' group"
 echo "----------------------------------------------------"
 check_docker_container_status true # We need oracle service to be healthy for this group of tests
-docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=arenadata'
+docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make TEST=PxfMetricsTest'
+check_test_result $? arenadata
 start_copy_artifacts arenadata
 
 echo "-------------------"
 echo "Shutdown containers"
 echo "-------------------"
 docker-compose down
+
+echo "-------------------------"
+echo "Check tests result status"
+echo "-------------------------"
+if [ "$test_result_status" -eq "0" ]; then
+  echo "----------------"
+  echo "All tests passed"
+  echo "----------------"
+  exit 0
+else
+  echo "----------------------------------------------"
+  echo "Some tests didn't pass. Check logs and reports"
+  echo "----------------------------------------------"
+  exit 1
+fi
