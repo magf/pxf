@@ -77,8 +77,8 @@ public class OracleParallelSessionTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbReadableTable);
     }
 
-    @Test(groups = {"arenadata"}, description = "Set default parameters for tarallel queries")
-    public void checkDefaultParams() throws Exception {
+    @Test(groups = {"arenadata"}, description = "Set default parameters for parallel queries")
+    public void checkDefaultParamsForParallel() throws Exception {
         copyAndModifyJdbcConfFile(pxfJdbcSiteConfTemplate, EMPTY_PROPERTY);
         runTincTest("pxf.arenadata.oracle-parallel.query.runTest");
         assertEquals(oracle.getValueFromQuery(
@@ -86,21 +86,21 @@ public class OracleParallelSessionTest extends BaseFeature {
         );
     }
 
-    @Test(groups = {"arenadata"}, description = "Set 3 parallel sessions with force query")
-    public void checkForceQueryWith3Parallel() throws Exception {
-        copyAndModifyJdbcConfFile(pxfJdbcSiteConfTemplate, FORCE_QUERY_3_PROPERTY);
-        runTincTest("pxf.arenadata.oracle-parallel.query.runTest");
-        assertEquals(oracle.getValueFromQuery(
-                String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + oracleTableSource.getSchema() + "." + oracleTableSource.getName())), 3
-        );
-    }
-
-    @Test(groups = {"arenadata"}, description = "Set disable parallel for query")
+    @Test(groups = {"arenadata"}, description = "Set disable parallel for query", dependsOnMethods = {"checkDefaultParamsForParallel"})
     public void checkDisableQueryParallel() throws Exception {
         copyAndModifyJdbcConfFile(pxfJdbcSiteConfTemplate, DISABLE_QUERY_PROPERTY);
         runTincTest("pxf.arenadata.oracle-parallel.query.runTest");
         assertEquals(oracle.getValueFromQuery(
                 String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + oracleTableSource.getSchema() + "." + oracleTableSource.getName())), 0
+        );
+    }
+
+    @Test(groups = {"arenadata"}, description = "Set 3 parallel sessions with force query", dependsOnMethods = {"checkDisableQueryParallel"})
+    public void checkForceQueryWith3Parallel() throws Exception {
+        copyAndModifyJdbcConfFile(pxfJdbcSiteConfTemplate, FORCE_QUERY_3_PROPERTY);
+        runTincTest("pxf.arenadata.oracle-parallel.query.runTest");
+        assertEquals(oracle.getValueFromQuery(
+                String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + oracleTableSource.getSchema() + "." + oracleTableSource.getName())), 3
         );
     }
 
