@@ -71,7 +71,7 @@ services:
       net.unix.max_dgram_qlen: 4096
 
   hadoop:
-    image: pxf-hadoop:3.1.3
+    image: cloud-hub.adsw.io/library/pxf-hadoop:3.1.3
     restart: unless-stopped
     container_name: hadoop
     environment:

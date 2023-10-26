@@ -37,3 +37,9 @@ Start all tests from the specific group:
 ```shell
 docker-compose exec mdw sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=gpdb'
 ```
+
+### How to build Hadoop image for integration tests
+```shell
+cd pxf/automation/arenadata/hadoop/
+docker build -f Dockerfile -t cloud-hub.adsw.io/library/pxf-hadoop:3.1.3 .
+```
