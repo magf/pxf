@@ -108,7 +108,7 @@ echo "----------------------------------------------------"
 echo "Start running integration tests in 'arenadata' group"
 echo "----------------------------------------------------"
 check_docker_container_status true # We need oracle service to be healthy for this group of tests
-docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make TEST=PxfMetricsTest'
+docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=arenadata'
 check_test_result $? arenadata
 start_copy_artifacts arenadata
 
