@@ -32,7 +32,9 @@ public class JdbcFeaturesTest extends BaseFeature {
 
     private static final String NAMED_QUERY_SERVER_PROFILE = "named";
     private static final String LONG_YEAR_DATA_FILE_NAME = "long_year.txt";
-    private Table gpdbLongYearSourceTable, gpdbLongYearTargetTable, gpdbLongYearTargetLegacyTable;
+    private Table gpdbLongYearSourceTable;
+    private Table gpdbLongYearTargetTable;
+    private Table gpdbLongYearTargetLegacyTable;
     private Table gpdbBoolDateTypeSourceTable;
 
     @Override

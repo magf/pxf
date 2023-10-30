@@ -13,7 +13,6 @@ import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
@@ -46,7 +45,8 @@ public class PushdownPredicateInTest extends BaseFeature {
     private String pxfHome;
     private String pxfJdbcSiteConfFile;
     private String pxfLogFile;
-    private Table gpdbPredicateInSourceTable, oraclePredicateInSourceTable;
+    private Table gpdbPredicateInSourceTable;
+    private Table oraclePredicateInSourceTable;
 
     @Override
     protected void beforeClass() throws Exception {
@@ -120,15 +120,19 @@ public class PushdownPredicateInTest extends BaseFeature {
         runTincTest("pxf.arenadata.predicate-in.postgres.runTest");
         cluster.runCommand("grep -e 'SELECT id, descr FROM " + SOURCE_TABLE_NAME + " WHERE id IN (2,3)' " + GET_LATEST_MASTER_LOG_COMMAND + " | wc -l");
         String result = cluster.getLastCmdResult();
-        assertEquals("1", result.split("\r\n")[1].trim());
+        String[] results = result.split("\r\n");
+        String actualExitCode = results.length > 1 ? results[1].trim() : "Exit code is empty";
+        assertEquals("1", actualExitCode);
     }
 
-    @Test(groups = {"arenadata"}, dependsOnMethods={"testPredicateInPostgres"}, description = "Check pushdown predicate 'IN' logging")
+    @Test(groups = {"arenadata"}, dependsOnMethods = {"testPredicateInPostgres"}, description = "Check pushdown predicate 'IN' logging")
     public void testPredicateInLogging() throws Exception {
         cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
         cluster.runCommand(POSTGRES_SEGMENT_LOG_GREP_COMMAND);
         String result = cluster.getLastCmdResult();
-        assertEquals("1", result.split("\r\n")[1].trim());
+        String[] results = result.split("\r\n");
+        String actualExitCode = results.length > 1 ? results[1].trim() : "Exit code is empty";
+        assertEquals("1", actualExitCode);
         cluster.deleteFileFromNodes("/tmp/pxf-service.log", false);
     }
 
