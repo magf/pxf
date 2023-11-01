@@ -65,7 +65,7 @@ public class ServiceMetricsRestController {
                 METRIC_NAMES.stream()
                 .map(name -> metricsEndpoint.metric(name, Collections.emptyList()))
                 .filter(Objects::nonNull)
-                        .collect(Collectors.toList()));
+                .collect(Collectors.toList()));
     }
 
     @GetMapping("/cluster-metrics")
