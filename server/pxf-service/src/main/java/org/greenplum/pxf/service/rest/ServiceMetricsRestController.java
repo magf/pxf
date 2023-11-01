@@ -2,7 +2,9 @@ package org.greenplum.pxf.service.rest;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.greenplum.pxf.service.rest.dto.ServiceMetricsDto;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.metrics.MetricsEndpoint;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +31,8 @@ public class ServiceMetricsRestController {
             "pxf.bytes.sent",
             "pxf.fragments.sent",
             "pxf.records.received",
-            "pxf.records.sent"
+            "pxf.records.sent",
+            "process.uptime"
     );
     private static final Collection<String> CLUSTER_METRIC_NAMES = Arrays.asList(
             "jvm.memory.committed",
@@ -43,21 +46,26 @@ public class ServiceMetricsRestController {
     private final MetricsEndpoint metricsEndpoint;
     private final String clusterName;
     private final String hostName;
+    private final HealthEndpoint healthEndpoint;
 
     public ServiceMetricsRestController(final MetricsEndpoint metricsEndpoint,
                                         @Value("${cluster-name}") final String clusterName,
-                                        @Value("${eureka.instance.hostname}") final String hostName) {
+                                        @Value("${eureka.instance.hostname}") final String hostName,
+                                        final HealthEndpoint healthEndpoint) {
         this.metricsEndpoint = metricsEndpoint;
         this.clusterName = clusterName;
         this.hostName = hostName;
+        this.healthEndpoint = healthEndpoint;
     }
 
     @GetMapping
-    public Collection<MetricsEndpoint.MetricResponse> get() {
-        return METRIC_NAMES.stream()
+    public ServiceMetricsDto get() {
+        return new ServiceMetricsDto(
+                healthEndpoint.health().getStatus().getCode(),
+                METRIC_NAMES.stream()
                 .map(name -> metricsEndpoint.metric(name, Collections.emptyList()))
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                        .collect(Collectors.toList()));
     }
 
     @GetMapping("/cluster-metrics")
