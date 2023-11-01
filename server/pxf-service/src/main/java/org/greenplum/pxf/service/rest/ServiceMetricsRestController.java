@@ -63,9 +63,10 @@ public class ServiceMetricsRestController {
         return new ServiceMetricsDto(
                 healthEndpoint.health().getStatus().getCode(),
                 METRIC_NAMES.stream()
-                .map(name -> metricsEndpoint.metric(name, Collections.emptyList()))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+                    .map(name -> metricsEndpoint.metric(name, Collections.emptyList()))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList())
+        );
     }
 
     @GetMapping("/cluster-metrics")
