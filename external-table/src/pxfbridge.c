@@ -24,12 +24,92 @@
 #include "cdb/cdbtm.h"
 #include "cdb/cdbvars.h"
 #include "utils/guc.h"
+#include "access/xact.h"
+#include "utils/memutils.h"
+
+typedef struct
+{
+	CHURL_HEADERS  churl_headers;
+	CHURL_HANDLE   churl_handle;
+	ResourceOwner  owner;
+	StringInfoData uri;
+} pxfbridge_cancel;
 
 /* helper function declarations */
+static void gpbridge_cancel_cleanup(pxfbridge_cancel *cancel);
+static void build_uri_for_cancel(pxfbridge_cancel *cancel);
 static void build_uri_for_read(gphadoop_context *context);
 static void build_uri_for_write(gphadoop_context *context);
 static void add_querydata_to_http_headers(gphadoop_context *context);
 static size_t fill_buffer(gphadoop_context *context, char *start, size_t size);
+
+static void
+gpbridge_abort_callback(ResourceReleasePhase phase,
+						bool isCommit,
+						bool isTopLevel,
+						void *arg)
+{
+	pxfbridge_cancel *cancel = arg;
+
+	if (phase != RESOURCE_RELEASE_AFTER_LOCKS)
+		return;
+
+	if (cancel->owner == CurrentResourceOwner)
+	{
+		if (isCommit)
+			elog(LOG, "pxf gpbridge_abort reference leak: %p still referenced", arg);
+
+		gpbridge_cancel_cleanup(cancel);
+	}
+}
+
+static void
+gpbridge_cancel(pxfbridge_cancel *cancel)
+{
+	int local_port = churl_get_local_port(cancel->churl_handle);
+	int savedInterruptHoldoffCount = InterruptHoldoffCount;
+
+	if (local_port == 0)
+		return;
+
+	PG_TRY();
+	{
+		CHURL_HANDLE churl_handle;
+
+		churl_headers_append(cancel->churl_headers, "X-GP-CLIENT-PORT", psprintf("%i", local_port));
+
+		initStringInfo(&cancel->uri);
+		build_uri_for_cancel(cancel);
+		churl_handle = churl_init_upload_timeout(cancel->uri.data, cancel->churl_headers, 1L);
+
+		churl_cleanup(churl_handle, false);
+	}
+	PG_CATCH();
+	{
+		InterruptHoldoffCount = savedInterruptHoldoffCount;
+
+		if (!elog_dismiss(WARNING))
+		{
+			FlushErrorState();
+			elog(WARNING, "unable to dismiss error");
+		}
+	}
+	PG_END_TRY();
+}
+
+static void
+gpbridge_cancel_cleanup(pxfbridge_cancel *cancel)
+{
+	if (cancel == NULL)
+		return;
+
+	UnregisterResourceReleaseCallback(gpbridge_abort_callback, cancel);
+
+	if (IsAbortInProgress())
+		gpbridge_cancel(cancel);
+
+	pfree(cancel);
+}
 
 /*
  * Clean up churl related data structures from the context.
@@ -39,6 +119,9 @@ gpbridge_cleanup(gphadoop_context *context)
 {
 	if (context == NULL)
 		return;
+
+	gpbridge_cancel_cleanup(context->cancel);
+	context->cancel = NULL;
 
 	churl_cleanup(context->churl_handle, false);
 	context->churl_handle = NULL;
@@ -65,11 +148,23 @@ gpbridge_cleanup(gphadoop_context *context)
 void
 gpbridge_import_start(gphadoop_context *context)
 {
+	MemoryContext oldcontext;
+	pxfbridge_cancel *cancel;
+
 	build_uri_for_read(context);
 	context->churl_headers = churl_headers_init();
 	add_querydata_to_http_headers(context);
 
 	context->churl_handle = churl_init_download(context->uri.data, context->churl_headers);
+
+	oldcontext = MemoryContextSwitchTo(CurTransactionContext);
+	cancel = palloc0(sizeof(pxfbridge_cancel));
+	MemoryContextSwitchTo(oldcontext);
+	context->cancel = cancel;
+	cancel->churl_headers = context->churl_headers;
+	cancel->churl_handle = context->churl_handle;
+	cancel->owner = CurTransactionResourceOwner;
+	RegisterResourceReleaseCallback(gpbridge_abort_callback, cancel);
 
 	/* read some bytes to make sure the connection is established */
 	churl_read_check_connectivity(context->churl_handle);
@@ -126,6 +221,24 @@ gpbridge_write(gphadoop_context *context, char *databuf, int datalen)
 	}
 
 	return (int) n;
+}
+
+/*
+ * Format the URI for cancel by adding PXF service endpoint details
+ */
+static void
+build_uri_for_cancel(pxfbridge_cancel *cancel)
+{
+	resetStringInfo(&cancel->uri);
+	appendStringInfo(&cancel->uri, "http://%s/%s/cancel",
+					 get_authority(), PXF_SERVICE_PREFIX);
+
+	if ((LOG >= log_min_messages) || (LOG >= client_min_messages))
+	{
+		appendStringInfo(&cancel->uri, "?trace=true");
+	}
+
+	elog(DEBUG2, "pxf: uri %s for cancel", cancel->uri.data);
 }
 
 /*
