@@ -11,6 +11,7 @@ import org.testng.annotations.Test;
 public class OracleDateTypeMapTest extends BaseFeature {
     private static final String ORACLE_SOURCE_TABLE_NAME = "date_type_source_table";
     private static final String PXF_ORACLE_SERVER_PROFILE = "oracle-date-map";
+    private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/oracle/jdbc-site.xml";
     private static final String[] READABLE_EXTERNAL_TABLE_FIELDS = new String[]{
             "id    int",
             "v_date   timestamp",
@@ -27,7 +28,7 @@ public class OracleDateTypeMapTest extends BaseFeature {
 
     @Override
     protected void beforeClass() throws Exception {
-        String pxfJdbcSiteConfTemplate = cluster.getPxfHome() + "/templates/oracle/jdbc-site.xml";
+        String pxfJdbcSiteConfTemplate = cluster.getPxfHome() + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
         cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, cluster.getPxfHome() + "/servers/" + PXF_ORACLE_SERVER_PROFILE, true, false);
         oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
         prepareData();

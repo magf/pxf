@@ -22,6 +22,7 @@ public class JdbcEncryptionTest extends BaseFeature {
             "descr   text"};
     private static final String CREATE_USER_QUERY = "DROP ROLE IF EXISTS jdbc_user;" +
             "CREATE ROLE jdbc_user SUPERUSER LOGIN PASSWORD '" + PASSWORD + "'";
+    private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/encryption/jdbc-site.xml";
 
     private String pxfHome;
     private String pxfJdbcSiteConfFile;
@@ -32,7 +33,7 @@ public class JdbcEncryptionTest extends BaseFeature {
     public void beforeClass() throws Exception {
         pxfHome = cluster.getPxfHome();
         pxfJdbcSiteConfFile = pxfHome + "/servers/" + PXF_ENCRYPTION_SERVER_PROFILE + "/jdbc-site.xml";
-        pxfJdbcSiteConfTemplate = pxfHome + "/templates/encryption/jdbc-site.xml";
+        pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
         gpdb.runQuery(CREATE_USER_QUERY, true, false);
         cluster.runCommandOnAllNodes(String.format(ADD_ENCRYPTION_PROPERTIES_COMMAND_TEMPLATE, pxfHome, pxfHome));
         cluster.restart(PhdCluster.EnumClusterServices.pxf);

@@ -32,6 +32,8 @@ public class JdbcFeaturesTest extends BaseFeature {
 
     private static final String NAMED_QUERY_SERVER_PROFILE = "named";
     private static final String LONG_YEAR_DATA_FILE_NAME = "long_year.txt";
+    private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/named-query/jdbc-site.xml";
+    private static final String PXF_NAMED_QUERY_TEMPLATE_RELATIVE_PATH = "templates/named-query/named_query.sql";
     private Table gpdbLongYearSourceTable;
     private Table gpdbLongYearTargetTable;
     private Table gpdbLongYearTargetLegacyTable;
@@ -40,8 +42,8 @@ public class JdbcFeaturesTest extends BaseFeature {
     @Override
     protected void beforeClass() throws Exception {
         String pxfHome = cluster.getPxfHome();
-        String queryFile = pxfHome + "/templates/named-query/named_query.sql";
-        String pxfJdbcSiteConfTemplate = pxfHome + "/templates/named-query/jdbc-site.xml";
+        String queryFile = pxfHome + "/" + PXF_NAMED_QUERY_TEMPLATE_RELATIVE_PATH;
+        String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
         cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfHome + "/servers/" + NAMED_QUERY_SERVER_PROFILE, true, false);
         cluster.copyFileToNodes(queryFile, pxfHome + "/servers/" + NAMED_QUERY_SERVER_PROFILE, true, false);
         prepareData();

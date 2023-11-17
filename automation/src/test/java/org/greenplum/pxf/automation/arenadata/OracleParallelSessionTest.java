@@ -12,6 +12,7 @@ import static org.testng.Assert.assertEquals;
 
 public class OracleParallelSessionTest extends BaseFeature {
     private static final String PXF_ORACLE_SERVER_PROFILE = "oracle-parallel";
+    private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/oracle/jdbc-site.xml";
     private static final String INSERT_QUERY = "INSERT ALL\n" +
             "INTO system.oracle_parallel_source_table VALUES (1, 'text1')\n" +
             "INTO system.oracle_parallel_source_table VALUES (2, 'text2')\n" +
@@ -51,7 +52,7 @@ public class OracleParallelSessionTest extends BaseFeature {
     public void beforeClass() throws Exception {
         pxfHome = cluster.getPxfHome();
         pxfJdbcSiteConfFile = pxfHome + "/servers/" + PXF_ORACLE_SERVER_PROFILE + "/jdbc-site.xml";
-        pxfJdbcSiteConfTemplate = pxfHome + "/templates/oracle/jdbc-site.xml";
+        pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
         oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
         prepareData();
     }

@@ -21,6 +21,10 @@ public class PushdownPredicateInTest extends BaseFeature {
     private static final String SOURCE_TABLE_NAME = "predicate_in_source_table";
     private static final String SOURCE_TABLE_SCHEMA = "system";
     private static final String PXF_ORACLE_SERVER_PROFILE = "oracle-predicate";
+    private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/oracle/jdbc-site.xml";
+    private static final String PXF_APP_PROPERTIES_RELATIVE_PATH = "conf/pxf-application.properties";
+    private static final String PXF_LOG_RELATIVE_PATH = "logs/pxf-service.log";
+    private static final String PXF_TEMP_LOG_PATH = "/tmp/pxf-service.log";
     private static final String[] POSTGRES_SOURCE_TABLE_FIELDS = new String[]{
             "id    int",
             "descr   text"};
@@ -37,7 +41,7 @@ public class PushdownPredicateInTest extends BaseFeature {
             "SELECT 1 FROM DUAL";
     private static final String GET_LATEST_MASTER_LOG_COMMAND = "$(stat -c '%Y %n' /data1/master/gpseg-1/pg_log/gpdb-*.csv " +
             "| sort -k1,1nr | head -1 | awk '{ print $2 }')";
-    private static final String POSTGRES_SEGMENT_LOG_GREP_COMMAND = "cat /tmp/pxf-service.log | grep ' FILTER target:  WHERE id IN (2,3)' | wc -l";
+    private static final String POSTGRES_SEGMENT_LOG_GREP_COMMAND = "cat " + PXF_TEMP_LOG_PATH + " | grep ' FILTER target:  WHERE id IN (2,3)' | wc -l";
     private static final String GET_STATS_QUERY = "SELECT count(*) FROM v$sqlstats " +
             "WHERE SQL_FULLTEXT LIKE 'SELECT id, descr FROM " + SOURCE_TABLE_SCHEMA + "." + SOURCE_TABLE_NAME + " WHERE id IN (3,4,5)'";
     private Oracle oracle;
@@ -52,15 +56,15 @@ public class PushdownPredicateInTest extends BaseFeature {
     protected void beforeClass() throws Exception {
         pxfHome = cluster.getPxfHome();
         pxfJdbcSiteConfFile = pxfHome + "/servers/" + PXF_ORACLE_SERVER_PROFILE + "/jdbc-site.xml";
-        String pxfJdbcSiteConfTemplate = pxfHome + "/templates/oracle/jdbc-site.xml";
-        String pxfAppPropertyFile = pxfHome + "/conf/pxf-application.properties";
+        String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
+        String pxfAppPropertyFile = pxfHome + "/" + PXF_APP_PROPERTIES_RELATIVE_PATH;
         cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfHome + "/servers/" + PXF_ORACLE_SERVER_PROFILE, true, false);
         cluster.runCommandOnAllNodes("sed -i 's/# pxf.log.level=info/pxf.log.level=debug/' " + pxfAppPropertyFile);
         cluster.restart(PhdCluster.EnumClusterServices.pxf);
         if (cluster instanceof MultiNodeCluster) {
             pxfNode = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf).get(0);
         }
-        pxfLogFile = pxfHome + "/logs/pxf-service.log";
+        pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
         oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
         prepareData();
     }
@@ -133,7 +137,7 @@ public class PushdownPredicateInTest extends BaseFeature {
         String[] results = result.split("\r\n");
         String actualExitCode = results.length > 1 ? results[1].trim() : "Exit code is empty";
         assertEquals("1", actualExitCode);
-        cluster.deleteFileFromNodes("/tmp/pxf-service.log", false);
+        cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
     }
 
     @Test(groups = {"arenadata"}, description = "Check pushdown predicate 'IN' for Oracle")
