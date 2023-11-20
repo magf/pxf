@@ -430,6 +430,12 @@ churl_init(const char *url, CHURL_HEADERS headers)
 CHURL_HANDLE
 churl_init_upload(const char *url, CHURL_HEADERS headers)
 {
+	return churl_init_upload_timeout(url, headers, 0);
+}
+
+CHURL_HANDLE
+churl_init_upload_timeout(const char *url, CHURL_HEADERS headers, long timeout)
+{
 	churl_context *context = churl_init(url, headers);
 
 	context->upload = true;
@@ -437,6 +443,7 @@ churl_init_upload(const char *url, CHURL_HEADERS headers)
 	set_curl_option(context, CURLOPT_POST, (const void *) true);
 	set_curl_option(context, CURLOPT_READFUNCTION, read_callback);
 	set_curl_option(context, CURLOPT_READDATA, context);
+	set_curl_option(context, CURLOPT_TIMEOUT, (const void *) timeout);
 	churl_headers_append(headers, "Content-Type", "application/octet-stream");
 	churl_headers_append(headers, "Transfer-Encoding", "chunked");
 	churl_headers_append(headers, "Expect", "100-continue");
@@ -454,6 +461,20 @@ churl_init_download(const char *url, CHURL_HEADERS headers)
 
 	setup_multi_handle(context);
 	return (CHURL_HANDLE) context;
+}
+
+int
+churl_get_local_port(CHURL_HANDLE handle)
+{
+	churl_context *context = (churl_context *) handle;
+	int curl_error;
+	long local_port = 0;
+
+	if (CURLE_OK != (curl_error = curl_easy_getinfo(context->curl_handle, CURLINFO_LOCAL_PORT, &local_port)))
+		elog(WARNING, "internal error: curl_easy_getinfo failed(%d - %s)",
+			curl_error, curl_easy_strerror(curl_error));
+
+	return local_port;
 }
 
 void
@@ -717,8 +738,6 @@ flush_internal_buffer(churl_context *context)
 
 		multi_perform(context);
 	}
-
-	check_response(context);
 
 	if ((context->curl_still_running == 0) &&
 		((context_buffer->top - context_buffer->bot) > 0))
