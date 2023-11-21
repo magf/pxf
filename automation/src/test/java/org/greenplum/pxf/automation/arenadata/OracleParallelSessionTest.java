@@ -8,6 +8,7 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
 
+import static org.greenplum.pxf.automation.PxfTestConstant.*;
 import static org.testng.Assert.assertEquals;
 
 public class OracleParallelSessionTest extends BaseFeature {
@@ -44,6 +45,7 @@ public class OracleParallelSessionTest extends BaseFeature {
 
     private Table oracleTableSource;
     private String pxfHome;
+    private String pxfJdbcSiteConfPath;
     private String pxfJdbcSiteConfFile;
     private String pxfJdbcSiteConfTemplate;
     private Oracle oracle;
@@ -51,7 +53,8 @@ public class OracleParallelSessionTest extends BaseFeature {
     @Override
     public void beforeClass() throws Exception {
         pxfHome = cluster.getPxfHome();
-        pxfJdbcSiteConfFile = pxfHome + "/servers/" + PXF_ORACLE_SERVER_PROFILE + "/jdbc-site.xml";
+        pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_ORACLE_SERVER_PROFILE);
+        pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
         pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
         oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
         prepareData();
@@ -107,7 +110,7 @@ public class OracleParallelSessionTest extends BaseFeature {
 
     private void copyAndModifyJdbcConfFile(String templateSource, String property) throws Exception {
         cluster.deleteFileFromNodes(pxfJdbcSiteConfFile, false);
-        cluster.copyFileToNodes(templateSource, pxfHome + "/servers/" + PXF_ORACLE_SERVER_PROFILE, true, false);
+        cluster.copyFileToNodes(templateSource, pxfJdbcSiteConfPath, true, false);
         cluster.runCommandOnAllNodes("sed -i '/<\\/configuration>/i " + property + "' " + pxfJdbcSiteConfFile);
     }
 }

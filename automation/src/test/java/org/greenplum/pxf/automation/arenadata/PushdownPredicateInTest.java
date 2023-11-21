@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 
 import java.util.Collections;
 
+import static org.greenplum.pxf.automation.PxfTestConstant.*;
 import static org.junit.Assert.assertEquals;
 
 public class PushdownPredicateInTest extends BaseFeature {
@@ -55,10 +56,11 @@ public class PushdownPredicateInTest extends BaseFeature {
     @Override
     protected void beforeClass() throws Exception {
         pxfHome = cluster.getPxfHome();
-        pxfJdbcSiteConfFile = pxfHome + "/servers/" + PXF_ORACLE_SERVER_PROFILE + "/jdbc-site.xml";
+        String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_ORACLE_SERVER_PROFILE);
+        pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
         String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
         String pxfAppPropertyFile = pxfHome + "/" + PXF_APP_PROPERTIES_RELATIVE_PATH;
-        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfHome + "/servers/" + PXF_ORACLE_SERVER_PROFILE, true, false);
+        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
         cluster.runCommandOnAllNodes("sed -i 's/# pxf.log.level=info/pxf.log.level=debug/' " + pxfAppPropertyFile);
         cluster.restart(PhdCluster.EnumClusterServices.pxf);
         if (cluster instanceof MultiNodeCluster) {

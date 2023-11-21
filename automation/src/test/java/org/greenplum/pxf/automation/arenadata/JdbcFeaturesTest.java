@@ -5,8 +5,9 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
-
 import java.io.File;
+
+import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE;
 
 public class JdbcFeaturesTest extends BaseFeature {
     private static final String[] LONG_YEAR_SOURCE_TABLE_FIELDS = new String[]{
@@ -42,10 +43,11 @@ public class JdbcFeaturesTest extends BaseFeature {
     @Override
     protected void beforeClass() throws Exception {
         String pxfHome = cluster.getPxfHome();
+        String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, NAMED_QUERY_SERVER_PROFILE);
         String queryFile = pxfHome + "/" + PXF_NAMED_QUERY_TEMPLATE_RELATIVE_PATH;
         String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
-        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfHome + "/servers/" + NAMED_QUERY_SERVER_PROFILE, true, false);
-        cluster.copyFileToNodes(queryFile, pxfHome + "/servers/" + NAMED_QUERY_SERVER_PROFILE, true, false);
+        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
+        cluster.copyFileToNodes(queryFile, pxfJdbcSiteConfPath, true, false);
         prepareData();
     }
 

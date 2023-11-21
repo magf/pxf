@@ -8,6 +8,8 @@ import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
 
+import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE;
+
 public class OracleDateTypeMapTest extends BaseFeature {
     private static final String ORACLE_SOURCE_TABLE_NAME = "date_type_source_table";
     private static final String PXF_ORACLE_SERVER_PROFILE = "oracle-date-map";
@@ -28,8 +30,10 @@ public class OracleDateTypeMapTest extends BaseFeature {
 
     @Override
     protected void beforeClass() throws Exception {
-        String pxfJdbcSiteConfTemplate = cluster.getPxfHome() + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
-        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, cluster.getPxfHome() + "/servers/" + PXF_ORACLE_SERVER_PROFILE, true, false);
+        String pxfHome = cluster.getPxfHome();
+        String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_ORACLE_SERVER_PROFILE);
+        String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
+        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
         oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
         prepareData();
     }

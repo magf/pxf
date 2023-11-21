@@ -37,8 +37,8 @@ RUN localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 RUN cp ${PXF_HOME}/templates/*-site.xml ${PXF_HOME}/servers/default/
 
 # Download jar files
-RUN curl -fSL https://repo.maven.apache.org/maven2/io/arenadata/security/encryption/1.0.0/encryption-1.0.0-exec.jar -o /usr/local/greenplum-db-devel/pxf/lib/encryption-1.0.0-exec.jar
-RUN curl -fSL https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar -o /usr/local/greenplum-db-devel/pxf/lib/ojdbc8-12.2.0.1.jar
+RUN curl -fSL https://rt.adsw.io/artifactory/maven-arenadata-release/io/arenadata/security/encryption/1.0.0/encryption-1.0.0-exec.jar -o /usr/local/greenplum-db-devel/pxf/lib/encryption-1.0.0-exec.jar
+RUN curl -fSL https://rt.adsw.io/artifactory/maven-apache/com/oracle/database/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar -o /usr/local/greenplum-db-devel/pxf/lib/ojdbc8-12.2.0.1.jar
 
 RUN chmod a+x ./pxf_src/automation/arenadata/scripts/start_adb_cluster.sh
 RUN chown -R gpadmin:gpadmin /usr/local/greenplum-db-devel
