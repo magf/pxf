@@ -103,7 +103,7 @@ public class PxfMetricsTest extends BaseFeature {
         String expectedPxfRecordsSent = "4.0";
         String actualPxfRecordsSent = "";
         String json = IOUtils.toString(serviceMetricsUrl, StandardCharsets.UTF_8);
-        JSONArray metrics = new JSONArray(json);
+        JSONArray metrics = new JSONObject(json).getJSONArray("metrics");
         for (int i = 0; i < metrics.length(); i++) {
             if (metrics.getJSONObject(i).getString("name").equals("pxf.records.sent")) {
                 actualPxfRecordsSent = metrics.getJSONObject(i).getJSONArray("measurements").getJSONObject(0).getString("value");
