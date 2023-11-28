@@ -1,0 +1,11 @@
+-- start_ignore
+-- end_ignore
+-- @description query02 for PXF to test encrypted password
+SELECT * FROM encryption_ext_table ORDER BY 1;
+ id | descr
+----+-------
+  1 | text1
+  2 | text2
+  3 | text3
+(3 rows)
+

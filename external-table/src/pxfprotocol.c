@@ -190,6 +190,7 @@ create_context(PG_FUNCTION_ARGS, bool is_import)
 	context->proj_info = proj_info;
 	context->quals     = filter_quals;
 	context->completed = false;
+	context->cancel    = NULL;
 	return context;
 }
 
