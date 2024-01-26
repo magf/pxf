@@ -28,7 +28,7 @@
     <repositories>
         <repository>
             <id>test-dependencies</id>
-            <url>artifactregistry://us-central1-maven.pkg.dev/data-gpdb-ud/pxf-automation-test</url>
+            <url>https://jcenter.bintray.com/</url>
         </repository>
     </repositories>
 
@@ -198,6 +198,12 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.4.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc8</artifactId>
+            <version>12.2.0.1</version>
         </dependency>
 
         <dependency>

@@ -99,5 +99,4 @@ public class PxfConfiguration implements WebMvcConfigurer {
 
         return builder.build(PxfThreadPoolTaskExecutor.class);
     }
-
 }

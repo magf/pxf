@@ -1,6 +1,10 @@
 package org.greenplum.pxf.service.controller;
 
 import com.google.common.io.CountingOutputStream;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.io.Writable;
@@ -22,6 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Implementation of the ReadService.
@@ -29,6 +34,7 @@ import java.util.Map;
 @Service
 @Slf4j
 public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements ReadService {
+    private final Map<RequestIdentifier, Bridge> readExecutionMap = new ConcurrentHashMap<>();
 
     private final FragmenterService fragmenterService;
 
@@ -56,6 +62,11 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
         // since any exception thrown from it must be logged, as this method is called asynchronously
         // and is the last opportunity to log the exception while having MDC logging context defined
         invokeWithErrorHandling(() -> processData(context, () -> writeStream(context, outputStream)));
+    }
+
+    @Override
+    public boolean cancelRead(RequestContext context) {
+        return cancelExecution(context);
     }
 
     /**
@@ -127,6 +138,44 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
         return queryResult;
     }
 
+    private void registerExecution(RequestContext context, Bridge readBridge) {
+        RequestIdentifier requestIdentifier = getRequestIdentifier(context);
+        readExecutionMap.put(requestIdentifier, readBridge);
+    }
+
+    private void removeExecution(RequestContext context) {
+        RequestIdentifier requestIdentifier = getRequestIdentifier(context);
+        readExecutionMap.remove(requestIdentifier);
+    }
+
+    private boolean cancelExecution(RequestContext context) {
+        RequestIdentifier requestIdentifier = getRequestIdentifier(context);
+        Bridge bridge = readExecutionMap.remove(requestIdentifier);
+        if (bridge == null) {
+            log.debug("Couldn't cancel read request, request {} not found", requestIdentifier);
+            return false;
+        }
+        try {
+            log.debug("Cancelling read request {}", requestIdentifier);
+            bridge.endIteration();
+        } catch (Exception e) {
+            log.warn("Ignoring error encountered during bridge.endIteration()", e);
+            return false;
+        }
+        return true;
+    }
+
+    private RequestIdentifier getRequestIdentifier(RequestContext context) {
+        return new RequestIdentifier(
+                context.getTransactionId(),
+                context.getSegmentId(),
+                context.getSchemaName(),
+                context.getTableName(),
+                context.getClientPort()
+        );
+    }
+
+
     /**
      * Processes a single fragment identified in the RequestContext and updates query statistics.
      *
@@ -148,6 +197,7 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
         Bridge bridge = null;
         try {
             bridge = getBridge(context);
+            registerExecution(context, bridge);
             if (!bridge.beginIteration()) {
                 log.debug("Skipping streaming fragment {} of resource {}",
                         context.getFragmentIndex(), context.getDataSource());
@@ -169,6 +219,7 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
                     log.warn("Ignoring error encountered during bridge.endIteration()", e);
                 }
             }
+            removeExecution(context);
             Duration duration = Duration.between(startTime, Instant.now());
 
             // fragment's current byte count is relative to the previous stream's byte count
@@ -208,4 +259,15 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
         }
     }
 
+    @RequiredArgsConstructor
+    @Getter
+    @EqualsAndHashCode
+    @ToString
+    private static class RequestIdentifier {
+        private final String transactionId;
+        private final int segmentId;
+        private final String schemaName;
+        private final String tableName;
+        private final int remotePort;
+    }
 }

@@ -369,7 +369,7 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
                 "TIME '00:00:00' + (i::VARCHAR(255) || ' seconds')::interval",
                 "TIMESTAMP '2001-09-28 01:00' + (i::VARCHAR(255) || ' days')::interval + (i::VARCHAR(255) || ' hours')::interval",
                 "TIMESTAMP WITH TIME ZONE '2001-09-28 01:00-07' + (i::VARCHAR(255) || ' days')::interval + (i::VARCHAR(255) || ' hours')::interval"
-        }, "SET TIMEZONE=-7");
+        }, "SET TIMEZONE=-7;SET optimizer=off");
     }
 
     private void insertComplexWithNulls(Table exTable) throws Exception {
@@ -384,7 +384,7 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
                 "TIME '00:00:00' + (i::VARCHAR(255) || ' seconds')::interval",
                 "TIMESTAMP '2001-09-28 01:00' + (i::VARCHAR(255) || ' days')::interval + (i::VARCHAR(255) || ' hours')::interval",
                 "TIMESTAMP WITH TIME ZONE '2001-09-28 01:00-07' + (i::VARCHAR(255) || ' days')::interval + (i::VARCHAR(255) || ' hours')::interval"
-        }, "SET TIMEZONE=-7");
+        }, "SET TIMEZONE=-7;SET optimizer=off");
     }
 
     private void

@@ -20,6 +20,8 @@ package org.greenplum.pxf.plugins.jdbc;
  */
 
 import com.google.common.base.Ticker;
+import io.arenadata.security.encryption.client.provider.TextEncryptorProvider;
+import io.arenadata.security.encryption.client.service.impl.DecryptClientImpl;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.PxfUserGroupInformation;
@@ -89,7 +91,8 @@ public class JdbcBasePluginTestInitialize {
         );
 
         PxfUserGroupInformation mockPxfUserGroupInformation = mock(PxfUserGroupInformation.class);
-        plugin = new JdbcBasePlugin(connectionManager, new SecureLogin(mockPxfUserGroupInformation));
+        TextEncryptorProvider mockTextEncryptorProvider = mock(TextEncryptorProvider.class);
+        plugin = new JdbcBasePlugin(connectionManager, new SecureLogin(mockPxfUserGroupInformation), new DecryptClientImpl(mockTextEncryptorProvider));
     }
 
     /**

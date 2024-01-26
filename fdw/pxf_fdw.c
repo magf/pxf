@@ -436,6 +436,7 @@ pxfBeginForeignScan(ForeignScanState *node, int eflags)
 	pxfsstate->relation = relation;
 	pxfsstate->retrieved_attrs = retrieved_attrs;
 	pxfsstate->projectionInfo = node->ss.ps.ps_ProjInfo;
+	pxfsstate->pxfcstate = NULL;
 
     /* Set up callback to identify error foreign relation. */
     ErrorContextCallback errcallback;
@@ -568,6 +569,7 @@ pxfEndForeignScan(ForeignScanState *node)
 	if (pxfsstate)
 		EndCopyFrom(pxfsstate->cstate);
 
+	PxfBridgeImportCleanup(pxfsstate);
 	elog(DEBUG5, "pxf_fdw: pxfEndForeignScan ends on segment: %d", PXF_SEGMENT_ID);
 }
 
@@ -608,6 +610,18 @@ pxfBeginForeignModify(ModifyTableState *mtstate,
 	 * external resource in the QD node, when all the actual insertions happen
 	 * in the segments.
 	 */
+	/* begin of temp block */
+	/*
+	 * Previously, ri_FdwState initialized here, but not in
+	 * pxfExecForeignInsert(). This was optimized, but unfortunately, there may
+	 * be some external projects that depend on old behavior. Here we do a temp
+	 * fix, which restores old behavior.
+	 */
+	if (eflags & EXEC_FLAG_EXPLAIN_ONLY)
+		return;
+	if (!resultRelInfo->ri_FdwState)
+		resultRelInfo->ri_FdwState = InitForeignModify(resultRelInfo->ri_RelationDesc);
+	/* end of temp block */
 }
 
 /*

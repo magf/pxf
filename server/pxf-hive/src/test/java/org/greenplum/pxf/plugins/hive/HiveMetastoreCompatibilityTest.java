@@ -293,6 +293,17 @@ public class HiveMetastoreCompatibilityTest {
                          }
                          return null;
                      },
+                     // placebo run through
+                     // the second to last invocation keeps getting skipped so place this here as a placebo
+                     // https://github.com/mockito/mockito/pull/2545
+                     invocation -> {
+                         if (invocation.getMethod().getName().equals("get_table_req")) {
+                             throw new TApplicationException("fallback ???");
+                         } else if (invocation.getMethod().getName().equals("get_table")) {
+                             throw new TTransportException("oops. where's the metastore? ???");
+                         }
+                         return null;
+                     },
                      // final run through (retry 3 = success)
                      invocation -> {
                          if (invocation.getMethod().getName().equals("get_table_req")) {

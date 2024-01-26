@@ -22,7 +22,10 @@ package org.greenplum.pxf.api.examples;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.io.DataType;
+import org.greenplum.pxf.api.model.InputStreamHandler;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -31,6 +34,7 @@ import java.util.List;
  * <p>
  * Demo implementation of resolver that returns text format
  */
+@InputStreamHandler
 public class DemoTextResolver extends DemoResolver {
 
     /**
@@ -62,8 +66,16 @@ public class DemoTextResolver extends DemoResolver {
             throw new Exception("Unexpected record format, expected 1 field, found " +
                     (record == null ? 0 : record.size()));
         }
-        byte[] value = (byte[]) record.get(0).val;
+        int readCount;
+        byte[] data = new byte[1024];
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        DataInputStream dis = (DataInputStream) record.get(0).val;
+        while ((readCount = dis.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, readCount);
+        }
+        buffer.flush();
+        byte[] bytes= buffer.toByteArray();
         // empty array means the end of input stream, return null to stop iterations
-        return value.length == 0 ? null : new OneRow(value);
+        return bytes.length == 0 ? null : new OneRow(bytes);
     }
 }
