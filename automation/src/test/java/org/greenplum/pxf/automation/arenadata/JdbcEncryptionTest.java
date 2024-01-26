@@ -74,19 +74,19 @@ public class JdbcEncryptionTest extends BaseFeature {
     @Test(groups = {"arenadata"}, description = "Check wrong encrypted password")
     public void checkWrongEncryptedPassword() throws Exception {
         copyAndModifyJdbcConfFile(WRONG_ENCRYPTED_PASSWORD);
-        runSqlTest("pxf.arenadata.encryption.error-encrypted.runTest");
+        runSqlTest("arenadata/encryption/error-encrypted");
     }
 
     @Test(groups = {"arenadata"}, description = "Check encrypted password")
     public void checkEncryptedPassword() throws Exception {
         copyAndModifyJdbcConfFile(ENCRYPTED_PASSWORD);
-        runSqlTest("pxf.arenadata.encryption.success-encrypted.runTest");
+        runSqlTest("arenadata/encryption/success-encrypted");
     }
 
     @Test(groups = {"arenadata"}, description = "Check not encrypted password")
     public void checkNotEncryptedPassword() throws Exception {
         copyAndModifyJdbcConfFile(PASSWORD);
-        runSqlTest("pxf.arenadata.encryption.success-encrypted.runTest");
+        runSqlTest("arenadata/encryption/success-encrypted");
     }
 
     private void copyAndModifyJdbcConfFile(String password) throws Exception {
