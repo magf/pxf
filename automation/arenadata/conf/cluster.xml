@@ -47,7 +47,7 @@
         <host>hadoop</host>
         <port>8020</port>
         <workingDirectory>tmp/pxf_automation_data/__UUID__</workingDirectory>
-        <haNameservice></haNameservice>
+        <scheme>hdfs</scheme>
     </hdfs>
 
     <hbase>
@@ -79,14 +79,11 @@
         <scheme>file</scheme>
     </file>
 
-    <tinc>
-        <class>org.greenplum.pxf.automation.components.tinc.Tinc</class>
-        <host>localhost</host>
-        <userName>gpadmin</userName>
-        <gphome>/usr/local/greenplum-db-devel</gphome>
-        <tincFolder>tinc/main</tincFolder>
-        <tincTestsFolder>tincrepo/main</tincTestsFolder>
-    </tinc>
+    <regress>
+        <class>org.greenplum.pxf.automation.components.regress.Regress</class>
+        <regressTestFolder>sqlrepo</regressTestFolder>
+        <dbName>pxfautomation</dbName>
+    </regress>
 
     <pxf>
         <class>org.greenplum.pxf.automation.components.pxf.Pxf</class>

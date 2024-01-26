@@ -86,7 +86,7 @@ public abstract class BaseTestParent {
             File localDataTempFolder = new File(dataTempFolder);
             localDataTempFolder.mkdirs();
             // Initialize Regress System Object
-            regress = (Regress) systemManager.getSystemObject("regress");
+            regress = (Regress) systemManager.getSystemObjectByXPath("/sut/regress");
             // Initialize GPDB System Object
             gpdb = (Gpdb) systemManager.getSystemObjectByXPath("/sut/gpdb");
             // Initialize GPDB2 System Object -- database with non-utf8 encoding
