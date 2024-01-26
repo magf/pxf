@@ -13,8 +13,8 @@ RUN set -eux; \
          && rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.3.linux-arm64.tar.gz && rm go1.21.3.linux-arm64.tar.gz \
          ;; \
        ppc64el|ppc64le) \
-         wget https://go.dev/dl/go1.21.3.linux-ppc64.tar.gz \
-         && rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.3.linux-ppc64.tar.gz && rm go1.21.3.linux-ppc64.tar.gz \
+         wget https://go.dev/dl/go1.21.3.linux-ppc64le.tar.gz \
+         && rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.3.linux-ppc64le.tar.gz && rm go1.21.3.linux-ppc64le.tar.gz \
          ;; \
        *) \
          echo "Unsupported arch: ${ARCH}"; \
