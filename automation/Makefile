@@ -114,7 +114,7 @@ symlink_pxf_jars: check-env
 		rm -rf $(PXF_TMP_LIB)/tmp; \
 	fi
 
-test: check-env clean-logs symlink_pxf_jars sync_cloud_configs sync_jdbc_config
+test: check-env clean-logs symlink_pxf_jars sync_cloud_configs sync_jdbc_config pxf_regress
 	$(MVN) $(MAVEN_TEST_OPTS) ${MAVEN_DEBUG_OPTS} test
 
 clean: clean-logs
@@ -122,9 +122,11 @@ clean: clean-logs
 	@rm -rf $(PXF_TMP_LIB)
 
 clean-logs:
-	@rm -rf automation_logs/* tincrepo/main/log/* run-results/*
-	@find tincrepo/main/pxf/. -type d -name "output" -exec rm -rf {} +
-	@find tincrepo/main/pxf/. -type f -name "*segment_logs" -exec rm -rf {} +
+	@rm -rf automation_logs/* run-results/*
+	@find sqlrepo -type d -name results -exec rm -rf {} +
+	@find sqlrepo -type f -name regression.diffs -delete
+	@find sqlrepo -type d -name "output" -exec rm -rf {} +
+	@find sqlrepo -type f -name "*segment_logs" -exec rm -rf {} +
 
 dev: symlink_pxf_jars
 	$(MVN) $(MAVEN_TEST_OPTS) package -DskipTests=true
@@ -239,3 +241,7 @@ else
 	@echo "***** Feature tests: *****"
 	@ls src/test/java/org/greenplum/pxf/automation/features/*/*Test.java | sed 's/.*\///g' | sed 's/\.java//g' | awk '{print "* ", $$1}'
 endif
+
+.PHONY: pxf_regress
+pxf_regress:
+	$(MAKE) -C pxf_regress

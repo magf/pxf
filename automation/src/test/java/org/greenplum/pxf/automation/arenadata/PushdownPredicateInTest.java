@@ -123,7 +123,7 @@ public class PushdownPredicateInTest extends BaseFeature {
         // Clean gpdb master log and pxf log before run test
         cluster.runCommand("> " + GET_LATEST_MASTER_LOG_COMMAND);
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
-        runTincTest("pxf.arenadata.predicate-in.postgres.runTest");
+        runSqlTest("arenadata/predicate-in/postgres");
         cluster.runCommand("grep -e 'SELECT id, descr FROM " + SOURCE_TABLE_NAME + " WHERE id IN (2,3)' " + GET_LATEST_MASTER_LOG_COMMAND + " | wc -l");
         String result = cluster.getLastCmdResult();
         String[] results = result.split("\r\n");
@@ -144,7 +144,7 @@ public class PushdownPredicateInTest extends BaseFeature {
 
     @Test(groups = {"arenadata"}, description = "Check pushdown predicate 'IN' for Oracle")
     public void testPredicateInOracle() throws Exception {
-        runTincTest("pxf.arenadata.predicate-in.oracle.runTest");
+        runSqlTest("arenadata/predicate-in/oracle");
         Assert.assertEquals(1, oracle.getValueFromQuery(GET_STATS_QUERY));
         cluster.deleteFileFromNodes(pxfJdbcSiteConfFile, false);
     }

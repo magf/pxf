@@ -10,7 +10,6 @@ import org.greenplum.pxf.automation.enums.EnumPxfDefaultProfiles;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ErrorTable;
-import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.greenplum.pxf.automation.utils.csv.CsvUtils;
 import org.greenplum.pxf.automation.utils.fileformats.FileFormatsUtils;
@@ -25,6 +24,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static java.lang.Thread.sleep;
 import static org.greenplum.pxf.automation.features.tpch.LineItem.LINEITEM_SCHEMA;
 
 /**
@@ -138,7 +138,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         // write data to HDFS
         hdfs.writeTableToFile(hdfsFilePath, dataTable, ",");
         // verify results
-        runTincTest("pxf.features.hdfs.readable.text.small_data.runTest");
+        runSqlTest("features/hdfs/readable/text/small_data");
     }
 
     /**
@@ -160,7 +160,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         // copy local CSV to HDFS
         hdfs.copyFromLocal(tempLocalDataPath, hdfsFilePath);
         // verify results
-        runTincTest("pxf.features.hdfs.readable.text.small_data.runTest");
+        runSqlTest("features/hdfs/readable/text/small_data");
     }
 
     /**
@@ -179,7 +179,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         // copy local CSV to HDFS
         hdfs.copyFromLocal(tempLocalDataPath, hdfsFilePath);
         // verify results
-        runTincTest("pxf.features.hdfs.readable.text.small_data.runTest");
+        runSqlTest("features/hdfs/readable/text/small_data");
 
         // create a new table with the SKIP_HEADER_COUNT parameter
         exTable.setName("pxf_hdfs_small_data_with_skip");
@@ -187,7 +187,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         // create external table
         gpdb.createTableAndVerify(exTable);
         // run the query skipping the first 10 lines of the text
-        runTincTest("pxf.features.hdfs.readable.text.small_data_with_skip.runTest");
+        runSqlTest("features/hdfs/readable/text/small_data_with_skip");
     }
 
     /**
@@ -209,7 +209,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         hdfs.copyFromLocal(localDataResourcesFolder + "/csv/sample2.csv", hdfs.getWorkingDirectory() + "/csv_files_with_header/sample2.csv");
         hdfs.copyFromLocal(localDataResourcesFolder + "/csv/sample3.csv", hdfs.getWorkingDirectory() + "/csv_files_with_header/sample3.csv");
         // verify results
-        runTincTest("pxf.features.hdfs.readable.text.csv_files_with_header.runTest");
+        runSqlTest("features/hdfs/readable/text/csv_files_with_header");
     }
 
     /**
@@ -235,7 +235,7 @@ public class HdfsReadableTextTest extends BaseFeature {
                         protocol.getExternalTablePath(hdfs.getBasePath(), hdfs.getWorkingDirectory()) + "/bzip2/", ",");
         gpdb.createTableAndVerify(exTable);
 
-        runTincTest("pxf.features.hdfs.readable.text.bzip2.runTest");
+        runSqlTest("features/hdfs/readable/text/bzip2");
     }
 
     /**
@@ -294,7 +294,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         }
         gpdb.createTableAndVerify(exTable);
         // Verify results
-        runTincTest("pxf.features.hdfs.readable.text.multiblocked_csv_data.runTest");
+        runSqlTest("features/hdfs/readable/text/multiblocked_csv_data");
     }
 
     /**
@@ -321,7 +321,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         // create external table
         gpdb.createTableAndVerify(exTable);
         // run the query skipping the first 10 lines of the text
-        runTincTest("pxf.features.hdfs.readable.text.multiprofile_with_skip.runTest");
+        runSqlTest("features/hdfs/readable/text/multiprofile_with_skip");
 
     }
 
@@ -348,7 +348,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         exTable.setUserParameters(new String[]{"SKIP_HEADER_COUNT=1"});
         gpdb.createTableAndVerify(exTable);
         // Verify results
-        runTincTest("pxf.features.hdfs.readable.text.multiline_csv_data_with_header.runTest");
+        runSqlTest("features/hdfs/readable/text/multiline_csv_data_with_header");
     }
 
     /**
@@ -371,7 +371,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         exTable.setUserParameters(new String[]{"SKIP_HEADER_COUNT=1","FILE_AS_ROW=true"});
         gpdb.createTableAndVerify(exTable);
         // Verify results
-        runTincTest("pxf.features.hdfs.readable.text.multiline_file_as_row_with_header.runTest");
+        runSqlTest("features/hdfs/readable/text/multiline_file_as_row_with_header");
     }
 
     /**
@@ -390,13 +390,13 @@ public class HdfsReadableTextTest extends BaseFeature {
         exTable.setDelimiter(",");
         gpdb.createTableAndVerify(exTable);
         // verify results
-        runTincTest("pxf.features.hdfs.readable.text.wildcard.runTest");
+        runSqlTest("features/hdfs/readable/text/wildcard");
 
         // test ? wildcard
         prepareReadableTable(exTable.getName(), exTable.getFields(), wildcardHdfsPath + "/data?.txt", exTable.getFormat());
         gpdb.createTableAndVerify(exTable);
         // verify results
-        runTincTest("pxf.features.hdfs.readable.text.wildcard.runTest");
+        runSqlTest("features/hdfs/readable/text/wildcard");
     }
 
     /**
@@ -423,7 +423,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         exTable.setDelimiter(",");
         gpdb.createTableAndVerify(exTable);
         // verify results
-        runTincTest("pxf.features.hdfs.readable.text.recursive.runTest");
+        runSqlTest("features/hdfs/readable/text/recursive");
     }
 
     /**
@@ -439,7 +439,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         // write empty data to HDFS
         hdfs.writeTableToFile(hdfsFilePath + "_empty", new Table("emptyTable", null), ",");
         // verify results
-        runTincTest("pxf.features.hdfs.readable.text.empty_file.runTest");
+        runSqlTest("features/hdfs/readable/text/empty_file");
     }
 
     /**
@@ -465,7 +465,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         hdfs.writeTableToFile(hdfsFilePath, dataTable, ",",
                 StandardCharsets.ISO_8859_1);
         // verify results
-        runTincTest("pxf.features.hdfs.readable.text.encoding.runTest");
+        runSqlTest("features/hdfs/readable/text/encoding");
     }
 
     @Test(groups = {"features", "gpdb", "hcfs", "security"})
@@ -500,13 +500,13 @@ public class HdfsReadableTextTest extends BaseFeature {
         exTable.setFormat("csv");
 
         gpdb.createTableAndVerify(exTable);
-        runTincTest("pxf.features.hdfs.readable.text.mixed_newline_char.runTest");
+        runSqlTest("features/hdfs/readable/text/mixed_newline_char");
 
         // re-run the test with text format
         exTable.setFormat("text");
 
         gpdb.createTableAndVerify(exTable);
-        runTincTest("pxf.features.hdfs.readable.text.mixed_newline_char.runTest");
+        runSqlTest("features/hdfs/readable/text/mixed_newline_char");
     }
 
     /**
@@ -590,6 +590,9 @@ public class HdfsReadableTextTest extends BaseFeature {
         dataTable.addRow(new String[]{"10", "ten - I love you!"});
 
         hdfs.writeTableToFile(hdfsFilePath, dataTable, ",");
+        if (protocol != ProtocolEnum.HDFS) {
+            sleep(10000);
+        }
 
         ErrorTable errorTable = new ErrorTable("err_table");
         gpdb.runQueryWithExpectedWarning(
@@ -616,12 +619,12 @@ public class HdfsReadableTextTest extends BaseFeature {
         Assert.assertTrue(gpdb.checkTableExists(exTable));
         ReportUtils.stopLevel(null);
 
-        runTincTest("pxf.features.hdfs.readable.text.error_table_gpdb.runTest");
+        runSqlTest("features/hdfs/readable/text/error_table_gpdb");
         ReportUtils.startLevel(null, getClass(), "table with too many errors");
         exTable.setSegmentRejectLimit(3);
         gpdb.createTableAndVerify(exTable);
 
-        runTincTest("pxf.features.hdfs.readable.text.errors.error_table_breached.runTest");
+        runSqlTest("features/hdfs/readable/text/errors/error_table_breached");
 
         ReportUtils.stopLevel(null);
     }
@@ -654,7 +657,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         exTable.setDelimiter(",");
         gpdb.createTableAndVerify(exTable);
 
-        runTincTest("pxf.features.hdfs.readable.text.limit.runTest");
+        runSqlTest("features/hdfs/readable/text/limit");
     }
 
     /**
@@ -679,7 +682,7 @@ public class HdfsReadableTextTest extends BaseFeature {
 
         gpdb.createTableAndVerify(exTable);
 
-        runTincTest("pxf.features.hdfs.readable.text.errors.wrong_type.runTest");
+        runSqlTest("features/hdfs/readable/text/errors/wrong_type");
     }
 
     /**
@@ -705,7 +708,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         exTable.setProfile(protocol.value() + ":csv");
 
         gpdb.createTableAndVerify(exTable);
-        runTincTest("pxf.features.hdfs.readable.text.errors.unterminated_quoted_field.runTest");
+        runSqlTest("features/hdfs/readable/text/errors/unterminated_quoted_field");
     }
 
     /**
@@ -741,7 +744,7 @@ public class HdfsReadableTextTest extends BaseFeature {
 
         gpdb.createTableAndVerify(exTable);
 
-        runTincTest("pxf.features.hdfs.readable.text.errors.middle_of_stream.runTest");
+        runSqlTest("features/hdfs/readable/text/errors/middle_of_stream");
     }
 
     private void prepareReadableTable(String name, String[] fields, String path, String format) {
@@ -764,12 +767,12 @@ public class HdfsReadableTextTest extends BaseFeature {
         exTable.setFormat("csv");
 
         gpdb.createTableAndVerify(exTable);
-        runTincTest("pxf.features.hdfs.readable.text.newline_char.runTest");
+        runSqlTest("features/hdfs/readable/text/newline_char");
 
         // re-run the test with text format
         exTable.setFormat("text");
 
         gpdb.createTableAndVerify(exTable);
-        runTincTest("pxf.features.hdfs.readable.text.newline_char.runTest");
+        runSqlTest("features/hdfs/readable/text/newline_char");
     }
 }

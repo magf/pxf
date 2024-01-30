@@ -11,18 +11,14 @@ ADD apache-maven.tar.gz /usr/share
 RUN mkdir -p /tmp/pxf_src/ && cd /tmp \
     && wget -O go.tgz -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
     && echo "${GO_SHA256SUM} /tmp/go.tgz" | sha256sum --check \
-    && rm -rf /usr/local/go && mkdir /opt/pxf && tar -C /opt/pxf -xzf go.tgz && rm go.tgz
-
-ARG USER_HOME_DIR="/root"
+    && rm -rf /usr/local/go && tar -C /usr/local -xzf go.tgz && rm go.tgz
 
 # install dependencies that are missing on the base images
 # glibc-common is for adding locales
 RUN ln -s /usr/share/apache-maven-*/bin/mvn /usr/bin/mvn \
     # explicitly reinstall glibc-common to add back deleted charmaps
     && yum reinstall -y glibc-common \
-    && yum install -y rpm-build python-devel jq sudo && yum clean all \
-    && cd /tmp && /usr/bin/pip install --upgrade pip==20.2.4 \
-    && /usr/bin/pip install psi paramiko --no-cache-dir
+    && yum install -y rpm-build jq sudo && yum clean all
 
 # create user gpadmin since GPDB cannot run under root
 RUN ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa \
@@ -57,11 +53,11 @@ RUN ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa \
     && echo >> ~gpadmin/.pxfrc 'export PGPORT=5432' \
     && echo >> ~gpadmin/.pxfrc 'export GOPATH=/opt/go' \
     && echo >> ~gpadmin/.pxfrc 'export GPHOME=$(find /usr/local/ -name greenplum-db* -type d | head -n1)' \
-    && echo >> ~gpadmin/.pxfrc 'export LD_LIBRARY_PATH=${GPHOME}/lib:${LD_LIBRARY_PATH-}' \
     && echo >> ~gpadmin/.pxfrc 'export GPHD_ROOT=/singlecluster' \
     && echo >> ~gpadmin/.pxfrc 'export PXF_HOME=/usr/local/pxf-gp6' \
     && echo >> ~gpadmin/.pxfrc 'export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk' \
-    && echo >> ~gpadmin/.pxfrc 'export PATH=${GPHOME}/bin:${PXF_HOME}/bin:${GOPATH}/bin:/opt/pxf/go/bin:$PATH' \
+    && echo >> ~gpadmin/.pxfrc 'export PG_CONFIG=${GPHOME}/bin/pg_config' \
+    && echo >> ~gpadmin/.pxfrc 'export PATH=${PXF_HOME}/bin:${GOPATH}/bin:/usr/local/go/bin:$PATH' \
     && ln -s ~gpadmin/.pxfrc ~root \
     && echo >> ~gpadmin/.bashrc 'source ~/.pxfrc' \
     && chown -R gpadmin:gpadmin ~gpadmin

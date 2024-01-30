@@ -63,6 +63,6 @@ public class OracleDateTypeMapTest extends BaseFeature {
 
     @Test(groups = {"arenadata"}, description = "Check mapping to Oracle date type")
     public void testOracleDateTypeMapping() throws Exception {
-        runTincTest("pxf.arenadata.oracle-date-type-mapping.runTest");
+        runSqlTest("arenadata/oracle-date-type-mapping");
     }
 }

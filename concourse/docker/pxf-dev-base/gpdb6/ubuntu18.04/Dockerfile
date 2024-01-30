@@ -11,13 +11,9 @@ ADD apache-maven.tar.gz /usr/share
 RUN mkdir -p /tmp/pxf_src/ && cd /tmp \
     && wget -O go.tgz -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
     && echo "${GO_SHA256SUM} /tmp/go.tgz" | sha256sum --check \
-    && rm -rf /usr/local/go && mkdir /opt/pxf && tar -C /opt/pxf -xzf go.tgz && rm go.tgz
+    && rm -rf /usr/local/go && tar -C /usr/local -xzf go.tgz && rm go.tgz
 
 # install dependencies that are missing on the base images
-# install a specific version of perl for tinc
-
-ARG USER_HOME_DIR="/root"
-
 RUN apt-get update -y \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y python-dev curl sudo jq \
     && apt-get clean \
@@ -46,8 +42,6 @@ RUN locale-gen en_US.UTF-8 \
     && echo "gpadmin:password" | chpasswd 2> /dev/null \
     && { ssh-keyscan localhost; ssh-keyscan 0.0.0.0; } >> /home/gpadmin/.ssh/known_hosts \
     && chown -R gpadmin:gpadmin /home/gpadmin \
-    # install dependencies as gpadmin
-    && su gpadmin -c "pip install psi paramiko --no-cache-dir" \
     # configure gpadmin limits
     && echo >> /etc/security/limits.d/gpadmin-limits.conf 'gpadmin soft core unlimited' \
     && echo >> /etc/security/limits.d/gpadmin-limits.conf 'gpadmin soft nproc 131072' \
@@ -59,11 +53,11 @@ RUN locale-gen en_US.UTF-8 \
     && echo >> ~gpadmin/.pxfrc 'export PGPORT=5432' \
     && echo >> ~gpadmin/.pxfrc 'export GOPATH=/opt/go' \
     && echo >> ~gpadmin/.pxfrc 'export GPHOME=$(find /usr/local/ -name greenplum-db* -type d | head -n1)' \
-    && echo >> ~gpadmin/.pxfrc 'export LD_LIBRARY_PATH=${GPHOME}/lib:${LD_LIBRARY_PATH-}' \
     && echo >> ~gpadmin/.pxfrc 'export GPHD_ROOT=/singlecluster' \
     && echo >> ~gpadmin/.pxfrc 'export PXF_HOME=/usr/local/pxf-gp6' \
     && echo >> ~gpadmin/.pxfrc 'export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64' \
-    && echo >> ~gpadmin/.pxfrc 'export PATH=${GPHOME}/bin:${PXF_HOME}/bin:${GOPATH}/bin:/opt/pxf/go/bin:$PATH' \
+    && echo >> ~gpadmin/.pxfrc 'export PG_CONFIG=${GPHOME}/bin/pg_config' \
+    && echo >> ~gpadmin/.pxfrc 'export PATH=${PXF_HOME}/bin:${GOPATH}/bin:/usr/local/go/bin:$PATH' \
     && ln -s ~gpadmin/.pxfrc ~root \
     && echo >> ~gpadmin/.bashrc 'source ~/.pxfrc' \
     && echo >> ~gpadmin/.bash_profile '[[ -f ~/.bashrc ]] && . ~/.bashrc' \

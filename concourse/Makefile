@@ -9,9 +9,11 @@ YOUR_TAG ?= $(shell git describe --tags --abbrev=0)
 
 SHELL                        = /bin/bash
 BUILD_PIPELINE_NAME         ?= pxf-build
-DEV_BUILD_PIPELINE_NAME     ?= dev:$(USER)-$(BRANCH)
+DEV_BUILD_PIPELINE_NAME     ?= dev-$(USER)-$(BRANCH)
 PR_BUILD_PIPELINE_NAME      ?= pxf_pr_pipeline
 CERTIFICATION_PIPELINE_NAME ?= pxf-certification
+CLOUDBUILD_PIPELINE_NAME    ?= cloudbuild
+DEV_CLOUDBUILD_PIPELINE_NAME ?= dev-cloudbuild-$(USER)-$(BRANCH)
 PERF_PIPELINE_NAME          ?= pxf_perf-$(SCALE)g-RHEL$(REDHAT_MAJOR_VERSION)
 PIVNET_PIPELINE_NAME        ?= pivnet_artifacts
 NUM_GPDB5_VERSIONS          ?= 10
@@ -24,23 +26,22 @@ TEMPLATE_CMD                 = ./template_tool
 FLY_OPTION_NON-INTERACTIVE   =
 SLACK                       ?= true
 # below are dev-build specific vars
-MULTINODE                   ?= false
+MULTINODE_EL7               ?= false
+MULTINODE_EL8               ?= false
+MULTINODE_EL9               ?= false
 MULTINODE_NO_IMPERSONATION  ?= false
 JDK11                       ?= false
 CDH                         ?= false
 HDP2                        ?= false
 HDP3                        ?= false
-MAPR                        ?= false
-AMBARI                      ?= false
 S3                          ?= false
 ADL                         ?= false
-WASB                        ?= false
+WASBS                       ?= false
 GS                          ?= false
 MINIO                       ?= false
 OEL7                        ?= false
 FILE                        ?= false
 GP7_CLI                     ?= false
-GP7_MULTINODE               ?= false
 # used to quickly modify the docker image tag being pulled ONLY in the dev_build_pipeline
 PXF_DEV_IMAGE_TAG           ?= latest
 
@@ -49,13 +50,14 @@ ifeq ($(CHECK_CREDS), true)
 SET_PIPELINE += --check-creds
 endif
 
-.PHONY: build certification dev pr cloudbuild longevity
+.PHONY: build certification dev-release dev pr cloudbuild dev-cloudbuild longevity
 build: set-build-pipeline
 certification: set-certification-pipeline
 dev-release: set-dev-release-pipeline
 dev: set-dev-build-pipeline
 pr: set-pr-build-pipeline
 cloudbuild: set-cloudbuild-pipeline
+dev-cloudbuild: set-dev-cloudbuild-pipeline
 longevity: set-longevity-pipeline
 
 # ============================= BUILD PIPELINE TARGETS =============================
@@ -76,6 +78,7 @@ set-build-pipeline:
 		--load-vars-from=$(HOME)/workspace/pxf/concourse/settings/pxf-multinode-params.yml \
 		--var=pxf-git-branch=main \
 		--var=pxf-build-bucket-prefix=prod \
+		--var=gpdb-pxf-dev-image-tag=latest \
 		${FLY_OPTION_NON-INTERACTIVE} || echo "Generated yaml has errors: check $${PIPELINE_FILE}"
 
 	@echo using the following command to unpause the pipeline:
@@ -100,6 +103,7 @@ set-dev-release-pipeline:
 		--var=pxf-git-branch=${BRANCH} \
 		--var=pxf-build-bucket-prefix=dev/$(USER)-$(BRANCH) \
 		--var=pxf-releases-bucket-prefix=dev/$(USER)-$(BRANCH) \
+		--var=gpdb-pxf-dev-image-tag=$(PXF_DEV_IMAGE_TAG) \
 		${FLY_OPTION_NON-INTERACTIVE} || echo "Generated yaml has errors: check $${PIPELINE_FILE}"
 
 	@echo using the following command to unpause the pipeline:
@@ -110,19 +114,18 @@ set-dev-build-pipeline:
 	@PIPELINE_FILE=$$(mktemp) && \
 	$(TEMPLATE_CMD) --template dev_build_pipeline-tpl.yml --vars \
 		slack_notification=$(SLACK) \
-		multinode=$(MULTINODE) \
-		gp7_multinode=$(GP7_MULTINODE) \
+		multinode_el7=$(MULTINODE_EL7) \
+		multinode_el8=$(MULTINODE_EL8) \
+		multinode_el9=$(MULTINODE_EL9) \
 		multinode_no_impersonation=$(MULTINODE_NO_IMPERSONATION) \
 		jdk11=$(JDK11) \
 		cdh=$(CDH) \
 		hdp2=$(HDP2) \
 		hdp3=$(HDP3) \
-		mapr=$(MAPR) \
-		ambari=$(AMBARI) \
 		file=$(FILE) \
 		s3=$(S3) \
 		adl=$(ADL) \
-		wasb=$(WASB) \
+		wasbs=$(WASBS) \
 		gs=$(GS) \
 		minio=$(MINIO) \
 		oel7=$(OEL7) \
@@ -139,7 +142,8 @@ set-dev-build-pipeline:
 		--config "$${PIPELINE_FILE}" \
 		--load-vars-from=$(HOME)/workspace/pxf/concourse/settings/pxf-multinode-params.yml \
 		--var=pxf-git-branch=${BRANCH} \
-		--var=pxf-dev-image-tag=$(PXF_DEV_IMAGE_TAG) \
+		--var=pxf-build-bucket-prefix=dev/$(USER)-$(BRANCH) \
+		--var=gpdb-pxf-dev-image-tag=$(PXF_DEV_IMAGE_TAG) \
 		${FLY_OPTION_NON-INTERACTIVE} || echo "Generated yaml has errors: check $${PIPELINE_FILE}"
 
 	@echo using the following command to unpause the pipeline:
@@ -193,12 +197,26 @@ set-certification-pipeline:
 # ============================= HELPER PIPELINE TARGETS =============================
 
 .PHONY: set-cloudbuild-pipeline
-set-cloudbuild-pipeline:
+set-cloudbuild-pipeline: PXF_GIT_BRANCH=main
+set-cloudbuild-pipeline: GCP_IMAGE_TAG=latest
+set-cloudbuild-pipeline: PIPELINE_NAME=$(CLOUDBUILD_PIPELINE_NAME)
+set-cloudbuild-pipeline: set-cloudbuild-pipeline-base
+
+.PHONY: set-dev-cloudbuild-pipeline
+set-dev-cloudbuild-pipeline: PXF_GIT_BRANCH=$(BRANCH)
+set-dev-cloudbuild-pipeline: GCP_IMAGE_TAG=$(PXF_DEV_IMAGE_TAG)
+set-dev-cloudbuild-pipeline: PIPELINE_NAME=$(DEV_CLOUDBUILD_PIPELINE_NAME)
+set-dev-cloudbuild-pipeline: set-cloudbuild-pipeline-base
+
+.PHONY: set-cloudbuild-pipeline-base
+set-cloudbuild-pipeline-base:
 	$(FLY_CMD) --target=$(CONCOURSE) \
 		$(SET_PIPELINE) \
 		--config $(HOME)/workspace/pxf/concourse/pipelines/cloudbuild_pipeline.yml \
-		--var pxf-git-branch=$(BRANCH) \
-		--pipeline cloudbuild
+		--var pxf-git-branch=$(PXF_GIT_BRANCH) \
+		--var gcp-image-tag=$(GCP_IMAGE_TAG) \
+		--pipeline $(PIPELINE_NAME) \
+		${FLY_OPTION_NON-INTERACTIVE} || echo "pipelines/cloudbuild_pipeline.yml has errors"
 
 .PHONY: pivnet
 pivnet: set-pivnet-pipeline
@@ -221,9 +239,15 @@ set-pivnet-pipeline:
 
 .PHONY: singlecluster
 singlecluster:
-	$(FLY_CMD) -t ud set-pipeline \
-		-c ~/workspace/pxf/concourse/pipelines/singlecluster-pipeline.yml \
-		-v pxf-git-branch=main -p pxf-singlecluster
+	$(FLY_CMD) --target=$(CONCOURSE) \
+		$(SET_PIPELINE) \
+		--pipeline=pxf-singlecluster \
+		--config ~/workspace/pxf/concourse/pipelines/singlecluster-pipeline.yml \
+		--var pxf-git-branch=main \
+		${FLY_OPTIONS_NON-INTERACTIVE} || echo "pipelines/singlecluster-pipeline.yml has errors"
+
+	@echo "using the following command to unpause the pipeline"
+	@echo -e "\t$(FLY_CMD) -t $(CONCOURSE) unpause-pipeline --pipeline pxf-singlecluster"
 
 # ============================= PERFORMANCE PIPELINE TARGETS =============================
 

@@ -53,11 +53,6 @@ function inflate_dependencies() {
 		tarballs+=(regression-tools/regression-tools.tar.gz)
 	fi
 
-	# when running automation against GP7, we need python2 dependencies shipped with gp6 to make Tinc work
-	# if required, these libraries will be fetched by a CI pipeline under gp6-python-libs directory
-	if [[ -f gp6-python-libs/gp6-python-libs.tar.gz ]]; then
-		tarballs+=(gp6-python-libs/gp6-python-libs.tar.gz)
-	fi
 	(( ${#tarballs[@]} == 0 )) && return
 	for t in "${tarballs[@]}"; do
 		tar -xzf "${t}" -C ~gpadmin
@@ -88,8 +83,8 @@ function set_env() {
 
 function run_pxf_automation() {
 	# Let's make sure that automation/singlecluster directories are writeable
-	chmod a+w pxf_src/automation /singlecluster || true
-	find pxf_src/automation/tinc* -type d -exec chmod a+w {} \;
+	chmod a+w pxf_src/automation pxf_src/automation/pxf_regress /singlecluster || true
+	find pxf_src/automation/sqlrepo -type d -exec chmod a+w {} \;
 
 	local extension_name="pxf"
 	if [[ ${USE_FDW} == "true" ]]; then
@@ -125,7 +120,7 @@ function run_pxf_automation() {
 		time make GROUP=${GROUP} test
 
 		# if the test is successful, create certification file
-		gpdb_build_from_sql=\$(psql -c 'select version()' | grep Greenplum | cut -d ' ' -f 6,8)
+		gpdb_build_from_sql=\$(source \$GPHOME/greenplum_path.sh && psql -c 'select version()' | grep Greenplum | cut -d ' ' -f 6,8)
 		gpdb_build_clean=\${gpdb_build_from_sql%)}
 		pxf_version=\$(< ${PXF_HOME}/version)
 		echo "GPDB-\${gpdb_build_clean/ commit:/-}-PXF-\${pxf_version}" > "${PWD}/certification/certification.txt"
@@ -184,6 +179,12 @@ function build_install_gpdb() {
 }
 
 function install_gpdb_binary() {
+	# TODO Remove the chown once the ownership of /home/gpadmin is correctly set
+	# In concourse 7.8.x, even though the base pxf dev image correctly gave
+	# gpadmin permissions to /home/gpadmin, the change is not respected
+	# So we have added this chown here to ensure gpadmin owns its home directory
+	chown -R gpadmin:gpadmin /home/gpadmin
+
 	if [[ -d bin_gpdb ]]; then
 		mkdir -p ${GPHOME}
 		tar -xzf bin_gpdb/*.tar.gz -C ${GPHOME}
@@ -203,11 +204,15 @@ function install_gpdb_binary() {
 		python_dir=python${python_version}/dist-packages
 		export_pythonpath+=:/usr/local/lib/$python_dir
 	fi
-
-	echo "$export_pythonpath" >> "${PXF_SRC}/automation/tinc/main/tinc_env.sh"
 }
 
 function install_gpdb_package() {
+	# TODO Remove the chown once the ownership of /home/gpadmin is correctly set
+	# In concourse 7.8.x, even though the base pxf dev image correctly gave
+	# gpadmin permissions to /home/gpadmin, the change is not respected
+	# So we have added this chown here to ensure gpadmin owns its home directory
+	chown -R gpadmin:gpadmin /home/gpadmin
+
 	local gphome python_dir python_version=2.7 export_pythonpath='export PYTHONPATH=$PYTHONPATH' pkg_file version
 	gpdb_package=${PWD}/${GPDB_PKG_DIR:-gpdb_package}
 
@@ -243,13 +248,13 @@ function install_gpdb_package() {
 		exit 1
 	fi
 
-	echo "$export_pythonpath" >> "${PXF_SRC}/automation/tinc/main/tinc_env.sh"
-
 	# create symlink to allow pgregress to run (hardcoded to look for /usr/local/greenplum-db-devel/psql)
 	rm -rf /usr/local/greenplum-db-devel
-	# get version from the package file name
-	: "${pkg_file#*greenplum-db-}"
-	version=${_%%-*}
+	# obtain full version name
+	local gpdb_version
+	gpdb_version="$(<"${gpdb_package}/version")"
+	# in case of dev builds, get simplified version from the version file
+	local version="${gpdb_version%%+*}"
 	gphome_dir=$(find /usr/local/ -name "greenplum-db-${version}*" -type d)
 	ln -sf "${gphome_dir}" /usr/local/greenplum-db-devel
 	# change permissions to gpadmin
@@ -743,54 +748,15 @@ function configure_pxf_wasbs_server() {
 }
 
 function configure_pxf_default_server() {
-	AMBARI_DIR=$(find /tmp/build/ -name ambari_env_files)
-	if [[ -n $AMBARI_DIR  ]]; then
-	  AMBARI_KEYTAB_FILE=$(find "$AMBARI_DIR" -name "*.keytab")
-		cp "${AMBARI_DIR}"/conf/*-site.xml "${BASE_DIR}/servers/default"
-
-		if [[ -n $AMBARI_KEYTAB_FILE ]]; then
-			REALM=$(cat "$AMBARI_DIR"/REALM)
-			HADOOP_USER=$(cat "$AMBARI_DIR"/HADOOP_USER)
-			cp ${TEMPLATES_DIR}/templates/mapred-site.xml ${BASE_DIR}/servers/default/mapred1-site.xml
-			cp ${TEMPLATES_DIR}/templates/pxf-site.xml ${BASE_DIR}/servers/default/pxf-site.xml
-			sed -i -e "s|gpadmin/_HOST@EXAMPLE.COM|${HADOOP_USER}@${REALM}|g" ${BASE_DIR}/servers/default/pxf-site.xml
-			if [[ ${PXF_VERSION} == 5 ]]; then
-				sed -i -e "s|\${pxf.conf}/keytabs/pxf.service.keytab|$AMBARI_KEYTAB_FILE|g" ${BASE_DIR}/servers/default/pxf-site.xml
-			else
-				sed -i -e "s|\${pxf.base}/keytabs/pxf.service.keytab|$AMBARI_KEYTAB_FILE|g" ${BASE_DIR}/servers/default/pxf-site.xml
-			fi
-			sed -i -e "s|\${user.name}||g" ${BASE_DIR}/servers/default/pxf-site.xml
-			sudo mkdir -p /etc/security/keytabs/
-			sudo cp "$AMBARI_KEYTAB_FILE" /etc/security/keytabs/"${HADOOP_USER}".headless.keytab
-			sudo chown gpadmin:gpadmin /etc/security/keytabs/"${HADOOP_USER}".headless.keytab
-
-			mkdir -p ${BASE_DIR}/servers/db-hive/
-			cp ${BASE_DIR}/servers/default/pxf-site.xml ${BASE_DIR}/servers/db-hive/
-			cp ${TEMPLATES_DIR}/templates/jdbc-site.xml ${BASE_DIR}/servers/db-hive/
-
-			REALM=$(cat "$AMBARI_DIR"/REALM)
-			HIVE_HOSTNAME=$(grep < "$AMBARI_DIR"/etc_hostfile ambari-2 | awk '{print $2}')
-			KERBERIZED_HADOOP_URI="hive/${HIVE_HOSTNAME}.c.${GOOGLE_PROJECT_ID}.internal@${REALM};saslQop=auth" # quoted because of semicolon
-			sed -i -e 's|YOUR_DATABASE_JDBC_DRIVER_CLASS_NAME|org.apache.hive.jdbc.HiveDriver|' \
-				-e "s|YOUR_DATABASE_JDBC_URL|jdbc:hive2://${HIVE_HOSTNAME}:10000/default;principal=${KERBERIZED_HADOOP_URI}|" \
-				-e 's|YOUR_DATABASE_JDBC_USER||' \
-				-e 's|YOUR_DATABASE_JDBC_PASSWORD||' \
-				-e 's|</configuration>|<property><name>hadoop.security.authentication</name><value>kerberos</value></property></configuration>|g' \
-				${BASE_DIR}/servers/db-hive/jdbc-site.xml
-
-			cp "${PXF_SRC}"/automation/src/test/resources/hive-report.sql ${BASE_DIR}/servers/db-hive/
-		fi
-	else
-		# copy hadoop config files to BASE_DIR/servers/default
-		if [[ -d /etc/hadoop/conf/ ]]; then
-			cp /etc/hadoop/conf/*-site.xml "${BASE_DIR}/servers/default"
-		fi
-		if [[ -d /etc/hive/conf/ ]]; then
-			cp /etc/hive/conf/*-site.xml "${BASE_DIR}/servers/default"
-		fi
-		if [[ -d /etc/hbase/conf/ ]]; then
-			cp /etc/hbase/conf/*-site.xml "${BASE_DIR}/servers/default"
-		fi
+	# copy hadoop config files to BASE_DIR/servers/default
+	if [[ -d /etc/hadoop/conf/ ]]; then
+		cp /etc/hadoop/conf/*-site.xml "${BASE_DIR}/servers/default"
+	fi
+	if [[ -d /etc/hive/conf/ ]]; then
+		cp /etc/hive/conf/*-site.xml "${BASE_DIR}/servers/default"
+	fi
+	if [[ -d /etc/hbase/conf/ ]]; then
+		cp /etc/hbase/conf/*-site.xml "${BASE_DIR}/servers/default"
 	fi
 
 	if [[ ${IMPERSONATION} == true ]]; then

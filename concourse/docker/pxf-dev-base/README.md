@@ -29,7 +29,7 @@ directory. The `cloudbuild.yaml` file produces the following docker images:
 
 You can build these images individually by first setting these local variables:
 ```
-export GO_VERSION=1.19.6
+export GO_VERSION=1.21.3
 export MAVEN_VERSION=3.9.2
 ```
 ## Greenplum 5 Images
@@ -83,6 +83,21 @@ command to build the image:
       .
     popd
 
+### Docker gpdb6-rocky9-test-pxf-image image
+
+Build this image for Greenplum 6 running on Rhel 9. Run the following
+command to build the image:
+
+    pushd ~/workspace/pxf/concourse/docker/pxf-dev-base/
+    docker build \
+      --build-arg=BASE_IMAGE=gcr.io/data-gpdb-public-images/gpdb6-rocky9-test:latest \
+      --build-arg=GO_VERSION=${GO_VERSION} \
+      --build-arg=MAVEN_VERSION=${MAVEN_VERSION} \
+      --tag=gpdb6-rocky9-test-pxf \
+      -f ~/workspace/pxf/concourse/docker/pxf-dev-base/gpdb6/rocky9/Dockerfile \
+      .
+    popd
+
 ### Docker gpdb6-ubuntu18.04-test-pxf-image image
 
 Build this image for Greenplum 6 running on Ubuntu 18.04. Run the following
@@ -127,5 +142,21 @@ command to build the image:
       --build-arg=MAVEN_VERSION=${MAVEN_VERSION} \
       --tag=gpdb7-rocky8-test-pxf \
       -f ~/workspace/pxf/concourse/docker/pxf-dev-base/gpdb7/rocky8/Dockerfile \
+      .
+    popd
+
+
+### Docker gpdb7-rocky9-test-pxf-image image
+
+Build this image for Greenplum 7 running on Rocky 9. Run the following
+command to build the image:
+
+    pushd ~/workspace/pxf/concourse/docker/pxf-dev-base/
+    docker build \
+      --build-arg=BASE_IMAGE=gcr.io/data-gpdb-public-images/gpdb7-rocky9-test:latest \
+      --build-arg=GO_VERSION=${GO_VERSION} \
+      --build-arg=MAVEN_VERSION=${MAVEN_VERSION} \
+      --tag=gpdb7-rocky9-test-pxf \
+      -f ~/workspace/pxf/concourse/docker/pxf-dev-base/gpdb7/rocky9/Dockerfile \
       .
     popd

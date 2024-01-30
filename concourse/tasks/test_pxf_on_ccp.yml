@@ -16,9 +16,6 @@ inputs:
   optional: true
 - name: singlecluster
   optional: true
-# TODO Remove gp6-python-libs input once Tinc is replaced with pg_regress.
-- name: gp6-python-libs
-  optional: true
 
 params:
   ACCEPTANCE:
@@ -35,5 +32,6 @@ params:
   PXF_JVM_OPTS:
   PXF_VERSION: 6
   SECRET_ACCESS_KEY:
+  GOOGLE_PROJECT_ID:
 run:
   path: pxf_src/concourse/scripts/test_pxf_multinode.bash

@@ -177,16 +177,16 @@ public class JdbcFeaturesTest extends BaseFeature {
 
     @Test(groups = {"arenadata"})
     public void testLongYear() throws Exception {
-        runTincTest("pxf.arenadata.long-year.runTest");
+        runSqlTest("arenadata/long-year");
     }
 
     @Test(groups = {"arenadata"})
     public void testBoolDataType() throws Exception {
-        runTincTest("pxf.arenadata.bool-data.runTest");
+        runSqlTest("arenadata/bool-data");
     }
 
     @Test(groups = {"arenadata"})
     public void testJdbcCloseSession() throws Exception {
-        runTincTest("pxf.arenadata.jdbc-close-session.runTest");
+        runSqlTest("arenadata/jdbc-close-session");
     }
 }
