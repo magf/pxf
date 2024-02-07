@@ -567,7 +567,7 @@ public class JdbcBasePlugin extends BasePlugin {
         }
 
         // Disable autocommit
-        if (metadata.supportsTransactions()) {
+        if (metadata.supportsTransactions() && connection.getAutoCommit()) {
             LOG.debug("Setting autoCommit to false on connection {}", connection);
             connection.setAutoCommit(false);
         }

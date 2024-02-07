@@ -66,7 +66,6 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
     private Statement statementRead = null;
     private ResultSet resultSetRead = null;
 
-    private PreparedStatement statementWrite = null;
     private WriterCallableFactory writerCallableFactory = null;
     private WriterCallable writerCallable = null;
     private ExecutorService executorServiceWrite = null;
@@ -103,7 +102,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
             return true;
         }
 
-        Connection connection = super.getConnection();
+        Connection connection = getConnection();
         try {
             return openForReadInner(connection);
         } catch (Throwable e) {
@@ -196,11 +195,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
             throw new IllegalArgumentException("specifying query name in data path is not supported for JDBC writable external tables");
         }
 
-        if (statementWrite != null && !statementWrite.isClosed()) {
-            throw new SQLException("The connection to an external database is already open.");
-        }
-
-        Connection connection = super.getConnection();
+        Connection connection = getConnection();
         SQLQueryBuilder sqlQueryBuilder = new SQLQueryBuilder(context, connection.getMetaData());
 
         // Build INSERT query
@@ -212,8 +207,6 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         // Write variables
         String queryWrite = sqlQueryBuilder.buildInsertQuery();
         LOG.trace("Insert query: {}", queryWrite);
-
-        statementWrite = super.getPreparedStatement(connection, queryWrite);
 
         // Process batchSize
         if (!connection.getMetaData().supportsBatchUpdates()) {
@@ -235,10 +228,10 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         }
 
         // Setup WriterCallableFactory
-        writerCallableFactory = new WriterCallableFactory(this, queryWrite, statementWrite, batchSize, poolSize);
-
+        writerCallableFactory = new WriterCallableFactory(this, queryWrite, batchSize);
         writerCallable = writerCallableFactory.get();
 
+        closeConnection(connection);
         return true;
     }
 
@@ -289,55 +282,47 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      */
     @Override
     public void closeForWrite() throws Exception {
-        if ((statementWrite == null) || (writerCallable == null)) {
+        if (writerCallable == null) {
             return;
         }
 
-        try {
-            if (poolSize > 1) {
-                // Process thread pool
-                Exception firstException = null;
-                for (Future<SQLException> task : poolTasks) {
-                    // We need this construction to ensure that we try to close all connections opened by pool threads
-                    try {
-                        SQLException currentSqlException = task.get();
-                        if (currentSqlException != null) {
-                            if (firstException == null) {
-                                firstException = currentSqlException;
-                            }
-                            LOG.error(
-                                    "A SQLException in a pool thread occurred: " + currentSqlException.getClass() + " " + currentSqlException.getMessage()
-                            );
-                        }
-                    } catch (Exception e) {
-                        // This exception must have been caused by some thread execution error. However, there may be other exception (maybe of class SQLException) that happened in one of threads that were not examined yet. That is why we do not modify firstException
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(
-                                    "A runtime exception in a thread pool occurred: " + e.getClass() + " " + e.getMessage()
-                            );
-                        }
-                    }
-                }
+        if (poolSize > 1) {
+            // Process thread pool
+            Exception firstException = null;
+            for (Future<SQLException> task : poolTasks) {
+                // We need this construction to ensure that we try to close all connections opened by pool threads
                 try {
-                    executorServiceWrite.shutdown();
-                    executorServiceWrite.shutdownNow();
-                } catch (Exception e) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("executorServiceWrite.shutdown() or .shutdownNow() threw an exception: " + e.getClass() + " " + e.getMessage());
+                    SQLException currentSqlException = task.get();
+                    if (currentSqlException != null) {
+                        if (firstException == null) {
+                            firstException = currentSqlException;
+                        }
+                        LOG.error(
+                                "A SQLException in a pool thread occurred: " + currentSqlException.getClass() + " " + currentSqlException.getMessage()
+                        );
                     }
-                }
-                if (firstException != null) {
-                    throw firstException;
+                } catch (Exception e) {
+                    // This exception must have been caused by some thread execution error. However, there may be other exception (maybe of class SQLException) that happened in one of threads that were not examined yet. That is why we do not modify firstException
+                    LOG.debug(
+                            "A runtime exception in a thread pool occurred: " + e.getClass() + " " + e.getMessage()
+                    );
                 }
             }
+            try {
+                executorServiceWrite.shutdown();
+                executorServiceWrite.shutdownNow();
+            } catch (Exception e) {
+                LOG.debug("executorServiceWrite.shutdown() or .shutdownNow() threw an exception: " + e.getClass() + " " + e.getMessage());
+            }
+            if (firstException != null) {
+                throw firstException;
+            }
+        }
 
-            // Send data that is left
-            SQLException e = writerCallable.call();
-            if (e != null) {
-                throw e;
-            }
-        } finally {
-            closeStatementAndConnection(statementWrite);
+        // Send data that is left
+        SQLException e = writerCallable.call();
+        if (e != null) {
+            throw e;
         }
     }
 
@@ -361,9 +346,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         String queryText;
         try {
             File queryFile = new File(serverDirectory, queryName + ".sql");
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Reading text of query={} from {}", queryName, queryFile.getCanonicalPath());
-            }
+            LOG.debug("Reading text of query={} from {}", queryName, queryFile.getCanonicalPath());
             queryText = FileUtils.readFileToString(queryFile, Charset.defaultCharset());
         } catch (IOException e) {
             throw new RuntimeException(String.format("Failed to read text of query %s : %s", queryName, e.getMessage()), e);

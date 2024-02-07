@@ -23,19 +23,37 @@ import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.plugins.jdbc.JdbcBasePlugin;
 import org.greenplum.pxf.plugins.jdbc.JdbcResolver;
 
-import java.sql.BatchUpdateException;
-import java.util.LinkedList;
-import java.util.List;
 import java.io.IOException;
+import java.sql.BatchUpdateException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This writer makes batch INSERTs.
- *
  * A call() is required after a certain number of supply() calls
  */
 class BatchWriterCallable implements WriterCallable {
+    private final JdbcBasePlugin plugin;
+    private final String query;
+    private final List<OneRow> rows;
+    private final int batchSize;
+
+    /**
+     * Construct a new batch writer
+     */
+    BatchWriterCallable(JdbcBasePlugin plugin, String query, int batchSize) {
+        if (plugin == null || query == null) {
+            throw new IllegalArgumentException("The provided JdbcBasePlugin or SQL query is null");
+        }
+
+        this.plugin = plugin;
+        this.query = query;
+        this.batchSize = batchSize;
+        rows = new ArrayList<>();
+    }
+
     @Override
     public void supply(OneRow row) throws IllegalStateException {
         if ((batchSize > 0) && (rows.size() >= batchSize)) {
@@ -53,62 +71,30 @@ class BatchWriterCallable implements WriterCallable {
     }
 
     @Override
-    public SQLException call() throws IOException, SQLException, ClassNotFoundException {
+    public SQLException call() throws IOException, SQLException {
         if (rows.isEmpty()) {
             return null;
         }
 
-        boolean statementMustBeDeleted = false;
-        if (statement == null) {
-            statement = plugin.getPreparedStatement(plugin.getConnection(), query);
-            statementMustBeDeleted = true;
-        }
-
-        for (OneRow row : rows) {
-            JdbcResolver.decodeOneRowToPreparedStatement(row, statement);
-            statement.addBatch();
-        }
-
+        PreparedStatement statement = null;
         try {
+            statement = plugin.getPreparedStatement(plugin.getConnection(), query);
+            for (OneRow row : rows) {
+                JdbcResolver.decodeOneRowToPreparedStatement(row, statement);
+                statement.addBatch();
+            }
+
             statement.executeBatch();
-        }
-        catch (BatchUpdateException bue) {
+        } catch (BatchUpdateException bue) {
             SQLException cause = bue.getNextException();
             return cause != null ? cause : bue;
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             return e;
-        }
-        finally {
+        } finally {
             rows.clear();
-            if (statementMustBeDeleted) {
-                JdbcBasePlugin.closeStatementAndConnection(statement);
-                statement = null;
-            }
+            JdbcBasePlugin.closeStatementAndConnection(statement);
         }
 
         return null;
     }
-
-    /**
-     * Construct a new batch writer
-     */
-    BatchWriterCallable(JdbcBasePlugin plugin, String query, PreparedStatement statement, int batchSize) {
-        if (plugin == null || query == null) {
-            throw new IllegalArgumentException("The provided JdbcBasePlugin or SQL query is null");
-        }
-
-        this.plugin = plugin;
-        this.query = query;
-        this.statement = statement;
-        this.batchSize = batchSize;
-
-        rows = new LinkedList<>();
-    }
-
-    private final JdbcBasePlugin plugin;
-    private final String query;
-    private PreparedStatement statement;
-    private List<OneRow> rows;
-    private final int batchSize;
 }

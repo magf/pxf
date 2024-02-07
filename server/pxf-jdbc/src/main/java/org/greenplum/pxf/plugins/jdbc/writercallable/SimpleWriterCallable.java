@@ -29,10 +29,22 @@ import java.sql.SQLException;
 
 /**
  * This writer makes simple, one-by-one INSERTs.
- *
  * A call() is required after every supply()
  */
 class SimpleWriterCallable implements WriterCallable {
+    private final JdbcBasePlugin plugin;
+    private final String query;
+    private OneRow row;
+
+    SimpleWriterCallable(JdbcBasePlugin plugin, String query) {
+        if ((plugin == null) || (query == null)) {
+            throw new IllegalArgumentException("The provided JdbcBasePlugin or SQL query is null");
+        }
+        this.plugin = plugin;
+        this.query = query;
+        row = null;
+    }
+
     @Override
     public void supply(OneRow row) throws IllegalStateException {
         if (this.row != null) {
@@ -50,46 +62,23 @@ class SimpleWriterCallable implements WriterCallable {
     }
 
     @Override
-    public SQLException call() throws IOException, SQLException, ClassNotFoundException {
+    public SQLException call() throws IOException, SQLException {
         if (row == null) {
             return null;
         }
 
-        boolean statementMustBeDeleted = false;
-        if (statement == null) {
-            statement = plugin.getPreparedStatement(plugin.getConnection(), query);
-            statementMustBeDeleted = true;
-        }
-
-        JdbcResolver.decodeOneRowToPreparedStatement(row, statement);
-
+        PreparedStatement statement = null;
         try {
+            statement = plugin.getPreparedStatement(plugin.getConnection(), query);
+            JdbcResolver.decodeOneRowToPreparedStatement(row, statement);
             statement.executeUpdate();
         } catch (SQLException e) {
             return e;
         } finally {
             row = null;
-            if (statementMustBeDeleted) {
-                JdbcBasePlugin.closeStatementAndConnection(statement);
-                statement = null;
-            }
+            JdbcBasePlugin.closeStatementAndConnection(statement);
         }
 
         return null;
     }
-
-    SimpleWriterCallable(JdbcBasePlugin plugin, String query, PreparedStatement statement) {
-        if ((plugin == null) || (query == null)) {
-            throw new IllegalArgumentException("The provided JdbcBasePlugin or SQL query is null");
-        }
-        this.plugin = plugin;
-        this.query = query;
-        this.statement = statement;
-        row = null;
-    }
-
-    private final JdbcBasePlugin plugin;
-    private final String query;
-    private PreparedStatement statement;
-    private OneRow row;
 }
