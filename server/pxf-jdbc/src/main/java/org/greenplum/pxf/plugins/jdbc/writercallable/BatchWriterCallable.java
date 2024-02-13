@@ -22,6 +22,8 @@ package org.greenplum.pxf.plugins.jdbc.writercallable;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.plugins.jdbc.JdbcBasePlugin;
 import org.greenplum.pxf.plugins.jdbc.JdbcResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.BatchUpdateException;
@@ -35,15 +37,17 @@ import java.util.List;
  * A call() is required after a certain number of supply() calls
  */
 class BatchWriterCallable implements WriterCallable {
+    private static final Logger LOG = LoggerFactory.getLogger(BatchWriterCallable.class);
     private final JdbcBasePlugin plugin;
     private final String query;
     private final List<OneRow> rows;
     private final int batchSize;
+    private final Runnable onComplete;
 
     /**
      * Construct a new batch writer
      */
-    BatchWriterCallable(JdbcBasePlugin plugin, String query, int batchSize) {
+    BatchWriterCallable(JdbcBasePlugin plugin, String query, int batchSize, Runnable onComplete) {
         if (plugin == null || query == null) {
             throw new IllegalArgumentException("The provided JdbcBasePlugin or SQL query is null");
         }
@@ -51,6 +55,7 @@ class BatchWriterCallable implements WriterCallable {
         this.plugin = plugin;
         this.query = query;
         this.batchSize = batchSize;
+        this.onComplete = onComplete;
         rows = new ArrayList<>();
     }
 
@@ -93,6 +98,8 @@ class BatchWriterCallable implements WriterCallable {
         } finally {
             rows.clear();
             JdbcBasePlugin.closeStatementAndConnection(statement);
+            LOG.trace("Completed inserting batch. Release the semaphore");
+            onComplete.run();
         }
 
         return null;

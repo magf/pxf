@@ -22,6 +22,8 @@ package org.greenplum.pxf.plugins.jdbc.writercallable;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.plugins.jdbc.JdbcResolver;
 import org.greenplum.pxf.plugins.jdbc.JdbcBasePlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -32,16 +34,19 @@ import java.sql.SQLException;
  * A call() is required after every supply()
  */
 class SimpleWriterCallable implements WriterCallable {
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleWriterCallable.class);
     private final JdbcBasePlugin plugin;
     private final String query;
     private OneRow row;
+    private final Runnable onComplete;
 
-    SimpleWriterCallable(JdbcBasePlugin plugin, String query) {
+    SimpleWriterCallable(JdbcBasePlugin plugin, String query, Runnable onComplete) {
         if ((plugin == null) || (query == null)) {
             throw new IllegalArgumentException("The provided JdbcBasePlugin or SQL query is null");
         }
         this.plugin = plugin;
         this.query = query;
+        this.onComplete = onComplete;
         row = null;
     }
 
@@ -77,6 +82,8 @@ class SimpleWriterCallable implements WriterCallable {
         } finally {
             row = null;
             JdbcBasePlugin.closeStatementAndConnection(statement);
+            LOG.trace("Completed inserting row. Release the semaphore");
+            onComplete.run();
         }
 
         return null;

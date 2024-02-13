@@ -43,11 +43,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.sql.Statement;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * JDBC tables accessor
@@ -69,7 +67,9 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
     private WriterCallableFactory writerCallableFactory = null;
     private WriterCallable writerCallable = null;
     private ExecutorService executorServiceWrite = null;
-    private List<Future<SQLException>> poolTasks = null;
+    private Semaphore semaphore;
+    private ConcurrentLinkedQueue<Future<SQLException>> poolTasks;
+    private AtomicReference<Exception> firstException;
 
     /**
      * Creates a new instance of the JdbcAccessor
@@ -222,13 +222,13 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
             poolSize = Runtime.getRuntime().availableProcessors();
             LOG.info("The POOL_SIZE is set to the number of CPUs available ({})", poolSize);
         }
-        if (poolSize > 1) {
-            executorServiceWrite = Executors.newFixedThreadPool(poolSize);
-            poolTasks = new LinkedList<>();
-        }
+        executorServiceWrite = Executors.newFixedThreadPool(poolSize);
+        semaphore = new Semaphore(poolSize);
+        poolTasks = new ConcurrentLinkedQueue<>();
+        firstException = new AtomicReference<>();
 
         // Setup WriterCallableFactory
-        writerCallableFactory = new WriterCallableFactory(this, queryWrite, batchSize);
+        writerCallableFactory = new WriterCallableFactory(this, queryWrite, batchSize, () -> semaphore.release());
         writerCallable = writerCallableFactory.get();
 
         closeConnection(connection);
@@ -259,17 +259,13 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
 
         writerCallable.supply(row);
         if (writerCallable.isCallRequired()) {
-            if (poolSize > 1) {
-                // Pooling is used. Create new writerCallable
-                poolTasks.add(executorServiceWrite.submit(writerCallable));
-                writerCallable = writerCallableFactory.get();
-            } else {
-                // Pooling is not used, call directly and process potential error
-                SQLException e = writerCallable.call();
-                if (e != null) {
-                    throw e;
-                }
-            }
+            // Semaphore#release runs as onComplete.run() in a 'finally' statement of WriterCallable#call
+            semaphore.acquire();
+            Future<SQLException> future = executorServiceWrite.submit(writerCallable);
+            poolTasks.add(future);
+            writerCallable = writerCallableFactory.get();
+            // Check results for tasks that has already done
+            checkWriteNextObjectResults();
         }
 
         return true;
@@ -286,44 +282,78 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
             return;
         }
 
-        if (poolSize > 1) {
-            // Process thread pool
-            Exception firstException = null;
-            for (Future<SQLException> task : poolTasks) {
-                // We need this construction to ensure that we try to close all connections opened by pool threads
+        if (firstException.get() == null) {
+            if (writerCallable != null) {
+                // Send data that is left
+                Future<SQLException> f = executorServiceWrite.submit(writerCallable);
+                poolTasks.add(f);
+                LOG.debug("Writer {} dumps last batch with the future {}", writerCallable, f);
+                checkCloseForWriteResults();
+                shutdownExecutorService();
+            }
+        } else {
+            shutdownExecutorService();
+            throw firstException.get();
+        }
+    }
+
+    private void checkWriteNextObjectResults() throws Exception {
+        Exception e;
+        for (Future<SQLException> f : poolTasks) {
+            if (f.isDone()) {
                 try {
-                    SQLException currentSqlException = task.get();
-                    if (currentSqlException != null) {
-                        if (firstException == null) {
-                            firstException = currentSqlException;
-                        }
-                        LOG.error(
-                                "A SQLException in a pool thread occurred: " + currentSqlException.getClass() + " " + currentSqlException.getMessage()
-                        );
-                    }
-                } catch (Exception e) {
-                    // This exception must have been caused by some thread execution error. However, there may be other exception (maybe of class SQLException) that happened in one of threads that were not examined yet. That is why we do not modify firstException
-                    LOG.debug(
-                            "A runtime exception in a thread pool occurred: " + e.getClass() + " " + e.getMessage()
-                    );
+                    e = f.get();
+                    LOG.debug("Writer {} completed inserting batch with the future {}", writerCallable, f);
+                } catch (Exception ex) {
+                    e = ex;
+                }
+                poolTasks.remove(f);
+                if (e != null) {
+                    throwException(e);
                 }
             }
-            try {
-                executorServiceWrite.shutdown();
-                executorServiceWrite.shutdownNow();
-            } catch (Exception e) {
-                LOG.debug("executorServiceWrite.shutdown() or .shutdownNow() threw an exception: " + e.getClass() + " " + e.getMessage());
-            }
-            if (firstException != null) {
-                throw firstException;
-            }
         }
+    }
 
-        // Send data that is left
-        SQLException e = writerCallable.call();
-        if (e != null) {
-            throw e;
+    private void checkCloseForWriteResults() throws Exception {
+        Exception e;
+        for (Future<SQLException> f : poolTasks) {
+            try {
+                e = f.get();
+                LOG.debug("Writer {} completed inserting batch with the future {}", writerCallable, f);
+            } catch (Exception ex) {
+                e = ex;
+            }
+            if (e != null) {
+                throwException(e);
+            }
         }
+        poolTasks.clear();
+    }
+
+    private void throwException(Exception e) throws Exception {
+        firstException.compareAndSet(null, e);
+        String msg = e.getMessage();
+        if (msg == null)
+            msg = e.getClass().getName();
+        LOG.error("A writer completed inserting batch with exception: {}", msg);
+        throw e;
+    }
+
+    private void shutdownExecutorService() {
+        LOG.debug("Start shutdown executor service for write");
+        executorServiceWrite.shutdownNow();
+        try {
+            if (!executorServiceWrite.awaitTermination(5, TimeUnit.SECONDS)) {
+                LOG.warn("Executor did not terminate in the specified time.");
+                List<Runnable> droppedTasks = executorServiceWrite.shutdownNow();
+                LOG.warn("Dropped " + droppedTasks.size() + " tasks");
+            }
+        } catch (InterruptedException e) {
+            LOG.warn("Thread received interrupted signal");
+            Thread.currentThread().interrupt();
+        }
+        LOG.info("Shutdown executor service completed");
     }
 
 

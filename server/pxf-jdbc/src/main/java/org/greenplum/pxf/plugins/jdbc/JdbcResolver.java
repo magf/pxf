@@ -276,17 +276,17 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                                 oneFieldType, column));
             }
 
-            if (LOG.isDebugEnabled()) {
+            if (LOG.isTraceEnabled()) {
                 String valDebug;
                 if (oneField.val == null) {
                     valDebug = "null";
                 } else if (oneFieldType == DataType.BYTEA) {
-                    valDebug = String.format("'{}'", new String((byte[]) oneField.val));
+                    valDebug = String.format("'%s'", new String((byte[]) oneField.val));
                 } else {
-                    valDebug = String.format("'{}'", oneField.val.toString());
+                    valDebug = String.format("'%s'", oneField.val);
                 }
 
-                LOG.debug("Column {} OneField: type {}, content {}", columnIndex, oneFieldType, valDebug);
+                LOG.trace("Column {} OneField: type {}, content {}", columnIndex, oneFieldType, valDebug);
             }
 
             // Convert TEXT columns into native data types
