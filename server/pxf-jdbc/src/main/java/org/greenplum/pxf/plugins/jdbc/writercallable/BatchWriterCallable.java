@@ -82,6 +82,7 @@ class BatchWriterCallable implements WriterCallable {
         }
 
         PreparedStatement statement = null;
+        SQLException res;
         try {
             statement = plugin.getPreparedStatement(plugin.getConnection(), query);
             for (OneRow row : rows) {
@@ -90,11 +91,21 @@ class BatchWriterCallable implements WriterCallable {
             }
 
             statement.executeBatch();
+            // some drivers will not react to timeout interrupt
+            if (Thread.interrupted())
+                throw new SQLException("Writer was interrupted by timeout");
         } catch (BatchUpdateException bue) {
             SQLException cause = bue.getNextException();
-            return cause != null ? cause : bue;
-        } catch (SQLException e) {
-            return e;
+            res = cause != null ? cause : bue;
+            return res;
+        } catch (Throwable t) {
+            if (t instanceof SQLException)
+                res = (SQLException) t;
+            else if (t.getCause() instanceof SQLException)
+                res = (SQLException) t.getCause();
+            else
+                res = new SQLException(t);
+            return res;
         } finally {
             rows.clear();
             JdbcBasePlugin.closeStatementAndConnection(statement);

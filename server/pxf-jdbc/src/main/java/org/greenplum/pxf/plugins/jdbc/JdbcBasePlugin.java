@@ -65,6 +65,7 @@ public class JdbcBasePlugin extends BasePlugin {
     // see https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-implementation-notes.html
     private static final int DEFAULT_MYSQL_FETCH_SIZE = Integer.MIN_VALUE;
     private static final int DEFAULT_POOL_SIZE = 1;
+    private static final String DEFAULT_JDBC_STATEMENT_BATCH_TIMEOUT = "0";
 
     // configuration parameter names
     private static final String JDBC_DRIVER_PROPERTY_NAME = "jdbc.driver";
@@ -81,6 +82,7 @@ public class JdbcBasePlugin extends BasePlugin {
     private static final String JDBC_STATEMENT_BATCH_SIZE_PROPERTY_NAME = "jdbc.statement.batchSize";
     private static final String JDBC_STATEMENT_FETCH_SIZE_PROPERTY_NAME = "jdbc.statement.fetchSize";
     private static final String JDBC_STATEMENT_QUERY_TIMEOUT_PROPERTY_NAME = "jdbc.statement.queryTimeout";
+    private static final String JDBC_STATEMENT_BATCH_TIMEOUT_PROPERTY_NAME = "jdbc.statement.batchTimeout";
 
     // connection pool properties
     private static final String JDBC_CONNECTION_POOL_ENABLED_PROPERTY_NAME = "jdbc.pool.enabled";
@@ -100,6 +102,7 @@ public class JdbcBasePlugin extends BasePlugin {
     private static final String MYSQL_DRIVER_PREFIX = "com.mysql.";
     private static final String JDBC_DATE_WIDE_RANGE = "jdbc.date.wideRange";
     private static final String JDBC_DATE_WIDE_RANGE_LEGACY = "jdbc.date.wide-range";
+
     private enum TransactionIsolation {
         READ_UNCOMMITTED(1),
         READ_COMMITTED(2),
@@ -140,6 +143,9 @@ public class JdbcBasePlugin extends BasePlugin {
 
     // Query timeout.
     protected Integer queryTimeout;
+
+    // Batch timeout
+    protected int batchTimeout;
 
     // Convert Postgres timestamp to Oracle date with time
     protected boolean wrapDateWithTime = false;
@@ -268,6 +274,15 @@ public class JdbcBasePlugin extends BasePlugin {
                         "Property %s has incorrect value %s : must be a non-negative integer",
                         JDBC_STATEMENT_QUERY_TIMEOUT_PROPERTY_NAME, queryTimeoutString), e);
             }
+        }
+
+        String batchTimeoutString = configuration.get(JDBC_STATEMENT_BATCH_TIMEOUT_PROPERTY_NAME, DEFAULT_JDBC_STATEMENT_BATCH_TIMEOUT);
+        try {
+            batchTimeout = Integer.parseUnsignedInt(batchTimeoutString);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(String.format(
+                    "Property %s has incorrect value %s : must be a non-negative integer",
+                    JDBC_STATEMENT_BATCH_TIMEOUT_PROPERTY_NAME, batchTimeoutString), e);
         }
 
         // Optional parameter. The default value is false

@@ -29,6 +29,7 @@ import org.greenplum.pxf.api.model.ConfigurationFactory;
 import org.greenplum.pxf.api.security.SecureLogin;
 import org.greenplum.pxf.api.utilities.Utilities;
 import org.greenplum.pxf.plugins.jdbc.utils.ConnectionManager;
+import org.greenplum.pxf.plugins.jdbc.writercallable.TimeoutFixedThreadPoolExecutor;
 import org.greenplum.pxf.plugins.jdbc.writercallable.WriterCallable;
 import org.greenplum.pxf.plugins.jdbc.writercallable.WriterCallableFactory;
 import org.slf4j.Logger;
@@ -44,8 +45,13 @@ import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.sql.Statement;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * JDBC tables accessor
@@ -222,7 +228,15 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
             poolSize = Runtime.getRuntime().availableProcessors();
             LOG.info("The POOL_SIZE is set to the number of CPUs available ({})", poolSize);
         }
-        executorServiceWrite = Executors.newFixedThreadPool(poolSize);
+
+        if (batchTimeout == 0) {
+            executorServiceWrite = Executors.newFixedThreadPool(poolSize);
+            LOG.trace("Writer will use fixed thread pool with {} thread(s)", poolSize);
+        } else {
+            executorServiceWrite = new TimeoutFixedThreadPoolExecutor(poolSize, batchTimeout, TimeUnit.SECONDS);
+            LOG.trace("Writer will use fixed thread pool with timeout with {} thread(s)", poolSize);
+        }
+
         semaphore = new Semaphore(poolSize);
         poolTasks = new ConcurrentLinkedQueue<>();
         firstException = new AtomicReference<>();
@@ -282,78 +296,79 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
             return;
         }
 
-        if (firstException.get() == null) {
-            if (writerCallable != null) {
-                // Send data that is left
-                Future<SQLException> f = executorServiceWrite.submit(writerCallable);
-                poolTasks.add(f);
-                LOG.debug("Writer {} dumps last batch with the future {}", writerCallable, f);
-                checkCloseForWriteResults();
-                shutdownExecutorService();
+        try {
+            if (firstException.get() == null) {
+                if (writerCallable != null) {
+                    // Send data that is left
+                    Future<SQLException> future = executorServiceWrite.submit(writerCallable);
+                    poolTasks.add(future);
+                    checkCloseForWriteResults();
+                }
+            } else {
+                throw firstException.get();
             }
-        } else {
-            shutdownExecutorService();
-            throw firstException.get();
+        } finally {
+            shutdownExecutorService(executorServiceWrite);
         }
     }
 
     private void checkWriteNextObjectResults() throws Exception {
-        Exception e;
-        for (Future<SQLException> f : poolTasks) {
-            if (f.isDone()) {
+        Exception exception;
+        for (Future<SQLException> future : poolTasks) {
+            if (future.isDone()) {
                 try {
-                    e = f.get();
-                    LOG.debug("Writer {} completed inserting batch with the future {}", writerCallable, f);
+                    exception = future.get();
+                    LOG.trace("Writer {} completed inserting batch with the future {}", writerCallable, future);
                 } catch (Exception ex) {
-                    e = ex;
+                    exception = ex;
                 }
-                poolTasks.remove(f);
-                if (e != null) {
-                    throwException(e);
+                poolTasks.remove(future);
+                if (exception != null) {
+                    throwException(exception);
                 }
             }
         }
     }
 
     private void checkCloseForWriteResults() throws Exception {
-        Exception e;
-        for (Future<SQLException> f : poolTasks) {
+        Exception exception;
+        for (Future<SQLException> future : poolTasks) {
             try {
-                e = f.get();
-                LOG.debug("Writer {} completed inserting batch with the future {}", writerCallable, f);
+                exception = future.get();
+                LOG.trace("Writer {} completed inserting batch with the future {}", writerCallable, future);
             } catch (Exception ex) {
-                e = ex;
+                exception = ex;
             }
-            if (e != null) {
-                throwException(e);
+            if (exception != null) {
+                throwException(exception);
             }
         }
         poolTasks.clear();
     }
 
-    private void throwException(Exception e) throws Exception {
-        firstException.compareAndSet(null, e);
-        String msg = e.getMessage();
+    private void throwException(Exception exception) throws Exception {
+        firstException.compareAndSet(null, exception);
+        String msg = exception.getMessage();
         if (msg == null)
-            msg = e.getClass().getName();
+            msg = exception.getClass().getName();
         LOG.error("A writer completed inserting batch with exception: {}", msg);
-        throw e;
+        throw exception;
     }
 
-    private void shutdownExecutorService() {
+    private void shutdownExecutorService(ExecutorService executorService) {
         LOG.debug("Start shutdown executor service for write");
-        executorServiceWrite.shutdownNow();
+        executorService.shutdownNow();
         try {
-            if (!executorServiceWrite.awaitTermination(5, TimeUnit.SECONDS)) {
-                LOG.warn("Executor did not terminate in the specified time.");
-                List<Runnable> droppedTasks = executorServiceWrite.shutdownNow();
-                LOG.warn("Dropped " + droppedTasks.size() + " tasks");
+            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                LOG.debug("Executor did not terminate in the specified time.");
+                List<Runnable> droppedTasks = executorService.shutdownNow();
+                LOG.debug("Dropped " + droppedTasks.size() + " tasks");
             }
         } catch (InterruptedException e) {
-            LOG.warn("Thread received interrupted signal");
+            LOG.debug("Thread received interrupted signal");
             Thread.currentThread().interrupt();
         }
-        LOG.info("Shutdown executor service completed");
+        LOG.debug("Shutdown executor service completed");
     }
 
 

@@ -73,12 +73,22 @@ class SimpleWriterCallable implements WriterCallable {
         }
 
         PreparedStatement statement = null;
+        SQLException res;
         try {
             statement = plugin.getPreparedStatement(plugin.getConnection(), query);
             JdbcResolver.decodeOneRowToPreparedStatement(row, statement);
             statement.executeUpdate();
-        } catch (SQLException e) {
-            return e;
+            // some drivers will not react to timeout interrupt
+            if (Thread.interrupted())
+                throw new SQLException("Writer timed out");
+        } catch (Throwable t) {
+            if (t instanceof SQLException)
+                res = (SQLException) t;
+            else if (t.getCause() instanceof SQLException)
+                res = (SQLException) t.getCause();
+            else
+                res = new SQLException(t);
+            return res;
         } finally {
             row = null;
             JdbcBasePlugin.closeStatementAndConnection(statement);
