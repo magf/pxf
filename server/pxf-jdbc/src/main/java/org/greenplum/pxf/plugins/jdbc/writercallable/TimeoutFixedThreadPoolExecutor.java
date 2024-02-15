@@ -65,7 +65,7 @@ public class TimeoutFixedThreadPoolExecutor extends ThreadPoolExecutor {
         @Override
         public void run() {
             thread.interrupt();
-            LOG.warn("Thread {} has timed out", thread.getName());
+            LOG.warn("Thread {} was interrupted by timeout", thread.getName());
         }
     }
 }

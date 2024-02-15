@@ -421,12 +421,12 @@ public class JdbcBasePlugin extends BasePlugin {
      * @throws SQLException if a database access or connection error occurs
      */
     public Connection getConnection() throws SQLException {
-        LOG.debug("Requesting a new JDBC connection. URL={} table={} txid:seg={}:{}", jdbcUrl, tableName, context.getTransactionId(), context.getSegmentId());
+        LOG.trace("Requesting a new JDBC connection. URL={} table={} txid:seg={}:{}", jdbcUrl, tableName, context.getTransactionId(), context.getSegmentId());
 
         Connection connection = null;
         try {
             connection = getConnectionInternal();
-            LOG.debug("Obtained a JDBC connection {} for URL={} table={} txid:seg={}:{}", connection, jdbcUrl, tableName, context.getTransactionId(), context.getSegmentId());
+            LOG.trace("Obtained a JDBC connection {} for URL={} table={} txid:seg={}:{}", connection, jdbcUrl, tableName, context.getTransactionId(), context.getSegmentId());
 
             prepareConnection(connection);
         } catch (Exception e) {
@@ -460,7 +460,7 @@ public class JdbcBasePlugin extends BasePlugin {
         }
         PreparedStatement statement = connection.prepareStatement(query);
         if (queryTimeout != null) {
-            LOG.debug("Setting query timeout to {} seconds", queryTimeout);
+            LOG.trace("Setting query timeout to {} seconds", queryTimeout);
             statement.setQueryTimeout(queryTimeout);
         }
         return statement;
@@ -489,7 +489,7 @@ public class JdbcBasePlugin extends BasePlugin {
         }
 
         try {
-            LOG.debug("Closing statement for connection {}", connection);
+            LOG.trace("Closing statement for connection {}", connection);
             statement.close();
         } catch (SQLException e) {
             LOG.error("Exception when closing Statement", e);
@@ -542,12 +542,12 @@ public class JdbcBasePlugin extends BasePlugin {
                     connection.getMetaData().supportsTransactions() &&
                     !connection.getAutoCommit()) {
 
-                LOG.debug("Committing transaction (as part of connection.close()) on connection {}", connection);
+                LOG.trace("Committing transaction (as part of connection.close()) on connection {}", connection);
                 connection.commit();
             }
         } finally {
             try {
-                LOG.debug("Closing connection {}", connection);
+                LOG.trace("Closing connection {}", connection);
                 connection.close();
             } catch (Exception e) {
                 // ignore
@@ -572,7 +572,7 @@ public class JdbcBasePlugin extends BasePlugin {
         if (transactionIsolation != TransactionIsolation.NOT_PROVIDED) {
             // user wants to set isolation level explicitly
             if (metadata.supportsTransactionIsolationLevel(transactionIsolation.getLevel())) {
-                LOG.debug("Setting transaction isolation level to {} on connection {}", transactionIsolation.toString(), connection);
+                LOG.trace("Setting transaction isolation level to {} on connection {}", transactionIsolation.toString(), connection);
                 connection.setTransactionIsolation(transactionIsolation.getLevel());
             } else {
                 throw new RuntimeException(
@@ -583,7 +583,7 @@ public class JdbcBasePlugin extends BasePlugin {
 
         // Disable autocommit
         if (metadata.supportsTransactions() && connection.getAutoCommit()) {
-            LOG.debug("Setting autoCommit to false on connection {}", connection);
+            LOG.trace("Setting autoCommit to false on connection {}", connection);
             connection.setAutoCommit(false);
         }
 
@@ -594,7 +594,7 @@ public class JdbcBasePlugin extends BasePlugin {
             try (Statement statement = connection.createStatement()) {
                 for (Map.Entry<String, String> e : sessionConfiguration.entrySet()) {
                     String sessionQuery = dbProduct.buildSessionQuery(e.getKey(), e.getValue());
-                    LOG.debug("Executing statement {} on connection {}", sessionQuery, connection);
+                    LOG.trace("Executing statement {} on connection {}", sessionQuery, connection);
                     statement.execute(sessionQuery);
                 }
             }

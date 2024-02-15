@@ -52,6 +52,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * JDBC tables accessor
@@ -104,6 +105,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      */
     @Override
     public boolean openForRead() throws SQLException, SQLTimeoutException {
+        LOG.debug("Accessor starts openForRead()");
         if (statementRead != null && !statementRead.isClosed()) {
             return true;
         }
@@ -135,7 +137,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
 
         // Read variables
         String queryRead = sqlQueryBuilder.buildSelectQuery();
-        LOG.trace("Select query: {}", queryRead);
+        LOG.debug("Select query: {}", queryRead);
 
         // Execute queries
         // Certain features of third-party JDBC drivers may require the use of a PreparedStatement, even if there are no
@@ -197,11 +199,13 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      */
     @Override
     public boolean openForWrite() throws SQLException, SQLTimeoutException {
+        LOG.debug("Accessor starts openForWrite()");
         if (queryName != null) {
             throw new IllegalArgumentException("specifying query name in data path is not supported for JDBC writable external tables");
         }
 
         Connection connection = getConnection();
+        LOG.debug("Accessor got connection {}", connection);
         SQLQueryBuilder sqlQueryBuilder = new SQLQueryBuilder(context, connection.getMetaData());
 
         // Build INSERT query
@@ -212,7 +216,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         }
         // Write variables
         String queryWrite = sqlQueryBuilder.buildInsertQuery();
-        LOG.trace("Insert query: {}", queryWrite);
+        LOG.debug("Insert query: {}", queryWrite);
 
         // Process batchSize
         if (!connection.getMetaData().supportsBatchUpdates()) {
@@ -222,6 +226,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
                 batchSize = 1;
             }
         }
+        LOG.debug("Will be using batchSize {}", batchSize);
 
         // Process poolSize
         if (poolSize < 1) {
@@ -231,10 +236,10 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
 
         if (batchTimeout == 0) {
             executorServiceWrite = Executors.newFixedThreadPool(poolSize);
-            LOG.trace("Writer will use fixed thread pool with {} thread(s)", poolSize);
+            LOG.debug("Writer will use fixed thread pool with {} thread(s)", poolSize);
         } else {
             executorServiceWrite = new TimeoutFixedThreadPoolExecutor(poolSize, batchTimeout, TimeUnit.SECONDS);
-            LOG.trace("Writer will use fixed thread pool with timeout with {} thread(s)", poolSize);
+            LOG.debug("Writer will use fixed thread pool with timeout with {} thread(s)", poolSize);
         }
 
         semaphore = new Semaphore(poolSize);
@@ -244,6 +249,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         // Setup WriterCallableFactory
         writerCallableFactory = new WriterCallableFactory(this, queryWrite, batchSize, () -> semaphore.release());
         writerCallable = writerCallableFactory.get();
+        LOG.trace("Created new writer {}", writerCallable);
 
         closeConnection(connection);
         return true;
@@ -273,11 +279,20 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
 
         writerCallable.supply(row);
         if (writerCallable.isCallRequired()) {
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Accessor try to acquire semaphore to submit the task for writer {}", writerCallable);
+                LOG.trace("Current thread pool active task: {}; Queue used: {}; Semaphore remains: {}",
+                        ((ThreadPoolExecutor) executorServiceWrite).getActiveCount(),
+                        Integer.MAX_VALUE - ((ThreadPoolExecutor) executorServiceWrite).getQueue().remainingCapacity(),
+                        semaphore.availablePermits());
+            }
             // Semaphore#release runs as onComplete.run() in a 'finally' statement of WriterCallable#call
             semaphore.acquire();
             Future<SQLException> future = executorServiceWrite.submit(writerCallable);
             poolTasks.add(future);
+            LOG.trace("Accessor submitted the task for writer {} with future result {}", writerCallable, future);
             writerCallable = writerCallableFactory.get();
+            LOG.trace("Created new writer {}", writerCallable);
             // Check results for tasks that has already done
             checkWriteNextObjectResults();
         }
@@ -292,6 +307,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      */
     @Override
     public void closeForWrite() throws Exception {
+        LOG.debug("Accessor starts closeForWrite()");
         if (writerCallable == null) {
             return;
         }
@@ -302,6 +318,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
                     // Send data that is left
                     Future<SQLException> future = executorServiceWrite.submit(writerCallable);
                     poolTasks.add(future);
+                    LOG.trace("Accessor submitted the last task for writer {} with future result {}", writerCallable, future);
                     checkCloseForWriteResults();
                 }
             } else {
@@ -318,7 +335,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
             if (future.isDone()) {
                 try {
                     exception = future.get();
-                    LOG.trace("Writer {} completed inserting batch with the future {}", writerCallable, future);
+                    LOG.trace("Writer {} completed intermediate task with the future {}", writerCallable, future);
                 } catch (Exception ex) {
                     exception = ex;
                 }
@@ -335,7 +352,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         for (Future<SQLException> future : poolTasks) {
             try {
                 exception = future.get();
-                LOG.trace("Writer {} completed inserting batch with the future {}", writerCallable, future);
+                LOG.trace("Writer {} completed one of the last task with the future {}", writerCallable, future);
             } catch (Exception ex) {
                 exception = ex;
             }
@@ -351,24 +368,24 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         String msg = exception.getMessage();
         if (msg == null)
             msg = exception.getClass().getName();
-        LOG.error("A writer completed inserting batch with exception: {}", msg);
+        LOG.error("Writer {} completed the task with exception: {}", writerCallable, msg);
         throw exception;
     }
 
     private void shutdownExecutorService(ExecutorService executorService) {
-        LOG.debug("Start shutdown executor service for write");
+        LOG.debug("Accessor starts shutdown executor service for write");
         executorService.shutdownNow();
         try {
             if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                LOG.debug("Executor did not terminate in the specified time.");
+                LOG.warn("Executor did not terminate in the specified time.");
                 List<Runnable> droppedTasks = executorService.shutdownNow();
-                LOG.debug("Dropped " + droppedTasks.size() + " tasks");
+                LOG.warn("Dropped " + droppedTasks.size() + " tasks");
             }
         } catch (InterruptedException e) {
-            LOG.debug("Thread received interrupted signal");
+            LOG.warn("Thread received interrupted signal");
             Thread.currentThread().interrupt();
         }
-        LOG.debug("Shutdown executor service completed");
+        LOG.debug("Accessor completed to shutdown executor service");
     }
 
 

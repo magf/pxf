@@ -77,20 +77,24 @@ class BatchWriterCallable implements WriterCallable {
 
     @Override
     public SQLException call() throws IOException, SQLException {
+        LOG.trace("Writer {}: call() to insert {} rows", this, rows.size());
+        long start = System.nanoTime();
         if (rows.isEmpty()) {
             return null;
         }
 
         PreparedStatement statement = null;
-        SQLException res;
+        SQLException res = null;
         try {
             statement = plugin.getPreparedStatement(plugin.getConnection(), query);
+            LOG.trace("Writer {}: got statement", this);
             for (OneRow row : rows) {
                 JdbcResolver.decodeOneRowToPreparedStatement(row, statement);
                 statement.addBatch();
             }
 
             statement.executeBatch();
+            LOG.trace("Writer {}: executeBatch() finished", this);
             // some drivers will not react to timeout interrupt
             if (Thread.interrupted())
                 throw new SQLException("Writer was interrupted by timeout");
@@ -107,12 +111,21 @@ class BatchWriterCallable implements WriterCallable {
                 res = new SQLException(t);
             return res;
         } finally {
+            if (LOG.isTraceEnabled()) {
+                long duration = System.nanoTime() - start;
+                LOG.trace("Writer {}: call() done in {} ms, exception={}", this, duration / 1000000, res);
+            }
             rows.clear();
             JdbcBasePlugin.closeStatementAndConnection(statement);
-            LOG.trace("Completed inserting batch. Release the semaphore");
+            LOG.trace("Writer {} completed inserting the batch. Release the semaphore", this);
             onComplete.run();
         }
 
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("BatchWriterCallable@%d", hashCode());
     }
 }

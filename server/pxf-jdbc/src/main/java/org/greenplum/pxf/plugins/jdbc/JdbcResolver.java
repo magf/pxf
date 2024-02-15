@@ -138,8 +138,6 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
             DataType.DATE
     );
 
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcResolver.class);
-
     /**
      * Creates a new instance of the JdbcResolver
      */
@@ -274,19 +272,6 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                 throw new UnsupportedOperationException(
                         String.format("Field type '%s' (column '%s') is not supported",
                                 oneFieldType, column));
-            }
-
-            if (LOG.isTraceEnabled()) {
-                String valDebug;
-                if (oneField.val == null) {
-                    valDebug = "null";
-                } else if (oneFieldType == DataType.BYTEA) {
-                    valDebug = String.format("'%s'", new String((byte[]) oneField.val));
-                } else {
-                    valDebug = String.format("'%s'", oneField.val);
-                }
-
-                LOG.trace("Column {} OneField: type {}, content {}", columnIndex, oneFieldType, valDebug);
             }
 
             // Convert TEXT columns into native data types
