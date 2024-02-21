@@ -100,6 +100,7 @@ public class JdbcBasePlugin extends BasePlugin {
     private static final String MYSQL_DRIVER_PREFIX = "com.mysql.";
     private static final String JDBC_DATE_WIDE_RANGE = "jdbc.date.wideRange";
     private static final String JDBC_DATE_WIDE_RANGE_LEGACY = "jdbc.date.wide-range";
+
     private enum TransactionIsolation {
         READ_UNCOMMITTED(1),
         READ_COMMITTED(2),
@@ -491,6 +492,16 @@ public class JdbcBasePlugin extends BasePlugin {
         if (exception != null) {
             throw exception;
         }
+    }
+
+    @Override
+    public void reloadAll() {
+        connectionManager.reloadCache(poolDescriptor -> true);
+    }
+
+    @Override
+    public void reload(String server) {
+        connectionManager.reloadCache(poolDescriptor -> poolDescriptor.getServer().equals(server));
     }
 
     /**
