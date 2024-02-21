@@ -19,11 +19,10 @@ package org.greenplum.pxf.plugins.jdbc.writercallable;
  * under the License.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.plugins.jdbc.JdbcBasePlugin;
 import org.greenplum.pxf.plugins.jdbc.JdbcResolver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.BatchUpdateException;
@@ -36,8 +35,8 @@ import java.util.List;
  * This writer makes batch INSERTs.
  * A call() is required after a certain number of supply() calls
  */
+@Slf4j
 class BatchWriterCallable implements WriterCallable {
-    private static final Logger LOG = LoggerFactory.getLogger(BatchWriterCallable.class);
     private final JdbcBasePlugin plugin;
     private final String query;
     private final List<OneRow> rows;
@@ -48,8 +47,14 @@ class BatchWriterCallable implements WriterCallable {
      * Construct a new batch writer
      */
     BatchWriterCallable(JdbcBasePlugin plugin, String query, int batchSize, Runnable onComplete) {
-        if (plugin == null || query == null) {
-            throw new IllegalArgumentException("The provided JdbcBasePlugin or SQL query is null");
+        if (batchSize < 1) {
+            throw new IllegalArgumentException("Batch size must be greater than 0");
+        } else if (plugin == null) {
+            throw new IllegalArgumentException("Plugin must not be null");
+        } else if (query == null) {
+            throw new IllegalArgumentException("Query must not be null");
+        } else if (onComplete == null) {
+            throw new IllegalArgumentException("onComplete must not be null");
         }
 
         this.plugin = plugin;
@@ -77,47 +82,49 @@ class BatchWriterCallable implements WriterCallable {
 
     @Override
     public SQLException call() throws IOException, SQLException {
-        LOG.trace("Writer {}: call() to insert {} rows", this, rows.size());
+        log.trace("Writer {}: call() to insert {} rows", this, rows.size());
         long start = System.nanoTime();
         if (rows.isEmpty()) {
             return null;
         }
 
         PreparedStatement statement = null;
-        SQLException res = null;
         try {
             statement = plugin.getPreparedStatement(plugin.getConnection(), query);
-            LOG.trace("Writer {}: got statement", this);
+            log.trace("Writer {}: got statement", this);
             for (OneRow row : rows) {
                 JdbcResolver.decodeOneRowToPreparedStatement(row, statement);
                 statement.addBatch();
             }
 
             statement.executeBatch();
-            LOG.trace("Writer {}: executeBatch() finished", this);
+            log.trace("Writer {}: executeBatch() finished", this);
             // some drivers will not react to timeout interrupt
             if (Thread.interrupted())
                 throw new SQLException("Writer was interrupted by timeout");
         } catch (BatchUpdateException bue) {
             SQLException cause = bue.getNextException();
-            res = cause != null ? cause : bue;
-            return res;
+            cause = cause != null ? cause : bue;
+            log.error("Writer {}: call() failed: BatchUpdateException", this, cause);
+            return cause;
+        } catch (SQLException e) {
+            log.error("Writer {}: call() failed: SQLException", this, e);
+            return e;
         } catch (Throwable t) {
-            if (t instanceof SQLException)
-                res = (SQLException) t;
-            else if (t.getCause() instanceof SQLException)
-                res = (SQLException) t.getCause();
-            else
-                res = new SQLException(t);
-            return res;
+            log.error("Writer {}: call() failed: Throwable", this, t);
+            if (t.getCause() instanceof SQLException) {
+                return (SQLException) t.getCause();
+            } else {
+                return new SQLException(t);
+            }
         } finally {
-            if (LOG.isTraceEnabled()) {
+            if (log.isTraceEnabled()) {
                 long duration = System.nanoTime() - start;
-                LOG.trace("Writer {}: call() done in {} ms, exception={}", this, duration / 1000000, res);
+                log.trace("Writer {}: call() done in {} ms", this, duration / 1000000);
             }
             rows.clear();
             JdbcBasePlugin.closeStatementAndConnection(statement);
-            LOG.trace("Writer {} completed inserting the batch. Release the semaphore", this);
+            log.trace("Writer {} completed inserting the batch", this);
             onComplete.run();
         }
 

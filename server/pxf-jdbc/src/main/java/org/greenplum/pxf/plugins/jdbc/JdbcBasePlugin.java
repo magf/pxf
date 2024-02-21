@@ -20,6 +20,7 @@ package org.greenplum.pxf.plugins.jdbc;
  */
 
 import io.arenadata.security.encryption.client.service.DecryptClient;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.greenplum.pxf.api.model.BasePlugin;
@@ -31,8 +32,6 @@ import org.greenplum.pxf.api.utilities.Utilities;
 import org.greenplum.pxf.plugins.jdbc.utils.ConnectionManager;
 import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 import org.greenplum.pxf.plugins.jdbc.utils.HiveJdbcUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.PrivilegedExceptionAction;
 import java.sql.Connection;
@@ -54,9 +53,8 @@ import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER
  * <p>
  * Implemented subclasses: {@link JdbcAccessor}, {@link JdbcResolver}.
  */
+@Slf4j
 public class JdbcBasePlugin extends BasePlugin {
-
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcBasePlugin.class);
 
     // '100' is a recommended value: https://docs.oracle.com/cd/E11882_01/java.112/e16548/oraperf.htm#JJDBC28754
     private static final int DEFAULT_BATCH_SIZE = 100;
@@ -65,7 +63,7 @@ public class JdbcBasePlugin extends BasePlugin {
     // see https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-implementation-notes.html
     private static final int DEFAULT_MYSQL_FETCH_SIZE = Integer.MIN_VALUE;
     private static final int DEFAULT_POOL_SIZE = 1;
-    private static final String DEFAULT_JDBC_STATEMENT_BATCH_TIMEOUT = "0";
+    private static final int DEFAULT_JDBC_STATEMENT_BATCH_TIMEOUT = 0;
 
     // configuration parameter names
     private static final String JDBC_DRIVER_PROPERTY_NAME = "jdbc.driver";
@@ -276,7 +274,8 @@ public class JdbcBasePlugin extends BasePlugin {
             }
         }
 
-        String batchTimeoutString = configuration.get(JDBC_STATEMENT_BATCH_TIMEOUT_PROPERTY_NAME, DEFAULT_JDBC_STATEMENT_BATCH_TIMEOUT);
+        String batchTimeoutString = configuration.get(JDBC_STATEMENT_BATCH_TIMEOUT_PROPERTY_NAME,
+                String.valueOf(DEFAULT_JDBC_STATEMENT_BATCH_TIMEOUT));
         try {
             batchTimeout = Integer.parseUnsignedInt(batchTimeoutString);
         } catch (NumberFormatException e) {
@@ -474,7 +473,7 @@ public class JdbcBasePlugin extends BasePlugin {
      */
     public static void closeStatementAndConnection(Statement statement) throws SQLException {
         if (statement == null) {
-            LOG.warn("Call to close statement and connection is ignored as statement provided was null");
+            log.warn("Call to close statement and connection is ignored as statement provided was null");
             return;
         }
 
@@ -484,22 +483,22 @@ public class JdbcBasePlugin extends BasePlugin {
         try {
             connection = statement.getConnection();
         } catch (SQLException e) {
-            LOG.error("Exception when retrieving Connection from Statement", e);
+            log.error("Exception when retrieving Connection from Statement", e);
             exception = e;
         }
 
         try {
-            LOG.trace("Closing statement for connection {}", connection);
+            log.trace("Closing statement for connection {}", connection);
             statement.close();
         } catch (SQLException e) {
-            LOG.error("Exception when closing Statement", e);
+            log.error("Exception when closing Statement", e);
             exception = e;
         }
 
         try {
             closeConnection(connection);
         } catch (SQLException e) {
-            LOG.error(String.format("Exception when closing connection %s", connection), e);
+            log.error(String.format("Exception when closing connection %s", connection), e);
             exception = e;
         }
 
@@ -534,7 +533,7 @@ public class JdbcBasePlugin extends BasePlugin {
      */
     protected static void closeConnection(Connection connection) throws SQLException {
         if (connection == null) {
-            LOG.warn("Call to close connection is ignored as connection provided was null");
+            log.warn("Call to close connection is ignored as connection provided was null");
             return;
         }
         try {
@@ -542,16 +541,16 @@ public class JdbcBasePlugin extends BasePlugin {
                     connection.getMetaData().supportsTransactions() &&
                     !connection.getAutoCommit()) {
 
-                LOG.trace("Committing transaction (as part of connection.close()) on connection {}", connection);
+                log.trace("Committing transaction (as part of connection.close()) on connection {}", connection);
                 connection.commit();
             }
         } finally {
             try {
-                LOG.trace("Closing connection {}", connection);
+                log.trace("Closing connection {}", connection);
                 connection.close();
             } catch (Exception e) {
                 // ignore
-                LOG.warn(String.format("Failed to close JDBC connection %s, ignoring the error.", connection), e);
+                log.warn(String.format("Failed to close JDBC connection %s, ignoring the error.", connection), e);
             }
         }
     }
