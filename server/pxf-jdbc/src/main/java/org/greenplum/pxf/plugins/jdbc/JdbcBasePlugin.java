@@ -22,6 +22,7 @@ package org.greenplum.pxf.plugins.jdbc;
 import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.BasePlugin;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.security.SecureLogin;
@@ -40,12 +41,8 @@ import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.Objects;
 
 import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER_IMPERSONATION;
 
@@ -496,12 +493,22 @@ public class JdbcBasePlugin extends BasePlugin {
 
     @Override
     public void reloadAll() {
-        connectionManager.reloadCache(poolDescriptor -> true);
+        if (Objects.nonNull(connectionManager)) {
+            connectionManager.reloadCache(poolDescriptor -> true);
+        } else {
+            throw new PxfRuntimeException("Failed to reload profile. Connection manager is null.");
+        }
     }
 
     @Override
     public void reload(String server) {
-        connectionManager.reloadCache(poolDescriptor -> poolDescriptor.getServer().equals(server));
+        if (Objects.isNull(connectionManager)) {
+            throw new PxfRuntimeException("Failed to reload profile. Connection manager is null.");
+        } else if (StringUtils.isBlank(server)) {
+            throw new PxfRuntimeException("Failed to reload profile. Parameter server is blank.");
+        } else {
+            connectionManager.reloadCache(poolDescriptor -> poolDescriptor.getServer().equals(server));
+        }
     }
 
     /**
