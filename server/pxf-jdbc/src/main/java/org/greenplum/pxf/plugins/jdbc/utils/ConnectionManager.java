@@ -11,6 +11,7 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.plugins.jdbc.PxfJdbcProperties;
 import org.slf4j.Logger;
@@ -27,11 +28,14 @@ import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Responsible for obtaining and maintaining JDBC connections to databases. If configured for a given server,
  * uses Hikari Connection Pool to pool database connections.
  */
+@Slf4j
 @Component
 public class ConnectionManager {
 
@@ -76,6 +80,23 @@ public class ConnectionManager {
                         },
                         datasourceClosingExecutor))
                 .build(CacheLoader.from(factory::createDataSource));
+    }
+
+    public void reloadCache() {
+        log.info("Invalidate cache of all pool descriptors");
+        dataSources.invalidateAll();
+        cleanCache();
+    }
+
+    public void reloadCacheIf(Predicate<PoolDescriptor> poolDescriptorFilter) {
+        dataSources.asMap().keySet().stream()
+                .filter(poolDescriptorFilter)
+                .collect(Collectors.toSet())
+                .forEach(poolDescriptor -> {
+                    log.info("Invalidate cache of the pool descriptor {}", poolDescriptor);
+                    dataSources.invalidate(poolDescriptor);
+                });
+        cleanCache();
     }
 
     /**

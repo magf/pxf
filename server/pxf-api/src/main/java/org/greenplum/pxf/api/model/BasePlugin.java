@@ -34,6 +34,14 @@ public class BasePlugin implements Plugin {
     public void afterPropertiesSet() {
     }
 
+    @Override
+    public void reloadAll() {
+    }
+
+    @Override
+    public void reload(String server) {
+    }
+
     /**
      * When DEBUG mode is enabled, logs the total number of rows read, the
      * amount of time it took to read the file, and the average read speed

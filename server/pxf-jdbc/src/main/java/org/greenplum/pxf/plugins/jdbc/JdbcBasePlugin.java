@@ -22,6 +22,7 @@ package org.greenplum.pxf.plugins.jdbc;
 import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.BasePlugin;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.security.SecureLogin;
@@ -43,9 +44,9 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
-import java.util.Objects;
 
 import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER_IMPERSONATION;
 
@@ -100,6 +101,7 @@ public class JdbcBasePlugin extends BasePlugin {
     private static final String MYSQL_DRIVER_PREFIX = "com.mysql.";
     private static final String JDBC_DATE_WIDE_RANGE = "jdbc.date.wideRange";
     private static final String JDBC_DATE_WIDE_RANGE_LEGACY = "jdbc.date.wide-range";
+
     private enum TransactionIsolation {
         READ_UNCOMMITTED(1),
         READ_COMMITTED(2),
@@ -490,6 +492,26 @@ public class JdbcBasePlugin extends BasePlugin {
 
         if (exception != null) {
             throw exception;
+        }
+    }
+
+    @Override
+    public void reloadAll() {
+        if (Objects.nonNull(connectionManager)) {
+            connectionManager.reloadCache();
+        } else {
+            throw new PxfRuntimeException("Failed to reload profile. Connection manager is null.");
+        }
+    }
+
+    @Override
+    public void reload(String server) {
+        if (Objects.isNull(connectionManager)) {
+            throw new PxfRuntimeException("Failed to reload profile. Connection manager is null.");
+        } else if (StringUtils.isBlank(server)) {
+            throw new PxfRuntimeException("Failed to reload profile. Parameter server is blank.");
+        } else {
+            connectionManager.reloadCacheIf(poolDescriptor -> poolDescriptor.getServer().equals(server));
         }
     }
 
