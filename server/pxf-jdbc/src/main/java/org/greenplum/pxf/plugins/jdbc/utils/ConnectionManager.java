@@ -25,7 +25,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -83,14 +82,20 @@ public class ConnectionManager {
                 .build(CacheLoader.from(factory::createDataSource));
     }
 
-    public void reloadCache(Predicate<PoolDescriptor> poolDescriptorFilter) {
-        Set<PoolDescriptor> poolDescriptorSet = dataSources.asMap().keySet().stream()
+    public void reloadCache() {
+        log.info("Invalidate cache of all pool descriptors}");
+        dataSources.invalidateAll();
+        cleanCache();
+    }
+
+    public void reloadCacheIf(Predicate<PoolDescriptor> poolDescriptorFilter) {
+        dataSources.asMap().keySet().stream()
                 .filter(poolDescriptorFilter)
-                .collect(Collectors.toSet());
-        poolDescriptorSet.forEach(pd -> {
-            log.info("Invalidate cache for pool descriptor {}", pd);
-            dataSources.invalidate(pd);
-        });
+                .collect(Collectors.toSet())
+                .forEach(poolDescriptor -> {
+                    log.info("Invalidate cache of the pool descriptor {}", poolDescriptor);
+                    dataSources.invalidate(poolDescriptor);
+                });
         cleanCache();
     }
 

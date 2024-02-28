@@ -41,7 +41,11 @@ import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER_IMPERSONATION;
@@ -494,7 +498,7 @@ public class JdbcBasePlugin extends BasePlugin {
     @Override
     public void reloadAll() {
         if (Objects.nonNull(connectionManager)) {
-            connectionManager.reloadCache(poolDescriptor -> true);
+            connectionManager.reloadCache();
         } else {
             throw new PxfRuntimeException("Failed to reload profile. Connection manager is null.");
         }
@@ -507,7 +511,7 @@ public class JdbcBasePlugin extends BasePlugin {
         } else if (StringUtils.isBlank(server)) {
             throw new PxfRuntimeException("Failed to reload profile. Parameter server is blank.");
         } else {
-            connectionManager.reloadCache(poolDescriptor -> poolDescriptor.getServer().equals(server));
+            connectionManager.reloadCacheIf(poolDescriptor -> poolDescriptor.getServer().equals(server));
         }
     }
 
