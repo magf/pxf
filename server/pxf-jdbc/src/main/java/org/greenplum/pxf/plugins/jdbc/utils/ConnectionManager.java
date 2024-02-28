@@ -83,7 +83,7 @@ public class ConnectionManager {
     }
 
     public void reloadCache() {
-        log.info("Invalidate cache of all pool descriptors}");
+        log.info("Invalidate cache of all pool descriptors");
         dataSources.invalidateAll();
         cleanCache();
     }
