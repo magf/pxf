@@ -10,7 +10,6 @@ import org.greenplum.pxf.service.utilities.BasePluginFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -46,33 +45,32 @@ public class ProfileReloadServiceImpl implements ProfileReloadService {
     }
 
     private void reloadAll(String profile) {
-        Plugin accessor = getAccessor(profile);
-        if (Objects.nonNull(accessor)) {
-            log.info("Reload profile '{}' for all servers with accessor {}", profile, accessor);
-            accessor.reloadAll();
+        Optional<Plugin> accessor = getAccessor(profile);
+        if (accessor.isPresent()) {
+            log.info("Reload profile '{}' for all servers with accessor {}", profile, accessor.get());
+            accessor.get().reloadAll();
         } else {
             log.info("Skipping reloading profile '{}' for all servers", profile);
         }
     }
 
     private void reload(String profile, String server) {
-        Plugin accessor = getAccessor(profile);
-        if (Objects.nonNull(accessor)) {
-            log.info("Reload profile '{}' for server '{}' with accessor {}", profile, server, accessor);
-            accessor.reload(server);
+        Optional<Plugin> accessor = getAccessor(profile);
+        if (accessor.isPresent()) {
+            log.info("Reload profile '{}' for server '{}' with accessor {}", profile, server, accessor.get());
+            accessor.get().reload(server);
         } else {
             log.info("Skipping reloading profile '{}' for server '{}'", profile, server);
         }
     }
 
-    private Plugin getAccessor(String profile) {
+    private Optional<Plugin> getAccessor(String profile) {
         try {
             Map<String, String> pluginMap = profileConf.getPlugins(profile);
             return Optional.ofNullable(pluginMap)
-                    .map(plugins -> getAccessorInstance(plugins.get(ACCESSOR_KEY)))
-                    .orElse(null);
+                    .map(plugins -> getAccessorInstance(plugins.get(ACCESSOR_KEY)));
         } catch (Exception e) {
-            String message = String.format("Failed to get plugin. %s", e.getMessage());
+            String message = String.format("Failed to get plugin of the profile '%s'. %s", profile, e.getMessage());
             log.error(message);
             throw new PxfRuntimeException(message, e);
         }
