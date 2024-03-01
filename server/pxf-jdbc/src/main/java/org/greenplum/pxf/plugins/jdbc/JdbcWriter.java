@@ -27,6 +27,7 @@ import org.greenplum.pxf.plugins.jdbc.writercallable.WriterCallableFactory;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -146,8 +147,8 @@ public class JdbcWriter {
     }
 
     private void checkWriteNextObjectResults() throws Exception {
-        Exception exception;
         for (Future<SQLException> future : poolTasks) {
+            Exception exception;
             if (future.isDone()) {
                 try {
                     exception = future.get();
@@ -164,8 +165,8 @@ public class JdbcWriter {
     }
 
     private void checkCloseForWriteResults() throws Exception {
-        Exception exception;
         for (Future<SQLException> future : poolTasks) {
+            Exception exception;
             try {
                 exception = future.get();
                 log.trace("Writer {} completed one of the last task with the future {}", writerCallable, future);
@@ -181,9 +182,8 @@ public class JdbcWriter {
 
     private void throwException(Exception exception) throws Exception {
         firstException.compareAndSet(null, exception);
-        String msg = exception.getMessage();
-        if (msg == null)
-            msg = exception.getClass().getName();
+        String msg = Optional.ofNullable(exception.getMessage())
+                .orElse(exception.getClass().getName());
         log.error("Writer {} completed the task with exception: {}", writerCallable, msg);
         throw exception;
     }
