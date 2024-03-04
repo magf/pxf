@@ -16,8 +16,4 @@ public interface Plugin {
      * Invoked after the {@code RequestContext} has been bound
      */
     void afterPropertiesSet();
-
-    void reloadAll();
-
-    void reload(String server);
 }
