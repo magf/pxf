@@ -26,4 +26,12 @@ public interface ReadService {
      * @return if read request cancellation succeeded
      */
     boolean cancelRead(RequestContext context);
+
+    /**
+     * Tries to cancel active read requests to the external system with specified profile and server.
+     *
+     * @param profile the name of the profile defined in the external table. For example, jdbc, hdfs, s3, etc...
+     * @param server the named server configuration that PXF uses to access the data. PXF uses the default server if not specified.
+     */
+    void cancelReadExecutions(String profile, String server);
 }

@@ -134,6 +134,10 @@ public class PxfResourceIT {
                 public boolean cancelRead(RequestContext context) {
                     return true;
                 }
+
+                @Override
+                public void cancelReadExecutions(String profile,String server) {
+                }
             };
         }
     }

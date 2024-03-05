@@ -23,7 +23,10 @@ public class TestAccessor implements Accessor {
 
     @Override
     public void closeForRead() {
+    }
 
+    @Override
+    public void cancelRead() {
     }
 
     @Override
@@ -38,6 +41,10 @@ public class TestAccessor implements Accessor {
 
     @Override
     public void closeForWrite() {
+    }
+
+    @Override
+    public void cancelWrite() {
     }
 
     @Override
