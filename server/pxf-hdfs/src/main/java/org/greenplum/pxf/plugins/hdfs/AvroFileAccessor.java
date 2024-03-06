@@ -219,6 +219,14 @@ public class AvroFileAccessor extends HdfsSplittableDataAccessor {
     }
 
     /**
+     * Cancel write operation.
+     */
+    @Override
+    public void cancelWrite() {
+        throw new UnsupportedOperationException("Cancel write operation is not supported");
+    }
+
+    /**
      * Closes the resource for write.
      *
      * @throws Exception if closing the resource failed

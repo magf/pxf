@@ -40,6 +40,10 @@ public class HdfsSplittableDataAccessorTest {
         }
 
         @Override
+        public void cancelWrite() {
+        }
+
+        @Override
         protected Object getReader(JobConf jobConf, InputSplit split) throws IOException {
             return null;
         }

@@ -105,6 +105,14 @@ public abstract class HdfsAtomicDataAccessor extends BasePlugin implements Acces
         }
     }
 
+    /**
+     * Cancel read operation.
+     */
+    @Override
+    public void cancelRead() {
+        throw new UnsupportedOperationException("Cancel read operation is not supported");
+    }
+
     /*
      * Making sure that only the segment that got assigned the first data
      * fragment will read the (whole) file.

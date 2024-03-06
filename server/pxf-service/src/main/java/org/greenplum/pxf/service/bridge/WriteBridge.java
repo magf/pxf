@@ -113,8 +113,20 @@ public class WriteBridge extends BaseBridge {
      * {@inheritDoc}
      */
     @Override
+    public void cancelIteration() throws Exception {
+        try {
+            accessor.cancelWrite();
+        } catch (Exception e) {
+            LOG.error("Failed to cancel write bridge iteration: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Writable getNext() {
         throw new UnsupportedOperationException("Current operation is not supported");
     }
-
 }

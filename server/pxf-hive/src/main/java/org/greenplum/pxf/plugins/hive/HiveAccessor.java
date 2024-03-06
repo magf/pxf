@@ -338,6 +338,14 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
     }
 
     /**
+     * Cancel write operation.
+     */
+    @Override
+    public void cancelWrite() {
+        throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
+    }
+
+    /**
      * Creates the RecordReader suitable for this given split.
      *
      * @param jobConf configuration data for the Hadoop framework

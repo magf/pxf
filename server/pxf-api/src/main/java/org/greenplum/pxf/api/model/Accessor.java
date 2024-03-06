@@ -50,6 +50,13 @@ public interface Accessor extends Plugin {
     void closeForRead() throws Exception;
 
     /**
+     * Cancel read operation. Might contain additional logic comparing with {@link Accessor#closeForRead()}
+     *
+     * @throws Exception if the cancel operation failed
+     */
+    void cancelRead() throws Exception;
+
+    /**
      * Opens the resource for write.
      *
      * @return true if the resource is successfully opened
@@ -72,4 +79,11 @@ public interface Accessor extends Plugin {
      * @throws Exception if closing the resource failed
      */
     void closeForWrite() throws Exception;
+
+    /**
+     * Cancel write operation. Might contain additional logic comparing with {@link Accessor#closeForWrite()}
+     *
+     * @throws Exception if the cancel the operation failed
+     */
+    void cancelWrite() throws Exception;
 }

@@ -16,7 +16,6 @@ import org.apache.orc.RecordReader;
 import org.apache.orc.TypeDescription;
 import org.apache.orc.Writer;
 import org.greenplum.pxf.api.OneRow;
-import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.filter.FilterParser;
 import org.greenplum.pxf.api.filter.Node;
 import org.greenplum.pxf.api.filter.Operator;
@@ -164,6 +163,14 @@ public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
         }
     }
 
+    /**
+     * Cancel read operation.
+     */
+    @Override
+    public void cancelRead() {
+        throw new UnsupportedOperationException("Cancel read operation is not supported");
+    }
+
     @Override
     public boolean openForWrite() throws IOException {
         HcfsType hcfsType = HcfsType.getHcfsType(context);
@@ -216,6 +223,14 @@ public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
             LOG.debug("Closing ORC file writer for file {}", writerState.fileName);
             writerState.getFileWriter().close();
         }
+    }
+
+    /**
+     * Cancel write operation.
+     */
+    @Override
+    public void cancelWrite() {
+        throw new UnsupportedOperationException("Cancel write operation is not supported");
     }
 
     /**

@@ -150,8 +150,20 @@ public class ReadBridge extends BaseBridge {
      * {@inheritDoc}
      */
     @Override
+    public void cancelIteration() throws Exception {
+        try {
+            accessor.cancelRead();
+        } catch (Exception e) {
+            LOG.error("Failed to cancel read bridge iteration: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean setNext(DataInputStream inputStream) {
         throw new UnsupportedOperationException("Write operation is not supported.");
     }
-
 }

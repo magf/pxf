@@ -63,6 +63,10 @@ public class UserDataVerifyAccessor extends BasePlugin implements Accessor {
     }
 
     @Override
+    public void cancelRead() {
+    }
+
+    @Override
     public boolean openForWrite() {
         throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
     }
@@ -74,6 +78,11 @@ public class UserDataVerifyAccessor extends BasePlugin implements Accessor {
 
     @Override
     public void closeForWrite() {
+        throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
+    }
+
+    @Override
+    public void cancelWrite() {
         throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
     }
 }

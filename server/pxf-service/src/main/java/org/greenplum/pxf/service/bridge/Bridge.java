@@ -59,4 +59,10 @@ public interface Bridge {
      * @throws Exception when an error occurs during the operation
      */
     void endIteration() throws Exception;
+
+    /**
+     * Cancel iteration for data access. Immediately cancel and close the connection to the external system.
+     * @throws Exception when an error occurs during the operation
+     */
+    void cancelIteration() throws Exception;
 }
