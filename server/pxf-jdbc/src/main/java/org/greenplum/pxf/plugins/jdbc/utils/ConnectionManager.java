@@ -25,12 +25,10 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Responsible for obtaining and maintaining JDBC connections to databases. If configured for a given server,
@@ -84,20 +82,25 @@ public class ConnectionManager {
     }
 
     public void reloadCache() {
-        dataSources.invalidateAll();
-        log.info("Invalidate cache of all pool descriptors");
-        cleanCache();
+        dataSources.asMap().forEach(this::invalidateAndCloseDaraSource);
     }
 
     public void reloadCacheIf(Predicate<PoolDescriptor> poolDescriptorFilter) {
-        Set<PoolDescriptor> poolDescriptorSet = dataSources.asMap().keySet().stream()
-                .filter(poolDescriptorFilter)
-                .collect(Collectors.toSet());
-        if (!poolDescriptorSet.isEmpty()) {
-            dataSources.invalidateAll(poolDescriptorSet);
-            log.info("Invalidate cache of the pool descriptor(s): {}", poolDescriptorSet);
-            cleanCache();
-        }
+        dataSources.asMap()
+                .forEach((poolDescriptor, hikariDataSource) -> {
+                    if (poolDescriptorFilter.test(poolDescriptor)) {
+                        invalidateAndCloseDaraSource(poolDescriptor, hikariDataSource);
+                    }
+                });
+    }
+
+    private void invalidateAndCloseDaraSource(PoolDescriptor poolDescriptor, HikariDataSource hds) {
+        log.debug("Datasource: {}; Number of active connection: {}; Pool descriptor: {}",
+                hds.getPoolName(), hds.getHikariPoolMXBean().getActiveConnections(), poolDescriptor);
+        dataSources.invalidate(poolDescriptor);
+        hds.close();
+        cleanCache();
+        log.info("Invalidated and closed datasource {}. Pool descriptor: {}", hds.getPoolName(), poolDescriptor);
     }
 
     /**
@@ -260,7 +263,5 @@ public class ConnectionManager {
         public Driver getDriver(String url) throws SQLException {
             return DriverManager.getDriver(url);
         }
-
     }
 }
-
