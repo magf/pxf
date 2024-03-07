@@ -49,8 +49,12 @@ var (
 	restartCmd  = createCobraCommand("restart", "Restart the PXF server on coordinator, standby coordinator, and all segment hosts", &RestartCommand)
 	prepareCmd  = createCobraCommand("prepare", "Prepares a new base directory specified by the $PXF_BASE environment variable", &PrepareCommand)
 	migrateCmd  = createCobraCommand("migrate", "Migrates configurations from older installations of PXF", &MigrateCommand)
+	reloadCmd   = createCobraCommand("reload", "Reload the PXF caches on coordinator, standby coordinator, and all segment hosts for profiles and terminate all related queries.", &ReloadCommand)
 	// DeleteOnSync is a boolean for determining whether to use rsync with --delete, exported for tests
-	DeleteOnSync bool
+	DeleteOnSync      bool
+	ReloadProfileName string
+	ReloadServerName  string
+	ReloadAutoConfirm bool
 )
 
 func init() {
@@ -66,6 +70,10 @@ func init() {
 	clusterCmd.AddCommand(restartCmd)
 	clusterCmd.AddCommand(prepareCmd)
 	clusterCmd.AddCommand(migrateCmd)
+	clusterCmd.AddCommand(reloadCmd)
+	reloadCmd.Flags().StringVarP(&ReloadProfileName, "profile", "p", "", "profile that PXF uses to access the data")
+	reloadCmd.Flags().StringVarP(&ReloadServerName, "server", "s", "", "the name of a directory residing in $PXF_BASE/servers/")
+	reloadCmd.Flags().BoolVarP(&ReloadAutoConfirm, "auto", "a", false, "auto confirm the action of reload")
 }
 
 func exitWithReturnCode(err error) {
