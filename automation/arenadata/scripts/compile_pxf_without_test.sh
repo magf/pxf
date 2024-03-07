@@ -8,7 +8,7 @@ GPHOME=/usr/local/greenplum-db-devel
 bash --login -c "
 	export PXF_HOME=${GPHOME}/pxf
 	make -C '${PWD}/pxf_src/external-table' install
-  make -C '${PWD}/pxf_src/cli/go/src/pxf-cli' install
+  make -C '${PWD}/pxf_src/cli' install
   make -C '${PWD}/pxf_src/server' install-server
 "
 
