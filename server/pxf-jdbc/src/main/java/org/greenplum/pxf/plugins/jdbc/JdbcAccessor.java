@@ -72,6 +72,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
     private ExecutorService executorServiceWrite = null;
     private ConcurrentLinkedQueue<Future<SQLException>> poolTasks = null;
     private Exception firstException = null;
+    private boolean isCanceled;
 
     /**
      * Creates a new instance of the JdbcAccessor
@@ -168,6 +169,12 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      */
     @Override
     public OneRow readNextObject() throws SQLException {
+        if (isCanceled) {
+            String message = "The read operation was canceled";
+            LOG.warn(message);
+            throw new PxfRuntimeException(message);
+        }
+
         if (resultSetRead.next()) {
             return new OneRow(resultSetRead);
         }
@@ -184,12 +191,12 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
 
     /**
      * Cancel read operation.
-     *
-     * @throws SQLException if the cancel operation failed
      */
     @Override
-    public void cancelRead() throws SQLException {
-        closeForRead();
+    public void cancelRead() {
+        // We don't need to close statement and connection here because closeForRead() will be invoked anyway
+        // Sometimes resultSetRead.next() has unpredictable behaviour while closing statement and connection
+        isCanceled = true;
     }
 
     /**
@@ -272,6 +279,12 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         if (writerCallable == null) {
             throw new IllegalStateException("The JDBC connection was not properly initialized (writerCallable is null)");
         }
+        if (isCanceled) {
+            String message = "The write operation was canceled";
+            LOG.warn(message);
+            firstException = new PxfRuntimeException(message);
+            throw firstException;
+        }
 
         writerCallable.supply(row);
         if (writerCallable.isCallRequired()) {
@@ -353,6 +366,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
     @Override
     public void cancelWrite() throws SQLException {
         LOG.debug("Accessor starts cancelWrite()");
+        isCanceled = true;
         closeStatementAndConnection(statementWrite);
         if (poolSize > 1) {
             LOG.debug("Number of tasks to be canceled: {}", poolTasks.size());

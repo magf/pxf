@@ -64,6 +64,7 @@ public class UserDataVerifyAccessor extends BasePlugin implements Accessor {
 
     @Override
     public void cancelRead() {
+        throw new UnsupportedOperationException("Cancel read operation is not supported");
     }
 
     @Override
