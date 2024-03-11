@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.BasePlugin;
+import org.greenplum.pxf.api.model.Reloader;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.security.SecureLogin;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
@@ -55,7 +56,7 @@ import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER
  * <p>
  * Implemented subclasses: {@link JdbcAccessor}, {@link JdbcResolver}.
  */
-public class JdbcBasePlugin extends BasePlugin {
+public class JdbcBasePlugin extends BasePlugin implements Reloader {
 
     private static final Logger LOG = LoggerFactory.getLogger(JdbcBasePlugin.class);
 
