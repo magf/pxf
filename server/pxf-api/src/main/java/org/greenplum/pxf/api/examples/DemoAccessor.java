@@ -85,14 +85,6 @@ public class DemoAccessor extends BasePlugin implements Accessor {
     }
 
     /**
-     * cancel read operation. no action here
-     */
-    @Override
-    public void cancelRead() throws Exception {
-        /* Demo cancel doesn't do anything */
-    }
-
-    /**
      * Opens the resource for write.
      *
      * @return true if the resource is successfully opened
@@ -122,16 +114,6 @@ public class DemoAccessor extends BasePlugin implements Accessor {
      */
     @Override
     public void closeForWrite() throws Exception {
-        throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
-    }
-
-    /**
-     * Cancel write operation.
-     *
-     * @throws Exception if the cancel operation failed
-     */
-    @Override
-    public void cancelWrite() throws Exception {
         throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
     }
 }

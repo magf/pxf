@@ -195,14 +195,6 @@ public class LineBreakAccessor extends HdfsSplittableDataAccessor {
         }
     }
 
-    /**
-     * Cancel write operation.
-     */
-    @Override
-    public void cancelWrite() {
-        throw new UnsupportedOperationException("Cancel write operation is not supported");
-    }
-
     /*
      * Creates output stream from given file. If compression codec is provided,
      * wrap it around stream.

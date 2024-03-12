@@ -179,12 +179,4 @@ public class QuotedLineBreakAccessor extends HdfsAtomicDataAccessor {
     public void closeForWrite() {
         throw new UnsupportedOperationException(String.format(UNSUPPORTED_ERR_MESSAGE, context.getProfile()));
     }
-
-    /**
-     * Cancel write operation.
-     */
-    @Override
-    public void cancelWrite() {
-        throw new UnsupportedOperationException(String.format(UNSUPPORTED_ERR_MESSAGE, context.getProfile()));
-    }
 }

@@ -147,14 +147,6 @@ public class HBaseAccessor extends BasePlugin implements Accessor {
     }
 
     /**
-     * Cancel read operation.
-     */
-    @Override
-    public void cancelRead() {
-        throw new UnsupportedOperationException("Cancel read operation is not supported");
-    }
-
-    /**
      * Opens the resource for write.
      *
      * @return true if the resource is successfully opened
@@ -180,14 +172,6 @@ public class HBaseAccessor extends BasePlugin implements Accessor {
      */
     @Override
     public void closeForWrite() {
-        throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
-    }
-
-    /**
-     * Cancel write operation.
-     */
-    @Override
-    public void cancelWrite() {
         throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
     }
 

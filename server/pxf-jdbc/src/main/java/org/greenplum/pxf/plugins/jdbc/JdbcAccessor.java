@@ -26,6 +26,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.Accessor;
+import org.greenplum.pxf.api.model.CancelableOperation;
 import org.greenplum.pxf.api.model.ConfigurationFactory;
 import org.greenplum.pxf.api.security.SecureLogin;
 import org.greenplum.pxf.api.utilities.Utilities;
@@ -57,7 +58,7 @@ import java.util.concurrent.Future;
  * The INSERT queries are processed by {@link java.sql.PreparedStatement} and
  * built-in JDBC batches of arbitrary size
  */
-public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
+public class JdbcAccessor extends JdbcBasePlugin implements Accessor, CancelableOperation {
 
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAccessor.class);
 

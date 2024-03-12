@@ -146,14 +146,6 @@ public class S3SelectAccessor extends BasePlugin implements Accessor {
     }
 
     /**
-     * Cancel read operation.
-     */
-    @Override
-    public void cancelRead() {
-        throw new UnsupportedOperationException("Cancel read operation is not supported");
-    }
-
-    /**
      * Generates the {@link SelectObjectContentRequest} object from
      * the request context.
      *
@@ -336,11 +328,6 @@ public class S3SelectAccessor extends BasePlugin implements Accessor {
 
     @Override
     public void closeForWrite() {
-        throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
-    }
-
-    @Override
-    public void cancelWrite() {
         throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
     }
 }

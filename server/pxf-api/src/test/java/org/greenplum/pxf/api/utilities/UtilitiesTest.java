@@ -63,10 +63,6 @@ public class UtilitiesTest {
         }
 
         @Override
-        public void cancelRead() {
-        }
-
-        @Override
         public boolean openForWrite() {
             return false;
         }
@@ -78,10 +74,7 @@ public class UtilitiesTest {
 
         @Override
         public void closeForWrite() {
-        }
 
-        @Override
-        public void cancelWrite() {
         }
 
         @Override
@@ -119,10 +112,6 @@ public class UtilitiesTest {
         }
 
         @Override
-        public void cancelRead() {
-        }
-
-        @Override
         public boolean openForWrite() {
             return false;
         }
@@ -134,10 +123,6 @@ public class UtilitiesTest {
 
         @Override
         public void closeForWrite() {
-        }
-
-        @Override
-        public void cancelWrite() {
         }
 
         @Override

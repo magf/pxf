@@ -211,14 +211,6 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     }
 
     /**
-     * Cancel read operation.
-     */
-    @Override
-    public void cancelRead() throws IOException {
-        throw new UnsupportedOperationException("Cancel read operation is not supported");
-    }
-
-    /**
      * Opens the resource for write.
      * Uses compression codec based on user input which
      * defaults to Snappy
@@ -300,14 +292,6 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 totalRowsWritten,
                 context.getDataSource(),
                 context.getServerName());
-    }
-
-    /**
-     * Cancel write operation.
-     */
-    @Override
-    public void cancelWrite() {
-        throw new UnsupportedOperationException("Cancel write operation is not supported");
     }
 
     /**

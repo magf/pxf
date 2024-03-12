@@ -143,14 +143,6 @@ public abstract class HdfsSplittableDataAccessor extends BasePlugin implements A
     }
 
     /**
-     * Cancel read operation.
-     */
-    @Override
-    public void cancelRead() {
-        throw new UnsupportedOperationException("Cancel read operation is not supported");
-    }
-
-    /**
      * Helper routine to get compression codec by class name or alias.
      *
      * @param name codec name
