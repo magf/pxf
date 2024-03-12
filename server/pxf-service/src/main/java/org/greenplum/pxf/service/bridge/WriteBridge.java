@@ -119,7 +119,7 @@ public class WriteBridge extends BaseBridge {
             if (accessor instanceof CancelableOperation) {
                 ((CancelableOperation) accessor).cancelWrite();
             } else {
-                throw new UnsupportedOperationException("Accessor does not support canceling write operation");
+                LOG.debug("Accessor [{}] does not support canceling write operation", accessor.getClass().getSimpleName());
             }
         } catch (Exception e) {
             LOG.error("Failed to cancel write bridge iteration: {}", e.getMessage());

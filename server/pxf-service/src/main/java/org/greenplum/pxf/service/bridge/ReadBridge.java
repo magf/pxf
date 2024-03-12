@@ -156,7 +156,7 @@ public class ReadBridge extends BaseBridge {
             if (accessor instanceof CancelableOperation) {
                 ((CancelableOperation) accessor).cancelRead();
             } else {
-                throw new UnsupportedOperationException("Accessor does not support canceling read operation");
+                LOG.debug("Accessor [{}] does not support canceling read operation", accessor.getClass().getSimpleName());
             }
         } catch (Exception e) {
             LOG.error("Failed to cancel read bridge iteration: {}", e.getMessage());
