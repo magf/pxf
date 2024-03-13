@@ -1,4 +1,4 @@
-package org.greenplum.pxf.service.rest.dto;
+package org.greenplum.pxf.api.model;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,12 +19,18 @@ package org.greenplum.pxf.service.rest.dto;
  * under the License.
  */
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+public interface CancelableOperation {
+    /**
+     * Cancel read operation. Might contain additional logic comparing with {@link Accessor#closeForRead()}
+     *
+     * @throws Exception if the cancel operation failed
+     */
+    void cancelRead() throws Exception;
 
-@Getter
-@RequiredArgsConstructor
-public class ProfileReloadRequestDto {
-    private final String profile;
-    private final String server;
+    /**
+     * Cancel write operation. Might contain additional logic comparing with {@link Accessor#closeForWrite()}
+     *
+     * @throws Exception if the cancel the operation failed
+     */
+    void cancelWrite() throws Exception;
 }

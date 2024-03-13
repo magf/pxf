@@ -16,7 +16,6 @@ import org.apache.orc.RecordReader;
 import org.apache.orc.TypeDescription;
 import org.apache.orc.Writer;
 import org.greenplum.pxf.api.OneRow;
-import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.filter.FilterParser;
 import org.greenplum.pxf.api.filter.Node;
 import org.greenplum.pxf.api.filter.Operator;

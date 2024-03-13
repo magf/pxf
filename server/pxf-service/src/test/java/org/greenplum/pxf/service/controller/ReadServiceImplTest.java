@@ -280,7 +280,7 @@ public class ReadServiceImplTest {
         inOrder.verify(mockOutputStream).write("hello".getBytes(StandardCharsets.UTF_8), 0, 5);
         inOrder.verify(mockMetricReporter).reportCounter(MetricsReporter.PxfMetric.RECORDS_SENT, 1, mockContext);
         inOrder.verify(mockMetricReporter).reportCounter(MetricsReporter.PxfMetric.BYTES_SENT, 5, mockContext);
-        inOrder.verify(mockBridge1).endIteration();
+        inOrder.verify(mockBridge1).cancelIteration();
         inOrder.verifyNoMoreInteractions();
     }
 

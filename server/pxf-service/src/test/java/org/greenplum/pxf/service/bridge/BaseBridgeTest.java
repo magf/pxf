@@ -84,6 +84,10 @@ public class BaseBridgeTest {
         public void endIteration() {
         }
 
+        @Override
+        public void cancelIteration() {
+        }
+
         Accessor getAccessor() {
             return accessor;
         }
