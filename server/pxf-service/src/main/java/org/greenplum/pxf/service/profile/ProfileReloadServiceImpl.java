@@ -50,7 +50,7 @@ public class ProfileReloadServiceImpl implements ProfileReloadService {
 
     @Override
     public void reloadProfile(ProfileReloadRequestDto reloadRequestDto) {
-        String profile = reloadRequestDto.getProfile();
+        String profile = reloadRequestDto.getProfile() == null ? null : reloadRequestDto.getProfile().toLowerCase();
         String server = reloadRequestDto.getServer();
         log.info("Received a request to reload a profile with the parameters: profile={}, server={}", profile, server);
         if (StringUtils.isBlank(server)) {
@@ -58,8 +58,10 @@ public class ProfileReloadServiceImpl implements ProfileReloadService {
         } else if (StringUtils.isNotBlank(profile)) {
             reload(profile, server);
         } else {
-            throw new IllegalArgumentException(String.format("The provided parameters (profile=%s, server=%s) " +
+            String message = String.format(String.format("The provided parameters (profile=%s, server=%s) " +
                     "are not correct. Please add profile", profile, server));
+            log.error(message);
+            throw new IllegalArgumentException(message);
         }
     }
 
