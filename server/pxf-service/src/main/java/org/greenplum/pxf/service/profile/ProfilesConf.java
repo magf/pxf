@@ -57,7 +57,7 @@ public class ProfilesConf implements PluginConf {
     private final String externalProfilesFilename;
 
     // maps a profileName --> Profile object
-    private Map<String, Profile> profilesMap;
+    private final Map<String, Profile> profilesMap;
     private Pattern dynamicProfilePattern;
 
     /**
@@ -84,6 +84,10 @@ public class ProfilesConf implements PluginConf {
             LOG.info("PXF profiles dynamic regex: {}", dynamicProfilesRegex);
         }
         LOG.info("PXF profiles loaded: {}", profilesMap.keySet());
+    }
+
+    public Map<String, Profile> getProfilesMap() {
+        return profilesMap;
     }
 
     @Override

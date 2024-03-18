@@ -65,6 +65,8 @@ class SimpleWriterCallable implements WriterCallable {
 
         try {
             statement.executeUpdate();
+            if (Thread.interrupted())
+                throw new SQLException("Writer was interrupted by timeout or by request");
         } catch (SQLException e) {
             return e;
         } finally {

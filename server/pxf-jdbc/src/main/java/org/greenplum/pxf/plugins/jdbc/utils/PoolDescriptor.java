@@ -90,7 +90,8 @@ public class PoolDescriptor {
     @Override
     public String toString() {
         return "PoolDescriptor{" +
-                "jdbcUrl=" + jdbcUrl +
+                "server=" + server +
+                ", jdbcUrl=" + jdbcUrl +
                 ", user=" + user +
                 ", password=" + ConnectionManager.maskPassword(password) +
                 ", connectionConfig=" + connectionConfig +

@@ -71,6 +71,8 @@ class BatchWriterCallable implements WriterCallable {
 
         try {
             statement.executeBatch();
+            if (Thread.interrupted())
+                throw new SQLException("Writer was interrupted by timeout or by request");
         }
         catch (BatchUpdateException bue) {
             SQLException cause = bue.getNextException();

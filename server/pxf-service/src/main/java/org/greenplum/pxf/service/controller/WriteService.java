@@ -19,4 +19,21 @@ public interface WriteService {
      * @throws Exception if any error happened during processing
      */
     String writeData(RequestContext context, InputStream inputStream) throws Exception;
+
+    /**
+     * Tries to cancel active write request to the external system specified by the RequestContext.
+     * Returns true if write request was found and cancelled, false otherwise
+     *
+     * @param context request context
+     * @return if write request cancellation succeeded
+     */
+    boolean cancelWrite(RequestContext context);
+
+    /**
+     * Tries to cancel active write requests to the external system with specified profile and server.
+     *
+     * @param profile the name of the profile defined in the external table. For example, jdbc, hdfs, s3, etc...
+     * @param server the named server configuration that PXF uses to access the data. PXF uses the default server if not specified.
+     */
+    void cancelWriteExecutions(String profile, String server);
 }

@@ -1,10 +1,6 @@
 package org.greenplum.pxf.service.controller;
 
 import com.google.common.io.CountingOutputStream;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.io.Writable;
@@ -27,6 +23,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 /**
  * Implementation of the ReadService.
@@ -66,7 +63,24 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
 
     @Override
     public boolean cancelRead(RequestContext context) {
-        return cancelExecution(context);
+        RequestIdentifier requestIdentifier = new RequestIdentifier(context);
+        Bridge bridge = readExecutionMap.remove(requestIdentifier);
+        return cancelExecution(requestIdentifier, bridge);
+    }
+
+    @Override
+    public void cancelReadExecutions(String profile, String server) {
+        Predicate<RequestIdentifier> identifierFilter = getIdentifierFilter(profile, server);
+        readExecutionMap.forEach((requestIdentifier, bridge) -> {
+            if (identifierFilter.test(requestIdentifier)) {
+                cancelExecution(requestIdentifier, bridge);
+            }
+        });
+    }
+
+    private Predicate<RequestIdentifier> getIdentifierFilter(String profile, String server) {
+        return key -> (StringUtils.isBlank(profile) || key.getProfile().equals(profile))
+                && (StringUtils.isBlank(server) || key.getServer().equals(server));
     }
 
     /**
@@ -139,42 +153,29 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
     }
 
     private void registerExecution(RequestContext context, Bridge readBridge) {
-        RequestIdentifier requestIdentifier = getRequestIdentifier(context);
+        RequestIdentifier requestIdentifier = new RequestIdentifier(context);
         readExecutionMap.put(requestIdentifier, readBridge);
     }
 
     private void removeExecution(RequestContext context) {
-        RequestIdentifier requestIdentifier = getRequestIdentifier(context);
+        RequestIdentifier requestIdentifier = new RequestIdentifier(context);
         readExecutionMap.remove(requestIdentifier);
     }
 
-    private boolean cancelExecution(RequestContext context) {
-        RequestIdentifier requestIdentifier = getRequestIdentifier(context);
-        Bridge bridge = readExecutionMap.remove(requestIdentifier);
+    private boolean cancelExecution(RequestIdentifier requestIdentifier, Bridge bridge) {
         if (bridge == null) {
             log.debug("Couldn't cancel read request, request {} not found", requestIdentifier);
             return false;
         }
         try {
             log.debug("Cancelling read request {}", requestIdentifier);
-            bridge.endIteration();
+            bridge.cancelIteration();
         } catch (Exception e) {
-            log.warn("Ignoring error encountered during bridge.endIteration()", e);
+            log.warn("Ignoring error encountered during bridge.cancelIteration()", e);
             return false;
         }
         return true;
     }
-
-    private RequestIdentifier getRequestIdentifier(RequestContext context) {
-        return new RequestIdentifier(
-                context.getTransactionId(),
-                context.getSegmentId(),
-                context.getSchemaName(),
-                context.getTableName(),
-                context.getClientPort()
-        );
-    }
-
 
     /**
      * Processes a single fragment identified in the RequestContext and updates query statistics.
@@ -257,17 +258,5 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
         if (profileProtocol != null) {
             context.setProfileScheme(profileProtocol);
         }
-    }
-
-    @RequiredArgsConstructor
-    @Getter
-    @EqualsAndHashCode
-    @ToString
-    private static class RequestIdentifier {
-        private final String transactionId;
-        private final int segmentId;
-        private final String schemaName;
-        private final String tableName;
-        private final int remotePort;
     }
 }

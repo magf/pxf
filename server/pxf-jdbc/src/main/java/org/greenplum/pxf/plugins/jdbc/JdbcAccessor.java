@@ -22,9 +22,11 @@ package org.greenplum.pxf.plugins.jdbc;
 import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.Accessor;
+import org.greenplum.pxf.api.model.CancelableOperation;
 import org.greenplum.pxf.api.model.ConfigurationFactory;
 import org.greenplum.pxf.api.security.SecureLogin;
 import org.greenplum.pxf.api.utilities.Utilities;
@@ -41,10 +43,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLTimeoutException;
 import java.sql.Statement;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -57,7 +58,7 @@ import java.util.concurrent.Future;
  * The INSERT queries are processed by {@link java.sql.PreparedStatement} and
  * built-in JDBC batches of arbitrary size
  */
-public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
+public class JdbcAccessor extends JdbcBasePlugin implements Accessor, CancelableOperation {
 
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAccessor.class);
 
@@ -70,7 +71,9 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
     private WriterCallableFactory writerCallableFactory = null;
     private WriterCallable writerCallable = null;
     private ExecutorService executorServiceWrite = null;
-    private List<Future<SQLException>> poolTasks = null;
+    private ConcurrentLinkedQueue<Future<SQLException>> poolTasks = null;
+    private Exception firstException = null;
+    private boolean isCanceled;
 
     /**
      * Creates a new instance of the JdbcAccessor
@@ -94,11 +97,10 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      * Create query, open JDBC connection, execute query and store the result into resultSet
      *
      * @return true if successful
-     * @throws SQLException        if a database access error occurs
-     * @throws SQLTimeoutException if a problem with the connection occurs
+     * @throws SQLException if a database access error occurs
      */
     @Override
-    public boolean openForRead() throws SQLException, SQLTimeoutException {
+    public boolean openForRead() throws SQLException {
         if (statementRead != null && !statementRead.isClosed()) {
             return true;
         }
@@ -168,6 +170,12 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      */
     @Override
     public OneRow readNextObject() throws SQLException {
+        if (isCanceled) {
+            String message = "The read operation was canceled";
+            LOG.warn(message);
+            throw new PxfRuntimeException(message);
+        }
+
         if (resultSetRead.next()) {
             return new OneRow(resultSetRead);
         }
@@ -183,15 +191,24 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
     }
 
     /**
+     * Cancel read operation.
+     */
+    @Override
+    public void cancelRead() {
+        // We don't need to close statement and connection here because closeForRead() will be invoked anyway
+        // Sometimes resultSetRead.next() has unpredictable behaviour while closing statement and connection
+        isCanceled = true;
+    }
+
+    /**
      * openForWrite() implementation
      * Create query template and open JDBC connection
      *
      * @return true if successful
-     * @throws SQLException        if a database access error occurs
-     * @throws SQLTimeoutException if a problem with the connection occurs
+     * @throws SQLException if a database access error occurs
      */
     @Override
-    public boolean openForWrite() throws SQLException, SQLTimeoutException {
+    public boolean openForWrite() throws SQLException {
         if (queryName != null) {
             throw new IllegalArgumentException("specifying query name in data path is not supported for JDBC writable external tables");
         }
@@ -231,7 +248,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         }
         if (poolSize > 1) {
             executorServiceWrite = Executors.newFixedThreadPool(poolSize);
-            poolTasks = new LinkedList<>();
+            poolTasks = new ConcurrentLinkedQueue<>();
         }
 
         // Setup WriterCallableFactory
@@ -263,22 +280,33 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         if (writerCallable == null) {
             throw new IllegalStateException("The JDBC connection was not properly initialized (writerCallable is null)");
         }
+        if (isCanceled) {
+            String message = "The write operation was canceled";
+            LOG.warn(message);
+            firstException = new PxfRuntimeException(message);
+            throw firstException;
+        }
 
         writerCallable.supply(row);
         if (writerCallable.isCallRequired()) {
             if (poolSize > 1) {
                 // Pooling is used. Create new writerCallable
-                poolTasks.add(executorServiceWrite.submit(writerCallable));
-                writerCallable = writerCallableFactory.get();
+                if (!executorServiceWrite.isShutdown() && !executorServiceWrite.isTerminated()) {
+                    poolTasks.add(executorServiceWrite.submit(writerCallable));
+                    writerCallable = writerCallableFactory.get();
+                } else {
+                    firstException = new PxfRuntimeException("Writer executor service pool was shutdown or terminated");
+                    throw firstException;
+                }
             } else {
                 // Pooling is not used, call directly and process potential error
                 SQLException e = writerCallable.call();
                 if (e != null) {
-                    throw e;
+                    firstException = e;
+                    throw firstException;
                 }
             }
         }
-
         return true;
     }
 
@@ -294,53 +322,60 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         }
 
         try {
-            if (poolSize > 1) {
-                // Process thread pool
-                Exception firstException = null;
-                for (Future<SQLException> task : poolTasks) {
-                    // We need this construction to ensure that we try to close all connections opened by pool threads
-                    try {
-                        SQLException currentSqlException = task.get();
-                        if (currentSqlException != null) {
-                            if (firstException == null) {
-                                firstException = currentSqlException;
+            if (firstException == null) {
+                if (poolSize > 1) {
+                    // Process thread pool
+                    for (Future<SQLException> task : poolTasks) {
+                        Exception exception;
+                        // We need this construction to ensure that we try to close all connections opened by pool threads
+                        try {
+                            exception = task.get();
+                            if (exception != null) {
+                                LOG.error("A SQLException in a pool thread occurred: {}", ExceptionUtils.getMessage(exception));
                             }
-                            LOG.error(
-                                    "A SQLException in a pool thread occurred: " + currentSqlException.getClass() + " " + currentSqlException.getMessage()
-                            );
+                        } catch (Exception e) {
+                            String message = String.format("Failed to complete some tasks within writer executor service: %s",
+                                    ExceptionUtils.getMessage(e));
+                            LOG.error(message, e);
+                            exception = new PxfRuntimeException(message, e);
                         }
-                    } catch (Exception e) {
-                        // This exception must have been caused by some thread execution error. However, there may be other exception (maybe of class SQLException) that happened in one of threads that were not examined yet. That is why we do not modify firstException
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(
-                                    "A runtime exception in a thread pool occurred: " + e.getClass() + " " + e.getMessage()
-                            );
+                        if (exception != null) {
+                            throw exception;
                         }
                     }
                 }
-                try {
-                    executorServiceWrite.shutdown();
-                    executorServiceWrite.shutdownNow();
-                } catch (Exception e) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("executorServiceWrite.shutdown() or .shutdownNow() threw an exception: " + e.getClass() + " " + e.getMessage());
-                    }
-                }
-                if (firstException != null) {
-                    throw firstException;
-                }
-            }
 
-            // Send data that is left
-            SQLException e = writerCallable.call();
-            if (e != null) {
-                throw e;
+                // Send data that is left
+                SQLException e = writerCallable.call();
+                if (e != null) {
+                    throw e;
+                }
+            } else {
+                throw firstException;
             }
         } finally {
             closeStatementAndConnection(statementWrite);
+            if (Objects.nonNull(executorServiceWrite)) {
+                shutdownExecutorService();
+            }
         }
     }
 
+    /**
+     * Cancel write operation.
+     */
+    @Override
+    public void cancelWrite() throws SQLException {
+        LOG.debug("Accessor starts cancelWrite()");
+        isCanceled = true;
+        closeStatementAndConnection(statementWrite);
+        if (poolSize > 1) {
+            LOG.debug("Number of tasks to be canceled: {}", poolTasks.size());
+            poolTasks.forEach(task -> task.cancel(true));
+            LOG.debug("Shutdown writer executor service");
+            shutdownExecutorService();
+        }
+    }
 
     /**
      * Gets the text of the query by reading the file from the server configuration directory. The name of the file
@@ -381,5 +416,13 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
 
     private boolean parseJdbcUsePreparedStatementProperty() {
         return Utilities.parseBooleanProperty(configuration, JDBC_READ_PREPARED_STATEMENT_PROPERTY_NAME, false);
+    }
+
+    private void shutdownExecutorService() {
+        try {
+            executorServiceWrite.shutdownNow();
+        } catch (Exception e) {
+            LOG.debug("Failed to shutdown writer executor service: {}", ExceptionUtils.getMessage(e));
+        }
     }
 }

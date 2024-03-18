@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
+	"github.com/greenplum-db/gp-common-go-libs/gplog"
 )
 
 type envVar string
@@ -20,6 +21,9 @@ const (
 	javaHome envVar = "JAVA_HOME"
 	// For pxf migrate
 	pxfConf envVar = "PXF_CONF"
+	// For pxf profile reload
+	pxfHost envVar = "PXF_HOST"
+	pxfPort envVar = "PXF_PORT"
 )
 
 type messageType int
@@ -70,6 +74,35 @@ func (cmd *command) GetFunctionToExecute() (func(string) string, error) {
 				hostname,
 				inputs[pxfBase])
 		}, nil
+	case reload:
+		pxfDefaultHost := "localhost"
+		pxfDefaultPort := "5888"
+		var pxfHostStr string
+		var pxfPortStr string
+		reloadCommandTemplate := "curl --silent --fail --show-error --request POST http://%s:%s/pxf/reload --header \"Content-Type: application/json\" --data '{\"profile\":\"%s\",\"server\":\"%s\"}'"
+
+		// Set pxf host
+		pxfHostStr, isPxfHostSet := os.LookupEnv(string(pxfHost))
+		if !isPxfHostSet {
+			pxfHostStr = pxfDefaultHost
+		}
+
+		// Set pxf port
+		pxfPortStr, isPxfPortSet := os.LookupEnv(string(pxfPort))
+		if !isPxfPortSet {
+			pxfPortStr = pxfDefaultPort
+		}
+
+		reloadCommand := fmt.Sprintf(reloadCommandTemplate, pxfHostStr, pxfPortStr, ReloadProfileName, ReloadServerName)
+		if !ReloadAutoConfirm {
+			cmd.warn = true
+			err := cmd.Warn(os.Stdin)
+			if err != nil {
+				return nil, err
+			}
+		}
+		gplog.Info(fmt.Sprintf("Execute command: %s", reloadCommand))
+		return func(_ string) string { return reloadCommand }, nil
 	default:
 		var effectivePxfBase string
 
@@ -127,6 +160,7 @@ const (
 	restart  = "restart"
 	prepare  = "prepare"
 	migrate  = "migrate"
+	reload   = "reload"
 )
 
 // The pxf cli commands, exported for testing
@@ -189,6 +223,19 @@ var (
 		// this is ideal for copying files from coordinator to segment host(s) using rsync.
 		// since the files are already on coordinator, we exclude coordinator but include standby coordinator
 		whereToRun: cluster.ON_LOCAL | cluster.ON_HOSTS | cluster.EXCLUDE_MASTER | cluster.INCLUDE_MIRRORS,
+	}
+	ReloadCommand = command{
+		name: reload,
+		messages: map[messageType]string{
+			success: "PXF successfully reloaded profiles on %d out of %d host%s\n",
+			status:  "PXF is reloading profiles on coordinator host%s and %d segment host%s...\n",
+			standby: " standby coordinator host and",
+			err:     "PXF failed to reload profile on %d out of %d host%s. Check the PXF logs located in the '$PXF_BASE/logs' directory\n",
+			warning: "Do you really want to reload profile(s) and terminate all related queries? Yy|Nn (default=N):",
+		},
+		warn:       false,
+		envVars:    []envVar{pxfBase},
+		whereToRun: cluster.ON_REMOTE | cluster.ON_HOSTS | cluster.INCLUDE_COORDINATOR | cluster.INCLUDE_MIRRORS,
 	}
 	StatusCommand = command{
 		name: statuses,
