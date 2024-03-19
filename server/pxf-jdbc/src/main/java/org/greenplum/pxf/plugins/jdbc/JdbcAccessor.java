@@ -31,6 +31,7 @@ import org.greenplum.pxf.api.model.ConfigurationFactory;
 import org.greenplum.pxf.api.security.SecureLogin;
 import org.greenplum.pxf.api.utilities.Utilities;
 import org.greenplum.pxf.plugins.jdbc.utils.ConnectionManager;
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
 import java.io.File;
 import java.io.IOException;
@@ -218,6 +219,9 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor, Cancelable
                 batchSize = 1;
             }
         }
+        // Get database product name
+        DbProduct dbProduct = DbProduct.getDbProduct(connection.getMetaData().getDatabaseProductName());
+
         writer = JdbcWriter.fromProps(
                 JdbcWriterProperties.builder()
                         .terminationTimeoutSeconds(JdbcWriter.TERMINATION_TIMEOUT)
@@ -226,6 +230,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor, Cancelable
                         .poolSize(poolSize)
                         .query(queryWrite)
                         .plugin(this)
+                        .dbProduct(dbProduct)
                         .build()
         );
         closeConnection(connection);
