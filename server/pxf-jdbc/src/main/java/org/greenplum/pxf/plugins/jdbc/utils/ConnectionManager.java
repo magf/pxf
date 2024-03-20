@@ -11,6 +11,7 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.plugins.jdbc.PxfJdbcProperties;
 import org.slf4j.Logger;
@@ -27,11 +28,13 @@ import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 /**
  * Responsible for obtaining and maintaining JDBC connections to databases. If configured for a given server,
  * uses Hikari Connection Pool to pool database connections.
  */
+@Slf4j
 @Component
 public class ConnectionManager {
 
@@ -76,6 +79,28 @@ public class ConnectionManager {
                         },
                         datasourceClosingExecutor))
                 .build(CacheLoader.from(factory::createDataSource));
+    }
+
+    public void reloadCache() {
+        dataSources.asMap().forEach(this::invalidateAndCloseDaraSource);
+    }
+
+    public void reloadCacheIf(Predicate<PoolDescriptor> poolDescriptorFilter) {
+        dataSources.asMap()
+                .forEach((poolDescriptor, hikariDataSource) -> {
+                    if (poolDescriptorFilter.test(poolDescriptor)) {
+                        invalidateAndCloseDaraSource(poolDescriptor, hikariDataSource);
+                    }
+                });
+    }
+
+    private void invalidateAndCloseDaraSource(PoolDescriptor poolDescriptor, HikariDataSource hds) {
+        log.debug("Datasource: {}; Number of active connection: {}; Pool descriptor: {}",
+                hds.getPoolName(), hds.getHikariPoolMXBean().getActiveConnections(), poolDescriptor);
+        dataSources.invalidate(poolDescriptor);
+        hds.close();
+        cleanCache();
+        log.info("Invalidated and closed datasource {}. Pool descriptor: {}", hds.getPoolName(), poolDescriptor);
     }
 
     /**
@@ -238,7 +263,5 @@ public class ConnectionManager {
         public Driver getDriver(String url) throws SQLException {
             return DriverManager.getDriver(url);
         }
-
     }
 }
-

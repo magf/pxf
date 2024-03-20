@@ -7,6 +7,7 @@ import org.greenplum.pxf.service.HttpHeaderDecoder;
 import org.greenplum.pxf.service.RequestParser;
 import org.greenplum.pxf.service.controller.ReadService;
 import org.greenplum.pxf.service.controller.WriteService;
+import org.greenplum.pxf.service.security.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -34,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest({PxfReadResource.class, PxfWriteResource.class, PxfLegacyResource.class})
+@Import(SecurityConfig.class)
 public class PxfResourceIT {
 
     @Autowired
@@ -133,6 +136,10 @@ public class PxfResourceIT {
                 @Override
                 public boolean cancelRead(RequestContext context) {
                     return true;
+                }
+
+                @Override
+                public void cancelReadExecutions(String profile,String server) {
                 }
             };
         }

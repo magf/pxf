@@ -22,6 +22,7 @@ package org.greenplum.pxf.service.bridge;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.error.BadRecordException;
 import org.greenplum.pxf.api.io.Writable;
+import org.greenplum.pxf.api.model.CancelableOperation;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.service.BridgeOutputBuilder;
 import org.greenplum.pxf.service.utilities.BasePluginFactory;
@@ -150,8 +151,24 @@ public class ReadBridge extends BaseBridge {
      * {@inheritDoc}
      */
     @Override
+    public void cancelIteration() throws Exception {
+        try {
+            if (accessor instanceof CancelableOperation) {
+                ((CancelableOperation) accessor).cancelRead();
+            } else {
+                LOG.debug("Accessor [{}] does not support canceling read operation", accessor.getClass().getSimpleName());
+            }
+        } catch (Exception e) {
+            LOG.error("Failed to cancel read bridge iteration: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean setNext(DataInputStream inputStream) {
         throw new UnsupportedOperationException("Write operation is not supported.");
     }
-
 }

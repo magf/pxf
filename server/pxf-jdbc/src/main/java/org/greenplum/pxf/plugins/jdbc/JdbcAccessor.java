@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.Accessor;
+import org.greenplum.pxf.api.model.CancelableOperation;
 import org.greenplum.pxf.api.model.ConfigurationFactory;
 import org.greenplum.pxf.api.security.SecureLogin;
 import org.greenplum.pxf.api.utilities.Utilities;
@@ -38,7 +39,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLTimeoutException;
 import java.sql.Statement;
 
 /**
@@ -50,7 +50,7 @@ import java.sql.Statement;
  * built-in JDBC batches of arbitrary size
  */
 @Slf4j
-public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
+public class JdbcAccessor extends JdbcBasePlugin implements Accessor, CancelableOperation {
 
     private static final String JDBC_READ_PREPARED_STATEMENT_PROPERTY_NAME = "jdbc.read.prepared-statement";
 
@@ -58,6 +58,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
     private ResultSet resultSetRead = null;
 
     private JdbcWriter writer;
+    private boolean isCanceled;
 
     /**
      * Creates a new instance of the JdbcAccessor
@@ -81,8 +82,8 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      * Create query, open JDBC connection, execute query and store the result into resultSet
      *
      * @return true if successful
-     * @throws SQLException        if a database access error occurs
-     * @throws SQLTimeoutException if a problem with the connection occurs
+     *
+     * @throws SQLException if a database access error occurs
      */
     @Override
     public boolean openForRead() throws SQLException {
@@ -104,7 +105,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
 
     private boolean openForReadInner(Connection connection) throws SQLException {
         String queryRead = buildSelectQuery(connection);
-        log.debug("Select query: {}", queryRead);
+        log.trace("Select query: {}", queryRead);
 
         // Execute queries
         // Certain features of third-party JDBC drivers may require the use of a PreparedStatement, even if there are no
@@ -160,6 +161,12 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      */
     @Override
     public OneRow readNextObject() throws SQLException {
+        if (isCanceled) {
+            String message = "The read operation was canceled";
+            LOG.warn(message);
+            throw new PxfRuntimeException(message);
+        }
+
         if (resultSetRead.next()) {
             return new OneRow(resultSetRead);
         }
@@ -175,12 +182,21 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
     }
 
     /**
+     * Cancel read operation.
+     */
+    @Override
+    public void cancelRead() {
+        // We don't need to close statement and connection here because closeForRead() will be invoked anyway
+        // Sometimes resultSetRead.next() has unpredictable behaviour while closing statement and connection
+        isCanceled = true;
+    }
+
+    /**
      * openForWrite() implementation
      * Create query template and open JDBC connection
      *
      * @return true if successful
-     * @throws SQLException        if a database access error occurs
-     * @throws SQLTimeoutException if a problem with the connection occurs
+     * @throws SQLException if a database access error occurs
      */
     @Override
     public boolean openForWrite() throws SQLException {

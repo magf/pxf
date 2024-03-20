@@ -23,7 +23,9 @@ import io.arenadata.security.encryption.client.service.DecryptClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.BasePlugin;
+import org.greenplum.pxf.api.model.Reloader;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.security.SecureLogin;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
@@ -42,9 +44,9 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
-import java.util.Objects;
 
 import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER_IMPERSONATION;
 
@@ -54,7 +56,7 @@ import static org.greenplum.pxf.api.security.SecureLogin.CONFIG_KEY_SERVICE_USER
  * Implemented subclasses: {@link JdbcAccessor}, {@link JdbcResolver}.
  */
 @Slf4j
-public class JdbcBasePlugin extends BasePlugin {
+public class JdbcBasePlugin extends BasePlugin implements Reloader {
 
     // '100' is a recommended value: https://docs.oracle.com/cd/E11882_01/java.112/e16548/oraperf.htm#JJDBC28754
     private static final int DEFAULT_BATCH_SIZE = 100;
@@ -504,6 +506,26 @@ public class JdbcBasePlugin extends BasePlugin {
 
         if (exception != null) {
             throw exception;
+        }
+    }
+
+    @Override
+    public void reloadAll() {
+        if (Objects.nonNull(connectionManager)) {
+            connectionManager.reloadCache();
+        } else {
+            throw new PxfRuntimeException("Failed to reload profile. Connection manager is null.");
+        }
+    }
+
+    @Override
+    public void reload(String server) {
+        if (Objects.isNull(connectionManager)) {
+            throw new PxfRuntimeException("Failed to reload profile. Connection manager is null.");
+        } else if (StringUtils.isBlank(server)) {
+            throw new PxfRuntimeException("Failed to reload profile. Parameter server is blank.");
+        } else {
+            connectionManager.reloadCacheIf(poolDescriptor -> poolDescriptor.getServer().equals(server));
         }
     }
 

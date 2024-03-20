@@ -16,6 +16,20 @@ public class BasePluginFactory {
 
     public <T extends Plugin> T getPlugin(RequestContext context, String pluginClassName) {
 
+        Plugin instance = getPluginInstance(pluginClassName);
+
+        // initialize the instance
+        instance.setRequestContext(context);
+        instance.afterPropertiesSet();
+
+        // cast into a target type
+        @SuppressWarnings("unchecked")
+        T castInstance = (T) instance;
+
+        return castInstance;
+    }
+
+    public Plugin getPluginInstance(String pluginClassName) {
         // get the class name of the plugin
         if (StringUtils.isBlank(pluginClassName)) {
             throw new RuntimeException("Could not determine plugin class name");
@@ -52,15 +66,6 @@ public class BasePluginFactory {
         } catch (Exception e) {
             throw new RuntimeException(String.format("Class %s could not be instantiated", pluginClassName), e);
         }
-
-        // initialize the instance
-        instance.setRequestContext(context);
-        instance.afterPropertiesSet();
-
-        // cast into a target type
-        @SuppressWarnings("unchecked")
-        T castInstance = (T) instance;
-
-        return castInstance;
+        return instance;
     }
 }

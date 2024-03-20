@@ -85,7 +85,7 @@ class SimpleWriterCallable implements WriterCallable {
             statement.executeUpdate();
             // some drivers will not react to timeout interrupt
             if (Thread.interrupted())
-                throw new SQLException("Writer was interrupted by timeout");
+                throw new SQLException("Writer was interrupted by timeout or by request");
         } catch (SQLException e) {
             log.error("Writer {}: call() failed: SQLException", this, e);
             return e;

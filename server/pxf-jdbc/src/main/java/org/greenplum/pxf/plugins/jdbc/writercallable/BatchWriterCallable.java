@@ -33,6 +33,7 @@ import java.util.List;
 
 /**
  * This writer makes batch INSERTs.
+ * <p>
  * A call() is required after a certain number of supply() calls
  */
 @Slf4j
@@ -101,7 +102,7 @@ class BatchWriterCallable implements WriterCallable {
             log.trace("Writer {}: executeBatch() finished", this);
             // some drivers will not react to timeout interrupt
             if (Thread.interrupted())
-                throw new SQLException("Writer was interrupted by timeout");
+                throw new SQLException("Writer was interrupted by timeout or by request");
         } catch (BatchUpdateException bue) {
             SQLException cause = bue.getNextException();
             cause = cause != null ? cause : bue;
