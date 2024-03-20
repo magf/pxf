@@ -214,7 +214,7 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
         String jdbcDriver = configuration.get(JDBC_DRIVER_PROPERTY_NAME);
         assertMandatoryParameter(jdbcDriver, JDBC_DRIVER_PROPERTY_NAME, JDBC_DRIVER_OPTION_NAME);
         try {
-            LOG.debug("JDBC driver: '{}'", jdbcDriver);
+            log.debug("JDBC driver: '{}'", jdbcDriver);
             Class.forName(jdbcDriver);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
@@ -236,10 +236,10 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
             if (StringUtils.isBlank(queryName)) {
                 throw new IllegalArgumentException(String.format("Query name is not provided in data source [%s]", dataSource));
             }
-            LOG.debug("Query name is {}", queryName);
+            log.debug("Query name is {}", queryName);
         } else {
             tableName = dataSource;
-            LOG.debug("Table name is {}", tableName);
+            log.debug("Table name is {}", tableName);
         }
 
         // Required metadata
@@ -261,7 +261,7 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
         // determine fetchSize for read operations, with different default values for MySQL driver and all others
         int defaultFetchSize = jdbcDriver.startsWith(MYSQL_DRIVER_PREFIX) ? DEFAULT_MYSQL_FETCH_SIZE : DEFAULT_FETCH_SIZE;
         fetchSize = configuration.getInt(JDBC_STATEMENT_FETCH_SIZE_PROPERTY_NAME, defaultFetchSize);
-        LOG.debug("Will be using fetchSize {}", fetchSize);
+        log.debug("Will be using fetchSize {}", fetchSize);
 
         poolSize = context.getOption("POOL_SIZE", DEFAULT_POOL_SIZE);
 
@@ -316,8 +316,8 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
         ) {
             throw new IllegalArgumentException("Some session configuration parameter contains forbidden characters");
         }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Session configuration: {}",
+        if (log.isDebugEnabled()) {
+            log.debug("Session configuration: {}",
                     sessionConfiguration.entrySet().stream()
                             .map(entry -> "'" + entry.getKey() + "'='" + entry.getValue() + "'")
                             .collect(Collectors.joining(", "))
@@ -334,12 +334,12 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
         // Set optional user parameter, taking into account impersonation setting for the server.
         String jdbcUser = configuration.get(JDBC_USER_PROPERTY_NAME);
         boolean impersonationEnabledForServer = configuration.getBoolean(CONFIG_KEY_SERVICE_USER_IMPERSONATION, false);
-        LOG.debug("JDBC impersonation is {}enabled for server {}", impersonationEnabledForServer ? "" : "not ", context.getServerName());
+        log.debug("JDBC impersonation is {}enabled for server {}", impersonationEnabledForServer ? "" : "not ", context.getServerName());
         if (impersonationEnabledForServer) {
             if (Utilities.isSecurityEnabled(configuration) && StringUtils.startsWith(jdbcUrl, HIVE_URL_PREFIX)) {
                 // secure impersonation for Hive JDBC driver requires setting URL fragment that cannot be overwritten by properties
                 String updatedJdbcUrl = HiveJdbcUtils.updateImpersonationPropertyInHiveJdbcUrl(jdbcUrl, context.getUser());
-                LOG.debug("Replaced JDBC URL {} with {}", jdbcUrl, updatedJdbcUrl);
+                log.debug("Replaced JDBC URL {} with {}", jdbcUrl, updatedJdbcUrl);
                 jdbcUrl = updatedJdbcUrl;
             } else {
                 // the jdbcUser is the GPDB user
@@ -347,14 +347,14 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
             }
         }
         if (jdbcUser != null) {
-            LOG.debug("Effective JDBC user {}", jdbcUser);
+            log.debug("Effective JDBC user {}", jdbcUser);
             connectionConfiguration.setProperty("user", jdbcUser);
         } else {
-            LOG.debug("JDBC user has not been set");
+            log.debug("JDBC user has not been set");
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Connection configuration: {}",
+        if (log.isDebugEnabled()) {
+            log.debug("Connection configuration: {}",
                     connectionConfiguration.entrySet().stream()
                             .map(entry -> "'" + entry.getKey() + "'='" + entry.getValue() + "'")
                             .collect(Collectors.joining(", "))
@@ -372,14 +372,14 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
                     throw new RuntimeException(
                             "Failed to decrypt jdbc password. " + e.getMessage(), e);
                 }
-                LOG.debug("Connection password: {}", ConnectionManager.maskPassword(jdbcPassword));
+                log.debug("Connection password: {}", ConnectionManager.maskPassword(jdbcPassword));
                 connectionConfiguration.setProperty("password", jdbcPassword);
             }
         }
 
         // connection pool is optional, enabled by default
         isConnectionPoolUsed = configuration.getBoolean(JDBC_CONNECTION_POOL_ENABLED_PROPERTY_NAME, true);
-        LOG.debug("Connection pool is {}enabled", isConnectionPoolUsed ? "" : "not ");
+        log.debug("Connection pool is {}enabled", isConnectionPoolUsed ? "" : "not ");
         if (isConnectionPoolUsed) {
             poolConfiguration = new Properties();
             // for PXF upgrades where jdbc-site template has not been updated, make sure there're sensible defaults
@@ -407,7 +407,7 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
         String dateWideRangeConfig = configuration.get(JDBC_DATE_WIDE_RANGE_LEGACY);
         String dateWideRangeContext = context.getOption(JDBC_DATE_WIDE_RANGE_LEGACY);
         if (Objects.nonNull(dateWideRangeContext) || Objects.nonNull(dateWideRangeConfig)) {
-            LOG.warn("'{}' is a deprecated name of the parameter. Use 'date_wide_range' in the external table definition or " +
+            log.warn("'{}' is a deprecated name of the parameter. Use 'date_wide_range' in the external table definition or " +
                     "'{}' in the jdbc-site.xml configuration file", JDBC_DATE_WIDE_RANGE_LEGACY, JDBC_DATE_WIDE_RANGE);
             isDateWideRange = isDateWideRange(dateWideRangeContext);
         } else {
@@ -422,12 +422,12 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
      * @throws SQLException if a database access or connection error occurs
      */
     public Connection getConnection() throws SQLException {
-        LOG.trace("Requesting a new JDBC connection. URL={} table={} txid:seg={}:{}", jdbcUrl, tableName, context.getTransactionId(), context.getSegmentId());
+        log.trace("Requesting a new JDBC connection. URL={} table={} txid:seg={}:{}", jdbcUrl, tableName, context.getTransactionId(), context.getSegmentId());
 
         Connection connection = null;
         try {
             connection = getConnectionInternal();
-            LOG.trace("Obtained a JDBC connection {} for URL={} table={} txid:seg={}:{}", connection, jdbcUrl, tableName, context.getTransactionId(), context.getSegmentId());
+            log.trace("Obtained a JDBC connection {} for URL={} table={} txid:seg={}:{}", connection, jdbcUrl, tableName, context.getTransactionId(), context.getSegmentId());
 
             prepareConnection(connection);
         } catch (Exception e) {
@@ -461,7 +461,7 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
         }
         PreparedStatement statement = connection.prepareStatement(query);
         if (queryTimeout != null) {
-            LOG.trace("Setting query timeout to {} seconds", queryTimeout);
+            log.trace("Setting query timeout to {} seconds", queryTimeout);
             statement.setQueryTimeout(queryTimeout);
         }
         return statement;
@@ -593,7 +593,7 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
         if (transactionIsolation != TransactionIsolation.NOT_PROVIDED) {
             // user wants to set isolation level explicitly
             if (metadata.supportsTransactionIsolationLevel(transactionIsolation.getLevel())) {
-                LOG.trace("Setting transaction isolation level to {} on connection {}", transactionIsolation.toString(), connection);
+                log.trace("Setting transaction isolation level to {} on connection {}", transactionIsolation.toString(), connection);
                 connection.setTransactionIsolation(transactionIsolation.getLevel());
             } else {
                 throw new RuntimeException(
@@ -604,7 +604,7 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
 
         // Disable autocommit
         if (metadata.supportsTransactions() && connection.getAutoCommit()) {
-            LOG.trace("Setting autoCommit to false on connection {}", connection);
+            log.trace("Setting autoCommit to false on connection {}", connection);
             connection.setAutoCommit(false);
         }
 
@@ -615,7 +615,7 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
             try (Statement statement = connection.createStatement()) {
                 for (Map.Entry<String, String> e : sessionConfiguration.entrySet()) {
                     String sessionQuery = dbProduct.buildSessionQuery(e.getKey(), e.getValue());
-                    LOG.trace("Executing statement {} on connection {}", sessionQuery, connection);
+                    log.trace("Executing statement {} on connection {}", sessionQuery, connection);
                     statement.execute(sessionQuery);
                 }
             }

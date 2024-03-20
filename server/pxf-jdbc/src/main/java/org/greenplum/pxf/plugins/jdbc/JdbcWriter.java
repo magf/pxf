@@ -21,6 +21,7 @@ package org.greenplum.pxf.plugins.jdbc;
 
 import lombok.extern.slf4j.Slf4j;
 import org.greenplum.pxf.api.OneRow;
+import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.plugins.jdbc.writercallable.TimeoutFixedThreadPoolExecutor;
 import org.greenplum.pxf.plugins.jdbc.writercallable.WriterCallable;
 import org.greenplum.pxf.plugins.jdbc.writercallable.WriterCallableFactory;
@@ -47,6 +48,7 @@ public class JdbcWriter {
     private final int terminationTimeoutSeconds;
     private final Semaphore semaphore;
     private WriterCallable writerCallable = null;
+    private boolean isCanceled;
 
     JdbcWriter(JdbcBasePlugin plugin,
                int batchSize,
@@ -94,8 +96,9 @@ public class JdbcWriter {
     }
 
     public boolean write(OneRow row) throws Exception {
+        checkCanceled();
         if (writerCallableFactory == null) {
-            throw new IllegalStateException("The JDBC connection was not properly initialized: writerCallableFactory is null");
+            throwException(new IllegalStateException("The JDBC connection was not properly initialized: writerCallableFactory is null"));
         } else if (writerCallable == null) {
             writerCallable = writerCallableFactory.get();
             log.trace("Created new writer {}", writerCallable);
@@ -112,6 +115,7 @@ public class JdbcWriter {
             }
             // Semaphore#release runs as onComplete.run() in a 'finally' statement of WriterCallable#call
             semaphore.acquire();
+            checkCanceled();
             Future<SQLException> future = writerExecutor.submit(writerCallable);
             poolTasks.add(future);
             log.trace("Accessor submitted the task for writer {} with future result {}", writerCallable, future);
@@ -143,6 +147,23 @@ public class JdbcWriter {
             }
         } finally {
             shutdownExecutorService(writerExecutor);
+        }
+    }
+
+    public void cancelWrite() {
+        log.debug("Writer starts cancelWrite()");
+        isCanceled = true;
+        log.debug("Number of tasks to be canceled: {}", poolTasks.size());
+        poolTasks.forEach(task -> task.cancel(true));
+        log.debug("Shutdown writer executor service");
+        shutdownExecutorService(writerExecutor);
+    }
+
+    private void checkCanceled() throws Exception {
+        if (isCanceled) {
+            String message = "The write operation was canceled";
+            log.warn(message);
+            throwException(new PxfRuntimeException(message));
         }
     }
 

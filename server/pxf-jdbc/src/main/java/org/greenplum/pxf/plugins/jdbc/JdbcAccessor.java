@@ -277,6 +277,15 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor, Cancelable
     }
 
     /**
+     * Cancel write operation.
+     */
+    @Override
+    public void cancelWrite() {
+        LOG.debug("Accessor starts cancelWrite()");
+        writer.cancelWrite();
+    }
+
+    /**
      * Gets the text of the query by reading the file from the server configuration directory. The name of the file
      * is expected to be the same as the name of the query provided by the user and have extension ".sql"
      *
