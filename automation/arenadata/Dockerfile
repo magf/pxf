@@ -1,5 +1,15 @@
 FROM hub.adsw.io/library/gpdb6_regress:latest
-RUN sudo yum install -y epel-release  maven python-pip
+RUN sudo yum install -y epel-release  python-pip
+
+# install maven
+RUN wget --no-check-certificate https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -P /tmp \
+    && tar -xf /tmp/apache-maven-3.9.6-bin.tar.gz -C /opt \
+    && ln -s /opt/apache-maven-3.9.6 /opt/maven
+
+# Download jar files
+RUN mkdir -p /tmp/libs
+RUN curl -fSL https://rt.adsw.io/artifactory/maven-arenadata-release/io/arenadata/security/encryption/1.0.0/encryption-1.0.0-exec.jar -o /tmp/libs/encryption-1.0.0-exec.jar
+RUN curl -fSL https://rt.adsw.io/artifactory/maven-apache/com/oracle/database/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar -o /tmp/libs/ojdbc8-12.2.0.1.jar
 
 # install go, ginkgo and keep env variables which may be used as a part of base image
 RUN set -eux; \
@@ -56,9 +66,8 @@ RUN sudo -H -u gpadmin bash -c "pip install --user paramiko"
 RUN localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 RUN cp ${PXF_HOME}/templates/*-site.xml ${PXF_HOME}/servers/default/
 
-# Download jar files
-RUN curl -fSL https://rt.adsw.io/artifactory/maven-arenadata-release/io/arenadata/security/encryption/1.0.0/encryption-1.0.0-exec.jar -o /usr/local/greenplum-db-devel/pxf/lib/encryption-1.0.0-exec.jar
-RUN curl -fSL https://rt.adsw.io/artifactory/maven-apache/com/oracle/database/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar -o /usr/local/greenplum-db-devel/pxf/lib/ojdbc8-12.2.0.1.jar
+# Move libs to the destination folder
+RUN cp /tmp/libs/* ${PXF_HOME}/lib/
 
 RUN chmod a+x ./pxf_src/automation/arenadata/scripts/start_adb_cluster.sh
 RUN chown -R gpadmin:gpadmin /usr/local/greenplum-db-devel

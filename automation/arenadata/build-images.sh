@@ -1,6 +1,13 @@
 #!/bin/bash
 
 echo "=============================="
+echo "      Clean the project       "
+echo "=============================="
+pushd ../../server
+./gradlew clean
+popd
+
+echo "=============================="
 echo "Build PXF image for automation"
 echo "=============================="
 pushd ../..
