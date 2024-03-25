@@ -79,7 +79,7 @@ endif
 
 # set PXF_TEST_DEBUG to true to remotely debug pxf automation test
 ifeq "$(PXF_TEST_DEBUG)" "true"
-	MAVEN_DEBUG_OPTS+= -Dmaven.surefire.debug
+	MAVEN_DEBUG_OPTS+= -Dmaven.surefire.debug="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005"
 endif
 
 # disables credentials check by artifactregistry-maven-wagon plugin when run inside GCE VM.

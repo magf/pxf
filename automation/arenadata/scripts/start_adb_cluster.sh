@@ -71,7 +71,10 @@ BASH_PROFILE="export PGPORT=5432
   export PXF_HOME=/usr/local/greenplum-db-devel/pxf
   export GPHD_ROOT=/home/gpadmin/workspace/singlecluster
   export TEST_HOME=/home/gpadmin/workspace/pxf/automation
-  PATH=/usr/lib/gpdb/bin/:/usr/local/greenplum-db-devel/bin/:/usr/local/greenplum-db-devel/pxf/bin:\$PATH
+  # Maven variables
+  export M2_HOME=/opt/maven
+  export MAVEN_HOME=/opt/maven
+  PATH=/usr/lib/gpdb/bin/:/usr/local/greenplum-db-devel/bin/:/usr/local/greenplum-db-devel/pxf/bin:/opt/maven/bin:\$PATH
   export PATH"
 
 # Run sshd
@@ -200,18 +203,14 @@ echo "------------------------------------"
 sudo -H -u gpadmin bash -c -l "HIVE_SERVER_HOST=$HIVE_SERVER_HOST JDBC_HOST=$DOCKER_GP_MASTER_SERVER make -C ~/workspace/pxf/automation  sync_jdbc_config"
 
 # PXF runs only on segment servers
-for server in $DOCKER_GP_SEGMENT_SERVERS
+for server in $DOCKER_GP_CLUSTER_HOSTS
 do
-  if [ "$HOSTNAME" == "$server" ]; then
-    echo "---------"
-    echo "Start PXF"
-    echo "---------"
-    sudo -H -u gpadmin bash -c "source /home/gpadmin/.bash_profile &&
-        pxf start &&
-        tail -f /usr/local/greenplum-db-devel/pxf/logs/pxf-service.log"
+  echo "---------"
+  echo "Start PXF"
+  echo "---------"
+  if [ "$HOSTNAME" == "$DOCKER_GP_MASTER_SERVER" ]; then
+    sudo -H -u gpadmin bash -c -l "pxf start && tail -f /data1/master/gpseg-1/pg_log/gpdb-*.csv"
+  else
+    sudo -H -u gpadmin bash -c -l "pxf start && tail -f /usr/local/greenplum-db-devel/pxf/logs/pxf-service.log"
   fi
 done
-
-if [ "$HOSTNAME" == "$DOCKER_GP_MASTER_SERVER" ]; then
-  tail -f /data1/master/gpseg-1/pg_log/gpdb-*.csv
-fi
