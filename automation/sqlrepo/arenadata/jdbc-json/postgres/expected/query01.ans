@@ -1,7 +1,10 @@
 -- start_ignore
 -- end_ignore
--- @description query02 for PXF test json - readable table
-SELECT * FROM json_read_ext_table ORDER BY 1;
+-- @description query01 for PXF test json - writable table
+INSERT INTO postgres_json_write_ext_table SELECT * FROM json_source_table;
+INSERT 0 6
+
+SELECT * FROM postgres_json_target_table ORDER BY 1;
  id |                                                                                                    data_jsonb                                                                                                    |                  data_json
 ----+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------
   1 | {"title": "Sleeping Beauties", "genres": ["Fiction", "Thriller", "Horror"], "readers": {"USA": {"Chicago": 15, "Houston": 25, "New York": 25}, "Russia": {"Moscow": 10, "Novosibirsk": 20}}, "published": false} | [{"follower": 10}, {"names": "Kate, Jhon"}]
@@ -11,3 +14,9 @@ SELECT * FROM json_read_ext_table ORDER BY 1;
   5 | {"title": "Deep Work", "genres": ["Productivity", "Reference"], "published": true}                                                                                                                               |
   6 | {"title": "Siddhartha", "genres": ["Fiction", "Spirituality"], "published": true}                                                                                                                                |
 (6 rows)
+
+SELECT * FROM postgres_json_target_table WHERE data_jsonb IS NULL;
+ id |                                                                                                    data_jsonb                                                                                                    |                  data_json
+----+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------
+  2 |                                                                                                                                                                                                                  | [{"follower": 15}, {"names": "Bob, Barby"}]
+(1 row)

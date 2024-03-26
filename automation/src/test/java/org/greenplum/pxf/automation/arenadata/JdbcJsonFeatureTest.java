@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import jsystem.framework.system.SystemManagerImpl;
+import org.greenplum.pxf.automation.components.mysql.Mysql;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
@@ -8,62 +10,120 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
+import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FILE_NAME;
+import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE;
+import static org.testng.Assert.assertEquals;
+
 public class JdbcJsonFeatureTest extends BaseFeature {
-    private static final String[] JSON_SOURCE_TABLE_FIELDS = new String[]{
-            "id    serial",
+    private static final String PXF_MYSQL_SERVER_PROFILE = "mysql";
+    private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/mysql/jdbc-site.xml";
+    private static final String[] POSTGRES_JSON_TABLE_FIELDS = new String[]{
+            "id    int",
             "data_jsonb   jsonb",
             "data_json  json"};
 
+    private static final String[] MYSQL_JSON_TABLE_FIELDS = new String[]{
+            "id    int",
+            "data_jsonb   json",
+            "data_json  json"};
+    private static final String MYSQL_CHECK_NULL_QUERY = "SELECT data_json FROM mysql_json_target_table WHERE data_jsonb IS NULL";
+    private static final String MYSQL_CHECK_NULL_EXPECTED_VALUE = "[{\"follower\": 15}, {\"names\": \"Bob, Barby\"}]";
+
     private static final String JSON_FILE_NAME = "jdbc_json.txt";
     private Table gpdbJsonSourceTable;
-    private Table gpdbJsonTargetTable;
+    private Table postgresJsonTargetTable;
+    private Table mysqlJsonTargetTable;
+    private Mysql mysql;
 
     @Override
     protected void beforeClass() throws Exception {
+        mysql = (Mysql) SystemManagerImpl.getInstance().getSystemObject("mysql");
+        copyJdbcConfFile();
         prepareData();
     }
 
     protected void prepareData() throws Exception {
-        prepareJsonSourceTable();
-        prepareJsonTargetTable();
-        createJsonWritableTable();
-        createJsonReadableTable();
+        prepareGpdbJsonSourceTable();
+        preparePostgresJsonTargetTable();
+        createPostgresJsonWritableTable();
+        createPostgresJsonReadableTable();
+        prepareMysqlJsonTargetTable();
+        createMysqlJsonWritableTable();
+        createMysqlJsonReadableTable();
     }
 
-    private void prepareJsonSourceTable() throws Exception {
-        gpdbJsonSourceTable = new Table("json_source_table", JSON_SOURCE_TABLE_FIELDS);
+    private void prepareGpdbJsonSourceTable() throws Exception {
+        gpdbJsonSourceTable = new Table("json_source_table", POSTGRES_JSON_TABLE_FIELDS);
         gpdbJsonSourceTable.setDistributionFields(new String[]{"id"});
         gpdb.createTableAndVerify(gpdbJsonSourceTable);
         gpdb.copyFromFile(gpdbJsonSourceTable, new File(localDataResourcesFolder
                 + "/arenadata/" + JSON_FILE_NAME), null, null, false);
     }
 
-    private void prepareJsonTargetTable() throws Exception {
-        gpdbJsonTargetTable = new Table("json_target_table", JSON_SOURCE_TABLE_FIELDS);
-        gpdbJsonTargetTable.setDistributionFields(new String[]{"id"});
-        gpdb.createTableAndVerify(gpdbJsonTargetTable);
+    private void preparePostgresJsonTargetTable() throws Exception {
+        postgresJsonTargetTable = new Table("postgres_json_target_table", POSTGRES_JSON_TABLE_FIELDS);
+        postgresJsonTargetTable.setDistributionFields(new String[]{"id"});
+        gpdb.createTableAndVerify(postgresJsonTargetTable);
     }
 
-    private void createJsonWritableTable() throws Exception {
-        ExternalTable gpdbJsonWritableTable = TableFactory.getPxfJdbcWritableTable(
-                "json_write_ext_table",
-                JSON_SOURCE_TABLE_FIELDS,
-                gpdbJsonTargetTable.getName(),
+    private void createPostgresJsonWritableTable() throws Exception {
+        ExternalTable postgresJsonWritableTable = TableFactory.getPxfJdbcWritableTable(
+                "postgres_json_write_ext_table",
+                POSTGRES_JSON_TABLE_FIELDS,
+                postgresJsonTargetTable.getName(),
                 "default");
-        gpdb.createTableAndVerify(gpdbJsonWritableTable);
+        gpdb.createTableAndVerify(postgresJsonWritableTable);
     }
 
-    private void createJsonReadableTable() throws Exception {
-        ExternalTable gpdbJsonReadableTable = TableFactory.getPxfJdbcReadableTable(
-                "json_read_ext_table",
-                JSON_SOURCE_TABLE_FIELDS,
+    private void createPostgresJsonReadableTable() throws Exception {
+        ExternalTable postgresJsonReadableTable = TableFactory.getPxfJdbcReadableTable(
+                "postgres_json_read_ext_table",
+                POSTGRES_JSON_TABLE_FIELDS,
                 gpdbJsonSourceTable.getName(),
                 "default");
-        gpdb.createTableAndVerify(gpdbJsonReadableTable);
+        gpdb.createTableAndVerify(postgresJsonReadableTable);
+    }
+
+    private void prepareMysqlJsonTargetTable() throws Exception {
+        mysqlJsonTargetTable = new Table("mysql_json_target_table", MYSQL_JSON_TABLE_FIELDS);
+        mysql.createTableAndVerify(mysqlJsonTargetTable);
+    }
+
+    private void createMysqlJsonWritableTable() throws Exception {
+        ExternalTable gpdbJsonMysqlWritableTable = TableFactory.getPxfJdbcWritableTable(
+                "mysql_json_write_ext_table",
+                POSTGRES_JSON_TABLE_FIELDS,
+                mysqlJsonTargetTable.getName(),
+                "mysql");
+        gpdb.createTableAndVerify(gpdbJsonMysqlWritableTable);
+    }
+
+    private void createMysqlJsonReadableTable() throws Exception {
+        ExternalTable gpdbJsonMysqlReadableTable = TableFactory.getPxfJdbcReadableTable(
+                "mysql_json_read_ext_table",
+                POSTGRES_JSON_TABLE_FIELDS,
+                mysqlJsonTargetTable.getName(),
+                "mysql");
+        gpdb.createTableAndVerify(gpdbJsonMysqlReadableTable);
     }
 
     @Test(groups = {"arenadata"})
     public void testPostgresJdbcJson() throws Exception {
-        runSqlTest("arenadata/jdbc-json");
+        runSqlTest("arenadata/jdbc-json/postgres");
+    }
+
+    @Test(groups = {"arenadata"})
+    public void testMysqlJdbcJson() throws Exception {
+        runSqlTest("arenadata/jdbc-json/mysql");
+        assertEquals((String) mysql.getValueFromQuery(MYSQL_CHECK_NULL_QUERY, 1, String.class), MYSQL_CHECK_NULL_EXPECTED_VALUE);
+    }
+
+    private void copyJdbcConfFile() throws Exception {
+        String pxfHome = cluster.getPxfHome();
+        String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_MYSQL_SERVER_PROFILE);
+        String pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
+        String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
+        cluster.deleteFileFromNodes(pxfJdbcSiteConfFile, false);
+        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
     }
 }
