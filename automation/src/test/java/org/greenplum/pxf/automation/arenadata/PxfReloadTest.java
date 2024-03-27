@@ -59,11 +59,10 @@ public class PxfReloadTest extends BaseFeature {
         int sessionCountAfterReload = getGpdbSessionCount();
 
         Assert.assertEquals(sessionCountBeforeReload - sessionCountAfterReload, 2, "Two sessions should be closed");
-        cluster.runCommand("cat " + pxfLogFile);
-        List<String> result = Arrays.asList(cluster.getLastCmdResult().split("\r\n"));
-        Assert.assertTrue(result.stream().anyMatch(logLine -> logLine.contains("Received a request to reload a profile with the parameters: profile=, server=")),
-                "Pxf reload not found in log");
-        Assert.assertEquals(result.stream().filter(logLine -> logLine.contains("Shutdown completed.")).count(), 2, "Two HikariPool should be reloaded");
+        cluster.runCommandOnNodes(Collections.singletonList(pxfNode),
+                "cat " + pxfLogFile + " | grep \"profile=, server=\" | { [ $(wc -l) -eq 1 ] && exit 0 || exit 1; }");
+        cluster.runCommandOnNodes(Collections.singletonList(pxfNode),
+                "cat " + pxfLogFile + " | grep \"Shutdown completed.\" | { [ $(wc -l) -eq 2 ] && exit 0 || exit 1; }");
     }
 
     @Test(groups = {"arenadata"})
@@ -78,12 +77,12 @@ public class PxfReloadTest extends BaseFeature {
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
         cluster.runCommand("pxf cluster reload -a -p jdbc -s " + PXF_RELOAD_SERVER_PROFILE, 0);
         int sessionCountAfterReload = getGpdbSessionCount();
+
         Assert.assertEquals(sessionCountBeforeReload - sessionCountAfterReload, 1, "One sessions should be closed");
-        cluster.runCommand("cat " + pxfLogFile);
-        List<String> result = Arrays.asList(cluster.getLastCmdResult().split("\r\n"));
-        Assert.assertTrue(result.stream().anyMatch(logLine -> logLine.contains("Received a request to reload a profile with the parameters: profile=jdbc, server=reload")),
-                "Pxf reload not found in log");
-        Assert.assertEquals(result.stream().filter(logLine -> logLine.contains("Shutdown completed.")).count(), 1, "One HikariPool should be reloaded");
+        cluster.runCommandOnNodes(Collections.singletonList(pxfNode),
+                "cat " + pxfLogFile + " | grep \"profile=jdbc, server=reload\" | { [ $(wc -l) -eq 1 ] && exit 0 || exit 1; }");
+        cluster.runCommandOnNodes(Collections.singletonList(pxfNode),
+                "cat " + pxfLogFile + " | grep \"Shutdown completed.\" | { [ $(wc -l) -eq 1 ] && exit 0 || exit 1; }");
     }
 
     private int getGpdbSessionCount() throws Exception {
