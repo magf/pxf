@@ -124,9 +124,12 @@ class BatchWriterCallable implements WriterCallable {
                 log.trace("Writer {}: call() done in {} ms", this, duration / 1000000);
             }
             rows.clear();
-            JdbcBasePlugin.closeStatementAndConnection(statement);
-            log.trace("Writer {} completed inserting the batch", this);
-            onComplete.run();
+            try {
+                JdbcBasePlugin.closeStatementAndConnection(statement);
+            } finally {
+                log.trace("Writer {} completed inserting the batch", this);
+                onComplete.run();
+            }
         }
 
         return null;

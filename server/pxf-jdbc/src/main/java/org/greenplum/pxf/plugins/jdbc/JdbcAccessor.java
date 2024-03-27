@@ -282,7 +282,11 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor, Cancelable
     @Override
     public void cancelWrite() {
         LOG.debug("Accessor starts cancelWrite()");
-        writer.cancelWrite();
+        if (writer != null) {
+            writer.cancelWrite();
+        } else {
+            log.debug("Accessor didn't find any write operations to cancel");
+        }
     }
 
     /**

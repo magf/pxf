@@ -137,6 +137,7 @@ public class JdbcWriter {
             if (firstException.get() == null) {
                 if (writerCallable != null) {
                     // Send data that is left
+                    checkCanceled();
                     Future<SQLException> future = writerExecutor.submit(writerCallable);
                     poolTasks.add(future);
                     log.trace("Accessor submitted the last task for writer {} with future result {}", writerCallable, future);
@@ -151,12 +152,16 @@ public class JdbcWriter {
     }
 
     public void cancelWrite() {
-        log.debug("Writer starts cancelWrite()");
         isCanceled = true;
-        log.debug("Number of tasks to be canceled: {}", poolTasks.size());
-        poolTasks.forEach(task -> task.cancel(true));
-        log.debug("Shutdown writer executor service");
-        shutdownExecutorService(writerExecutor);
+        try {
+            log.debug("Number of tasks to be canceled: {}", poolTasks.size());
+            poolTasks.forEach(task -> task.cancel(true));
+            log.debug("Shutdown writer executor service");
+            shutdownExecutorService(writerExecutor);
+        } finally {
+            // We need to release semaphore because some drivers will not react on interrupt
+            semaphore.release();
+        }
     }
 
     private void checkCanceled() throws Exception {
@@ -173,7 +178,7 @@ public class JdbcWriter {
             if (future.isDone()) {
                 try {
                     exception = future.get();
-                    log.trace("Writer {} completed intermediate task with the future {}", writerCallable, future);
+                    log.trace("Accessor completed intermediate task with the future {}", future);
                 } catch (Exception ex) {
                     exception = ex;
                 }
@@ -190,7 +195,7 @@ public class JdbcWriter {
             Exception exception;
             try {
                 exception = future.get();
-                log.trace("Writer {} completed one of the last task with the future {}", writerCallable, future);
+                log.trace("Accessor completed one of the last task with the future {}", future);
             } catch (Exception ex) {
                 exception = ex;
             }
@@ -205,7 +210,7 @@ public class JdbcWriter {
         firstException.compareAndSet(null, exception);
         String msg = Optional.ofNullable(exception.getMessage())
                 .orElse(exception.getClass().getName());
-        log.error("Writer {} completed the task with exception: {}", writerCallable, msg);
+        log.error("Accessor completed the task with exception: {}", msg);
         throw exception;
     }
 
