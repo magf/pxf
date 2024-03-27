@@ -59,10 +59,8 @@ public class PxfReloadTest extends BaseFeature {
         int sessionCountAfterReload = getGpdbSessionCount();
 
         Assert.assertEquals(sessionCountBeforeReload - sessionCountAfterReload, 2, "Two sessions should be closed");
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode),
-                "cat " + pxfLogFile + " | grep \"profile=, server=\" | { [ $(wc -l) -eq 1 ] && exit 0 || exit 1; }");
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode),
-                "cat " + pxfLogFile + " | grep \"Shutdown completed.\" | { [ $(wc -l) -eq 2 ] && exit 0 || exit 1; }");
+        checkStringInPxfLog("profile=, server=", 1);
+        checkStringInPxfLog("Shutdown completed.", 2);
     }
 
     @Test(groups = {"arenadata"})
@@ -79,10 +77,13 @@ public class PxfReloadTest extends BaseFeature {
         int sessionCountAfterReload = getGpdbSessionCount();
 
         Assert.assertEquals(sessionCountBeforeReload - sessionCountAfterReload, 1, "One sessions should be closed");
+        checkStringInPxfLog("profile=jdbc, server=reload", 1);
+        checkStringInPxfLog("Shutdown completed.", 1);
+    }
+
+    private void checkStringInPxfLog(String logLine, int countInLogs) throws Exception {
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode),
-                "cat " + pxfLogFile + " | grep \"profile=jdbc, server=reload\" | { [ $(wc -l) -eq 1 ] && exit 0 || exit 1; }");
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode),
-                "cat " + pxfLogFile + " | grep \"Shutdown completed.\" | { [ $(wc -l) -eq 1 ] && exit 0 || exit 1; }");
+                String.format("cat %s | grep \"%s\" | { [ $(wc -l) -eq %d ] && exit 0 || exit 1; }", pxfLogFile, logLine, countInLogs));
     }
 
     private int getGpdbSessionCount() throws Exception {
