@@ -45,6 +45,7 @@ public class PxfReloadTest extends BaseFeature {
 
     @Test(groups = {"arenadata"})
     public void reloadAll() throws Exception {
+        cluster.restart(PhdCluster.EnumClusterServices.pxf);
         String extTable1 = prepareTables("table", PXF_RELOAD_SERVER_PROFILE);
         String extTable2 = prepareTables("table2", PXF_RELOAD_SECOND_SERVER_PROFILE);
 
@@ -63,6 +64,7 @@ public class PxfReloadTest extends BaseFeature {
 
     @Test(groups = {"arenadata"})
     public void reloadOneServerProfile() throws Exception {
+        cluster.restart(PhdCluster.EnumClusterServices.pxf);
         String extTable1 = prepareTables("table", PXF_RELOAD_SERVER_PROFILE);
         String extTable2 = prepareTables("table2", PXF_RELOAD_SECOND_SERVER_PROFILE);
 
