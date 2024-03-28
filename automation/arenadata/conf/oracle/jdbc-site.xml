@@ -24,4 +24,8 @@
         <name>pxf.service.user.impersonation</name>
         <value>false</value>
     </property>
+    <property>
+        <name>jdbc.pool.enabled</name>
+        <value>false</value>
+    </property>
 </configuration>
