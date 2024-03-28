@@ -11,9 +11,7 @@ import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE;
 
