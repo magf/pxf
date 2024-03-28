@@ -720,6 +720,23 @@ public abstract class TableFactory {
         return exTable;
     }
 
+    /**
+     * Prepares PXF Writable External or Foreign Table for custom data format.
+     *
+     * @param name name of the external table which will be generated
+     * @param fields fields of the external table
+     * @param path for external table path
+     * @return PXF Writable External or Foreign table
+     */
+    public static WritableExternalTable getPxfWritableCustomTable(String name,
+                                                                  String[] fields,
+                                                                  String path) {
+        WritableExternalTable exTable = getWritableExternalOrForeignTable(name, fields, path, "CUSTOM");
+        exTable.setFormatter("pxfwritable_export");
+
+        return exTable;
+    }
+
     // ============ FDW Adapter ============
     private static ReadableExternalTable getReadableExternalOrForeignTable (String name, String[] fields, String path, String format) {
         return FDWUtils.useFDW ?

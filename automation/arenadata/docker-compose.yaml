@@ -27,6 +27,7 @@ services:
       - "./conf/named-query/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/templates/named-query/jdbc-site.xml:ro"
       - "./conf/named-query/named_query.sql:/usr/local/greenplum-db-devel/pxf/templates/named-query/named_query.sql:ro"
       - "./conf/mysql/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/templates/mysql/jdbc-site.xml:ro"
+      - "./conf/backpressure/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/templates/backpressure/jdbc-site.xml:ro"
     healthcheck:
       test:  sudo -H -u gpadmin bash -l -c "psql -d postgres -U gpadmin -Atc 'SELECT 1;'"
       interval: 30s

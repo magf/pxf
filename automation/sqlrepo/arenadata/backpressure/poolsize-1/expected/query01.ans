@@ -1,0 +1,5 @@
+-- start_ignore
+-- end_ignore
+-- @description query01 for PXF test back-pressure with POOL_SIZE = 1
+INSERT INTO jdbc_bp_write_pool_size_1 SELECT * FROM gp_source_table LIMIT 1000000;
+INSERT 0 1000000

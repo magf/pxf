@@ -24,7 +24,6 @@ public class PushdownPredicateInTest extends BaseFeature {
     private static final String PXF_ORACLE_SERVER_PROFILE = "oracle-predicate";
     private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/oracle/jdbc-site.xml";
     private static final String PXF_APP_PROPERTIES_RELATIVE_PATH = "conf/pxf-application.properties";
-    private static final String PXF_LOG_RELATIVE_PATH = "logs/pxf-service.log";
     private static final String PXF_TEMP_LOG_PATH = "/tmp/pxf-service.log";
     private static final String[] POSTGRES_SOURCE_TABLE_FIELDS = new String[]{
             "id    int",
