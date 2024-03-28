@@ -22,6 +22,7 @@ package org.greenplum.pxf.plugins.jdbc;
 import lombok.extern.slf4j.Slf4j;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.error.PxfRuntimeException;
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 import org.greenplum.pxf.plugins.jdbc.writercallable.TimeoutFixedThreadPoolExecutor;
 import org.greenplum.pxf.plugins.jdbc.writercallable.WriterCallable;
 import org.greenplum.pxf.plugins.jdbc.writercallable.WriterCallableFactory;
@@ -55,7 +56,8 @@ public class JdbcWriter {
                int batchTimeout,
                String query,
                int poolSize,
-               int terminationTimeoutSeconds
+               int terminationTimeoutSeconds,
+               DbProduct dbProduct
     ) {
         log.debug("Creating JdbcWriter with batchSize={}, batchTimeout={}, query={}, poolSize={}, terminationTimeoutSeconds={}",
                 batchSize, batchTimeout, query, poolSize, terminationTimeoutSeconds);
@@ -79,7 +81,7 @@ public class JdbcWriter {
         firstException = new AtomicReference<>();
 
         // Setup WriterCallableFactory
-        writerCallableFactory = new WriterCallableFactory(plugin, query, batchSize, semaphore::release);
+        writerCallableFactory = new WriterCallableFactory(plugin, query, batchSize, semaphore::release, dbProduct);
         log.debug("JdbcWriter is created with batchSize={}, batchTimeout={}, query={}, poolSize={}, terminationTimeoutSeconds={}",
                 batchSize, batchTimeout, query, poolSize, terminationTimeoutSeconds);
     }
@@ -91,7 +93,8 @@ public class JdbcWriter {
                 props.getBatchTimeout(),
                 props.getQuery(),
                 props.getPoolSize(),
-                props.getTerminationTimeoutSeconds()
+                props.getTerminationTimeoutSeconds(),
+                props.getDbProduct()
         );
     }
 

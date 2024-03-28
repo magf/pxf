@@ -10,6 +10,7 @@ RUN wget --no-check-certificate https://dlcdn.apache.org/maven/maven-3/3.9.6/bin
 RUN mkdir -p /tmp/libs
 RUN curl -fSL https://rt.adsw.io/artifactory/maven-arenadata-release/io/arenadata/security/encryption/1.0.0/encryption-1.0.0-exec.jar -o /tmp/libs/encryption-1.0.0-exec.jar
 RUN curl -fSL https://rt.adsw.io/artifactory/maven-apache/com/oracle/database/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar -o /tmp/libs/ojdbc8-12.2.0.1.jar
+RUN curl -fSL https://rt.adsw.io/artifactory/maven-apache/com/mysql/mysql-connector-j/8.3.0/mysql-connector-j-8.3.0.jar -o /tmp/libs/mysql-connector-j-8.3.0.jar
 
 # install go, ginkgo and keep env variables which may be used as a part of base image
 RUN set -eux; \

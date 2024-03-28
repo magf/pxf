@@ -49,6 +49,8 @@ public enum DataType {
     TIMESTAMP_WITH_TIME_ZONE(1184, true),
     NUMERIC(1700, false),
     UUID(2950, false),
+    JSON(114, false),
+    JSONB(3802, false),
 
     INT2ARRAY(1005),
     INT4ARRAY(1007),
@@ -66,6 +68,8 @@ public enum DataType {
     TIMEARRAY(1183),
     TIMESTAMPARRAY(1115),
     TIMESTAMP_WITH_TIMEZONE_ARRAY(1185),
+    JSONARRAY(199),
+    JSONBARRAY(3807),
 
     UNSUPPORTED_TYPE(-1);
 
@@ -95,6 +99,8 @@ public enum DataType {
         TIMEARRAY.typeElem = TIME;
         TIMESTAMPARRAY.typeElem = TIMESTAMP;
         TIMESTAMP_WITH_TIMEZONE_ARRAY.typeElem = TIMESTAMP_WITH_TIME_ZONE;
+        JSONARRAY.typeElem = JSON;
+        JSONBARRAY.typeElem = JSONB;
 
         SMALLINT.typeArray = INT2ARRAY;
         INTEGER.typeArray = INT4ARRAY;
@@ -112,6 +118,8 @@ public enum DataType {
         TIME.typeArray = TIMEARRAY;
         TIMESTAMP.typeArray = TIMESTAMPARRAY;
         TIMESTAMP_WITH_TIME_ZONE.typeArray = TIMESTAMP_WITH_TIMEZONE_ARRAY;
+        JSON.typeArray = JSONARRAY;
+        JSONB.typeArray = JSONBARRAY;
 
         DataType[] allTypes = DataType.values();
         OID_ARRAY = new int[allTypes.length];

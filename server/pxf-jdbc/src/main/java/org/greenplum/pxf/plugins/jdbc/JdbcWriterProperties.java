@@ -21,6 +21,7 @@ package org.greenplum.pxf.plugins.jdbc;
 
 import lombok.Builder;
 import lombok.Data;
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
 @Data
 @Builder
@@ -31,4 +32,5 @@ public class JdbcWriterProperties {
     private final String query;
     private final int poolSize;
     private final int terminationTimeoutSeconds;
+    private final DbProduct dbProduct;
 }
