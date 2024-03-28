@@ -21,6 +21,7 @@ package org.greenplum.pxf.plugins.jdbc.writercallable;
 
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.plugins.jdbc.JdbcBasePlugin;
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
 /**
  * An object that processes INSERT operation on {@link OneRow} objects
@@ -31,16 +32,22 @@ public class WriterCallableFactory {
     private final JdbcBasePlugin plugin;
     private final String query;
     private final Runnable onComplete;
+    private final DbProduct dbProduct;
 
     /**
      * Create a new instance of the factory.
      *
      */
-    public WriterCallableFactory(JdbcBasePlugin plugin, String query, int batchSize, Runnable onComplete) {
+    public WriterCallableFactory(JdbcBasePlugin plugin,
+                                 String query,
+                                 int batchSize,
+                                 Runnable onComplete,
+                                 DbProduct dbProduct) {
         this.plugin = plugin;
         this.query = query;
         this.batchSize = batchSize;
         this.onComplete = onComplete;
+        this.dbProduct = dbProduct;
     }
 
     /**
@@ -50,9 +57,9 @@ public class WriterCallableFactory {
      */
     public WriterCallable get() {
         if (batchSize > 1) {
-            return new BatchWriterCallable(plugin, query, batchSize, onComplete);
+            return new BatchWriterCallable(plugin, query, batchSize, onComplete, dbProduct);
         }
-        return new SimpleWriterCallable(plugin, query, onComplete);
+        return new SimpleWriterCallable(plugin, query, onComplete, dbProduct);
     }
 
 }

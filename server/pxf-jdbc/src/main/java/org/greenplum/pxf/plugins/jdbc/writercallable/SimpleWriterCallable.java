@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.plugins.jdbc.JdbcResolver;
 import org.greenplum.pxf.plugins.jdbc.JdbcBasePlugin;
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -38,8 +39,9 @@ class SimpleWriterCallable implements WriterCallable {
     private final String query;
     private OneRow row;
     private final Runnable onComplete;
+    private final DbProduct dbProduct;
 
-    SimpleWriterCallable(JdbcBasePlugin plugin, String query, Runnable onComplete) {
+    SimpleWriterCallable(JdbcBasePlugin plugin, String query, Runnable onComplete, DbProduct dbProduct) {
         if (plugin == null) {
             throw new IllegalArgumentException("Plugin must not be null");
         } else if (query == null) {
@@ -50,6 +52,7 @@ class SimpleWriterCallable implements WriterCallable {
         this.plugin = plugin;
         this.query = query;
         this.onComplete = onComplete;
+        this.dbProduct = dbProduct;
         row = null;
     }
 
@@ -81,7 +84,7 @@ class SimpleWriterCallable implements WriterCallable {
         try {
             statement = plugin.getPreparedStatement(plugin.getConnection(), query);
             log.trace("Writer {}: got statement", this);
-            JdbcResolver.decodeOneRowToPreparedStatement(row, statement);
+            JdbcResolver.decodeOneRowToPreparedStatement(row, statement, dbProduct);
             statement.executeUpdate();
             // some drivers will not react to timeout interrupt
             if (Thread.interrupted())
