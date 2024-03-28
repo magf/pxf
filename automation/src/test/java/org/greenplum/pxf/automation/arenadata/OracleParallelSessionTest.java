@@ -14,12 +14,12 @@ import static org.testng.Assert.assertEquals;
 public class OracleParallelSessionTest extends BaseFeature {
     private static final String PXF_ORACLE_SERVER_PROFILE = "oracle-parallel";
     private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/oracle/jdbc-site.xml";
-    private static final String INSERT_QUERY = "INSERT ALL\n" +
-            "INTO system.oracle_parallel_source_table VALUES (1, 'text1')\n" +
-            "INTO system.oracle_parallel_source_table VALUES (2, 'text2')\n" +
-            "INTO system.oracle_parallel_source_table VALUES (3, 'text3')\n" +
-            "INTO system.oracle_parallel_source_table VALUES (4, 'text4')\n" +
-            "INTO system.oracle_parallel_source_table VALUES (5, 'text5')\n" +
+    private static final String INSERT_QUERY_TEMPLATE = "INSERT ALL\n" +
+            "INTO %s VALUES (1, 'text1')\n" +
+            "INTO %s VALUES (2, 'text2')\n" +
+            "INTO %s VALUES (3, 'text3')\n" +
+            "INTO %s VALUES (4, 'text4')\n" +
+            "INTO %s VALUES (5, 'text5')\n" +
             "SELECT 1 FROM DUAL";
     private static final String GET_STATS_QUERY_TEMPLATE = "SELECT * FROM (SELECT px_servers_executions FROM v$sqlstats \n" +
             "WHERE SQL_FULLTEXT LIKE '%%%s%%' \n" +
@@ -43,7 +43,6 @@ public class OracleParallelSessionTest extends BaseFeature {
             "id    int",
             "descr   text"};
 
-    private Table oracleTableSource;
     private String pxfHome;
     private String pxfJdbcSiteConfPath;
     private String pxfJdbcSiteConfFile;
@@ -57,55 +56,64 @@ public class OracleParallelSessionTest extends BaseFeature {
         pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
         pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
         oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
-        prepareData();
-    }
-
-    protected void prepareData() throws Exception {
-        prepareOracleSourceTable();
-        createGpdbReadableTable();
-    }
-
-    private void prepareOracleSourceTable() throws Exception {
-        oracleTableSource = new Table("oracle_parallel_source_table", ORACLE_SOURCE_TABLE_FIELDS);
-        oracleTableSource.setSchema("system");
-        oracle.createTableAndVerify(oracleTableSource);
-        oracle.runQuery(INSERT_QUERY);
-    }
-
-    private void createGpdbReadableTable() throws Exception {
-        Table gpdbReadableTable = TableFactory.getPxfJdbcReadableTable(
-                "oracle_parallel_read_ext_table",
-                GPDB_TABLE_FIELDS,
-                oracleTableSource.getSchema() + "." + oracleTableSource.getName(),
-                PXF_ORACLE_SERVER_PROFILE);
-        gpdb.createTableAndVerify(gpdbReadableTable);
     }
 
     @Test(groups = {"arenadata"}, description = "Set default parameters for parallel queries")
     public void checkDefaultParamsForParallel() throws Exception {
+        String oracleTableSourceName = "default_source_table";
+        Table oracleTableSource = prepareOracleSourceTable(oracleTableSourceName);
+        String dataSourcePath = oracleTableSource.getSchema() + "." + oracleTableSource.getName();
+        createGpdbReadableTable("oracle_parallel_default_read_ext", dataSourcePath);
         copyAndModifyJdbcConfFile(pxfJdbcSiteConfTemplate, EMPTY_PROPERTY);
-        runSqlTest("arenadata/oracle-parallel/query");
+        runSqlTest("arenadata/oracle-parallel/default");
         assertEquals(oracle.getValueFromQuery(
-                String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + oracleTableSource.getSchema() + "." + oracleTableSource.getName())), 0
+                String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + dataSourcePath)), 0
         );
     }
 
-    @Test(groups = {"arenadata"}, description = "Set disable parallel for query", dependsOnMethods = {"checkDefaultParamsForParallel"})
+    @Test(groups = {"arenadata"}, description = "Set disable parallel for query")
     public void checkDisableQueryParallel() throws Exception {
+        String oracleTableSourceName = "disable_query_source_table";
+        Table oracleTableSource = prepareOracleSourceTable(oracleTableSourceName);
+        String dataSourcePath = oracleTableSource.getSchema() + "." + oracleTableSource.getName();
+        createGpdbReadableTable("oracle_parallel_disable_query_read_ext", dataSourcePath);
         copyAndModifyJdbcConfFile(pxfJdbcSiteConfTemplate, DISABLE_QUERY_PROPERTY);
-        runSqlTest("arenadata/oracle-parallel/query");
+        runSqlTest("arenadata/oracle-parallel/disable-query");
         assertEquals(oracle.getValueFromQuery(
-                String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + oracleTableSource.getSchema() + "." + oracleTableSource.getName())), 0
+                String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + dataSourcePath)), 0
         );
     }
 
-    @Test(groups = {"arenadata"}, description = "Set 3 parallel sessions with force query", dependsOnMethods = {"checkDisableQueryParallel"})
+    @Test(groups = {"arenadata"}, description = "Set 3 parallel sessions with force query")
     public void checkForceQueryWith3Parallel() throws Exception {
+        String oracleTableSourceName = "force_query_3_source_table";
+        Table oracleTableSource = prepareOracleSourceTable(oracleTableSourceName);
+        String dataSourcePath = oracleTableSource.getSchema() + "." + oracleTableSource.getName();
+        createGpdbReadableTable("oracle_parallel_force_query_3_read_ext", dataSourcePath);
         copyAndModifyJdbcConfFile(pxfJdbcSiteConfTemplate, FORCE_QUERY_3_PROPERTY);
-        runSqlTest("arenadata/oracle-parallel/query");
+        runSqlTest("arenadata/oracle-parallel/force-query");
         assertEquals(oracle.getValueFromQuery(
-                String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + oracleTableSource.getSchema() + "." + oracleTableSource.getName())), 3
+                String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + dataSourcePath)), 3
         );
+    }
+
+    private Table prepareOracleSourceTable(String tableName) throws Exception {
+        String schema = "system";
+        Table oracleTableSource = new Table(tableName, ORACLE_SOURCE_TABLE_FIELDS);
+        oracleTableSource.setSchema(schema);
+        oracle.createTableAndVerify(oracleTableSource);
+        String ds = schema + "." + tableName;
+        oracle.runQuery(String.format(INSERT_QUERY_TEMPLATE, ds, ds, ds, ds, ds));
+        return oracleTableSource;
+    }
+
+    private void createGpdbReadableTable(String readableTableName, String dataSourcePath) throws Exception {
+        Table gpdbReadableTable = TableFactory.getPxfJdbcReadableTable(
+                readableTableName,
+                GPDB_TABLE_FIELDS,
+                dataSourcePath,
+                PXF_ORACLE_SERVER_PROFILE);
+        gpdb.createTableAndVerify(gpdbReadableTable);
     }
 
     private void copyAndModifyJdbcConfFile(String templateSource, String property) throws Exception {

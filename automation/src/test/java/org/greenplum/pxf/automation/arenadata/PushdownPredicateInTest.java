@@ -5,6 +5,7 @@ import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.SegmentNode;
+import org.greenplum.pxf.automation.components.common.cli.ShellCommandErrorException;
 import org.greenplum.pxf.automation.components.oracle.Oracle;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -13,6 +14,7 @@ import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.util.Collections;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.*;
@@ -120,25 +122,19 @@ public class PushdownPredicateInTest extends BaseFeature {
 
     @Test(groups = {"arenadata"}, description = "Check pushdown predicate 'IN' for Postres")
     public void testPredicateInPostgres() throws Exception {
-        // Clean gpdb master log and pxf log before run test
-        cluster.runCommand("> " + GET_LATEST_MASTER_LOG_COMMAND);
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
+        cleanLogs();
         runSqlTest("arenadata/predicate-in/postgres");
-        cluster.runCommand("grep -e 'SELECT id, descr FROM " + SOURCE_TABLE_NAME + " WHERE id IN (2,3)' " + GET_LATEST_MASTER_LOG_COMMAND + " | wc -l");
-        String result = cluster.getLastCmdResult();
-        String[] results = result.split("\r\n");
-        String actualExitCode = results.length > 1 ? results[1].trim() : "Exit code is empty";
-        assertEquals("1", actualExitCode);
+        String result = grepLog("grep -e 'SELECT id, descr FROM " + SOURCE_TABLE_NAME + " WHERE id IN (2,3)' " + GET_LATEST_MASTER_LOG_COMMAND + " | wc -l");
+        assertEquals("1", result);
     }
 
-    @Test(groups = {"arenadata"}, dependsOnMethods = {"testPredicateInPostgres"}, description = "Check pushdown predicate 'IN' logging")
+    @Test(groups = {"arenadata"}, description = "Check pushdown predicate 'IN' logging")
     public void testPredicateInLogging() throws Exception {
+        cleanLogs();
+        runSqlTest("arenadata/predicate-in/postgres");
         cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
-        cluster.runCommand(POSTGRES_SEGMENT_LOG_GREP_COMMAND);
-        String result = cluster.getLastCmdResult();
-        String[] results = result.split("\r\n");
-        String actualExitCode = results.length > 1 ? results[1].trim() : "Exit code is empty";
-        assertEquals("1", actualExitCode);
+        String result = grepLog(POSTGRES_SEGMENT_LOG_GREP_COMMAND);
+        assertEquals("1", result);
         cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
     }
 
@@ -147,5 +143,17 @@ public class PushdownPredicateInTest extends BaseFeature {
         runSqlTest("arenadata/predicate-in/oracle");
         Assert.assertEquals(1, oracle.getValueFromQuery(GET_STATS_QUERY));
         cluster.deleteFileFromNodes(pxfJdbcSiteConfFile, false);
+    }
+
+    private void cleanLogs() throws Exception {
+        cluster.runCommand("> " + GET_LATEST_MASTER_LOG_COMMAND);
+        cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
+    }
+
+    private String grepLog(String command) throws ShellCommandErrorException, IOException {
+        cluster.runCommand(command);
+        String result = cluster.getLastCmdResult();
+        String[] results = result.split("\r\n");
+        return results.length > 1 ? results[1].trim() : "Result is empty";
     }
 }
