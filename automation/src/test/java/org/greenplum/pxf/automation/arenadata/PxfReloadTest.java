@@ -49,8 +49,8 @@ public class PxfReloadTest extends BaseFeature {
         String extTable1 = prepareTables("table", PXF_RELOAD_SERVER_PROFILE);
         String extTable2 = prepareTables("table2", PXF_RELOAD_SECOND_SERVER_PROFILE);
 
-        gpdb.runQuery("select * from " + extTable1, true, true);
-        gpdb.runQuery("select * from " + extTable2, true, true);
+        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1, %s t2;\" &", extTable1, extTable1));
+        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1, %s t2;\" &", extTable2, extTable2));
 
         int sessionCountBeforeReload = getGpdbSessionCount();
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
@@ -68,8 +68,8 @@ public class PxfReloadTest extends BaseFeature {
         String extTable1 = prepareTables("table", PXF_RELOAD_SERVER_PROFILE);
         String extTable2 = prepareTables("table2", PXF_RELOAD_SECOND_SERVER_PROFILE);
 
-        gpdb.runQuery("select * from " + extTable1, true, true);
-        gpdb.runQuery("select * from " + extTable2, true, true);
+        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1, %s t2;\" &", extTable1, extTable1));
+        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1, %s t2;\" &", extTable2, extTable2));
 
         int sessionCountBeforeReload = getGpdbSessionCount();
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
@@ -115,12 +115,6 @@ public class PxfReloadTest extends BaseFeature {
         Table gpdbSourceTable = new Table(tableName, TABLE_FIELDS);
         gpdbSourceTable.setDistributionFields(new String[]{"name"});
         gpdb.createTableAndVerify(gpdbSourceTable);
-        String[][] rows = new String[][]{
-                {"1", "text1"},
-                {"2", "text2"},
-                {"3", "text3"}};
-        Table dataTable = new Table("dataTable", TABLE_FIELDS);
-        dataTable.addRows(rows);
-        gpdb.insertData(dataTable, gpdbSourceTable);
+        gpdb.runQuery("INSERT INTO " + tableName + " SELECT i, md5(random()::text) from generate_series(1,1000000) i;");
     }
 }
