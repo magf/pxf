@@ -1,0 +1,6 @@
+1	{ "title": "Sleeping Beauties",  "genres": ["Fiction", "Thriller", "Horror" ], "published": false, "readers": {"Russia": {"Moscow": 10, "Novosibirsk": 20}, "USA": {"Chicago": 15, "New York": 25, "Houston": 25}}}	[{"follower": 10}, {"names": "Kate, Jhon"}]
+2	\N	[{"follower": 15}, {"names": "Bob, Barby"}]
+3	{"title": "Influence", "genres": ["Marketing & Sales", "Self-Help ", "Psychology"], "published": true}	\N
+4	{"title": "The Dictator''s Handbook", "genres": ["Law", "Politics"], "authors": ["Bruce Bueno de Mesquita", "Alastair Smith"], "published": true}	\N
+5	{"title": "Deep Work", "genres": ["Productivity", "Reference"], "published": true}	\N
+6	{"title": "Siddhartha", "genres": ["Fiction", "Spirituality"], "published": true}	\N

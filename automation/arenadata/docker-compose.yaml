@@ -26,6 +26,8 @@ services:
       - "./conf/oracle/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/templates/oracle/jdbc-site.xml:ro"
       - "./conf/named-query/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/templates/named-query/jdbc-site.xml:ro"
       - "./conf/named-query/named_query.sql:/usr/local/greenplum-db-devel/pxf/templates/named-query/named_query.sql:ro"
+      - "./conf/mysql/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/templates/mysql/jdbc-site.xml:ro"
+      - "./conf/backpressure/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/templates/backpressure/jdbc-site.xml:ro"
     healthcheck:
       test:  sudo -H -u gpadmin bash -l -c "psql -d postgres -U gpadmin -Atc 'SELECT 1;'"
       interval: 30s
@@ -125,6 +127,25 @@ services:
       - '8080:8080'
     healthcheck:
       test: echo "SELECT 333 from dual;" | sqlplus -L system/oracle@ORCL | grep 333 > /dev/null; if [ 0 != $$? ]; then exit 1; fi;
+      interval: 30s
+      timeout: 15s
+      retries: 3
+
+  mysql:
+    image: "mysql:8.3.0"
+    restart: unless-stopped
+    container_name: mysql
+    hostname: mysql
+    privileged: true
+    environment:
+      MYSQL_ROOT_PASSWORD: mysqlpwd
+      MYSQL_DATABASE: gpexternal
+      MYSQL_USER: mysqluser
+      MYSQL_PASSWORD: mysqlpwd
+    ports:
+      - '3306:3306'
+    healthcheck:
+      test: mysql -u mysqluser -pmysqlpwd --disable-column-names -e 'select 111' | grep 111 > /dev/null; if [ 0 != $$? ]; then exit 1; fi
       interval: 30s
       timeout: 15s
       retries: 3
