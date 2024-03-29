@@ -86,7 +86,7 @@ public class JdbcBackPressureTest extends BaseFeature {
         // Oracle internal target table
         prepareOracleTargetTable();
         // External writable table to run query when jdbc.pool.property.maximumPoolSize = 1
-        createGpdbWritableTable("jdbc_bp_write_connection_max_pool_size_1", "POOL_SIZE=4,BATCH_SIZE=20000");
+        createGpdbWritableTable("jdbc_bp_write_connection_max_pool_size_1", "POOL_SIZE=4,BATCH_SIZE=1000");
         // External writable table to run query when POOL_SIZE = 1
         createGpdbWritableTable("jdbc_bp_write_pool_size_1", "POOL_SIZE=1,BATCH_SIZE=20000");
         // External writable table to run query when POOL_SIZE = 10
