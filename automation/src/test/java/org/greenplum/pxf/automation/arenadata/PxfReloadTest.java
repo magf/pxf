@@ -5,18 +5,36 @@ import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.CoordinatorNode;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.SegmentNode;
+import org.greenplum.pxf.automation.datapreparer.CustomTextPreparer;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.greenplum.pxf.automation.utils.fileformats.FileFormatsUtils;
+import org.greenplum.pxf.automation.utils.system.ProtocolEnum;
+import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.util.Collections;
+import java.util.List;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE;
 
 public class PxfReloadTest extends BaseFeature {
+    private static final String SUFFIX_CLASS = ".class";
+    private static final String INSERT_QUERY_PART = "INSERT INTO write_ext_table";
+    private static final String SELECT_QUERY_PG_PART = "select md5(t1.name) from";
+    private static final String SELECT_QUERY_HDFS_PART = "select md5(t1.s1) from";
+    private static final String PSQL_SELECT_PG_TEMPLATE = "psql -d pxfautomation -c \"select md5(t1.name) from %s t1 join %s t2 on t1.name = t2.name;\" &";
+    private static final String PSQL_INSERT_PG_TEMPLATE = "psql -d pxfautomation -c \"INSERT INTO %s SELECT i, md5(random()::text) from generate_series(1,8000000) i;\" &";
+    public static final String PSQL_SELECT_HDFS_TEMPLATE = "psql -d pxfautomation -c \"select md5(t1.s1) from %s t1 join %s t2 on t1.s1 = t2.s1;\" &";
+    ProtocolEnum protocol;
+    Table dataTable = null;
+    String hdfsFilePath = "";
+    String testPackageLocation = "/org/greenplum/pxf/automation/testplugin/";
+    String throwOn10000Accessor = "ThrowOn10000Accessor";
     private Node pxfNode;
     private Node masterNode;
     private String pxfLogFile;
@@ -44,6 +62,15 @@ public class PxfReloadTest extends BaseFeature {
             masterNode = ((MultiNodeCluster) cluster).getNode(CoordinatorNode.class, PhdCluster.EnumClusterServices.pxf).get(0);
         }
         pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
+        //hdfs preparation
+        String resourcePath = "target/classes" + testPackageLocation;
+        String newPath = "/tmp/publicstage/pxf";
+        cluster.copyFileToNodes(new File(resourcePath + throwOn10000Accessor
+                + SUFFIX_CLASS).getAbsolutePath(), newPath
+                + testPackageLocation, true, false);
+        cluster.addPathToPxfClassPath(newPath);
+        cluster.restart(PhdCluster.EnumClusterServices.pxf);
+        protocol = ProtocolUtils.getProtocol();
     }
 
     @Test(groups = {"arenadata"})
@@ -52,17 +79,13 @@ public class PxfReloadTest extends BaseFeature {
         String extTable1 = prepareReadTables("table", PXF_RELOAD_SERVER_PROFILE);
         String extTable2 = prepareReadTables("table2", PXF_RELOAD_SECOND_SERVER_PROFILE);
 
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1 join %s t2 on t1.name = t2.name;\" &", extTable1, extTable1));
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1 join %s t2 on t1.name = t2.name;\" &", extTable2, extTable2));
-
-        long sessionCountBeforeReload = getGpdbSessionCountWithText("select md5(t1.name) from");
-        Assert.assertEquals(sessionCountBeforeReload, 2, "Should be two sessions with select");
+        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable1, extTable1));
+        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable2, extTable2));
+        checkSessionCount(SELECT_QUERY_PG_PART, 2);
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a");
-        long sessionCountAfterReload = getGpdbSessionCountWithText("select md5(t1.name) from");
-        Assert.assertEquals(sessionCountAfterReload, 0, "Should be zero session with select");
+        checkSessionCount(SELECT_QUERY_PG_PART, 0);
 
-        Assert.assertEquals(sessionCountBeforeReload - sessionCountAfterReload, 6, "Two sessions should be closed");
         checkStringInPxfLog("profile=, server=", 1);
         checkStringInPxfLog("Shutdown completed.", 2);
     }
@@ -73,40 +96,37 @@ public class PxfReloadTest extends BaseFeature {
         String extTable1 = prepareReadTables("table", PXF_RELOAD_SERVER_PROFILE);
         String extTable2 = prepareReadTables("table2", PXF_RELOAD_SECOND_SERVER_PROFILE);
 
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1 join %s t2 on t1.name = t2.name;\" &", extTable1, extTable1));
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1 join %s t2 on t1.name = t2.name;\" &", extTable2, extTable2));
+        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable1, extTable1));
+        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable2, extTable2));
 
-        long sessionCountBeforeReload = getGpdbSessionCountWithText("select md5(t1.name) from");
-        Assert.assertEquals(sessionCountBeforeReload, 2, "Should be two sessions with select");
+        checkSessionCount(SELECT_QUERY_PG_PART, 2);
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc");
-        long sessionCountAfterReload = getGpdbSessionCountWithText("select md5(t1.name) from");
-        Assert.assertEquals(sessionCountAfterReload, 0, "Should be zero session with select");
+        checkSessionCount(SELECT_QUERY_PG_PART, 0);
 
-        Assert.assertEquals(sessionCountBeforeReload - sessionCountAfterReload, 6, "Two sessions should be closed");
-        checkStringInPxfLog("profile=, server=", 1);
+        checkStringInPxfLog("profile=jdbc, server=", 1);
         checkStringInPxfLog("Shutdown completed.", 2);
     }
 
     @Test(groups = {"arenadata"})
-    public void reloadJdbcProfileForDefaultServerDuringRead() throws Exception {
+    public void reloadJdbcProfileDuringHdfsRead() throws Exception {
         cluster.restart(PhdCluster.EnumClusterServices.pxf);
+        prepareHdfsAndExtTable();
         String extTable1 = prepareReadTables("table", "default");
         String extTable2 = prepareReadTables("table2", "default");
 
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1 join %s t2 on t1.name = t2.name;\" &", extTable1, extTable1));
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1 join %s t2 on t1.name = t2.name;\" &", extTable2, extTable2));
+        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable1, extTable1));
+        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable2, extTable2));
+        cluster.runCommand(String.format(PSQL_SELECT_HDFS_TEMPLATE, exTable.getName(), exTable.getName()));
 
-        long sessionCountBeforeReload = getGpdbSessionCountWithText("select md5(t1.name) from");
-        Assert.assertEquals(sessionCountBeforeReload, 2, "Should be two sessions with select");
+        checkSessionCount(SELECT_QUERY_PG_PART, 2);
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
-        cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p hdfs");
-        long sessionCountAfterReload = getGpdbSessionCountWithText("select md5(t1.name) from");
-        Assert.assertEquals(sessionCountAfterReload, 0, "Should be zero session with select");
+        cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc -s default");
+        checkSessionCount(SELECT_QUERY_PG_PART, 0);
+        checkSessionCount(SELECT_QUERY_HDFS_PART, 1);
 
-        Assert.assertEquals(sessionCountBeforeReload - sessionCountAfterReload, 6, "Two sessions should be closed");
-        checkStringInPxfLog("profile=, server=", 1);
-        checkStringInPxfLog("Shutdown completed.", 2);
+        checkStringInPxfLog("profile=jdbc, server=default", 1);
+        checkStringInPxfLog("Shutdown completed.", 1);
     }
 
     @Test(groups = {"arenadata"})
@@ -115,17 +135,14 @@ public class PxfReloadTest extends BaseFeature {
         String extTable1 = prepareReadTables("table", PXF_RELOAD_SERVER_PROFILE);
         String extTable2 = prepareReadTables("table2", PXF_RELOAD_SECOND_SERVER_PROFILE);
 
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1 join %s t2 on t1.name = t2.name;\" &", extTable1, extTable1));
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"select md5(t1.name) from %s t1 join %s t2 on t1.name = t2.name;\" &", extTable2, extTable2));
+        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable1, extTable1));
+        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable2, extTable2));
 
-        long sessionCountBeforeReload = getGpdbSessionCountWithText("select md5(t1.name) from");
-        Assert.assertEquals(sessionCountBeforeReload, 2, "Should be two sessions with select");
+        checkSessionCount(SELECT_QUERY_PG_PART, 2);
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc -s " + PXF_RELOAD_SERVER_PROFILE);
-        long sessionCountAfterReload = getGpdbSessionCountWithText("select md5(t1.name) from");
-        Assert.assertEquals(sessionCountAfterReload, 1, "Should be one session with select");
+        checkSessionCount(SELECT_QUERY_PG_PART, 1);
 
-        Assert.assertEquals(sessionCountBeforeReload - sessionCountAfterReload, 3, "One sessions should be closed");
         checkStringInPxfLog("profile=jdbc, server=reload", 1);
         checkStringInPxfLog("Shutdown completed.", 1);
     }
@@ -136,17 +153,14 @@ public class PxfReloadTest extends BaseFeature {
         String extTable1 = prepareWriteTables("table", PXF_RELOAD_SERVER_PROFILE);
         String extTable2 = prepareWriteTables("table2", PXF_RELOAD_SECOND_SERVER_PROFILE);
 
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"INSERT INTO %s SELECT i, md5(random()::text) from generate_series(1,8000000) i;\" &", extTable1));
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"INSERT INTO %s SELECT i, md5(random()::text) from generate_series(1,8000000) i;\" &", extTable2));
+        cluster.runCommand(String.format(PSQL_INSERT_PG_TEMPLATE, extTable1));
+        cluster.runCommand(String.format(PSQL_INSERT_PG_TEMPLATE, extTable2));
 
-        long sessionCountBeforeReload = getGpdbSessionCountWithText("INSERT INTO write_ext_table");
-        Assert.assertEquals(sessionCountBeforeReload, 2, "Should be two sessions with insert");
+        checkSessionCount(INSERT_QUERY_PART, 2);
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a");
-        long sessionCountAfterReload = getGpdbSessionCountWithText("INSERT INTO write_ext_table");
-        Assert.assertEquals(sessionCountAfterReload, 0, "Should be zero sessions with insert");
+        checkSessionCount(INSERT_QUERY_PART, 0);
 
-        Assert.assertEquals(sessionCountBeforeReload - sessionCountAfterReload, 6, "Two sessions should be closed");
         checkStringInPxfLog("profile=, server=", 1);
         checkStringInPxfLog("Shutdown completed.", 2);
     }
@@ -157,15 +171,13 @@ public class PxfReloadTest extends BaseFeature {
         String extTable1 = prepareWriteTables("table", PXF_RELOAD_SERVER_PROFILE);
         String extTable2 = prepareWriteTables("table2", PXF_RELOAD_SECOND_SERVER_PROFILE);
 
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"INSERT INTO %s SELECT i, md5(random()::text) from generate_series(1,8000000) i;\" &", extTable1));
-        cluster.runCommand(String.format("psql -d pxfautomation -c \"INSERT INTO %s SELECT i, md5(random()::text) from generate_series(1,8000000) i;\" &", extTable2));
+        cluster.runCommand(String.format(PSQL_INSERT_PG_TEMPLATE, extTable1));
+        cluster.runCommand(String.format(PSQL_INSERT_PG_TEMPLATE, extTable2));
 
-        long sessionCountBeforeReload = getGpdbSessionCountWithText("INSERT INTO write_ext_table");
-        Assert.assertEquals(sessionCountBeforeReload, 2, "Should be two sessions with insert");
+        checkSessionCount(INSERT_QUERY_PART, 2);
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc -s " + PXF_RELOAD_SERVER_PROFILE);
-        long sessionCountAfterReload = getGpdbSessionCountWithText("INSERT INTO write_ext_table");
-        Assert.assertEquals(sessionCountAfterReload, 1, "Should be one sessions with insert");
+        checkSessionCount(INSERT_QUERY_PART, 1);
 
         checkStringInPxfLog("profile=jdbc, server=reload", 1);
         checkStringInPxfLog("Shutdown completed.", 1);
@@ -176,11 +188,11 @@ public class PxfReloadTest extends BaseFeature {
                 String.format("cat %s | grep \"%s\" | { [ $(wc -l) -eq %d ] && exit 0 || exit 1; }", pxfLogFile, logLine, countInLogs));
     }
 
-    private long getGpdbSessionCountWithText(String text) throws Exception {
+    private void checkSessionCount(String text, int expectedCount) throws Exception {
         Table gpStatActivityResult = TableFactory.getPxfJdbcReadableTable("gpStatActivityResult",
                 null, null, null);
         gpdb.queryResults(gpStatActivityResult, "select * from pg_stat_activity where usename = 'gpadmin';");
-        return gpStatActivityResult.getData().stream().filter(row -> row.stream().filter(field -> field.contains(text)).count() > 0).count();
+        Assert.assertEquals(countArrayListsWithField(gpStatActivityResult.getData(), text), expectedCount, String.format("Should be %s sessions with query", expectedCount));
     }
 
     private String prepareReadTables(String tableName, String serverProfile) throws Exception {
@@ -224,5 +236,58 @@ public class PxfReloadTest extends BaseFeature {
         pxfJdbcNamedQuery.setHost(pxfHost);
         pxfJdbcNamedQuery.setPort(pxfPort);
         gpdb.createTableAndVerify(pxfJdbcNamedQuery);
+    }
+
+    private void prepareHdfsAndExtTable() throws Exception {
+        super.beforeMethod();
+        hdfsFilePath = hdfs.getWorkingDirectory() + "/data";
+        dataTable = new Table("dataTable", null);
+        FileFormatsUtils.prepareData(new CustomTextPreparer(), 1000000, dataTable);
+        exTable = TableFactory.getPxfReadableTextTable("pxf_hdfs_small_data",
+                new String[]{
+                        "s1 text",
+                        "s2 text",
+                        "s3 text",
+                        "d1 timestamp",
+                        "n1 int",
+                        "n2 int",
+                        "n3 int",
+                        "n4 int",
+                        "n5 int",
+                        "n6 int",
+                        "n7 int",
+                        "s11 text",
+                        "s12 text",
+                        "s13 text",
+                        "d11 timestamp",
+                        "n11 int",
+                        "n12 int",
+                        "n13 int",
+                        "n14 int",
+                        "n15 int",
+                        "n16 int",
+                        "n17 int"},
+                protocol.getExternalTablePath(hdfs.getBasePath(), hdfsFilePath),
+                ",");
+
+        exTable.setFragmenter("org.greenplum.pxf.plugins.hdfs.HdfsDataFragmenter");
+        exTable.setAccessor("org.greenplum.pxf.plugins.hdfs.LineBreakAccessor");
+        exTable.setResolver("org.greenplum.pxf.plugins.hdfs.StringPassResolver");
+        exTable.setProfile("test:text");
+        gpdb.createTableAndVerify(exTable);
+        hdfs.writeTableToFile(hdfsFilePath, dataTable, ",");
+    }
+
+    private int countArrayListsWithField(List<List<String>> listOfLists, String searchText) {
+        int count = 0;
+        for (List<String> innerList : listOfLists) {
+            for (String field : innerList) {
+                if (field != null && field.contains(searchText)) {
+                    count++;
+                    break;
+                }
+            }
+        }
+        return count;
     }
 }
