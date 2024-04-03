@@ -281,7 +281,7 @@ public class PxfReloadTest extends BaseFeature {
 
     private void changeLogLevelToInfo() throws Exception {
         String pxfAppPropertiesFile = cluster.getPxfHome() + "/conf/pxf-application.properties";
-        cluster.runCommandOnAllNodes("sed -i 's/# pxf.log.level=trace/pxf.log.level=info/' " + pxfAppPropertiesFile);
+        cluster.runCommandOnAllNodes("sed -i 's/pxf.log.level=trace/pxf.log.level=info/' " + pxfAppPropertiesFile);
         cluster.restart(PhdCluster.EnumClusterServices.pxf);
     }
 
