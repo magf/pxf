@@ -62,6 +62,7 @@ public class PxfReloadTest extends BaseFeature {
             masterNode = ((MultiNodeCluster) cluster).getNode(CoordinatorNode.class, PhdCluster.EnumClusterServices.pxf).get(0);
         }
         pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
+        changeLogLevelToInfo();
         //hdfs preparation
         String resourcePath = "target/classes" + testPackageLocation;
         String newPath = "/tmp/publicstage/pxf";
@@ -276,6 +277,12 @@ public class PxfReloadTest extends BaseFeature {
         exTable.setProfile("test:text");
         gpdb.createTableAndVerify(exTable);
         hdfs.writeTableToFile(hdfsFilePath, dataTable, ",");
+    }
+
+    private void changeLogLevelToInfo() throws Exception {
+        String pxfAppPropertiesFile = cluster.getPxfHome() + "/conf/pxf-application.properties";
+        cluster.runCommandOnAllNodes("sed -i 's/# pxf.log.level=trace/pxf.log.level=info/' " + pxfAppPropertiesFile);
+        cluster.restart(PhdCluster.EnumClusterServices.pxf);
     }
 
     private int countArrayListsWithField(List<List<String>> listOfLists, String searchText) {
