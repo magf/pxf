@@ -27,8 +27,7 @@ import org.greenplum.pxf.api.model.Resolver;
 import org.greenplum.pxf.api.security.SecureLogin;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.plugins.jdbc.utils.ConnectionManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -138,8 +137,6 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
             DataType.DATE
     );
 
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcResolver.class);
-
     /**
      * Creates a new instance of the JdbcResolver
      */
@@ -208,6 +205,8 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                 case BPCHAR:
                 case TEXT:
                 case NUMERIC:
+                case JSONB:
+                case JSON:
                     value = result.getString(colName);
                     break;
                 case DATE:
@@ -276,19 +275,6 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                                 oneFieldType, column));
             }
 
-            if (LOG.isDebugEnabled()) {
-                String valDebug;
-                if (oneField.val == null) {
-                    valDebug = "null";
-                } else if (oneFieldType == DataType.BYTEA) {
-                    valDebug = String.format("'{}'", new String((byte[]) oneField.val));
-                } else {
-                    valDebug = String.format("'{}'", oneField.val.toString());
-                }
-
-                LOG.debug("Column {} OneField: type {}, content {}", columnIndex, oneFieldType, valDebug);
-            }
-
             // Convert TEXT columns into native data types
             if ((oneFieldType == DataType.TEXT) && (columnType != DataType.TEXT)) {
                 oneField.type = columnType.getOID();
@@ -303,6 +289,8 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                     case BPCHAR:
                     case TEXT:
                     case BYTEA:
+                    case JSON:
+                    case JSONB:
                         break;
                     case BOOLEAN:
                         oneField.val = Boolean.parseBoolean(rawVal);
@@ -359,7 +347,7 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
      * @throws SQLException if the given statement is broken
      */
     @SuppressWarnings("unchecked")
-    public static void decodeOneRowToPreparedStatement(OneRow row, PreparedStatement statement) throws IOException, SQLException {
+    public static void decodeOneRowToPreparedStatement(OneRow row, PreparedStatement statement, DbProduct dbProduct) throws IOException, SQLException {
         // This is safe: OneRow comes from JdbcResolver
         List<OneField> tuple = (List<OneField>) row.getData();
         for (int i = 1; i <= tuple.size(); i++) {
@@ -450,6 +438,14 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                         } else {
                             statement.setDate(i, (Date) field.val);
                         }
+                    }
+                    break;
+                case JSON:
+                case JSONB:
+                    if (dbProduct == DbProduct.POSTGRES) {
+                        statement.setObject(i, field.val, Types.OTHER);
+                    } else {
+                        statement.setObject(i, field.val);
                     }
                     break;
                 default:

@@ -72,6 +72,15 @@
         <password>oracle</password>
     </oracle>
 
+    <mysql>
+        <class>org.greenplum.pxf.automation.components.mysql.Mysql</class>
+        <host>mysql</host>
+        <port>3306</port>
+        <db>gpexternal</db>
+        <userName>mysqluser</userName>
+        <password>mysqlpwd</password>
+    </mysql>
+
     <file>
         <class>org.greenplum.pxf.automation.components.hdfs.Hdfs</class>
         <workingDirectory>${base.path}/tmp/pxf_automation_data/__UUID__</workingDirectory>
