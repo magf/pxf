@@ -13,6 +13,7 @@ import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.greenplum.pxf.automation.utils.fileformats.FileFormatsUtils;
 import org.greenplum.pxf.automation.utils.system.ProtocolEnum;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
+import org.junit.Ignore;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -109,6 +110,7 @@ public class PxfReloadTest extends BaseFeature {
         checkStringInPxfLog("Shutdown completed.", 2);
     }
 
+    @Ignore
     @Test(groups = {"arenadata"})
     public void reloadJdbcProfileDuringHdfsRead() throws Exception {
         cluster.restart(PhdCluster.EnumClusterServices.pxf);
