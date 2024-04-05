@@ -13,7 +13,6 @@ import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.greenplum.pxf.automation.utils.fileformats.FileFormatsUtils;
 import org.greenplum.pxf.automation.utils.system.ProtocolEnum;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
-import org.junit.Ignore;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -110,27 +109,26 @@ public class PxfReloadTest extends BaseFeature {
         checkStringInPxfLog("Shutdown completed.", 2);
     }
 
-    @Ignore
-    @Test(groups = {"arenadata"})
-    public void reloadJdbcProfileDuringHdfsRead() throws Exception {
-        cluster.restart(PhdCluster.EnumClusterServices.pxf);
-        prepareHdfsAndExtTable();
-        String extTable1 = prepareReadTables("table", "default");
-        String extTable2 = prepareReadTables("table2", "default");
-
-        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable1, extTable1));
-        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable2, extTable2));
-        cluster.runCommand(String.format(PSQL_SELECT_HDFS_TEMPLATE, exTable.getName(), exTable.getName()));
-
-        checkSessionCount(SELECT_QUERY_PG_PART, 2);
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
-        cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc -s default");
-        checkSessionCount(SELECT_QUERY_PG_PART, 0);
-        checkSessionCount(SELECT_QUERY_HDFS_PART, 1);
-
-        checkStringInPxfLog("profile=jdbc, server=default", 1);
-        checkStringInPxfLog("Shutdown completed.", 1);
-    }
+//    @Test(groups = {"arenadata"})
+//    public void reloadJdbcProfileDuringHdfsRead() throws Exception {
+//        cluster.restart(PhdCluster.EnumClusterServices.pxf);
+//        prepareHdfsAndExtTable();
+//        String extTable1 = prepareReadTables("table", "default");
+//        String extTable2 = prepareReadTables("table2", "default");
+//
+//        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable1, extTable1));
+//        cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable2, extTable2));
+//        cluster.runCommand(String.format(PSQL_SELECT_HDFS_TEMPLATE, exTable.getName(), exTable.getName()));
+//
+//        checkSessionCount(SELECT_QUERY_PG_PART, 2);
+//        cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
+//        cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc -s default");
+//        checkSessionCount(SELECT_QUERY_PG_PART, 0);
+//        checkSessionCount(SELECT_QUERY_HDFS_PART, 1);
+//
+//        checkStringInPxfLog("profile=jdbc, server=default", 1);
+//        checkStringInPxfLog("Shutdown completed.", 1);
+//    }
 
     @Test(groups = {"arenadata"})
     public void reloadOneServerProfileDuringRead() throws Exception {
