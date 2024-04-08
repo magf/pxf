@@ -193,6 +193,16 @@ public class PxfReloadTest extends BaseFeature {
         Table gpStatActivityResult = TableFactory.getPxfJdbcReadableTable("gpStatActivityResult",
                 null, null, null);
         gpdb.queryResults(gpStatActivityResult, "select * from pg_stat_activity where usename = 'gpadmin';");
+        System.out.println("qqqqqqqqqqqqqqqqqqq");
+        for (List<String> list : gpStatActivityResult.getData()) {
+            for (String element : list) {
+                if(element != null) {
+                    System.out.print(element + " ");
+                }
+            }
+            System.out.println();
+        }
+        System.out.println(gpStatActivityResult.getData());
         Assert.assertEquals(countArrayListsWithField(gpStatActivityResult.getData(), text), expectedCount, String.format("Should be %s sessions with query", expectedCount));
     }
 
