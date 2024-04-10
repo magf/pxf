@@ -88,7 +88,6 @@ public class PxfReloadTest extends BaseFeature {
 
         checkStringInPxfLog("profile=, server=", 1);
         checkStringInPxfLog("Shutdown completed.", 2);
-
         checkSessionCount(SELECT_QUERY_PG_PART, 0);
     }
 
@@ -127,7 +126,6 @@ public class PxfReloadTest extends BaseFeature {
 
         checkStringInPxfLog("profile=jdbc, server=default", 1);
         checkStringInPxfLog("Shutdown completed.", 1);
-
         checkSessionCount(SELECT_QUERY_PG_PART, 0);
         checkSessionCount(SELECT_QUERY_HDFS_PART, 1);
     }
@@ -162,10 +160,10 @@ public class PxfReloadTest extends BaseFeature {
         checkSessionCount(INSERT_QUERY_PART, 2);
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a");
-        checkSessionCount(INSERT_QUERY_PART, 0);
 
         checkStringInPxfLog("profile=, server=", 1);
         checkStringInPxfLog("Shutdown completed.", 2);
+        checkSessionCount(INSERT_QUERY_PART, 0);
     }
 
     @Test(groups = {"arenadata"})
@@ -180,10 +178,10 @@ public class PxfReloadTest extends BaseFeature {
         checkSessionCount(INSERT_QUERY_PART, 2);
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc -s " + PXF_RELOAD_SERVER_PROFILE);
-        checkSessionCount(INSERT_QUERY_PART, 1);
 
         checkStringInPxfLog("profile=jdbc, server=reload", 1);
         checkStringInPxfLog("Shutdown completed.", 1);
+        checkSessionCount(INSERT_QUERY_PART, 1);
     }
 
     private void checkStringInPxfLog(String logLine, int countInLogs) throws Exception {
