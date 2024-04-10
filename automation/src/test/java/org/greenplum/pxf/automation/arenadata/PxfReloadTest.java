@@ -104,10 +104,10 @@ public class PxfReloadTest extends BaseFeature {
         checkSessionCount(SELECT_QUERY_PG_PART, 2);
         cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc");
-        checkSessionCount(SELECT_QUERY_PG_PART, 0);
 
         checkStringInPxfLog("profile=jdbc, server=", 1);
         checkStringInPxfLog("Shutdown completed.", 2);
+        checkSessionCount(SELECT_QUERY_PG_PART, 0);
     }
 
     @Test(groups = {"arenadata"})
