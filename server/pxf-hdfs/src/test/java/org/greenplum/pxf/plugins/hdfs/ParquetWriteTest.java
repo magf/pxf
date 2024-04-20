@@ -562,7 +562,7 @@ public class ParquetWriteTest {
             String localTimestampString = localTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
 
             assertEquals(localTimestampString,
-                    ParquetTimestampUtilities.bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes()));
+                    ParquetTimestampUtilities.bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes(), true));
         }
         assertNull(fileReader.read());
         fileReader.close();
@@ -610,8 +610,9 @@ public class ParquetWriteTest {
         assertEquals(PrimitiveType.PrimitiveTypeName.INT64, type.asPrimitiveType().getPrimitiveTypeName());
         assertTrue(type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation);
 
-        ParquetConfig config = new ParquetConfig();
-        config.setUseLocalPxfTimezoneRead(DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
+        ParquetConfig config = ParquetConfig.builder()
+                .useLocalPxfTimezoneRead(DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ)
+                .build();
         ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
@@ -671,8 +672,9 @@ public class ParquetWriteTest {
         assertEquals(PrimitiveType.PrimitiveTypeName.INT64, type.asPrimitiveType().getPrimitiveTypeName());
         assertTrue(type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation);
 
-        ParquetConfig config = new ParquetConfig();
-        config.setUseLocalPxfTimezoneRead(false);
+        ParquetConfig config = ParquetConfig.builder()
+                .useLocalPxfTimezoneRead(false)
+                .build();
         ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
@@ -733,8 +735,9 @@ public class ParquetWriteTest {
         assertEquals(PrimitiveType.PrimitiveTypeName.INT64, type.asPrimitiveType().getPrimitiveTypeName());
         assertTrue(type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation);
 
-        ParquetConfig config = new ParquetConfig();
-        config.setUseLocalPxfTimezoneRead(DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
+        ParquetConfig config = ParquetConfig.builder()
+                .useLocalPxfTimezoneRead(DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ)
+                .build();
         ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
@@ -797,8 +800,9 @@ public class ParquetWriteTest {
         assertEquals(PrimitiveType.PrimitiveTypeName.INT64, type.asPrimitiveType().getPrimitiveTypeName());
         assertTrue(type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation);
 
-        ParquetConfig config = new ParquetConfig();
-        config.setUseLocalPxfTimezoneRead(false);
+        ParquetConfig config = ParquetConfig.builder()
+                .useLocalPxfTimezoneRead(false)
+                .build();
         ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
@@ -1969,15 +1973,15 @@ public class ParquetWriteTest {
         Instant timestamp0 = Instant.parse("2020-08-01T04:00:05Z"); // UTC
         ZonedDateTime localTime0 = timestamp0.atZone(ZoneId.systemDefault());
         String localTimestampString0 = localTime0.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
-        assertEquals(localTimestampString0, ParquetTimestampUtilities.bytesToTimestamp(row0.getInt96(2, 0).getBytes()));
+        assertEquals(localTimestampString0, ParquetTimestampUtilities.bytesToTimestamp(row0.getInt96(2, 0).getBytes(), true));
         Instant timestamp1 = Instant.parse("2020-08-02T04:00:05Z"); // UTC
         ZonedDateTime localTime1 = timestamp1.atZone(ZoneId.systemDefault());
         String localTimestampString1 = localTime1.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
-        assertEquals(localTimestampString1, ParquetTimestampUtilities.bytesToTimestamp(row1.getInt96(2, 0).getBytes()));
+        assertEquals(localTimestampString1, ParquetTimestampUtilities.bytesToTimestamp(row1.getInt96(2, 0).getBytes(), true));
         Instant timestamp2 = Instant.parse("2020-08-03T04:00:05Z"); // UTC
         ZonedDateTime localTime2 = timestamp2.atZone(ZoneId.systemDefault());
         String localTimestampString2 = localTime2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
-        assertEquals(localTimestampString2, ParquetTimestampUtilities.bytesToTimestamp(row2.getInt96(2, 0).getBytes()));
+        assertEquals(localTimestampString2, ParquetTimestampUtilities.bytesToTimestamp(row2.getInt96(2, 0).getBytes(), true));
 
         assertEquals(Binary.fromString("e"), row0.getBinary(3, 0));
         assertEquals(Binary.fromString("ee"), row1.getBinary(3, 0));
@@ -2058,7 +2062,7 @@ public class ParquetWriteTest {
             ZonedDateTime localTime = timestamp.atZone(ZoneId.systemDefault());
             //parquet doesn't keep timezone information
             String localTimestampString = localTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // 2020-06-28 04:30:00
-            assertEquals(localTimestampString, ParquetTimestampUtilities.bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes()));
+            assertEquals(localTimestampString, ParquetTimestampUtilities.bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes(), true));
         }
         assertNull(fileReader.read());
         fileReader.close();
@@ -2107,8 +2111,9 @@ public class ParquetWriteTest {
         LogicalTypeAnnotation.TimestampLogicalTypeAnnotation originalType = (LogicalTypeAnnotation.TimestampLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
         assertEquals(LogicalTypeAnnotation.TimeUnit.MICROS, originalType.getUnit());
 
-        ParquetConfig config = new ParquetConfig();
-        config.setUseLocalPxfTimezoneRead(true);
+        ParquetConfig config = ParquetConfig.builder()
+                .useLocalPxfTimezoneRead(DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ)
+                .build();
         ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
@@ -2175,8 +2180,9 @@ public class ParquetWriteTest {
         LogicalTypeAnnotation.TimestampLogicalTypeAnnotation originalType = (LogicalTypeAnnotation.TimestampLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
         assertEquals(LogicalTypeAnnotation.TimeUnit.MICROS, originalType.getUnit());
 
-        ParquetConfig config = new ParquetConfig();
-        config.setUseLocalPxfTimezoneRead(false);
+        ParquetConfig config = ParquetConfig.builder()
+                .useLocalPxfTimezoneRead(false)
+                .build();
         ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
@@ -2830,7 +2836,7 @@ public class ParquetWriteTest {
                     }
                     break;
                 case INT96:
-                    assertEquals(expectedValues[j], ParquetTimestampUtilities.bytesToTimestamp(elementGroup.getInt96(0, 0).getBytes()));
+                    assertEquals(expectedValues[j], ParquetTimestampUtilities.bytesToTimestamp(elementGroup.getInt96(0, 0).getBytes(), true));
                     break;
                 case FLOAT:
                     assertEquals(Float.parseFloat(expectedValues[j]), elementGroup.getFloat(0, 0));

@@ -9,6 +9,12 @@ import org.greenplum.pxf.plugins.hdfs.parquet.ParquetTimestampUtilities;
 
 public class Int96ParquetTypeConverter implements ParquetTypeConverter {
 
+    private final boolean useLocalPxfTimezoneRead;
+
+    public Int96ParquetTypeConverter(boolean useLocalPxfTimezoneRead) {
+        this.useLocalPxfTimezoneRead = useLocalPxfTimezoneRead;
+    }
+
     @Override
     public DataType getDataType(Type type) {
         return DataType.TIMESTAMP;
@@ -16,7 +22,7 @@ public class Int96ParquetTypeConverter implements ParquetTypeConverter {
 
     @Override
     public Object getValue(Group group, int columnIndex, int repeatIndex, Type type) {
-        return ParquetTimestampUtilities.bytesToTimestamp(group.getInt96(columnIndex, repeatIndex).getBytes());
+        return ParquetTimestampUtilities.bytesToTimestamp(group.getInt96(columnIndex, repeatIndex).getBytes(), useLocalPxfTimezoneRead);
     }
 
     @Override

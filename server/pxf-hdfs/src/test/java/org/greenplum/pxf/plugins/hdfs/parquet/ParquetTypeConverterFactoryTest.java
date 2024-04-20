@@ -16,8 +16,7 @@ class ParquetTypeConverterFactoryTest {
 
     @BeforeEach
     void setUp() {
-        config = new ParquetConfig();
-        config.setUseLocalPxfTimezoneRead(true);
+        config = ParquetConfig.builder().useLocalPxfTimezoneRead(true).build();
         factory = new ParquetTypeConverterFactory(config);
     }
 

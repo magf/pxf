@@ -448,8 +448,8 @@ public class ParquetResolverTest {
         }
         group.add(4, Binary.fromReusedByteArray(bytes));
 
-        group.add(5, ParquetTimestampUtilities.getBinaryFromTimestamp("2019-03-14 14:10:28"));
-        group.add(5, ParquetTimestampUtilities.getBinaryFromTimestamp("1969-12-30 05:42:23.211211"));
+        group.add(5, ParquetTimestampUtilities.getBinaryFromTimestamp("2019-03-14 14:10:28", true));
+        group.add(5, ParquetTimestampUtilities.getBinaryFromTimestamp("1969-12-30 05:42:23.211211", true));
 
         group.add(6, 7.7f);
         group.add(6, -12345.35354646f);
@@ -1066,7 +1066,7 @@ public class ParquetResolverTest {
                 .stream()
                 .map(f -> {
                     Type type = f.isPrimitive() ? f.asPrimitiveType() : f.asGroupType();
-                    ParquetConfig parquetConfig = new ParquetConfig();
+                    ParquetConfig parquetConfig = ParquetConfig.builder().build();
                     ParquetTypeConverter converter = new ParquetTypeConverterFactory(parquetConfig).create(type);
                     return new ColumnDescriptor(f.getName(), converter.getDataType(f).getOID(), 1, "", new Integer[]{});
                 })

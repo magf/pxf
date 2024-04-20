@@ -41,8 +41,8 @@ class ParquetTimestampUtilitiesTest {
     @Test
     public void testStringConversionRoundTrip() {
         String timestamp = "2019-03-14 20:52:48.123456";
-        Binary binary = ParquetTimestampUtilities.getBinaryFromTimestamp(timestamp);
-        String convertedTimestamp = ParquetTimestampUtilities.bytesToTimestamp(binary.getBytes());
+        Binary binary = ParquetTimestampUtilities.getBinaryFromTimestamp(timestamp, true);
+        String convertedTimestamp = ParquetTimestampUtilities.bytesToTimestamp(binary.getBytes(), true);
 
         assertEquals(timestamp, convertedTimestamp);
     }
@@ -51,8 +51,8 @@ class ParquetTimestampUtilitiesTest {
     public void testBinaryConversionRoundTrip() {
         // 2019-03-14 21:22:05.987654
         byte[] source = new byte[]{112, 105, -24, 125, 77, 14, 0, 0, -66, -125, 37, 0};
-        String timestamp = ParquetTimestampUtilities.bytesToTimestamp(source);
-        Binary binary = ParquetTimestampUtilities.getBinaryFromTimestamp(timestamp);
+        String timestamp = ParquetTimestampUtilities.bytesToTimestamp(source, true);
+        Binary binary = ParquetTimestampUtilities.getBinaryFromTimestamp(timestamp, true);
 
         assertArrayEquals(source, binary.getBytes());
     }
@@ -61,7 +61,7 @@ class ParquetTimestampUtilitiesTest {
     public void testUnsupportedNanoSeconds() {
         String timestamp = "2019-03-14 20:52:48.1234567";
         Exception e = assertThrows(DateTimeParseException.class,
-                () -> ParquetTimestampUtilities.getBinaryFromTimestamp(timestamp));
+                () -> ParquetTimestampUtilities.getBinaryFromTimestamp(timestamp, true));
         assertEquals("Text '2019-03-14 20:52:48.1234567' could not be parsed, unparsed text found at index 26", e.getMessage());
     }
 
@@ -72,7 +72,7 @@ class ParquetTimestampUtilitiesTest {
         String expected = localTime.format(GreenplumDateTime.DATETIME_FORMATTER); // should be "2019-03-14 20:52:48.123456" in PST
 
         byte[] source = new byte[]{0, 106, 9, 53, -76, 12, 0, 0, -66, -125, 37, 0}; // represents 2019-03-14 20:52:48.1234567
-        String timestamp = ParquetTimestampUtilities.bytesToTimestamp(source); // nanos get dropped
+        String timestamp = ParquetTimestampUtilities.bytesToTimestamp(source, true); // nanos get dropped
         assertEquals(expected, timestamp);
     }
 
@@ -84,7 +84,7 @@ class ParquetTimestampUtilitiesTest {
         // Conversion roundtrip for test input (timestamp)
         String timestamp = "2016-06-21 22:06:25-04";
         Binary binary = ParquetTimestampUtilities.getBinaryFromTimestampWithTimeZone(timestamp);
-        String convertedTimestamp = ParquetTimestampUtilities.bytesToTimestamp(binary.getBytes());
+        String convertedTimestamp = ParquetTimestampUtilities.bytesToTimestamp(binary.getBytes(), true);
 
         assertEquals(expectedTimestampInSystemTimeZone, convertedTimestamp);
     }
@@ -99,7 +99,7 @@ class ParquetTimestampUtilitiesTest {
         // Conversion roundtrip for test input (timestamp); (test input will lose time zone information but remain correct value, and test against expectedTimestampInSystemTimeZone)
         String timestamp = "2019-07-10 21:54:53.523485-04";
         Binary binary = ParquetTimestampUtilities.getBinaryFromTimestampWithTimeZone(timestamp);
-        String convertedTimestamp = ParquetTimestampUtilities.bytesToTimestamp(binary.getBytes());
+        String convertedTimestamp = ParquetTimestampUtilities.bytesToTimestamp(binary.getBytes(), true);
 
         assertEquals(expectedTimestampInSystemTimeZone, convertedTimestamp);
 
@@ -110,7 +110,7 @@ class ParquetTimestampUtilitiesTest {
         // Conversion roundtrip for test input (timestamp)
         String timestamp2 = "2019-07-11 07:39:47.354795+12:45";
         Binary binary2 = ParquetTimestampUtilities.getBinaryFromTimestampWithTimeZone(timestamp2);
-        String convertedTimestamp2 = ParquetTimestampUtilities.bytesToTimestamp(binary2.getBytes());
+        String convertedTimestamp2 = ParquetTimestampUtilities.bytesToTimestamp(binary2.getBytes(), true);
 
         assertEquals(expectedTimestampInSystemTimeZone2, convertedTimestamp2);
     }

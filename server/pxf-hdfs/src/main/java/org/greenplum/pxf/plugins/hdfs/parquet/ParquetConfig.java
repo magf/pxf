@@ -1,13 +1,11 @@
 package org.greenplum.pxf.plugins.hdfs.parquet;
 
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
 public class ParquetConfig {
-    private boolean useLocalPxfTimezoneRead;
-
-    public boolean isUseLocalPxfTimezoneRead() {
-        return useLocalPxfTimezoneRead;
-    }
-
-    public void setUseLocalPxfTimezoneRead(boolean useLocalPxfTimezoneRead) {
-        this.useLocalPxfTimezoneRead = useLocalPxfTimezoneRead;
-    }
+    private final boolean useLocalPxfTimezoneWrite;
+    private final boolean useLocalPxfTimezoneRead;
 }

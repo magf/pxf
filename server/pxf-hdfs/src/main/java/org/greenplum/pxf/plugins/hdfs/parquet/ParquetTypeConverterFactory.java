@@ -62,7 +62,7 @@ public class ParquetTypeConverterFactory {
             case INT64:
                 return new Int64ParquetTypeConverter(parquetConfig.isUseLocalPxfTimezoneRead());
             case INT96:
-                return new Int96ParquetTypeConverter();
+                return new Int96ParquetTypeConverter(parquetConfig.isUseLocalPxfTimezoneRead());
             case BINARY:
                 return new BinaryParquetTypeConverter();
             case BOOLEAN:
