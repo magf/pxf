@@ -31,7 +31,11 @@ import org.greenplum.pxf.api.model.Accessor;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.model.Resolver;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
-import org.greenplum.pxf.plugins.hdfs.parquet.ParquetTypeConverter;
+import org.greenplum.pxf.plugins.hdfs.parquet.ParquetConfig;
+import org.greenplum.pxf.plugins.hdfs.parquet.ParquetTimestampUtilities;
+import org.greenplum.pxf.plugins.hdfs.parquet.ParquetTypeConverterFactory;
+import org.greenplum.pxf.plugins.hdfs.parquet.converters.Int64ParquetTypeConverter;
+import org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -40,16 +44,9 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.apache.parquet.hadoop.ParquetOutputFormat.BLOCK_SIZE;
 import static org.apache.parquet.hadoop.ParquetOutputFormat.DICTIONARY_PAGE_SIZE;
@@ -60,7 +57,12 @@ import static org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnn
 import static org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.IntLogicalTypeAnnotation;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.StringLogicalTypeAnnotation;
-import static org.greenplum.pxf.plugins.hdfs.parquet.ParquetTypeConverter.bytesToTimestamp;
+import static org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor.DEFAULT_USE_INT64_TIMESTAMPS;
+import static org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor.DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE;
+import static org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor.USE_INT64_TIMESTAMPS_NAME;
+import static org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor.USE_LOCAL_PXF_TIMEZONE_WRITE_NAME;
+import static org.greenplum.pxf.plugins.hdfs.ParquetResolver.DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ;
+import static org.greenplum.pxf.plugins.hdfs.ParquetResolver.USE_LOCAL_PXF_TIMEZONE_READ_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -194,6 +196,51 @@ public class ParquetWriteTest {
         accessor.closeForWrite();
 
         assertEquals(32 * 1024 * 1024, configuration.getInt(BLOCK_SIZE, -1));
+    }
+
+    @Test
+    public void testSettingUseInt64TimestampsNameOption() throws Exception {
+
+        columnDescriptors.add(new ColumnDescriptor("id", DataType.INTEGER.getOID(), 0, "int4", null));
+        context.setDataSource(temp + "/out/");
+        context.setTransactionId("XID-XYZ-123453");
+        context.addOption("USE_INT64_TIMESTAMPS", "true");
+
+        accessor.setRequestContext(context);
+        accessor.afterPropertiesSet();
+        assertTrue(accessor.openForWrite());
+        accessor.closeForWrite();
+
+        assertTrue(context.getOption(USE_INT64_TIMESTAMPS_NAME, DEFAULT_USE_INT64_TIMESTAMPS));
+    }
+
+    @Test
+    public void testSettingUseLocalPxfTimezoneWriteOption() throws Exception {
+
+        columnDescriptors.add(new ColumnDescriptor("id", DataType.INTEGER.getOID(), 0, "int4", null));
+        context.setDataSource(temp + "/out/");
+        context.setTransactionId("XID-XYZ-123453");
+        context.addOption("USE_LOCAL_PXF_TIMEZONE_WRITE", "false");
+
+        accessor.setRequestContext(context);
+        accessor.afterPropertiesSet();
+        assertTrue(accessor.openForWrite());
+        accessor.closeForWrite();
+
+        assertFalse(context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE));
+    }
+
+    @Test
+    public void testSettingUseLocalPxfTimezoneReadOption() {
+
+        columnDescriptors.add(new ColumnDescriptor("id", DataType.INTEGER.getOID(), 0, "int4", null));
+        context.setDataSource(temp + "/out/");
+        context.setTransactionId("XID-XYZ-123453");
+        context.addOption("USE_LOCAL_PXF_TIMEZONE_READ", "false");
+
+        resolver.setRequestContext(context);
+        resolver.afterPropertiesSet();
+        assertFalse(context.getOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ));
     }
 
     @Test
@@ -514,7 +561,258 @@ public class ParquetWriteTest {
             ZonedDateTime localTime = timestamp.atZone(ZoneId.systemDefault());
             String localTimestampString = localTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
 
-            assertEquals(localTimestampString, bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes()));
+            assertEquals(localTimestampString,
+                    ParquetTimestampUtilities.bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes()));
+        }
+        assertNull(fileReader.read());
+        fileReader.close();
+    }
+
+    @Test
+    public void testWriteTimestampWithInt64() throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
+        String path = temp + "/out/timestamp_int64/";
+        columnDescriptors.add(new ColumnDescriptor("tm", DataType.TIMESTAMP.getOID(), 0, "timestamp", null));
+
+        context.setDataSource(path);
+        context.setTransactionId("XID-XYZ-123462");
+        context.addOption("USE_INT64_TIMESTAMPS", "true");
+
+        accessor.setRequestContext(context);
+        accessor.afterPropertiesSet();
+        resolver.setRequestContext(context);
+        resolver.afterPropertiesSet();
+
+        assertTrue(accessor.openForWrite());
+
+        // write parquet file with timestamp values
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 04:00:05", i + 1);
+            List<OneField> record = Collections.singletonList(new OneField(DataType.TIMESTAMP.getOID(), timestamp));
+            OneRow rowToWrite = resolver.setFields(record);
+            assertTrue(accessor.writeNextObject(rowToWrite));
+        }
+
+        accessor.closeForWrite();
+
+        // Validate write
+        Path expectedFile = new Path(HcfsType.FILE.getUriForWrite(context) + ".snappy.parquet");
+        assertTrue(expectedFile.getFileSystem(configuration).exists(expectedFile));
+
+        MessageType schema = validateFooter(expectedFile);
+
+        ParquetReader<Group> fileReader = ParquetReader.builder(new GroupReadSupport(), expectedFile)
+                .withConf(configuration)
+                .build();
+
+        // Physical type is INT64
+        Type type = schema.getType(0);
+        assertEquals(PrimitiveType.PrimitiveTypeName.INT64, type.asPrimitiveType().getPrimitiveTypeName());
+        assertTrue(type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation);
+
+        ParquetConfig config = new ParquetConfig();
+        config.setUseLocalPxfTimezoneRead(DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        assertTrue(converter instanceof Int64ParquetTypeConverter);
+
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 04:00:05", i + 1);
+            assertEquals(timestamp,
+                    ParquetTimestampUtilities.getTimestampFromLong(
+                            fileReader.read().getLong(0, 0),
+                            LogicalTypeAnnotation.TimeUnit.MICROS,
+                            DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ)
+            );
+        }
+        assertNull(fileReader.read());
+        fileReader.close();
+    }
+
+    @Test
+    public void testWriteTimestampWithInt64DisableUseLocalPxfTimezoneForReadAndWrite() throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
+        String path = temp + "/out/timestamp_int64/";
+        columnDescriptors.add(new ColumnDescriptor("tm", DataType.TIMESTAMP.getOID(), 0, "timestamp", null));
+
+        context.setDataSource(path);
+        context.setTransactionId("XID-XYZ-123462");
+        context.addOption(USE_INT64_TIMESTAMPS_NAME, "true");
+        context.addOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, "false");
+        context.addOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, "false");
+
+        accessor.setRequestContext(context);
+        accessor.afterPropertiesSet();
+        resolver.setRequestContext(context);
+        resolver.afterPropertiesSet();
+
+        assertTrue(accessor.openForWrite());
+
+        // write parquet file with timestamp values
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 04:00:05", i + 1);
+            List<OneField> record = Collections.singletonList(new OneField(DataType.TIMESTAMP.getOID(), timestamp));
+            OneRow rowToWrite = resolver.setFields(record);
+            assertTrue(accessor.writeNextObject(rowToWrite));
+        }
+        accessor.closeForWrite();
+
+        // Validate write
+        Path expectedFile = new Path(HcfsType.FILE.getUriForWrite(context) + ".snappy.parquet");
+        assertTrue(expectedFile.getFileSystem(configuration).exists(expectedFile));
+
+        MessageType schema = validateFooter(expectedFile);
+
+        ParquetReader<Group> fileReader = ParquetReader.builder(new GroupReadSupport(), expectedFile)
+                .withConf(configuration)
+                .build();
+
+        // Physical type is INT64
+        Type type = schema.getType(0);
+        assertEquals(PrimitiveType.PrimitiveTypeName.INT64, type.asPrimitiveType().getPrimitiveTypeName());
+        assertTrue(type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation);
+
+        ParquetConfig config = new ParquetConfig();
+        config.setUseLocalPxfTimezoneRead(false);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        assertTrue(converter instanceof Int64ParquetTypeConverter);
+
+        // We don't use PXF local server time zone for write and read. So, the timestamp will be the same.
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 04:00:05", i + 1);
+            assertEquals(timestamp,
+                    ParquetTimestampUtilities.getTimestampFromLong(
+                            fileReader.read().getLong(0, 0),
+                            LogicalTypeAnnotation.TimeUnit.MICROS,
+                            false)
+            );
+        }
+        assertNull(fileReader.read());
+        fileReader.close();
+    }
+
+    @Test
+    public void testWriteTimestampWithInt64DisableUseLocalPxfTimezoneForWrite() throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
+        String path = temp + "/out/timestamp_int64/";
+        columnDescriptors.add(new ColumnDescriptor("tm", DataType.TIMESTAMP.getOID(), 0, "timestamp", null));
+
+        context.setDataSource(path);
+        context.setTransactionId("XID-XYZ-123462");
+        context.addOption(USE_INT64_TIMESTAMPS_NAME, "true");
+        context.addOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, "false");
+        context.addOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, "true");
+
+        accessor.setRequestContext(context);
+        accessor.afterPropertiesSet();
+        resolver.setRequestContext(context);
+        resolver.afterPropertiesSet();
+
+        assertTrue(accessor.openForWrite());
+
+        // write parquet file with timestamp values
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 04:00:05", i + 1);
+            List<OneField> record = Collections.singletonList(new OneField(DataType.TIMESTAMP.getOID(), timestamp));
+            OneRow rowToWrite = resolver.setFields(record);
+            assertTrue(accessor.writeNextObject(rowToWrite));
+        }
+        accessor.closeForWrite();
+
+        // Validate write
+        Path expectedFile = new Path(HcfsType.FILE.getUriForWrite(context) + ".snappy.parquet");
+        assertTrue(expectedFile.getFileSystem(configuration).exists(expectedFile));
+
+        MessageType schema = validateFooter(expectedFile);
+
+        ParquetReader<Group> fileReader = ParquetReader.builder(new GroupReadSupport(), expectedFile)
+                .withConf(configuration)
+                .build();
+
+        // Physical type is INT64
+        Type type = schema.getType(0);
+        assertEquals(PrimitiveType.PrimitiveTypeName.INT64, type.asPrimitiveType().getPrimitiveTypeName());
+        assertTrue(type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation);
+
+        ParquetConfig config = new ParquetConfig();
+        config.setUseLocalPxfTimezoneRead(DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        assertTrue(converter instanceof Int64ParquetTypeConverter);
+
+        // For write operation we didn't use local time zone. So, the timestamp was saved as is.
+        // For read operation we use default pxf server time zone to convert the timestamp from the UTC to the local time.
+        // As the time zone is +03:00, the timestamp will be +3 hours from UTC
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 07:00:05", i + 1);
+            assertEquals(timestamp,
+                    ParquetTimestampUtilities.getTimestampFromLong(
+                            fileReader.read().getLong(0, 0),
+                            LogicalTypeAnnotation.TimeUnit.MICROS,
+                            DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ)
+            );
+        }
+        assertNull(fileReader.read());
+        fileReader.close();
+    }
+
+    @Test
+    public void testWriteTimestampWithInt64DisableUseLocalPxfTimezoneForRead() throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
+        String path = temp + "/out/timestamp_int64/";
+        columnDescriptors.add(new ColumnDescriptor("tm", DataType.TIMESTAMP.getOID(), 0, "timestamp", null));
+
+        context.setDataSource(path);
+        context.setTransactionId("XID-XYZ-123462");
+        context.addOption(USE_INT64_TIMESTAMPS_NAME, "true");
+        context.addOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, "true");
+        context.addOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, "false");
+
+        accessor.setRequestContext(context);
+        accessor.afterPropertiesSet();
+        resolver.setRequestContext(context);
+        resolver.afterPropertiesSet();
+
+        assertTrue(accessor.openForWrite());
+
+        // write parquet file with timestamp values
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 04:00:05", i + 1);
+            List<OneField> record = Collections.singletonList(new OneField(DataType.TIMESTAMP.getOID(), timestamp));
+            OneRow rowToWrite = resolver.setFields(record);
+            assertTrue(accessor.writeNextObject(rowToWrite));
+        }
+        accessor.closeForWrite();
+
+        // Validate write
+        Path expectedFile = new Path(HcfsType.FILE.getUriForWrite(context) + ".snappy.parquet");
+        assertTrue(expectedFile.getFileSystem(configuration).exists(expectedFile));
+
+        MessageType schema = validateFooter(expectedFile);
+
+        ParquetReader<Group> fileReader = ParquetReader.builder(new GroupReadSupport(), expectedFile)
+                .withConf(configuration)
+                .build();
+
+        // Physical type is INT64
+        Type type = schema.getType(0);
+        assertEquals(PrimitiveType.PrimitiveTypeName.INT64, type.asPrimitiveType().getPrimitiveTypeName());
+        assertTrue(type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation);
+
+        ParquetConfig config = new ParquetConfig();
+        config.setUseLocalPxfTimezoneRead(false);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        assertTrue(converter instanceof Int64ParquetTypeConverter);
+
+        // For write operation we used default pxf server time zone to convert the timestamp from the local time to the UTC.
+        // As the default time zone was +03:00, the timestamp in UTC was -3 hours less.
+        // For read operation we will not use local time zone. So, the timestamp will be the same as in the parquet file.
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 01:00:05", i + 1);
+            assertEquals(timestamp,
+                    ParquetTimestampUtilities.getTimestampFromLong(
+                            fileReader.read().getLong(0, 0),
+                            LogicalTypeAnnotation.TimeUnit.MICROS,
+                            false)
+            );
         }
         assertNull(fileReader.read());
         fileReader.close();
@@ -1187,6 +1485,49 @@ public class ParquetWriteTest {
     }
 
     @Test
+    public void testWriteTimestampArrayInt64() throws Exception {
+        String path = temp + "/out/timestamp_array_int64/";
+
+        columnDescriptors.add(new ColumnDescriptor("tm_array", DataType.TIMESTAMPARRAY.getOID(), 0, "tm_array", null));
+
+        context.setDataSource(path);
+        context.setTransactionId("XID-XYZ-123475");
+        context.addOption("USE_INT64_TIMESTAMPS", "true");
+
+        accessor.setRequestContext(context);
+        accessor.afterPropertiesSet();
+        resolver.setRequestContext(context);
+        resolver.afterPropertiesSet();
+
+        assertTrue(accessor.openForWrite());
+
+        String[] values = generateLocalTimestampStrings(null);
+
+        for (String value : values) {
+            List<OneField> record = Collections.singletonList(new OneField(DataType.TIMESTAMPARRAY.getOID(), value));
+            OneRow rowToWrite = resolver.setFields(record);
+            assertTrue(accessor.writeNextObject(rowToWrite));
+        }
+
+        accessor.closeForWrite();
+
+        // Validate write
+        Path expectedFile = new Path(HcfsType.FILE.getUriForWrite(context) + ".snappy.parquet");
+        assertTrue(expectedFile.getFileSystem(configuration).exists(expectedFile));
+
+        MessageType schema = validateFooter(expectedFile);
+
+        ParquetReader<Group> fileReader = ParquetReader.builder(new GroupReadSupport(), expectedFile)
+                .withConf(configuration)
+                .build();
+
+        assertList(schema.getType(0), fileReader, values, PrimitiveType.PrimitiveTypeName.INT64,
+                LogicalTypeAnnotation.TimestampLogicalTypeAnnotation.timestampType(true, LogicalTypeAnnotation.TimeUnit.MICROS));
+
+        fileReader.close();
+    }
+
+    @Test
     public void testWriteBigIntArray() throws Exception {
         String path = temp + "/out/big_int_arr/";
 
@@ -1628,15 +1969,15 @@ public class ParquetWriteTest {
         Instant timestamp0 = Instant.parse("2020-08-01T04:00:05Z"); // UTC
         ZonedDateTime localTime0 = timestamp0.atZone(ZoneId.systemDefault());
         String localTimestampString0 = localTime0.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
-        assertEquals(localTimestampString0, bytesToTimestamp(row0.getInt96(2, 0).getBytes()));
+        assertEquals(localTimestampString0, ParquetTimestampUtilities.bytesToTimestamp(row0.getInt96(2, 0).getBytes()));
         Instant timestamp1 = Instant.parse("2020-08-02T04:00:05Z"); // UTC
         ZonedDateTime localTime1 = timestamp1.atZone(ZoneId.systemDefault());
         String localTimestampString1 = localTime1.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
-        assertEquals(localTimestampString1, bytesToTimestamp(row1.getInt96(2, 0).getBytes()));
+        assertEquals(localTimestampString1, ParquetTimestampUtilities.bytesToTimestamp(row1.getInt96(2, 0).getBytes()));
         Instant timestamp2 = Instant.parse("2020-08-03T04:00:05Z"); // UTC
         ZonedDateTime localTime2 = timestamp2.atZone(ZoneId.systemDefault());
         String localTimestampString2 = localTime2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
-        assertEquals(localTimestampString2, bytesToTimestamp(row2.getInt96(2, 0).getBytes()));
+        assertEquals(localTimestampString2, ParquetTimestampUtilities.bytesToTimestamp(row2.getInt96(2, 0).getBytes()));
 
         assertEquals(Binary.fromString("e"), row0.getBinary(3, 0));
         assertEquals(Binary.fromString("ee"), row1.getBinary(3, 0));
@@ -1717,7 +2058,139 @@ public class ParquetWriteTest {
             ZonedDateTime localTime = timestamp.atZone(ZoneId.systemDefault());
             //parquet doesn't keep timezone information
             String localTimestampString = localTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // 2020-06-28 04:30:00
-            assertEquals(localTimestampString, bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes()));
+            assertEquals(localTimestampString, ParquetTimestampUtilities.bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes()));
+        }
+        assertNull(fileReader.read());
+        fileReader.close();
+    }
+
+    @Test
+    public void testWriteTimestampWithTimezoneInt64() throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
+        String path = temp + "/out/timestamp_with_timezone_int64/";
+        columnDescriptors.add(new ColumnDescriptor("tmtz", DataType.TIMESTAMP_WITH_TIME_ZONE.getOID(), 0, "timestamp_with_timezone", null));
+
+        context.setDataSource(path);
+        context.setTransactionId("XID-XYZ-123484");
+        context.addOption("USE_INT64_TIMESTAMPS", "true");
+
+        accessor.setRequestContext(context);
+        accessor.afterPropertiesSet();
+        resolver.setRequestContext(context);
+        resolver.afterPropertiesSet();
+
+        assertTrue(accessor.openForWrite());
+
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 07:00:05.123+05:00", i + 1);
+            List<OneField> record = Collections.singletonList(new OneField(DataType.TIMESTAMP.getOID(), timestamp));
+            OneRow rowToWrite = resolver.setFields(record);
+            assertTrue(accessor.writeNextObject(rowToWrite));
+        }
+
+        accessor.closeForWrite();
+
+        // Validate write
+        Path expectedFile = new Path(HcfsType.FILE.getUriForWrite(context) + ".snappy.parquet");
+        assertTrue(expectedFile.getFileSystem(configuration).exists(expectedFile));
+
+        MessageType schema = validateFooter(expectedFile);
+
+        ParquetReader<Group> fileReader = ParquetReader.builder(new GroupReadSupport(), expectedFile)
+                .withConf(configuration)
+                .build();
+
+        // Physical type is INT64
+        Type type = schema.getType(0);
+        assertEquals(PrimitiveType.PrimitiveTypeName.INT64, type.asPrimitiveType().getPrimitiveTypeName());
+        assertTrue(type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation);
+        LogicalTypeAnnotation.TimestampLogicalTypeAnnotation originalType = (LogicalTypeAnnotation.TimestampLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
+        assertEquals(LogicalTypeAnnotation.TimeUnit.MICROS, originalType.getUnit());
+
+        ParquetConfig config = new ParquetConfig();
+        config.setUseLocalPxfTimezoneRead(true);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        assertTrue(converter instanceof Int64ParquetTypeConverter);
+
+        // For write operation we always convert the timestamp to UTC using the offset from GP.
+        // For read operation we use default pxf server time zone to convert the timestamp from the UTC to the local time.
+        // As the time zone is +03:00, the timestamp will be +3 hours from UTC
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 05:00:05.123", i + 1);
+            assertEquals(timestamp,
+                    ParquetTimestampUtilities.getTimestampFromLong(
+                            fileReader.read().getLong(0, 0),
+                            LogicalTypeAnnotation.TimeUnit.MICROS,
+                            DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ)
+            );
+        }
+        assertNull(fileReader.read());
+        fileReader.close();
+    }
+
+    @Test
+    public void testWriteTimestampWithTimezoneInt64DisableUseLocalPxfTimezoneForRead() throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
+        String path = temp + "/out/timestamp_with_timezone_int64/";
+        columnDescriptors.add(new ColumnDescriptor("tmtz", DataType.TIMESTAMP_WITH_TIME_ZONE.getOID(), 0, "timestamp_with_timezone", null));
+
+        context.setDataSource(path);
+        context.setTransactionId("XID-XYZ-123484");
+        context.addOption("USE_INT64_TIMESTAMPS", "true");
+        // This parameter doesn't play role in case of timestamp with time zone. We always convert it to UTC as we have offset time zone
+        context.addOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, "false");
+
+        context.addOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, "false");
+
+        accessor.setRequestContext(context);
+        accessor.afterPropertiesSet();
+        resolver.setRequestContext(context);
+        resolver.afterPropertiesSet();
+
+        assertTrue(accessor.openForWrite());
+
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 07:00:05.123+05:00", i + 1);
+            List<OneField> record = Collections.singletonList(new OneField(DataType.TIMESTAMP.getOID(), timestamp));
+            OneRow rowToWrite = resolver.setFields(record);
+            assertTrue(accessor.writeNextObject(rowToWrite));
+        }
+
+        accessor.closeForWrite();
+
+        // Validate write
+        Path expectedFile = new Path(HcfsType.FILE.getUriForWrite(context) + ".snappy.parquet");
+        assertTrue(expectedFile.getFileSystem(configuration).exists(expectedFile));
+
+        MessageType schema = validateFooter(expectedFile);
+
+        ParquetReader<Group> fileReader = ParquetReader.builder(new GroupReadSupport(), expectedFile)
+                .withConf(configuration)
+                .build();
+
+        // Physical type is INT64
+        Type type = schema.getType(0);
+        assertEquals(PrimitiveType.PrimitiveTypeName.INT64, type.asPrimitiveType().getPrimitiveTypeName());
+        assertTrue(type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation);
+        LogicalTypeAnnotation.TimestampLogicalTypeAnnotation originalType = (LogicalTypeAnnotation.TimestampLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
+        assertEquals(LogicalTypeAnnotation.TimeUnit.MICROS, originalType.getUnit());
+
+        ParquetConfig config = new ParquetConfig();
+        config.setUseLocalPxfTimezoneRead(false);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        assertTrue(converter instanceof Int64ParquetTypeConverter);
+
+        // For write operation we always convert the timestamp to UTC using the offset from GP.
+        // For read operation we disabled conversion the timestamp from the UTC to the local time.
+        // The timestamp will be the same as it is saved in the parquet (UTC)
+        for (int i = 0; i < 10; i++) {
+            String timestamp = String.format("2020-08-%02d 02:00:05.123", i + 1);
+            assertEquals(timestamp,
+                    ParquetTimestampUtilities.getTimestampFromLong(
+                            fileReader.read().getLong(0, 0),
+                            LogicalTypeAnnotation.TimeUnit.MICROS,
+                            false)
+            );
         }
         assertNull(fileReader.read());
         fileReader.close();
@@ -1759,6 +2232,48 @@ public class ParquetWriteTest {
 
         String[] expectedValues = generateLocalTimestampStrings(null);
         assertList(schema.getType(0), fileReader, expectedValues, PrimitiveType.PrimitiveTypeName.INT96, null);
+
+        fileReader.close();
+    }
+
+    @Test
+    public void testWriteTimestampWithTimezoneArrayInt64() throws Exception {
+        String path = temp + "/out/timestamp_with_timezone_array_int64/";
+
+        columnDescriptors.add(new ColumnDescriptor("tmtz_array", DataType.TIMESTAMP_WITH_TIMEZONE_ARRAY.getOID(), 0, "tmtz_array", null));
+
+        context.setDataSource(path);
+        context.setTransactionId("XID-XYZ-123485");
+        context.addOption("USE_INT64_TIMESTAMPS", "true");
+
+        accessor.setRequestContext(context);
+        accessor.afterPropertiesSet();
+        resolver.setRequestContext(context);
+        resolver.afterPropertiesSet();
+
+        assertTrue(accessor.openForWrite());
+
+        String[] values = generateLocalTimestampStrings(ZoneId.systemDefault());
+        for (String value : values) {
+            List<OneField> record = Collections.singletonList(new OneField(DataType.TIMESTAMP_WITH_TIMEZONE_ARRAY.getOID(), value));
+            OneRow rowToWrite = resolver.setFields(record);
+            assertTrue(accessor.writeNextObject(rowToWrite));
+        }
+        accessor.closeForWrite();
+
+        // Validate write
+        Path expectedFile = new Path(HcfsType.FILE.getUriForWrite(context) + ".snappy.parquet");
+        assertTrue(expectedFile.getFileSystem(configuration).exists(expectedFile));
+
+        MessageType schema = validateFooter(expectedFile);
+
+        ParquetReader<Group> fileReader = ParquetReader.builder(new GroupReadSupport(), expectedFile)
+                .withConf(configuration)
+                .build();
+
+        String[] expectedValues = generateLocalTimestampStrings(null);
+        assertList(schema.getType(0), fileReader, expectedValues, PrimitiveType.PrimitiveTypeName.INT64,
+                LogicalTypeAnnotation.TimestampLogicalTypeAnnotation.timestampType(true, LogicalTypeAnnotation.TimeUnit.MICROS));
 
         fileReader.close();
     }
@@ -2309,13 +2824,13 @@ public class ParquetWriteTest {
                             logicalTypeAnnotation == LogicalTypeAnnotation.IntLogicalTypeAnnotation.intType(16, true)) {
                         assertEquals(Short.parseShort(expectedValues[j]), (short) elementGroup.getInteger(0, 0));
                     } else if (logicalTypeAnnotation != null && logicalTypeAnnotation == LogicalTypeAnnotation.dateType()) {
-                        assertEquals(ParquetTypeConverter.getDaysFromEpochFromDateString(expectedValues[j]), elementGroup.getInteger(0, 0));
+                        assertEquals(ParquetTimestampUtilities.getDaysFromEpochFromDateString(expectedValues[j]), elementGroup.getInteger(0, 0));
                     } else {
                         assertEquals(Integer.parseInt(expectedValues[j]), elementGroup.getInteger(0, 0));
                     }
                     break;
                 case INT96:
-                    assertEquals(expectedValues[j], bytesToTimestamp(elementGroup.getInt96(0, 0).getBytes()));
+                    assertEquals(expectedValues[j], ParquetTimestampUtilities.bytesToTimestamp(elementGroup.getInt96(0, 0).getBytes()));
                     break;
                 case FLOAT:
                     assertEquals(Float.parseFloat(expectedValues[j]), elementGroup.getFloat(0, 0));

@@ -26,7 +26,7 @@ public class ParquetUtilitiesTest {
     @Test
     public void testParsePostgresArrayIntegerArray() {
         // GPDB SHORT is a parquet signed INT32 with INT annotation
-        List<Object> result = parquetUtilities.parsePostgresArray("{1,2,-3}", PrimitiveType.PrimitiveTypeName.INT32, LogicalTypeAnnotation.IntLogicalTypeAnnotation.IntLogicalTypeAnnotation.intType(16,true));
+        List<Object> result = parquetUtilities.parsePostgresArray("{1,2,-3}", PrimitiveType.PrimitiveTypeName.INT32, LogicalTypeAnnotation.IntLogicalTypeAnnotation.IntLogicalTypeAnnotation.intType(16, true));
         assertIterableEquals(Arrays.asList((short) 1, (short) 2, (short) -3), result);
 
         // GPDB INT is a parquet INT32 with no annotation
@@ -39,7 +39,7 @@ public class ParquetUtilitiesTest {
 
     @Test
     public void testParsePostgresArrayIntegerArrayWithNulls() {
-        List<Object> result = parquetUtilities.parsePostgresArray("{1,NULL,-3}", PrimitiveType.PrimitiveTypeName.INT32, LogicalTypeAnnotation.IntLogicalTypeAnnotation.IntLogicalTypeAnnotation.intType(16,true));
+        List<Object> result = parquetUtilities.parsePostgresArray("{1,NULL,-3}", PrimitiveType.PrimitiveTypeName.INT32, LogicalTypeAnnotation.IntLogicalTypeAnnotation.IntLogicalTypeAnnotation.intType(16, true));
         assertIterableEquals(Arrays.asList((short) 1, null, (short) -3), result);
 
         result = parquetUtilities.parsePostgresArray("{1,NULL,3}", PrimitiveType.PrimitiveTypeName.INT32, null);
@@ -82,8 +82,19 @@ public class ParquetUtilitiesTest {
         String value = "{\"2013-07-13 21:00:05-07\",\"2013-07-13 21:00:05-07\"}";
         List<Object> result = parquetUtilities.parsePostgresArray(value, PrimitiveType.PrimitiveTypeName.INT96, null);
         assertEquals(2, result.size());
-        assertEquals(Arrays.asList("2013-07-13 21:00:05-07","2013-07-13 21:00:05-07"), result);
+        assertEquals(Arrays.asList("2013-07-13 21:00:05-07", "2013-07-13 21:00:05-07"), result);
     }
+
+    @Test
+    public void testParsePostgresArrayTimestampArrayInt64() {
+        // GPDB Timestamp is a parquet INT64 with TimestampLogicalTypeAnnotation annotation
+        String value = "{\"2013-07-13 21:00:05-07\",\"2013-07-13 21:00:05-07\"}";
+        LogicalTypeAnnotation.TimestampLogicalTypeAnnotation logicalTypeAnnotation = LogicalTypeAnnotation.timestampType(true, LogicalTypeAnnotation.TimeUnit.MICROS);
+        List<Object> result = parquetUtilities.parsePostgresArray(value, PrimitiveType.PrimitiveTypeName.INT64, logicalTypeAnnotation);
+        assertEquals(2, result.size());
+        assertEquals(Arrays.asList("2013-07-13 21:00:05-07", "2013-07-13 21:00:05-07"), result);
+    }
+
     @Test
     public void testParsePostgresArrayByteaArrayEscapeOutput() {
         // GPDB Bytea is a parquet BINARY with no annotation
@@ -240,6 +251,19 @@ public class ParquetUtilitiesTest {
 
         // nothing is thrown here because we don't decode strings and check for multidimensionality. This check is done later
         List<Object> result = parquetUtilities.parsePostgresArray(value, PrimitiveType.PrimitiveTypeName.INT96, null);
+        assertEquals(2, result.size());
+        assertEquals(Arrays.asList("{\"2013-07-13 21:00:05-07\"}", "{\"2013-07-13 21:00:05-07\"}"), result);
+    }
+
+    @Test
+    public void testParsePostgresArrayMultiDimensionalArrayTimestampInt64() {
+        // test the underlying decode string: we expect it to fail and the failure to be caught by parsePostgresArray
+        // as we currently do not support writing multi-dimensional arrays
+        String value = "{{\"2013-07-13 21:00:05-07\"},{\"2013-07-13 21:00:05-07\"}}";
+
+        // nothing is thrown here because we don't decode strings and check for multidimensionality. This check is done later
+        LogicalTypeAnnotation.TimestampLogicalTypeAnnotation logicalTypeAnnotation = LogicalTypeAnnotation.timestampType(true, LogicalTypeAnnotation.TimeUnit.MICROS);
+        List<Object> result = parquetUtilities.parsePostgresArray(value, PrimitiveType.PrimitiveTypeName.INT96, logicalTypeAnnotation);
         assertEquals(2, result.size());
         assertEquals(Arrays.asList("{\"2013-07-13 21:00:05-07\"}","{\"2013-07-13 21:00:05-07\"}"), result);    }
 

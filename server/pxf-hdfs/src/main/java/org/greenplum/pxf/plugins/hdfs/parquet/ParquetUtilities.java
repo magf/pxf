@@ -98,7 +98,11 @@ public class ParquetUtilities {
                     return Integer.parseInt(val);
                 }
             case INT64:
-                return Long.parseLong(val);
+                if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation) {
+                    return val;
+                } else {
+                    return Long.parseLong(val);
+                }
             case DOUBLE:
                 return Double.parseDouble(val);
             case FLOAT:

@@ -98,6 +98,7 @@ dependencies {
     testImplementation("io.airlift:aircompressor")       // for HcfsTypeTest for testing write URI with LzopCodec
     testImplementation("org.apache.parquet:parquet-pig") // for parquet tests
     testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.mockito:mockito-inline')
 }
 
 test {

@@ -97,6 +97,10 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
 
     private static final int DEFAULT_ROWGROUP_SIZE = 8 * 1024 * 1024;
     private static final CompressionCodecName DEFAULT_COMPRESSION = CompressionCodecName.SNAPPY;
+    public static final String USE_INT64_TIMESTAMPS_NAME = "USE_INT64_TIMESTAMPS";
+    public static final String USE_LOCAL_PXF_TIMEZONE_WRITE_NAME = "USE_LOCAL_PXF_TIMEZONE_WRITE";
+    public static final boolean DEFAULT_USE_INT64_TIMESTAMPS = false;
+    public static final boolean DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE = true;
 
     // From org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe
     public static final int[] PRECISION_TO_BYTE_COUNT = new int[38];
@@ -134,12 +138,13 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     private GroupWriteSupport groupWriteSupport;
     private FileSystem fs;
     private Path file;
-    private String filePrefix;
     private boolean enableDictionary;
     private int pageSize, rowGroupSize, dictionarySize;
     private long rowsRead, totalRowsRead, totalRowsWritten;
     private WriterVersion parquetVersion;
     private long totalReadTimeInNanos;
+    private boolean useInt64Timestamps;
+    private boolean useLocalPxfTimezoneWrite;
 
     /**
      * Opens the resource for read.
@@ -223,7 +228,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
 
         HcfsType hcfsType = HcfsType.getHcfsType(context);
         // skip codec extension in filePrefix, because we add it in this accessor
-        filePrefix = hcfsType.getUriForWrite(context);
+        String filePrefix = hcfsType.getUriForWrite(context);
         String compressCodec = context.getOption("COMPRESSION_CODEC");
         codecName = getCodecName(compressCodec, DEFAULT_COMPRESSION);
 
@@ -234,8 +239,12 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         dictionarySize = context.getOption("DICTIONARY_PAGE_SIZE", DEFAULT_DICTIONARY_PAGE_SIZE);
         String parquetVerStr = context.getOption("PARQUET_VERSION");
         parquetVersion = parquetVerStr != null ? WriterVersion.fromString(parquetVerStr.toLowerCase()) : DEFAULT_WRITER_VERSION;
-        LOG.debug("{}-{}: Parquet options: PAGE_SIZE = {}, ROWGROUP_SIZE = {}, DICTIONARY_PAGE_SIZE = {}, PARQUET_VERSION = {}, ENABLE_DICTIONARY = {}",
-                context.getTransactionId(), context.getSegmentId(), pageSize, rowGroupSize, dictionarySize, parquetVersion, enableDictionary);
+        useInt64Timestamps = context.getOption(USE_INT64_TIMESTAMPS_NAME, DEFAULT_USE_INT64_TIMESTAMPS);
+        useLocalPxfTimezoneWrite = context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
+        LOG.debug("{}-{}: Parquet options: PAGE_SIZE = {}, ROWGROUP_SIZE = {}, DICTIONARY_PAGE_SIZE = {}, " +
+                        "PARQUET_VERSION = {}, ENABLE_DICTIONARY = {}, USE_INT64_TIMESTAMPS = {}, USE_LOCAL_PXF_TIMEZONE_WRITE = {}",
+                context.getTransactionId(), context.getSegmentId(), pageSize, rowGroupSize, dictionarySize,
+                parquetVersion, enableDictionary, useInt64Timestamps, useLocalPxfTimezoneWrite);
 
         // fs is the dependency for both readSchemaFile and createParquetWriter
         String fileName = filePrefix + codecName.getExtension() + ".parquet";
@@ -496,7 +505,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 context.getSegmentId(), columns);
         List<Type> fields = columns
                 .stream()
-                .map(c -> getTypeForColumnDescriptor(c))
+                .map(this::getTypeForColumnDescriptor)
                 .collect(Collectors.toList());
         return new MessageType("greenplum_pxf_schema", fields);
     }
@@ -570,8 +579,21 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 length = PRECISION_TO_BYTE_COUNT[precision - 1];
                 break;
             case TIMESTAMP:
+                if (useInt64Timestamps) {
+                    primitiveTypeName = PrimitiveTypeName.INT64;
+                    boolean isAdjustedToUTC = useLocalPxfTimezoneWrite;
+                    logicalTypeAnnotation = LogicalTypeAnnotation.timestampType(isAdjustedToUTC, LogicalTypeAnnotation.TimeUnit.MICROS);
+                } else {
+                    primitiveTypeName = PrimitiveTypeName.INT96;
+                }
+                break;
             case TIMESTAMP_WITH_TIME_ZONE:
-                primitiveTypeName = PrimitiveTypeName.INT96;
+                if (useInt64Timestamps) {
+                    primitiveTypeName = PrimitiveTypeName.INT64;
+                    logicalTypeAnnotation = LogicalTypeAnnotation.timestampType(true, LogicalTypeAnnotation.TimeUnit.MICROS);
+                } else {
+                    primitiveTypeName = PrimitiveTypeName.INT96;
+                }
                 break;
             case DATE:
                 // DATE is used to for a logical date type, without a time
