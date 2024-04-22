@@ -8,6 +8,7 @@ import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.security.SecureLogin;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.plugins.jdbc.utils.ConnectionManager;
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,9 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -288,7 +287,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateWithMoreThan4digitsInYearWithoutWideRangeTest() throws ParseException {
+    void setFieldDateWithMoreThan4digitsInYearWithoutWideRangeTest() {
         isDateWideRange = false;
         String date = "12345678-12-11";
         assertThrows(IllegalArgumentException.class, () -> setFields(date, DataType.DATE.getOID(), "date"));
@@ -399,7 +398,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateTimeWithEraWithoutWideRangeTest() throws ParseException {
+    void setFieldDateTimeWithEraWithoutWideRangeTest() {
         isDateWideRange = false;
         String timestamp = "1235-11-01 16:20 BC";
         assertThrows(IllegalArgumentException.class, () -> setFields(timestamp, DataType.TIMESTAMP.getOID(), "timestamp"));
@@ -426,7 +425,7 @@ class JdbcResolverTest {
         oneFieldList.add(new OneField(DataType.UUID.getOID(), UUID.fromString("decafbad-0000-0000-0000-000000000000")));
         when(row.getData()).thenReturn(oneFieldList);
 
-        JdbcResolver.decodeOneRowToPreparedStatement(row, mockStatement);
+        JdbcResolver.decodeOneRowToPreparedStatement(row, mockStatement, mock(DbProduct.class));
 
         verify(mockStatement).setObject(1, UUID.fromString("decafbad-0000-0000-0000-000000000000"));
         verifyNoMoreInteractions(mockStatement);
