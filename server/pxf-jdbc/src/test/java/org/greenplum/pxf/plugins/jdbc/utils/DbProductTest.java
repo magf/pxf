@@ -97,6 +97,17 @@ public class DbProductTest {
     }
 
     @Test
+    public void testOracleDatesWithTime() {
+        final String[] expected = {"to_date('2001-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"};
+
+        DbProduct dbProduct = DbProduct.getDbProduct(DB_NAME_ORACLE);
+
+        for (int i = 0; i < TIMESTAMPS.length; i++) {
+            assertEquals(expected[i], dbProduct.wrapDateWithTime(TIMESTAMPS[i]));
+        }
+    }
+
+    @Test
     public void testOracleTimestamps() {
         final String[] expected = {"to_timestamp('2001-01-01 00:00:00.0', 'YYYY-MM-DD HH24:MI:SS.FF')"};
 

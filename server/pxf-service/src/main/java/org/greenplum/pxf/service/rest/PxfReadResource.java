@@ -6,10 +6,7 @@ import org.greenplum.pxf.service.controller.ReadService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/pxf")
 public class PxfReadResource extends PxfBaseResource<StreamingResponseBody> {
 
+    public static final String X_GP_CLIENT_PORT_HEADER = "x-gp-client-port";
     private final ReadService readService;
 
     /**
@@ -44,7 +42,20 @@ public class PxfReadResource extends PxfBaseResource<StreamingResponseBody> {
     @GetMapping(value = "/read", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<StreamingResponseBody> read(@RequestHeader MultiValueMap<String, String> headers,
                                                       HttpServletRequest request) {
+        // we need this header to uniquely identify the read request for possible cancellation
+        headers.add(X_GP_CLIENT_PORT_HEADER, String.valueOf(request.getRemotePort()));
         return processRequest(headers, request);
+    }
+
+    /**
+     * REST endpoint for canceling read data requests.
+     *
+     * @param headers http headers from request that carry all parameters
+     * @return true if read request found and cancelled, false otherwise
+     */
+    @PostMapping(value = "/cancel", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> cancel(@RequestHeader MultiValueMap<String, String> headers) {
+        return ResponseEntity.ok(String.valueOf(readService.cancelRead(parser.parseRequest(headers, requestType))));
     }
 
     @Override

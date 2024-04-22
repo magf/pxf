@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property><name>hbase.master.info.port</name><value>16010</value></property>
+    <property><name>DIR</name><value>/etc/hbase</value></property>
+    <property><name>hbase.cluster.distributed</name><value>false</value></property>
+    <property><name>hbase.master.port</name><value>16000</value></property>
+    <property><name>hbase.zookeeper.property.dataDir</name><value>/zookeeper-data</value></property>
+    <property><name>hbase.zookeeper.property.clientPort</name><value>2181</value></property>
+    <property><name>hbase.zookeeper.leaderport</name><value>3888</value></property>
+    <property><name>hbase.zookeeper.quorum</name><value>hadoop</value></property>
+    <property><name>hbase.regionserver.port</name><value>16020</value></property>
+    <property><name>hbase.regionserver.info.port</name><value>16030</value></property>
+    <property><name>hbase.zookeeper.peerport</name><value>2888</value></property>
+    <property><name>hbase.rootdir</name><value>hdfs://hadoop:8020/hbase</value></property>
+</configuration>

@@ -179,7 +179,7 @@ public class MultiServerTest extends BaseFeature {
         }
     }
 
-    @Test(groups = {"features", "gpdb", "security"})
+    @Test(groups = {"features", "security"})
     public void testHdfsAndCloudServers() throws Exception {
         runSqlTest("features/multi_server/hdfs_and_cloud");
     }

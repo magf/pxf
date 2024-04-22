@@ -58,8 +58,7 @@ public class SQLQueryBuilder {
                     Operator.EQUALS,
                     Operator.LIKE,
                     Operator.NOT_EQUALS,
-                    // TODO: In is not supported?
-                    // Operator.IN,
+                    Operator.IN,
                     Operator.IS_NULL,
                     Operator.IS_NOT_NULL,
                     Operator.NOOP,
@@ -77,6 +76,7 @@ public class SQLQueryBuilder {
     private final List<ColumnDescriptor> columns;
     private final String source;
     private String quoteString;
+    private boolean wrapDateWithTime = false;
     private boolean subQueryUsed = false;
 
     /**
@@ -122,6 +122,10 @@ public class SQLQueryBuilder {
         quoteString = "";
     }
 
+    public void setWrapDateWithTime(boolean wrapDateWithTime) {
+        this.wrapDateWithTime = wrapDateWithTime;
+    }
+
     /**
      * Build SELECT query (with "WHERE" and partition constraints).
      *
@@ -139,7 +143,9 @@ public class SQLQueryBuilder {
         // Insert partition constraints
         buildFragmenterSql(context, dbProduct, quoteString, sb);
 
-        return sb.toString();
+        String query = sb.toString();
+        LOG.debug("buildSelectQuery: {}", query);
+        return query;
     }
 
     /**
@@ -268,7 +274,8 @@ public class SQLQueryBuilder {
         return new JdbcPredicateBuilder(
                 dbProduct,
                 quoteString,
-                context.getTupleDescription());
+                context.getTupleDescription(),
+                wrapDateWithTime);
     }
 
     /**
@@ -287,18 +294,24 @@ public class SQLQueryBuilder {
      * @param query SQL query to insert constraints to. The query may may contain other WHERE statements
      */
     private void buildWhereSQL(StringBuilder query) {
-        if (!context.hasFilter()) return;
+        if (!context.hasFilter()) {
+            LOG.debug("FILTER empty");
+            return;
+        }
 
         JdbcPredicateBuilder jdbcPredicateBuilder = getPredicateBuilder();
 
         try {
             // Parse the filter string into a expression tree Node
             Node root = new FilterParser().parse(context.getFilterString());
+            LOG.debug("FILTER source: {}", context.getFilterString());
             // Prune the parsed tree with the provided pruner and then
             // traverse the tree with the JDBC predicate builder to produce a predicate
             TRAVERSER.traverse(root, getPruner(), jdbcPredicateBuilder);
             // No exceptions were thrown, change the provided query
-            query.append(jdbcPredicateBuilder.toString());
+            String where = jdbcPredicateBuilder.toString();
+            LOG.debug("FILTER target: {}", where);
+            query.append(where);
         } catch (Exception e) {
             LOG.debug("WHERE clause is omitted: " + e.toString());
             // Silence the exception and do not insert constraints

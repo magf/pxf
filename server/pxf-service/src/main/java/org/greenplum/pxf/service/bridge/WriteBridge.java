@@ -22,6 +22,7 @@ package org.greenplum.pxf.service.bridge;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.io.Writable;
+import org.greenplum.pxf.api.model.CancelableOperation;
 import org.greenplum.pxf.api.model.InputStreamHandler;
 import org.greenplum.pxf.api.model.OutputFormat;
 import org.greenplum.pxf.api.model.RequestContext;
@@ -113,8 +114,24 @@ public class WriteBridge extends BaseBridge {
      * {@inheritDoc}
      */
     @Override
+    public void cancelIteration() throws Exception {
+        try {
+            if (accessor instanceof CancelableOperation) {
+                ((CancelableOperation) accessor).cancelWrite();
+            } else {
+                LOG.debug("Accessor [{}] does not support canceling write operation", accessor.getClass().getSimpleName());
+            }
+        } catch (Exception e) {
+            LOG.error("Failed to cancel write bridge iteration: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Writable getNext() {
         throw new UnsupportedOperationException("Current operation is not supported");
     }
-
 }

@@ -2,6 +2,7 @@ package org.greenplum.pxf.service.controller;
 
 import com.google.common.io.CountingInputStream;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.model.ConfigurationFactory;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.utilities.Utilities;
@@ -13,6 +14,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 /**
  * Implementation of the WriteService.
@@ -20,6 +24,8 @@ import java.io.InputStream;
 @Service
 @Slf4j
 public class WriteServiceImpl extends BaseServiceImpl<OperationStats> implements WriteService {
+
+    private final Map<RequestIdentifier, Bridge> writeExecutionMap = new ConcurrentHashMap<>();
 
     /**
      * Creates a new instance.
@@ -46,6 +52,28 @@ public class WriteServiceImpl extends BaseServiceImpl<OperationStats> implements
         return returnMsg;
     }
 
+    @Override
+    public boolean cancelWrite(RequestContext context) {
+        RequestIdentifier requestIdentifier = new RequestIdentifier(context);
+        Bridge bridge = writeExecutionMap.remove(requestIdentifier);
+        return cancelExecution(requestIdentifier, bridge);
+    }
+
+    @Override
+    public void cancelWriteExecutions(String profile, String server) {
+        Predicate<RequestIdentifier> identifierFilter = getIdentifierFilter(profile, server);
+        writeExecutionMap.forEach((requestIdentifier, bridge) -> {
+            if (identifierFilter.test(requestIdentifier)) {
+                cancelExecution(requestIdentifier, bridge);
+            }
+        });
+    }
+
+    private Predicate<RequestIdentifier> getIdentifierFilter(String profile, String server) {
+        return key -> (StringUtils.isBlank(profile) || key.getProfile().equals(profile))
+                && (StringUtils.isBlank(server) || key.getServer().equals(server));
+    }
+
     /**
      * Reads the input stream, iteratively submits data from the stream to created bridge.
      *
@@ -58,6 +86,9 @@ public class WriteServiceImpl extends BaseServiceImpl<OperationStats> implements
 
         OperationStats operationStats = new OperationStats(OperationStats.Operation.WRITE, metricsReporter, context);
         OperationResult operationResult = new OperationResult();
+
+        RequestIdentifier requestIdentifier = new RequestIdentifier(context);
+        writeExecutionMap.put(requestIdentifier, bridge);
 
         // dataStream (and inputStream as the result) will close automatically at the end of the try block
         CountingInputStream countingInputStream = new CountingInputStream(inputStream);
@@ -77,7 +108,7 @@ public class WriteServiceImpl extends BaseServiceImpl<OperationStats> implements
                     operationResult.setException(e);
                 }
             }
-
+            writeExecutionMap.remove(requestIdentifier);
             // in the case where we fail to report a record due to an exception,
             // report the number of bytes that we were able to read before failure
             operationStats.setByteCount(countingInputStream.getCount());
@@ -86,5 +117,20 @@ public class WriteServiceImpl extends BaseServiceImpl<OperationStats> implements
         }
 
         return operationResult;
+    }
+
+    private boolean cancelExecution(RequestIdentifier requestIdentifier, Bridge bridge) {
+        if (bridge == null) {
+            log.debug("Couldn't cancel write request, request {} not found", requestIdentifier);
+            return false;
+        }
+        try {
+            log.debug("Cancelling write request {}", requestIdentifier);
+            bridge.cancelIteration();
+        } catch (Exception e) {
+            log.warn("Ignoring error encountered during bridge.cancelIteration()", e);
+            return false;
+        }
+        return true;
     }
 }

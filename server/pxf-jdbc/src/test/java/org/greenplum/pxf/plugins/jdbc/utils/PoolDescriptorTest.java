@@ -132,9 +132,9 @@ public class PoolDescriptorTest {
     @Test
     public void testPoolDescriptorToString() {
         poolDescriptor = new PoolDescriptor("test-server", "test-jdbcUrl", connConfig, poolConfig, null);
-        assertEquals("PoolDescriptor{jdbcUrl=test-jdbcUrl, user=test-user, password=*************, connectionConfig={test-other-property=test-other-property-value}, poolConfig={test-pool-property=test-pool-property-value}, qualifier=null}", poolDescriptor.toString());
+        assertEquals("PoolDescriptor{server=test-server, jdbcUrl=test-jdbcUrl, user=test-user, password=*************, connectionConfig={test-other-property=test-other-property-value}, poolConfig={test-pool-property=test-pool-property-value}, qualifier=null}", poolDescriptor.toString());
         poolDescriptor = new PoolDescriptor("test-server", "test-jdbcUrl", connConfig, poolConfig, "foo");
-        assertEquals("PoolDescriptor{jdbcUrl=test-jdbcUrl, user=test-user, password=*************, connectionConfig={test-other-property=test-other-property-value}, poolConfig={test-pool-property=test-pool-property-value}, qualifier=foo}", poolDescriptor.toString());
+        assertEquals("PoolDescriptor{server=test-server, jdbcUrl=test-jdbcUrl, user=test-user, password=*************, connectionConfig={test-other-property=test-other-property-value}, poolConfig={test-pool-property=test-pool-property-value}, qualifier=foo}", poolDescriptor.toString());
     }
 
     private void testInvalidProperty(String property) {

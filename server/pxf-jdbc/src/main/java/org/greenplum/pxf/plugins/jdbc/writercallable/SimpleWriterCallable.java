@@ -19,9 +19,11 @@ package org.greenplum.pxf.plugins.jdbc.writercallable;
  * under the License.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.plugins.jdbc.JdbcResolver;
 import org.greenplum.pxf.plugins.jdbc.JdbcBasePlugin;
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -29,10 +31,31 @@ import java.sql.SQLException;
 
 /**
  * This writer makes simple, one-by-one INSERTs.
- *
  * A call() is required after every supply()
  */
+@Slf4j
 class SimpleWriterCallable implements WriterCallable {
+    private final JdbcBasePlugin plugin;
+    private final String query;
+    private OneRow row;
+    private final Runnable onComplete;
+    private final DbProduct dbProduct;
+
+    SimpleWriterCallable(JdbcBasePlugin plugin, String query, Runnable onComplete, DbProduct dbProduct) {
+        if (plugin == null) {
+            throw new IllegalArgumentException("Plugin must not be null");
+        } else if (query == null) {
+            throw new IllegalArgumentException("Query must not be null");
+        } else if (onComplete == null) {
+            throw new IllegalArgumentException("onComplete must not be null");
+        }
+        this.plugin = plugin;
+        this.query = query;
+        this.onComplete = onComplete;
+        this.dbProduct = dbProduct;
+        row = null;
+    }
+
     @Override
     public void supply(OneRow row) throws IllegalStateException {
         if (this.row != null) {
@@ -50,46 +73,51 @@ class SimpleWriterCallable implements WriterCallable {
     }
 
     @Override
-    public SQLException call() throws IOException, SQLException, ClassNotFoundException {
+    public SQLException call() throws IOException, SQLException {
+        log.trace("Writer {}: call() to insert row", this);
+        long start = System.nanoTime();
         if (row == null) {
             return null;
         }
 
-        boolean statementMustBeDeleted = false;
-        if (statement == null) {
-            statement = plugin.getPreparedStatement(plugin.getConnection(), query);
-            statementMustBeDeleted = true;
-        }
-
-        JdbcResolver.decodeOneRowToPreparedStatement(row, statement);
-
+        PreparedStatement statement = null;
         try {
+            statement = plugin.getPreparedStatement(plugin.getConnection(), query);
+            log.trace("Writer {}: got statement", this);
+            JdbcResolver.decodeOneRowToPreparedStatement(row, statement, dbProduct);
             statement.executeUpdate();
+            // some drivers will not react to timeout interrupt
+            if (Thread.interrupted())
+                throw new SQLException("Writer was interrupted by timeout or by request");
         } catch (SQLException e) {
+            log.error("Writer {}: call() failed: SQLException", this, e);
             return e;
+        } catch (Throwable t) {
+            log.error("Writer {}: call() failed: Throwable", this, t);
+            if (t.getCause() instanceof SQLException) {
+                return (SQLException) t.getCause();
+            } else {
+                return new SQLException(t);
+            }
         } finally {
+            if (log.isTraceEnabled()) {
+                long duration = System.nanoTime() - start;
+                log.trace("Writer {}: call() done in {} ms", this, duration / 1000000);
+            }
             row = null;
-            if (statementMustBeDeleted) {
+            try {
                 JdbcBasePlugin.closeStatementAndConnection(statement);
-                statement = null;
+            } finally {
+                log.trace("Writer {} completed inserting the batch", this);
+                onComplete.run();
             }
         }
 
         return null;
     }
 
-    SimpleWriterCallable(JdbcBasePlugin plugin, String query, PreparedStatement statement) {
-        if ((plugin == null) || (query == null)) {
-            throw new IllegalArgumentException("The provided JdbcBasePlugin or SQL query is null");
-        }
-        this.plugin = plugin;
-        this.query = query;
-        this.statement = statement;
-        row = null;
+    @Override
+    public String toString() {
+        return String.format("SimpleWriterCallable@%d", hashCode());
     }
-
-    private final JdbcBasePlugin plugin;
-    private final String query;
-    private PreparedStatement statement;
-    private OneRow row;
 }

@@ -433,6 +433,8 @@ public class BridgeOutputBuilder {
                 case TIMESTAMP_WITH_TIME_ZONE:
                 case TIME:
                 case DATE:
+                case JSON:
+                case JSONB:
                 case BOOLARRAY:
                 case BYTEAARRAY:
                 case INT2ARRAY:
@@ -449,6 +451,8 @@ public class BridgeOutputBuilder {
                 case TIMEARRAY:
                 case TIMESTAMPARRAY:
                 case TIMESTAMP_WITH_TIMEZONE_ARRAY:
+                case JSONARRAY:
+                case JSONBARRAY:
                     /*
                      * If resolvers support sending arrays to GPDB, they are expected to serialize arrays into Postgres
                      * array external text representation.

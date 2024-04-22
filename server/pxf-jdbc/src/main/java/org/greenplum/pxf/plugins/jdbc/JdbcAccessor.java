@@ -19,19 +19,19 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
+import io.arenadata.security.encryption.client.service.DecryptClient;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.Accessor;
+import org.greenplum.pxf.api.model.CancelableOperation;
 import org.greenplum.pxf.api.model.ConfigurationFactory;
 import org.greenplum.pxf.api.security.SecureLogin;
 import org.greenplum.pxf.api.utilities.Utilities;
 import org.greenplum.pxf.plugins.jdbc.utils.ConnectionManager;
-import org.greenplum.pxf.plugins.jdbc.writercallable.WriterCallable;
-import org.greenplum.pxf.plugins.jdbc.writercallable.WriterCallableFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,13 +40,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLTimeoutException;
 import java.sql.Statement;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * JDBC tables accessor
@@ -56,20 +50,16 @@ import java.util.concurrent.Future;
  * The INSERT queries are processed by {@link java.sql.PreparedStatement} and
  * built-in JDBC batches of arbitrary size
  */
-public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
-
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcAccessor.class);
+@Slf4j
+public class JdbcAccessor extends JdbcBasePlugin implements Accessor, CancelableOperation {
 
     private static final String JDBC_READ_PREPARED_STATEMENT_PROPERTY_NAME = "jdbc.read.prepared-statement";
 
     private Statement statementRead = null;
     private ResultSet resultSetRead = null;
 
-    private PreparedStatement statementWrite = null;
-    private WriterCallableFactory writerCallableFactory = null;
-    private WriterCallable writerCallable = null;
-    private ExecutorService executorServiceWrite = null;
-    private List<Future<SQLException>> poolTasks = null;
+    private JdbcWriter writer;
+    private boolean isCanceled;
 
     /**
      * Creates a new instance of the JdbcAccessor
@@ -84,8 +74,8 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      * @param connectionManager connection manager
      * @param secureLogin       the instance of the secure login
      */
-    JdbcAccessor(ConnectionManager connectionManager, SecureLogin secureLogin) {
-        super(connectionManager, secureLogin);
+    JdbcAccessor(ConnectionManager connectionManager, SecureLogin secureLogin, DecryptClient decryptClient) {
+        super(connectionManager, secureLogin, decryptClient);
     }
 
     /**
@@ -93,16 +83,17 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      * Create query, open JDBC connection, execute query and store the result into resultSet
      *
      * @return true if successful
-     * @throws SQLException        if a database access error occurs
-     * @throws SQLTimeoutException if a problem with the connection occurs
+     *
+     * @throws SQLException if a database access error occurs
      */
     @Override
-    public boolean openForRead() throws SQLException, SQLTimeoutException {
+    public boolean openForRead() throws SQLException {
+        log.debug("Accessor starts openForRead()");
         if (statementRead != null && !statementRead.isClosed()) {
             return true;
         }
 
-        Connection connection = super.getConnection();
+        Connection connection = getConnection();
         try {
             return openForReadInner(connection);
         } catch (Throwable e) {
@@ -114,17 +105,8 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
     }
 
     private boolean openForReadInner(Connection connection) throws SQLException {
-        SQLQueryBuilder sqlQueryBuilder = new SQLQueryBuilder(context, connection.getMetaData(), getQueryText());
-
-        // Build SELECT query
-        if (quoteColumns == null) {
-            sqlQueryBuilder.autoSetQuoteString();
-        } else if (quoteColumns) {
-            sqlQueryBuilder.forceSetQuoteString();
-        }
-        // Read variables
-        String queryRead = sqlQueryBuilder.buildSelectQuery();
-        LOG.trace("Select query: {}", queryRead);
+        String queryRead = buildSelectQuery(connection);
+        log.trace("Select query: {}", queryRead);
 
         // Execute queries
         // Certain features of third-party JDBC drivers may require the use of a PreparedStatement, even if there are no
@@ -133,7 +115,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         // https://teradata-docs.s3.amazonaws.com/doc/connectivity/jdbc/reference/current/jdbcug_chapter_2.html#BGBFBBEG
         boolean usePreparedStatement = parseJdbcUsePreparedStatementProperty();
         if (usePreparedStatement) {
-            LOG.debug("Using a PreparedStatement instead of a Statement because {} was set to true", JDBC_READ_PREPARED_STATEMENT_PROPERTY_NAME);
+            log.debug("Using a PreparedStatement instead of a Statement because {} was set to true", JDBC_READ_PREPARED_STATEMENT_PROPERTY_NAME);
         }
         statementRead = usePreparedStatement ?
                 connection.prepareStatement(queryRead) :
@@ -142,7 +124,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         statementRead.setFetchSize(fetchSize);
 
         if (queryTimeout != null) {
-            LOG.debug("Setting query timeout to {} seconds", queryTimeout);
+            log.debug("Setting query timeout to {} seconds", queryTimeout);
             statementRead.setQueryTimeout(queryTimeout);
         }
 
@@ -151,6 +133,24 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
                 statementRead.executeQuery(queryRead);
 
         return true;
+    }
+
+    private String buildSelectQuery(Connection connection) throws SQLException {
+        SQLQueryBuilder sqlQueryBuilder = new SQLQueryBuilder(context, connection.getMetaData(), getQueryText());
+
+        // Build SELECT query
+        if (quoteColumns == null) {
+            sqlQueryBuilder.autoSetQuoteString();
+        } else if (quoteColumns) {
+            sqlQueryBuilder.forceSetQuoteString();
+        }
+
+        if (wrapDateWithTime) {
+            sqlQueryBuilder.setWrapDateWithTime(true);
+        }
+
+        // Read variables
+        return sqlQueryBuilder.buildSelectQuery();
     }
 
     /**
@@ -162,6 +162,12 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      */
     @Override
     public OneRow readNextObject() throws SQLException {
+        if (isCanceled) {
+            String message = "The read operation was canceled";
+            LOG.warn(message);
+            throw new PxfRuntimeException(message);
+        }
+
         if (resultSetRead.next()) {
             return new OneRow(resultSetRead);
         }
@@ -177,37 +183,33 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
     }
 
     /**
+     * Cancel read operation.
+     */
+    @Override
+    public void cancelRead() {
+        // We don't need to close statement and connection here because closeForRead() will be invoked anyway
+        // Sometimes resultSetRead.next() has unpredictable behaviour while closing statement and connection
+        isCanceled = true;
+    }
+
+    /**
      * openForWrite() implementation
      * Create query template and open JDBC connection
      *
      * @return true if successful
-     * @throws SQLException        if a database access error occurs
-     * @throws SQLTimeoutException if a problem with the connection occurs
+     * @throws SQLException if a database access error occurs
      */
     @Override
-    public boolean openForWrite() throws SQLException, SQLTimeoutException {
+    public boolean openForWrite() throws SQLException {
+        log.debug("Accessor starts openForWrite()");
         if (queryName != null) {
             throw new IllegalArgumentException("specifying query name in data path is not supported for JDBC writable external tables");
         }
 
-        if (statementWrite != null && !statementWrite.isClosed()) {
-            throw new SQLException("The connection to an external database is already open.");
-        }
-
-        Connection connection = super.getConnection();
-        SQLQueryBuilder sqlQueryBuilder = new SQLQueryBuilder(context, connection.getMetaData());
-
-        // Build INSERT query
-        if (quoteColumns == null) {
-            sqlQueryBuilder.autoSetQuoteString();
-        } else if (quoteColumns) {
-            sqlQueryBuilder.forceSetQuoteString();
-        }
-        // Write variables
-        String queryWrite = sqlQueryBuilder.buildInsertQuery();
-        LOG.trace("Insert query: {}", queryWrite);
-
-        statementWrite = super.getPreparedStatement(connection, queryWrite);
+        Connection connection = getConnection();
+        log.debug("Accessor got connection {}", connection);
+        String queryWrite = buildInsertQuery(connection);
+        log.debug("Insert query: {}", queryWrite);
 
         // Process batchSize
         if (!connection.getMetaData().supportsBatchUpdates()) {
@@ -217,23 +219,35 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
                 batchSize = 1;
             }
         }
+        // Get database product name
+        DbProduct dbProduct = DbProduct.getDbProduct(connection.getMetaData().getDatabaseProductName());
 
-        // Process poolSize
-        if (poolSize < 1) {
-            poolSize = Runtime.getRuntime().availableProcessors();
-            LOG.info("The POOL_SIZE is set to the number of CPUs available ({})", poolSize);
-        }
-        if (poolSize > 1) {
-            executorServiceWrite = Executors.newFixedThreadPool(poolSize);
-            poolTasks = new LinkedList<>();
-        }
-
-        // Setup WriterCallableFactory
-        writerCallableFactory = new WriterCallableFactory(this, queryWrite, statementWrite, batchSize, poolSize);
-
-        writerCallable = writerCallableFactory.get();
-
+        writer = JdbcWriter.fromProps(
+                JdbcWriterProperties.builder()
+                        .terminationTimeoutSeconds(JdbcWriter.TERMINATION_TIMEOUT)
+                        .batchTimeout(batchTimeout)
+                        .batchSize(batchSize)
+                        .poolSize(poolSize)
+                        .query(queryWrite)
+                        .plugin(this)
+                        .dbProduct(dbProduct)
+                        .build()
+        );
+        closeConnection(connection);
         return true;
+    }
+
+    private String buildInsertQuery(Connection connection) throws SQLException {
+        SQLQueryBuilder sqlQueryBuilder = new SQLQueryBuilder(context, connection.getMetaData());
+
+        // Build INSERT query
+        if (quoteColumns == null) {
+            sqlQueryBuilder.autoSetQuoteString();
+        } else if (quoteColumns) {
+            sqlQueryBuilder.forceSetQuoteString();
+        }
+        // Write variables
+        return sqlQueryBuilder.buildInsertQuery();
     }
 
     /**
@@ -254,26 +268,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      */
     @Override
     public boolean writeNextObject(OneRow row) throws Exception {
-        if (writerCallable == null) {
-            throw new IllegalStateException("The JDBC connection was not properly initialized (writerCallable is null)");
-        }
-
-        writerCallable.supply(row);
-        if (writerCallable.isCallRequired()) {
-            if (poolSize > 1) {
-                // Pooling is used. Create new writerCallable
-                poolTasks.add(executorServiceWrite.submit(writerCallable));
-                writerCallable = writerCallableFactory.get();
-            } else {
-                // Pooling is not used, call directly and process potential error
-                SQLException e = writerCallable.call();
-                if (e != null) {
-                    throw e;
-                }
-            }
-        }
-
-        return true;
+        return writer.write(row);
     }
 
     /**
@@ -283,58 +278,21 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
      */
     @Override
     public void closeForWrite() throws Exception {
-        if ((statementWrite == null) || (writerCallable == null)) {
-            return;
-        }
-
-        try {
-            if (poolSize > 1) {
-                // Process thread pool
-                Exception firstException = null;
-                for (Future<SQLException> task : poolTasks) {
-                    // We need this construction to ensure that we try to close all connections opened by pool threads
-                    try {
-                        SQLException currentSqlException = task.get();
-                        if (currentSqlException != null) {
-                            if (firstException == null) {
-                                firstException = currentSqlException;
-                            }
-                            LOG.error(
-                                    "A SQLException in a pool thread occurred: " + currentSqlException.getClass() + " " + currentSqlException.getMessage()
-                            );
-                        }
-                    } catch (Exception e) {
-                        // This exception must have been caused by some thread execution error. However, there may be other exception (maybe of class SQLException) that happened in one of threads that were not examined yet. That is why we do not modify firstException
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(
-                                    "A runtime exception in a thread pool occurred: " + e.getClass() + " " + e.getMessage()
-                            );
-                        }
-                    }
-                }
-                try {
-                    executorServiceWrite.shutdown();
-                    executorServiceWrite.shutdownNow();
-                } catch (Exception e) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("executorServiceWrite.shutdown() or .shutdownNow() threw an exception: " + e.getClass() + " " + e.getMessage());
-                    }
-                }
-                if (firstException != null) {
-                    throw firstException;
-                }
-            }
-
-            // Send data that is left
-            SQLException e = writerCallable.call();
-            if (e != null) {
-                throw e;
-            }
-        } finally {
-            closeStatementAndConnection(statementWrite);
-        }
+        writer.close();
     }
 
+    /**
+     * Cancel write operation.
+     */
+    @Override
+    public void cancelWrite() {
+        LOG.debug("Accessor starts cancelWrite()");
+        if (writer != null) {
+            writer.cancelWrite();
+        } else {
+            log.debug("Accessor didn't find any write operations to cancel");
+        }
+    }
 
     /**
      * Gets the text of the query by reading the file from the server configuration directory. The name of the file
@@ -355,9 +313,7 @@ public class JdbcAccessor extends JdbcBasePlugin implements Accessor {
         String queryText;
         try {
             File queryFile = new File(serverDirectory, queryName + ".sql");
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Reading text of query={} from {}", queryName, queryFile.getCanonicalPath());
-            }
+            log.debug("Reading text of query={} from {}", queryName, queryFile.getCanonicalPath());
             queryText = FileUtils.readFileToString(queryFile, Charset.defaultCharset());
         } catch (IOException e) {
             throw new RuntimeException(String.format("Failed to read text of query %s : %s", queryName, e.getMessage()), e);

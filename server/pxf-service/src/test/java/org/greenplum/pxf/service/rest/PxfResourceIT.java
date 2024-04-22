@@ -7,6 +7,7 @@ import org.greenplum.pxf.service.HttpHeaderDecoder;
 import org.greenplum.pxf.service.RequestParser;
 import org.greenplum.pxf.service.controller.ReadService;
 import org.greenplum.pxf.service.controller.WriteService;
+import org.greenplum.pxf.service.security.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +15,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest({PxfReadResource.class, PxfWriteResource.class, PxfLegacyResource.class})
+@Import(SecurityConfig.class)
 public class PxfResourceIT {
 
     @Autowired
@@ -67,6 +71,15 @@ public class PxfResourceIT {
         mvc.perform(post("/pxf/write"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Hello from write!"));
+    }
+
+    @Test
+    public void testCancelReadEndpoint() throws Exception {
+        when(mockParser.parseRequest(any(), eq(RequestContext.RequestType.READ_BRIDGE))).thenReturn(mockContext);
+
+        mvc.perform(post("/pxf/cancel"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
     }
 
     @Test
@@ -110,11 +123,23 @@ public class PxfResourceIT {
     static class PxfResourceTestConfiguration {
         @Bean
         ReadService createReadService() {
-            return (ctx, out) -> {
-                try {
-                    out.write("Hello from read!".getBytes(Charsets.UTF_8));
-                } catch (IOException e) {
-                    e.printStackTrace();
+            return new ReadService() {
+                @Override
+                public void readData(RequestContext context, OutputStream out) {
+                    try {
+                        out.write("Hello from read!".getBytes(Charsets.UTF_8));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public boolean cancelRead(RequestContext context) {
+                    return true;
+                }
+
+                @Override
+                public void cancelReadExecutions(String profile,String server) {
                 }
             };
         }

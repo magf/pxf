@@ -22,6 +22,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 /**
  * Implementation of the ReadService.
@@ -29,6 +31,7 @@ import java.util.Map;
 @Service
 @Slf4j
 public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements ReadService {
+    private final Map<RequestIdentifier, Bridge> readExecutionMap = new ConcurrentHashMap<>();
 
     private final FragmenterService fragmenterService;
 
@@ -56,6 +59,28 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
         // since any exception thrown from it must be logged, as this method is called asynchronously
         // and is the last opportunity to log the exception while having MDC logging context defined
         invokeWithErrorHandling(() -> processData(context, () -> writeStream(context, outputStream)));
+    }
+
+    @Override
+    public boolean cancelRead(RequestContext context) {
+        RequestIdentifier requestIdentifier = new RequestIdentifier(context);
+        Bridge bridge = readExecutionMap.remove(requestIdentifier);
+        return cancelExecution(requestIdentifier, bridge);
+    }
+
+    @Override
+    public void cancelReadExecutions(String profile, String server) {
+        Predicate<RequestIdentifier> identifierFilter = getIdentifierFilter(profile, server);
+        readExecutionMap.forEach((requestIdentifier, bridge) -> {
+            if (identifierFilter.test(requestIdentifier)) {
+                cancelExecution(requestIdentifier, bridge);
+            }
+        });
+    }
+
+    private Predicate<RequestIdentifier> getIdentifierFilter(String profile, String server) {
+        return key -> (StringUtils.isBlank(profile) || key.getProfile().equals(profile))
+                && (StringUtils.isBlank(server) || key.getServer().equals(server));
     }
 
     /**
@@ -127,6 +152,31 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
         return queryResult;
     }
 
+    private void registerExecution(RequestContext context, Bridge readBridge) {
+        RequestIdentifier requestIdentifier = new RequestIdentifier(context);
+        readExecutionMap.put(requestIdentifier, readBridge);
+    }
+
+    private void removeExecution(RequestContext context) {
+        RequestIdentifier requestIdentifier = new RequestIdentifier(context);
+        readExecutionMap.remove(requestIdentifier);
+    }
+
+    private boolean cancelExecution(RequestIdentifier requestIdentifier, Bridge bridge) {
+        if (bridge == null) {
+            log.debug("Couldn't cancel read request, request {} not found", requestIdentifier);
+            return false;
+        }
+        try {
+            log.debug("Cancelling read request {}", requestIdentifier);
+            bridge.cancelIteration();
+        } catch (Exception e) {
+            log.warn("Ignoring error encountered during bridge.cancelIteration()", e);
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Processes a single fragment identified in the RequestContext and updates query statistics.
      *
@@ -148,6 +198,7 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
         Bridge bridge = null;
         try {
             bridge = getBridge(context);
+            registerExecution(context, bridge);
             if (!bridge.beginIteration()) {
                 log.debug("Skipping streaming fragment {} of resource {}",
                         context.getFragmentIndex(), context.getDataSource());
@@ -169,6 +220,7 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
                     log.warn("Ignoring error encountered during bridge.endIteration()", e);
                 }
             }
+            removeExecution(context);
             Duration duration = Duration.between(startTime, Instant.now());
 
             // fragment's current byte count is relative to the previous stream's byte count
@@ -207,5 +259,4 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
             context.setProfileScheme(profileProtocol);
         }
     }
-
 }

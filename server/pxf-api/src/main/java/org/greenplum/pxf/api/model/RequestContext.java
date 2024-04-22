@@ -310,6 +310,11 @@ public class RequestContext {
     private Map<String, String> additionalConfigProps;
 
     /**
+     * Port of the ADB client
+     */
+    private int clientPort;
+
+    /**
      * USER-DEFINED OPTIONS other than NAMED PROPERTIES
      */
     @Getter(AccessLevel.NONE)
