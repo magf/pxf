@@ -1,5 +1,31 @@
 # Changelog
 
+## 6.10.1 (03/27/2024)
+
+### Bug Fixes:
+
+- [#1100](https://github.com/greenplum-db/pxf/pull/1100) Refactor position tracking for multi-line JSON files
+- [#1102](https://github.com/greenplum-db/pxf/pull/1102) Bumped gp-common-go-libs to v1.0.16
+- [#1105](https://github.com/greenplum-db/pxf/pull/1105) Bumped Spring Framework version to 5.3.33
+- [#1108](https://github.com/greenplum-db/pxf/pull/1108) Bumped Tomcat version to 9.0.87
+- [#1111](https://github.com/greenplum-db/pxf/pull/1111) Adjusted PXF error handling and determining client disconnects
+
+## 6.10.0 (03/04/2024)
+
+### Enhancements:
+
+- [#1080](https://github.com/greenplum-db/pxf/pull/1080) Add support for UUID to JDBC profile
+- [#1081](https://github.com/greenplum-db/pxf/pull/1081) Add automation test cases for JDBC profile DATE_WIDE_RANGE feature
+- [#1093](https://github.com/greenplum-db/pxf/pull/1093) Bump Postgresql JDBC driver to 42.7.2
+- [#1096](https://github.com/greenplum-db/pxf/pull/1096) Add formatting for Date values
+
+## 6.9.1 (02/06/2024)
+
+### Bug Fixes:
+
+- [#1070](https://github.com/greenplum-db/pxf/pull/1070) Upgrade gp-common-go-libs to 1.0.14
+- [#1074](https://github.com/greenplum-db/pxf/pull/1074) Bump Springboot to 2.7.18
+
 ## 6.9.0 (12/08/2023)
 
 ### Enhancements:

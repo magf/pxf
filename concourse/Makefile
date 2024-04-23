@@ -17,14 +17,14 @@ DEV_CLOUDBUILD_PIPELINE_NAME ?= dev-cloudbuild-$(USER)-$(BRANCH)
 PERF_PIPELINE_NAME          ?= pxf_perf-$(SCALE)g-RHEL$(REDHAT_MAJOR_VERSION)
 PIVNET_PIPELINE_NAME        ?= pivnet_artifacts
 NUM_GPDB5_VERSIONS          ?= 10
-NUM_GPDB6_VERSIONS          ?=  9
-NUM_GPDB7_VERSIONS          ?=  1
+NUM_GPDB6_VERSIONS          ?= 10
+NUM_GPDB7_VERSIONS          ?= 10
 REDHAT_MAJOR_VERSION        ?= 7
 FLY_CMD                     ?= fly
 CHECK_CREDS                 ?= true
 TEMPLATE_CMD                 = ./template_tool
 FLY_OPTION_NON-INTERACTIVE   =
-SLACK                       ?= true
+NOTIFY                      ?= true
 # below are dev-build specific vars
 MULTINODE_EL7               ?= false
 MULTINODE_EL8               ?= false
@@ -42,6 +42,7 @@ MINIO                       ?= false
 OEL7                        ?= false
 FILE                        ?= false
 GP7_CLI                     ?= false
+LOAD                        ?= false
 # used to quickly modify the docker image tag being pulled ONLY in the dev_build_pipeline
 PXF_DEV_IMAGE_TAG           ?= latest
 
@@ -62,12 +63,12 @@ longevity: set-longevity-pipeline
 
 # ============================= BUILD PIPELINE TARGETS =============================
 .PHONY: set-build-pipeline
-set-build-pipeline: SLACK=true
+set-build-pipeline: NOTIFY=true
 set-build-pipeline:
 	@PIPELINE_FILE=$$(mktemp) && \
 	$(TEMPLATE_CMD) --template build_pipeline-tpl.yml --vars \
 		environment=prod \
-		slack_notification=$(SLACK) \
+		gchat_notification=$(NOTIFY) \
 		num_gpdb5_versions=$(NUM_GPDB5_VERSIONS) \
 		num_gpdb6_versions=$(NUM_GPDB6_VERSIONS) \
 		num_gpdb7_versions=$(NUM_GPDB7_VERSIONS) >"$${PIPELINE_FILE}" && \
@@ -89,7 +90,8 @@ set-dev-release-pipeline:
 	@PIPELINE_FILE=$$(mktemp) && \
 	$(TEMPLATE_CMD) --template build_pipeline-tpl.yml --vars \
 		environment=dev \
-		slack_notification=false \
+		gchat_notification=$(NOTIFY) \
+		user=$(USER) \
 		git_branch=$(BRANCH) \
 		num_gpdb5_versions=$(NUM_GPDB5_VERSIONS) \
 		num_gpdb6_versions=$(NUM_GPDB6_VERSIONS) \
@@ -113,7 +115,7 @@ set-dev-release-pipeline:
 set-dev-build-pipeline:
 	@PIPELINE_FILE=$$(mktemp) && \
 	$(TEMPLATE_CMD) --template dev_build_pipeline-tpl.yml --vars \
-		slack_notification=$(SLACK) \
+		gchat_notification=$(NOTIFY) \
 		multinode_el7=$(MULTINODE_EL7) \
 		multinode_el8=$(MULTINODE_EL8) \
 		multinode_el9=$(MULTINODE_EL9) \
@@ -130,6 +132,7 @@ set-dev-build-pipeline:
 		minio=$(MINIO) \
 		oel7=$(OEL7) \
 		gp7_cli=$(GP7_CLI) \
+		load=$(LOAD) \
 		dev_pipeline=true \
 		user=$(USER) \
 		branch=$(BRANCH) \
@@ -151,12 +154,15 @@ set-dev-build-pipeline:
 
 .PHONY: set-hadoop-cluster-cleaner
 set-hadoop-cluster-cleaner:
+	@PIPELINE_FILE=$$(mktemp) && \
+	$(TEMPLATE_CMD) --template hadoop-cluster-cleaner-tpl.yml --vars \
+		gchat_notification=true >"$${PIPELINE_FILE}" && \
 	$(FLY_CMD) --target=$(CONCOURSE) \
 		$(SET_PIPELINE) \
 		--pipeline=hadoop-cluster-cleaner \
-		--config=pipelines/hadoop-cluster-cleaner.yml \
+		--config "$${PIPELINE_FILE}" \
 		--var=pxf-git-branch=main \
-		${FLY_OPTIONS_NON-INTERACTIVE} || echo "pipelines/hadoop-cluster-cleaner.yml has errors"
+		${FLY_OPTIONS_NON-INTERACTIVE} || echo "Generated yaml has errors: check $${PIPELINE_FILE}"
 
 	@echo "using the following command to unpause the pipeline"
 	@echo -e "\t$(FLY_CMD) -t $(CONCOURSE) unpause-pipeline --pipeline hadoop-cluster-cleaner"
@@ -165,7 +171,7 @@ set-hadoop-cluster-cleaner:
 set-pr-build-pipeline:
 	@PIPELINE_FILE=$$(mktemp) && \
 	$(TEMPLATE_CMD) --template pr_pipeline-tpl.yml --vars \
-		slack_notification=false \
+		gchat_notification=false \
 		pr_pipeline=true \
 		num_gpdb5_versions=1 \
 		num_gpdb6_versions=1 \
@@ -184,12 +190,16 @@ set-pr-build-pipeline:
 
 .PHONY: set-certification-pipeline
 set-certification-pipeline:
-	@$(FLY_CMD) --target=$(CONCOURSE) \
+	@PIPELINE_FILE=$$(mktemp) && \
+	$(TEMPLATE_CMD) --template certification_pipeline-tpl.yml --vars \
+		gchat_notification=true >"$${PIPELINE_FILE}" && \
+	$(FLY_CMD) --target=$(CONCOURSE) \
 		$(SET_PIPELINE) \
 		--pipeline=$(CERTIFICATION_PIPELINE_NAME) \
-		--config pipelines/certification_pipeline.yml \
+		--config "$${PIPELINE_FILE}" \
 		--var=pxf-git-branch=${BRANCH} \
-		${FLY_OPTION_NON-INTERACTIVE} || echo "pipelines/certification_pipeline.yml has errors"
+		--var=gpdb-pxf-dev-image-tag=latest \
+		${FLY_OPTION_NON-INTERACTIVE} || echo "Generated yaml has errors: check $${PIPELINE_FILE}"
 
 	@echo using the following command to unpause the pipeline:
 	@echo -e "\t$(FLY_CMD) -t ${CONCOURSE} unpause-pipeline --pipeline ${CERTIFICATION_PIPELINE_NAME}"
@@ -222,20 +232,24 @@ set-cloudbuild-pipeline-base:
 pivnet: set-pivnet-pipeline
 
 .PHONY: set-pivnet-pipeline
-set-pivnet-pipeline:
-	@PIPELINE_FILE=$$(mktemp) && \
-	$(TEMPLATE_CMD) --template get_pivnet_artifacts-tpl.yml --vars \
-		num_gpdb5_versions=$(NUM_GPDB5_VERSIONS) \
-		num_gpdb6_versions=$(NUM_GPDB6_VERSIONS) >"$${PIPELINE_FILE}" && \
+set-pivnet-pipeline: generate-pivnet-pipeline
 	$(FLY_CMD) --target=$(CONCOURSE) \
 		$(SET_PIPELINE) \
 		--pipeline=${PIVNET_PIPELINE_NAME} \
-		--config "$${PIPELINE_FILE}" \
+		--config ./generated/get_pivnet_artifacts.yml \
 		--var pxf-git-branch=$(BRANCH) \
-		${FLY_OPTION_NON-INTERACTIVE} || echo "Generated yaml has errors: check $${PIPELINE_FILE}"
+		${FLY_OPTION_NON-INTERACTIVE}
 
 	@echo using the following command to unpause the pipeline:
 	@echo -e "\t$(FLY_CMD) -t ${CONCOURSE} unpause-pipeline --pipeline ${PIVNET_PIPELINE_NAME}"
+
+.PHONY: generate-pivnet-pipeline
+generate-pivnet-pipeline:
+	mkdir -p generated
+	$(TEMPLATE_CMD) --template get_pivnet_artifacts-tpl.yml --vars \
+		num_gpdb5_versions=$(NUM_GPDB5_VERSIONS) \
+		num_gpdb6_versions=$(NUM_GPDB6_VERSIONS) \
+		num_gpdb7_versions=$(NUM_GPDB7_VERSIONS)>./generated/get_pivnet_artifacts.yml
 
 .PHONY: singlecluster
 singlecluster:

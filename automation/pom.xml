@@ -197,7 +197,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.4.3</version>
+            <version>42.7.2</version>
         </dependency>
 
         <dependency>
@@ -227,7 +227,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>5.3.18</version>
+            <version>5.3.33</version>
             <scope>provided</scope>
         </dependency>
 
@@ -247,6 +247,12 @@
             <groupId>org.apache.ant</groupId>
             <artifactId>ant</artifactId>
             <version>1.10.11</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>4.2.0</version>
         </dependency>
 
         <!-- AWS Dependencies -->

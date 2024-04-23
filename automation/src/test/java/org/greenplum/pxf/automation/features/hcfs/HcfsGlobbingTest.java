@@ -9,6 +9,9 @@ import org.greenplum.pxf.automation.utils.system.ProtocolEnum;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Functional Globbing Tests. Tests are based on Hadoop Glob Tests
  * https://github.com/apache/hadoop/blob/rel/release-3.2.1/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/fs/TestGlobPaths.java
@@ -33,7 +36,7 @@ public class HcfsGlobbingTest extends BaseFeature {
     @Test(groups = {"gpdb", "hcfs", "security"})
     public void testMatchZeroOrMoreCharacters() throws Exception {
         prepareTestScenario("match_zero_or_more_characters_1", "a", "abc", "abc.p", "bacd", "a*");
-        prepareTestScenario("match_zero_or_more_characters_2", "a.", "a.txt", "a.old.java", ".java", "a.*");
+        prepareTestScenario("match_zero_or_more_characters_2", "a.|", "a.txt", "a.old.java", ".java", "a.*");
         prepareTestScenario("match_zero_or_more_characters_3", "a.txt.x", "ax", "ab37x", "bacd", "a*x");
         prepareTestScenario("match_zero_or_more_characters_4", "dir1/file1", "dir2/file2", "dir3/file1", null, "*/file1");
         prepareTestScenario("match_zero_or_more_characters_5", "dir1/file1", "file1", null, null, "*/file1");
@@ -125,6 +128,14 @@ public class HcfsGlobbingTest extends BaseFeature {
         prepareTableData(path, data2, "2b");
         prepareTableData(path, data3, "3c");
         prepareTableData(path, data4, "4d");
+
+        // wait until all the files exist, before continuing the test
+        List<String> datafiles = Arrays.asList(data1, data2, data3, data4);
+        datafiles.parallelStream().forEach(datafile -> {
+            if (datafile != null) {
+                hdfs.waitForFile(hdfs.getWorkingDirectory() + "/" + path + "/" + datafile, 240);
+            }
+        });
 
         ProtocolEnum protocol = ProtocolUtils.getProtocol();
 

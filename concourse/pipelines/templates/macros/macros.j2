@@ -74,20 +74,50 @@
 {% endmacro %}
 
 {#
-  Macro that takes an array of config dictionaries, iterates over them and determines
-  the set of supported Greenplum versions.
-  Then for each supported Greenplum version, it does the following:
-    - creates a dictionary with one attribute
-       - 'gp_ver'   : major Greenplum version
-    - passes this dictionary in a callback method to the caller
-    - renders the result of a callback method
-#}
-{% macro for_supported_gp_vers(configs) %}
-    {% set supported_gp_vers = configs | map(attribute='gp_ver') | list | unique %}
-    {% for gp_ver in supported_gp_vers %}
-            {# set local variables for a given loop iteration #}
-            {% set x = dict({'gp_ver': gp_ver}) %}
-        {# render the result of callback passing the resulting context specific to this loop iteration #}
+  Macro that takes an array of config dictionaries and groups them by the Greenplum version.
+  For each Greenplum version, it
+    - Creates a dictionary with the following attributes
+      - 'gp_ver'    : the Greenplum majar version
+      - 'platforms' : a list of all platforms for this Greenplum major version; a single platform is a dictionary with
+        - 'greenplum_platform' : the platform used in GPDB artifact file names (rhel7, rhel8, el9, ubuntu18.04)
+        - 'release_platform'   : the platform used in PXF artifact file names (el7, el8, el9, ubuntu18)
+        - 'pkg_type'           : the type of the PXF artifact package (rpm or deb)
+        - 'pkg_arch'           : the machine architecture of the package (x86_64 or amd64)
+        - 'gpdb_package_resource_name' : resource name (without index) for GPDB package
+        - 'gpdb_package_file_name'     : file name (with version placeholder) for GPDB package
+        - 'gpdb_package_file_glob'     : file glob for uploading ('put') the downloaded GPDB package to cloud storage
+    - Passes this dictionary in a callback method to the caller
+    - Renders the result of a callback method
+ #}
+{% macro for_each_gp_ver(configs) %}
+    {% for gp_ver, platforms in configs | groupby('gp_ver') %}
+        {% set x = dict({'gp_ver': gp_ver}) %}
+        {% do x.update({'platforms': []}) %}
+        {% for p in platforms %}
+            {% set y = dict() %}
+            {% if p.build_os in [ 'centos', 'rocky' ] %}
+                {% do y.update({'release_platform':   'el' ~ p.os_ver}) %}
+                {% do y.update({'pkg_type':           'rpm'}) %}
+                {% do y.update({'pkg_arch':           'x86_64'}) %}
+            {% else %}
+                {% do y.update({'release_platform':   'ubuntu' ~ p.os_ver}) %}
+                {% do y.update({'pkg_type':           'deb'}) %}
+                {% do y.update({'pkg_arch':           'amd64'}) %}
+            {% endif %}
+
+            {# adjust Greenplum release platform due to historical inconsistencies #}
+            {% if x.gp_ver in ['5', '6'] and y.release_platform.startswith('el') %}
+                {% do y.update({'greenplum_platform': 'rh' ~ y.release_platform}) %}
+            {% else %}
+                {% do y.update({'greenplum_platform': y.release_platform}) %}
+            {% endif %}
+
+            {% do y.update({'gpdb_package_resource_name':   "gpdb" ~ x.gp_ver ~ "-" ~ y.release_platform ~ "-" ~ y.pkg_type ~ "-latest"}) %}
+            {% do y.update({'gpdb_package_file_name':       "greenplum-db-GPDB_VERSION-" ~ y.greenplum_platform ~ "-" ~ y.pkg_arch ~ "." ~ y.pkg_type}) %}
+            {% do y.update({'gpdb_package_file_glob':       y.gpdb_package_file_name | replace("GPDB_VERSION", x.gp_ver ~ ".*")}) %}
+            {% do x.platforms.append(y) %}
+        {% endfor %}
+        {# render the result of the callback passing the resulting context specific to this loop iteration #}
 [[caller(x)]]
     {% endfor %}
 {% endmacro %}
@@ -101,8 +131,8 @@
     {% include 'anchors/destroy-cluster-tpl.yml' %}
 {% endmacro %}
 
-{% macro anchor_slack_notification(use_slack) %}
-    {% include 'anchors/slack-alert-tpl.yml' %}
+{% macro anchor_gchat_notification(use_gchat) %}
+    {% include 'anchors/gchat-alert-tpl.yml' %}
 {% endmacro %}
 
 {# ----- RESOURCE TYPES macros ----- #}
@@ -124,8 +154,8 @@
     {% include 'resources/github-repo-tpl.yml' %}
 {% endmacro %}
 
-{% macro resource_slack_notification(slack_alert_name, url_key) %}
-    {% include 'resources/slack-notification-tpl.yml' %}
+{% macro resource_gchat_notification(alert_name, url_key) %}
+    {% include 'resources/gchat-notification-tpl.yml' %}
 {% endmacro %}
 
 {% macro resource_registry_image(image_name, image_repository, image_tag) %}
@@ -149,6 +179,14 @@
     {% include 'resources/release-shipit-tpl.yml' %}
 {% endmacro %}
 
+{% macro resource_timer(name, interval) %}
+    {% include 'resources/timer-tpl.yml' %}
+{% endmacro %}
+
+{% macro resource_pivnet_cli() %}
+    {% include 'resources/pivnet_cli-tpl.yml' %}
+{% endmacro %}
+
 {# ----- JOB macros ----- #}
 {% macro job_group(group_name, job_list) %}
     {% include 'jobs/job-groups-tpl.yml' %}
@@ -162,7 +200,7 @@
     {% endcall %}
 {% endmacro %}
 
-{% macro add_test_job(file_name, x, job_names, extra_list_name, slack_notification) %}
+{% macro add_test_job(file_name, x, job_names, extra_list_name, gchat_notification) %}
     {% include file_name %}
     {% do job_names.all.append(x.job_name) %}
 
@@ -173,7 +211,7 @@
     {% do job_names.tests.update({extra_list_name: job_names.tests[extra_list_name] + [x.job_name]}) %}
 {% endmacro %}
 
-{% macro add_gate_job(file_name, job_names, env_var, build_test_pxf_combinations, pxf_release_repackage_images, slack_notification) %}
+{% macro add_gate_job(file_name, job_names, env_var, build_test_pxf_combinations, pxf_release_repackage_images, gchat_notification) %}
     {# set a fake dictionary so that the job can populate the job_name #}
     {% set x = dict() %}
     {% set environment = env_var %}

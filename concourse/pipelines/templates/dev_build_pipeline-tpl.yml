@@ -4,9 +4,10 @@
 {# import macros to use in this template #}
 {% import "macros/macros.j2" as macros %}
 
-{# define supported test features (single-cluster test jobs) and whether their testing is requested by the Makefile via context variables #}
-{% set requested_features = {'s3': s3, 'gs': gs, 'adl': adl, 'wasbs': wasbs, 'minio': minio, 'hdp2': hdp2, 'hdp3': hdp3, 'cdh': cdh, 'jdk11': jdk11} %}
-{% set supported_features = requested_features.keys() | list %}
+{# define test features (single-cluster test jobs) that can be requested by the Makefile via context variables #}
+{% set requested_features = {'s3': s3, 'gs': gs, 'adl': adl, 'wasbs': wasbs, 'minio': minio, 'hdp2': hdp2, 'hdp3': hdp3, 'cdh': cdh, 'jdk11': jdk11, 'load': load} %}
+{# define common test features (single-cluster test jobs) that are all requestable features other than load testing #}
+{% set common_features = requested_features.keys() | list | reject('eq','load') %}
 
 {# define whether multinode testing is requested for given EL OS versions #}
 {% set requested_multi = {'7': multinode_el7, '8': multinode_el8, '9': multinode_el9} %}
@@ -34,12 +35,12 @@
 
 {% set build_test_pxf_combinations = [
     {'gp_ver': '5', 'build_os': 'centos', 'test_os': 'centos', 'os_ver': '7',     'test_fdw': false, 'test_file': false, 'test_cli': false, 'test_multi': false, 'test_features': []},
-    {'gp_ver': '6', 'build_os': 'centos', 'test_os': 'centos', 'os_ver': '7',     'test_fdw': false, 'test_file': true , 'test_cli': false, 'test_multi': true , 'test_features': supported_features},
+    {'gp_ver': '6', 'build_os': 'centos', 'test_os': 'centos', 'os_ver': '7',     'test_fdw': false, 'test_file': true , 'test_cli': false, 'test_multi': true , 'test_features': common_features},
     {'gp_ver': '6', 'build_os': 'rocky' , 'test_os': 'rocky' , 'os_ver': '8',     'test_fdw': true , 'test_file': false, 'test_cli': false, 'test_multi': false, 'test_features': []},
     {'gp_ver': '6', 'build_os': 'rocky' , 'test_os': 'rocky' , 'os_ver': '9',     'test_fdw': false, 'test_file': false, 'test_cli': false, 'test_multi': true , 'test_features': []},
     {'gp_ver': '6', 'build_os': 'centos', 'test_os': 'oel'   , 'os_ver': '7',     'test_fdw': false, 'test_file': false, 'test_cli': false, 'test_multi': false, 'test_features': []},
     {'gp_ver': '6', 'build_os': 'ubuntu', 'test_os': 'ubuntu', 'os_ver': '18.04', 'test_fdw': false, 'test_file': false, 'test_cli': false, 'test_multi': false, 'test_features': []},
-    {'gp_ver': '7', 'build_os': 'rocky' , 'test_os': 'rocky' , 'os_ver': '8',     'test_fdw': true , 'test_file': false, 'test_cli': true , 'test_multi': true , 'test_features': []},
+    {'gp_ver': '7', 'build_os': 'rocky' , 'test_os': 'rocky' , 'os_ver': '8',     'test_fdw': true , 'test_file': false, 'test_cli': true , 'test_multi': true , 'test_features': ['load']},
     {'gp_ver': '7', 'build_os': 'rocky' , 'test_os': 'rocky' , 'os_ver': '9',     'test_fdw': false, 'test_file': false, 'test_cli': false, 'test_multi': false, 'test_features': []}] %}
 
 
@@ -69,7 +70,7 @@ anchors:
     [[macros.anchor_destroy_dataproc(2)]]
     [[macros.anchor_destroy_cluster('gpdb')]]
     [[macros.anchor_destroy_cluster('ipa-hadoop')]]
-    [[macros.anchor_slack_notification(slack_notification)]]
+    [[macros.anchor_gchat_notification(gchat_notification)]]
 
 ## ======================================================================
 ## RESOURCE TYPES
@@ -84,10 +85,10 @@ resource_types:
     [[macros.resource_type_registry_image('terraform-0.14.10', 'ljfranklin/terraform-resource', '0.14.10')]]
 {% endif %}
 
-    [[macros.resource_type_registry_image('gcs', 'frodenas/gcs-resource', '')]]
+    [[macros.resource_type_registry_image('gcs', 'gcr.io/data-gpdb-public-images/gcs-resource', '')]]
 
-{% if slack_notification %}
-    [[macros.resource_type_registry_image('slack-notification', 'cfcommunity/slack-notification-resource', 'latest')]]
+{% if gchat_notification %}
+    [[macros.resource_type_registry_image('google-chat-notify-resource', 'springio/google-chat-notify-resource', '0.0.1-SNAPSHOT')]]
 {% endif %}
 
 ## ======================================================================
@@ -125,20 +126,15 @@ resources:
     [[macros.resource_registry_image('ccp-7-image', 'gcr.io/data-gpdb-public-images/ccp', 'latest')]]
 {% endif %}
 
-## ---------- Slack Notification ----------
-{% if slack_notification %}
-    [[macros.resource_slack_notification('slack-alert', 'ud-pipeline-bot-' ~ user ~ '-webhook')]]
+## ---------- Google Chat Notification ----------
+{% if gchat_notification %}
+    [[macros.resource_gchat_notification('gchat-alert', 'gchat-' ~ user ~ '-ci-webhook')]]
 {% endif %}
 
 ## ---------- Greenplum Packages ----------
 {% call(x) macros.for_each_config(build_test_pxf_combinations) %}
     {% do x.update({'gp_num_versions': gp_num_versions[x.gp_ver]}) %}
-    {% if x.os_ver == '9' %}
-        {# define RPMs for rocky9 until they are released into standard locations #}
-        {% include 'resources/greenplum-rocky9-package-tpl.yml' %}
-    {% else %}
-        {% include 'resources/greenplum-package-tpl.yml' %}
-    {% endif %}
+    {% include 'resources/greenplum-package-tpl.yml' %}
 {% endcall %}
 
 ## ---------- PXF Artifacts ----------

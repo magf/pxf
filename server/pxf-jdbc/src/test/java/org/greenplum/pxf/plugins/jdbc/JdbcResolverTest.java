@@ -8,13 +8,16 @@ import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.security.SecureLogin;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.plugins.jdbc.utils.ConnectionManager;
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
 import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -25,12 +28,13 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +49,8 @@ class JdbcResolverTest {
     private SecureLogin mockSecureLogin;
     @Mock
     DecryptClient decryptClient;
+    @Mock
+    private PreparedStatement mockStatement;
     RequestContext context = new RequestContext();
     List<ColumnDescriptor> columnDescriptors = new ArrayList<>();
     List<OneField> oneFieldList = new ArrayList<>();
@@ -69,7 +75,8 @@ class JdbcResolverTest {
         isDateWideRange = false;
         Date date = Date.valueOf("1977-12-11");
         OneField oneField = getOneField(date, DataType.DATE.getOID(), "date");
-        assertEquals("1977-12-11", oneField.toString());
+        assertTrue(oneField.val instanceof String);
+        assertEquals("1977-12-11", oneField.val);
     }
 
     @Test
@@ -123,10 +130,11 @@ class JdbcResolverTest {
 
     @Test
     void getFieldDateTimeWithoutWideRangeTest() throws SQLException {
-        boolean isDateWideRange = false;
+        isDateWideRange = false;
         Timestamp timestamp = Timestamp.valueOf("1977-12-11 11:15:30.1234");
         OneField oneField = getOneField(timestamp, DataType.TIMESTAMP.getOID(), "timestamp");
-        assertEquals("1977-12-11 11:15:30.1234", oneField.toString());
+        assertTrue(oneField.val instanceof String);
+        assertEquals("1977-12-11 11:15:30.1234", oneField.val);
     }
 
     @Test
@@ -206,6 +214,22 @@ class JdbcResolverTest {
     }
 
     @Test
+    void getFieldUUIDTest() throws SQLException {
+        UUID uuid = UUID.fromString("decafbad-0000-0000-0000-000000000000");
+        when(row.getData()).thenReturn(result);
+        when(result.getObject("uuid_col", java.util.UUID.class)).thenReturn(uuid);
+        columnDescriptors.add(new ColumnDescriptor("uuid_col", DataType.UUID.getOID(), 1, DataType.UUID.name(), null));
+        context.setTupleDescription(columnDescriptors);
+        resolver.columns = context.getTupleDescription();
+
+        List<OneField> oneFields = resolver.getFields(row);
+        assertEquals(1, oneFields.size());
+
+        OneField oneField = oneFields.get(0);
+        assertEquals(uuid, oneField.val);
+    }
+
+    @Test
     void setFieldDateWithWideRangeTest() throws ParseException {
         isDateWideRange = true;
         LocalDate expectedLocalDate = LocalDate.of(1977, 12, 11);
@@ -263,7 +287,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateWithMoreThan4digitsInYearWithoutWideRangeTest() throws ParseException {
+    void setFieldDateWithMoreThan4digitsInYearWithoutWideRangeTest() {
         isDateWideRange = false;
         String date = "12345678-12-11";
         assertThrows(IllegalArgumentException.class, () -> setFields(date, DataType.DATE.getOID(), "date"));
@@ -374,10 +398,37 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateTimeWithEraWithoutWideRangeTest() throws ParseException {
+    void setFieldDateTimeWithEraWithoutWideRangeTest() {
         isDateWideRange = false;
         String timestamp = "1235-11-01 16:20 BC";
         assertThrows(IllegalArgumentException.class, () -> setFields(timestamp, DataType.TIMESTAMP.getOID(), "timestamp"));
+    }
+
+    @Test
+    void setFieldUUIDTest() throws ParseException {
+        oneFieldList.add(new OneField(DataType.TEXT.getOID(), "decafbad-0000-0000-0000-000000000000"));
+        columnDescriptors.add(new ColumnDescriptor("uuid_col", DataType.UUID.getOID(), 1, DataType.UUID.name(), null));
+        context.setTupleDescription(columnDescriptors);
+        resolver.columns = context.getTupleDescription();
+
+        OneRow oneRow = resolver.setFields(oneFieldList);
+        @SuppressWarnings("unchecked")
+        List<OneField> oneFields = (List<OneField>) oneRow.getData();
+        assertEquals(1, oneFields.size());
+
+        OneField oneField = oneFields.get(0);
+        assertEquals(UUID.fromString("decafbad-0000-0000-0000-000000000000"), oneField.val);
+    }
+
+    @Test
+    void decodeOneRowToPreparedStatement_UUIDTest() throws SQLException, IOException {
+        oneFieldList.add(new OneField(DataType.UUID.getOID(), UUID.fromString("decafbad-0000-0000-0000-000000000000")));
+        when(row.getData()).thenReturn(oneFieldList);
+
+        JdbcResolver.decodeOneRowToPreparedStatement(row, mockStatement, mock(DbProduct.class));
+
+        verify(mockStatement).setObject(1, UUID.fromString("decafbad-0000-0000-0000-000000000000"));
+        verifyNoMoreInteractions(mockStatement);
     }
 
     private OneField getOneField(Object date, int dataTypeOid, String typeName) throws SQLException {

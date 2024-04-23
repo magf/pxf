@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
+import org.greenplum.pxf.api.GreenplumDateTime;
 import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
@@ -49,6 +50,7 @@ import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_TIME;
@@ -214,7 +216,8 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                         LocalDate localDate = result.getObject(colName, LocalDate.class);
                         value = localDate != null ? localDate.format(LOCAL_DATE_GET_FORMATTER) : null;
                     } else {
-                        value = result.getDate(colName);
+                        Date date = result.getDate(colName);
+                        value = date != null ? date.toLocalDate().format(GreenplumDateTime.DATE_FORMATTER) : null;
                     }
                     break;
                 case TIMESTAMP:
@@ -222,7 +225,8 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                         LocalDateTime localDateTime = result.getObject(colName, LocalDateTime.class);
                         value = localDateTime != null ? localDateTime.format(LOCAL_DATE_TIME_GET_FORMATTER) : null;
                     } else {
-                        value = result.getTimestamp(colName);
+                        Timestamp timestamp = result.getTimestamp(colName);
+                        value = timestamp != null ? timestamp.toLocalDateTime().format(GreenplumDateTime.DATETIME_FORMATTER) : null;
                     }
                     break;
                 case TIMESTAMP_WITH_TIME_ZONE:
@@ -235,6 +239,9 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                                         DataType.get(oneField.type),
                                         column));
                     }
+                    break;
+                case UUID:
+                    value = result.getObject(colName, java.util.UUID.class);
                     break;
                 default:
                     throw new UnsupportedOperationException(
@@ -326,6 +333,9 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                         } else {
                             oneField.val = Date.valueOf(rawVal);
                         }
+                        break;
+                    case UUID:
+                        oneField.val = UUID.fromString(rawVal);
                         break;
                     default:
                         throw new UnsupportedOperationException(
@@ -439,6 +449,9 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                             statement.setDate(i, (Date) field.val);
                         }
                     }
+                    break;
+                case UUID:
+                    statement.setObject(i, field.val);
                     break;
                 case JSON:
                 case JSONB:
