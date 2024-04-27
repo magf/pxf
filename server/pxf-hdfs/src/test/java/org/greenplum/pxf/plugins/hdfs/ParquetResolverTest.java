@@ -25,7 +25,10 @@ import org.greenplum.pxf.api.error.UnsupportedTypeException;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
-import org.greenplum.pxf.plugins.hdfs.parquet.ParquetTypeConverter;
+import org.greenplum.pxf.plugins.hdfs.parquet.ParquetConfig;
+import org.greenplum.pxf.plugins.hdfs.parquet.ParquetTimestampUtilities;
+import org.greenplum.pxf.plugins.hdfs.parquet.ParquetTypeConverterFactory;
+import org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -57,13 +60,12 @@ public class ParquetResolverTest {
     private RequestContext context;
     private MessageType schema;
     private String localTimestampString;
-    private Configuration configuration;
 
     @BeforeEach
     public void setup() {
         resolver = new ParquetResolver();
         context = new RequestContext();
-        configuration = new Configuration();
+        Configuration configuration = new Configuration();
         schema = new MessageType("test");
         context.setMetadata(schema);
         context.setConfig("default");
@@ -446,8 +448,8 @@ public class ParquetResolverTest {
         }
         group.add(4, Binary.fromReusedByteArray(bytes));
 
-        group.add(5, ParquetTypeConverter.getBinaryFromTimestamp("2019-03-14 14:10:28"));
-        group.add(5, ParquetTypeConverter.getBinaryFromTimestamp("1969-12-30 05:42:23.211211"));
+        group.add(5, ParquetTimestampUtilities.getBinaryFromTimestamp("2019-03-14 14:10:28", true));
+        group.add(5, ParquetTimestampUtilities.getBinaryFromTimestamp("1969-12-30 05:42:23.211211", true));
 
         group.add(6, 7.7f);
         group.add(6, -12345.35354646f);
@@ -475,12 +477,12 @@ public class ParquetResolverTest {
         byte[] byteArray2 = new byte[]{(byte) 52, (byte) 53, (byte) 54};
         group.add(13, Binary.fromReusedByteArray(byteArray2, 0, 3));
 
-        group.add(14, ParquetTypeConverter.getBinaryFromTimestampWithTimeZone("2019-03-14 14:10:28+07"));
+        group.add(14, ParquetTimestampUtilities.getBinaryFromTimestampWithTimeZone("2019-03-14 14:10:28+07"));
         OffsetDateTime offsetDateTime1 = OffsetDateTime.parse("2019-03-14T14:10:28+07:00");
         ZonedDateTime localDateTime1 = offsetDateTime1.atZoneSameInstant(ZoneId.systemDefault());
         String localDateTimeString1 = localDateTime1.format(DateTimeFormatter.ofPattern("[yyyy-MM-dd HH:mm:ss]"));
 
-        group.add(15, ParquetTypeConverter.getBinaryFromTimestampWithTimeZone("2019-03-14 14:10:28-07:30"));
+        group.add(15, ParquetTimestampUtilities.getBinaryFromTimestampWithTimeZone("2019-03-14 14:10:28-07:30"));
         OffsetDateTime offsetDateTime2 = OffsetDateTime.parse("2019-03-14T14:10:28-07:30");
         ZonedDateTime localDateTime2 = offsetDateTime2.atZoneSameInstant(ZoneId.systemDefault());
         String localDateTimeString2 = localDateTime2.format(DateTimeFormatter.ofPattern("[yyyy-MM-dd HH:mm:ss]"));
@@ -835,7 +837,7 @@ public class ParquetResolverTest {
         context.setMetadata(schema);
         Exception e = assertThrows(UnsupportedTypeException.class,
                 () -> context.setTupleDescription(getColumnDescriptorsFromSchema(schema)));
-        assertEquals("Parquet complex type MAP is not supported, error: java.lang.IllegalArgumentException: No enum constant org.greenplum.pxf.plugins.hdfs.parquet.ParquetTypeConverter.MAP", e.getMessage());
+        assertEquals("Parquet complex type MAP is not supported, error: java.lang.IllegalArgumentException: No enum constant org.greenplum.pxf.plugins.hdfs.parquet.PxfParquetType.MAP", e.getMessage());
     }
 
     @Test
@@ -1064,7 +1066,8 @@ public class ParquetResolverTest {
                 .stream()
                 .map(f -> {
                     Type type = f.isPrimitive() ? f.asPrimitiveType() : f.asGroupType();
-                    ParquetTypeConverter converter = ParquetTypeConverter.from(type);
+                    ParquetConfig parquetConfig = ParquetConfig.builder().build();
+                    ParquetTypeConverter converter = new ParquetTypeConverterFactory(parquetConfig).create(type);
                     return new ColumnDescriptor(f.getName(), converter.getDataType(f).getOID(), 1, "", new Integer[]{});
                 })
                 .collect(Collectors.toList());

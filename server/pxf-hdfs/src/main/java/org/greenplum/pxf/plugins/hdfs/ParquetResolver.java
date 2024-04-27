@@ -38,8 +38,11 @@ import org.greenplum.pxf.api.model.BasePlugin;
 import org.greenplum.pxf.api.model.Resolver;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.api.utilities.Utilities;
-import org.greenplum.pxf.plugins.hdfs.parquet.ParquetTypeConverter;
+import org.greenplum.pxf.plugins.hdfs.parquet.ParquetConfig;
+import org.greenplum.pxf.plugins.hdfs.parquet.ParquetTimestampUtilities;
+import org.greenplum.pxf.plugins.hdfs.parquet.ParquetTypeConverterFactory;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetUtilities;
+import org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConverter;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalOverflowOption;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
 import org.greenplum.pxf.plugins.hdfs.utilities.PgUtilities;
@@ -54,24 +57,28 @@ import static org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnn
 import static org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.IntLogicalTypeAnnotation;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.StringLogicalTypeAnnotation;
+import static org.apache.parquet.schema.LogicalTypeAnnotation.TimestampLogicalTypeAnnotation;
 import static org.apache.parquet.schema.Type.Repetition.REPEATED;
+import static org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor.DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE;
+import static org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor.USE_LOCAL_PXF_TIMEZONE_WRITE_NAME;
 
 public class ParquetResolver extends BasePlugin implements Resolver {
 
     // used to distinguish string pattern between type "timestamp" ("2019-03-14 14:10:28")
     // and type "timestamp with time zone" ("2019-03-14 14:10:28+07:30")
     public static final Pattern TIMESTAMP_PATTERN = Pattern.compile("[+-]\\d{2}(:\\d{2})?$");
-
     public static final String PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME = "pxf.parquet.write.decimal.overflow";
-
+    public static final String USE_LOCAL_PXF_TIMEZONE_READ_NAME = "USE_LOCAL_PXF_TIMEZONE_READ";
+    public static final boolean DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ = true;
     private static final PgUtilities pgUtilities = new PgUtilities();
     private final ObjectMapper mapper = new ObjectMapper();
     private final ParquetUtilities parquetUtilities = new ParquetUtilities(pgUtilities);
     private MessageType schema;
     private SimpleGroupFactory groupFactory;
     private List<ColumnDescriptor> columnDescriptors;
-
     private DecimalUtilities decimalUtilities;
+    private ParquetConfig parquetConfig;
+    private ParquetTypeConverterFactory parquetTypeConverterFactory;
 
     @Override
     public void afterPropertiesSet() {
@@ -79,6 +86,13 @@ public class ParquetResolver extends BasePlugin implements Resolver {
         columnDescriptors = context.getTupleDescription();
         DecimalOverflowOption decimalOverflowOption = DecimalOverflowOption.valueOf(configuration.get(PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME, DecimalOverflowOption.ROUND.name()).toUpperCase());
         decimalUtilities = new DecimalUtilities(decimalOverflowOption, true);
+        boolean useLocalPxfTimezoneWrite = context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
+        boolean useLocalPxfTimezoneRead = context.getOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
+        parquetConfig = ParquetConfig.builder()
+                .useLocalPxfTimezoneWrite(useLocalPxfTimezoneWrite)
+                .useLocalPxfTimezoneRead(useLocalPxfTimezoneRead)
+                .build();
+        parquetTypeConverterFactory = new ParquetTypeConverterFactory(parquetConfig);
     }
 
     /**
@@ -223,7 +237,7 @@ public class ParquetResolver extends BasePlugin implements Resolver {
             case INT32:
                 if (logicalTypeAnnotation instanceof DateLogicalTypeAnnotation) {
                     String dateString = (String) fieldValue;
-                    group.add(columnIndex, ParquetTypeConverter.getDaysFromEpochFromDateString(dateString));
+                    group.add(columnIndex, ParquetTimestampUtilities.getDaysFromEpochFromDateString(dateString));
                 } else if (logicalTypeAnnotation instanceof IntLogicalTypeAnnotation &&
                         ((IntLogicalTypeAnnotation) logicalTypeAnnotation).getBitWidth() == 16) {
                     group.add(columnIndex, (Short) fieldValue);
@@ -232,7 +246,15 @@ public class ParquetResolver extends BasePlugin implements Resolver {
                 }
                 break;
             case INT64:
-                group.add(columnIndex, (Long) fieldValue);
+                if (logicalTypeAnnotation instanceof TimestampLogicalTypeAnnotation) {
+                    String timestamp = (String) fieldValue;
+                    boolean isTimestampWithTimeZone = TIMESTAMP_PATTERN.matcher(timestamp).find();
+                    TimestampLogicalTypeAnnotation originalType = (TimestampLogicalTypeAnnotation) logicalTypeAnnotation;
+                    group.add(columnIndex, ParquetTimestampUtilities
+                            .getLongFromTimestamp(timestamp, originalType.isAdjustedToUTC(), isTimestampWithTimeZone));
+                } else if (fieldValue instanceof Long) {
+                    group.add(columnIndex, (Long) fieldValue);
+                }
                 break;
             case DOUBLE:
                 group.add(columnIndex, (Double) fieldValue);
@@ -252,9 +274,9 @@ public class ParquetResolver extends BasePlugin implements Resolver {
                 if (TIMESTAMP_PATTERN.matcher(timestamp).find()) {
                     // Note: this conversion convert type "timestamp with time zone" will lose timezone information
                     // while preserving the correct value. (as Parquet doesn't support timestamp with time zone)
-                    group.add(columnIndex, ParquetTypeConverter.getBinaryFromTimestampWithTimeZone(timestamp));
+                    group.add(columnIndex, ParquetTimestampUtilities.getBinaryFromTimestampWithTimeZone(timestamp));
                 } else {
-                    group.add(columnIndex, ParquetTypeConverter.getBinaryFromTimestamp(timestamp));
+                    group.add(columnIndex, ParquetTimestampUtilities.getBinaryFromTimestamp(timestamp, parquetConfig.isUseLocalPxfTimezoneWrite()));
                 }
                 break;
             case BOOLEAN:
@@ -273,7 +295,7 @@ public class ParquetResolver extends BasePlugin implements Resolver {
 
         HiveDecimal hiveDecimal = decimalUtilities.parseDecimalStringWithHiveDecimal(value, precision, scale, columnName);
         if (hiveDecimal == null) {
-           return null;
+            return null;
         }
 
         byte[] decimalBytes = hiveDecimal.bigIntegerBytesScaled(scale);
@@ -321,7 +343,7 @@ public class ParquetResolver extends BasePlugin implements Resolver {
         // get type converter based on the field data type
         // schema is the readSchema, if there is column projection, the schema will be a subset of tuple descriptions
         Type type = schema.getType(columnIndex);
-        ParquetTypeConverter converter = ParquetTypeConverter.from(type);
+        ParquetTypeConverter converter = parquetTypeConverterFactory.create(type);
         // determine how many values for the field are present in the column
         int repetitionCount = group.getFieldRepetitionCount(columnIndex);
         if (type.getRepetition() == REPEATED) {
