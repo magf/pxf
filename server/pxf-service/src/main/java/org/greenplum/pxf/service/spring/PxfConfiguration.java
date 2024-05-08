@@ -1,10 +1,18 @@
 package org.greenplum.pxf.service.spring;
 
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.binder.MeterBinder;
+import io.micrometer.core.instrument.config.MeterFilter;
 import org.greenplum.pxf.api.configuration.PxfServerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
+import org.springframework.boot.actuate.metrics.MetricsEndpoint;
 import org.springframework.boot.autoconfigure.task.TaskExecutionProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.task.TaskExecutorBuilder;
@@ -31,6 +39,8 @@ public class PxfConfiguration implements WebMvcConfigurer {
      * Bean name of PXF's {@link TaskExecutor}.
      */
     public static final String PXF_RESPONSE_STREAM_TASK_EXECUTOR = "pxfResponseStreamTaskExecutor";
+    public static final String PXF_EXECUTOR_METRIC_NAME_PREFIX = "pxf";
+    public static final String ORIGINAL_EXECUTOR_METRIC_NAME_PREFIX = "executor";
     private static final Logger LOG = LoggerFactory.getLogger(PxfConfiguration.class);
 
     private final ListableBeanFactory beanFactory;
@@ -98,5 +108,28 @@ public class PxfConfiguration implements WebMvcConfigurer {
                 shutdown.getAwaitTerminationPeriod());
 
         return builder.build(PxfThreadPoolTaskExecutor.class);
+    }
+
+    @Bean
+    @ConditionalOnAvailableEndpoint(endpoint = MetricsEndpoint.class)
+    public MeterFilter renameMetrics() {
+        return new MeterFilter() {
+            @Override
+            public Meter.Id map(Meter.Id id) {
+                if (id.getName().startsWith(ORIGINAL_EXECUTOR_METRIC_NAME_PREFIX)) {
+                    return id.withName(PXF_EXECUTOR_METRIC_NAME_PREFIX + "." + id.getName());
+                }
+                return id;
+            }
+        };
+    }
+
+    @Bean
+    public MeterBinder registerQueueCapacity(@Qualifier(PXF_RESPONSE_STREAM_TASK_EXECUTOR) ThreadPoolTaskExecutor executor) {
+        return (registry) -> Gauge.builder("executor.queue.capacity", executor::getQueueCapacity)
+                .tags(Tags.of("name", PXF_RESPONSE_STREAM_TASK_EXECUTOR))
+                .description("The max number of threads to be added in queue")
+                .baseUnit("tasks")
+                .register(registry);
     }
 }
