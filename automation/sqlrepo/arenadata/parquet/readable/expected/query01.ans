@@ -1,0 +1,6 @@
+-- @description query01 for Parquet Timestamp data type.
+SELECT * FROM readable_test_table;
+         tmp
+---------------------
+ 2022-06-22 19:10:25
+(1 row)
