@@ -1,0 +1,6 @@
+-- @description query01 for Checking Parameter USE_LOCAL_PXF_TIMEZONE_WRITE=true for Timestamp with timezone.
+SELECT * FROM readable_parquet_table;
+              tmp
+-------------------------------
+ 2022-06-22 15:10:25.123456+00
+(1 row)
