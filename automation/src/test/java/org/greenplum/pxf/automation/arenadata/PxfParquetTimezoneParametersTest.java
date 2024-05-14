@@ -30,12 +30,12 @@ public class PxfParquetTimezoneParametersTest extends BaseFeature {
     private static final String USE_LOCAL_PXF_TIMEZONE_WRITE_PARAM = "USE_LOCAL_PXF_TIMEZONE_WRITE=";
     private static final String USE_LOCAL_PXF_TIMEZONE_READ_PARAM = "USE_LOCAL_PXF_TIMEZONE_READ=";
     private static final String PXF_ENV_FILE_RELATIVE_PATH = "conf/pxf-env.sh";
-    private static final String[] TIMESTAMP = new String[]{"('2022-06-22 19:10:25')"};
-    private static final String[] TIMESTAMP_WITH_TIMEZONE = new String[]{"('2022-06-22 19:10:25.123456+04')"};
-    private static final String SCHEMA = "tmp        TIMESTAMP";
-    private static final String SCHEMA_WITH_TIMEZONE = "tmp        TIMESTAMP WITH TIME ZONE";
-    private static final String TMP_PARQUET_FILE_NAME = "tmp_no_timezone.parquet";
-    private static final String TMP_WITH_TIMEZONE_PARQUET_FILE_NAME = "tmp_with_timezone.parquet";
+    private static final String TIMESTAMP = "('2022-06-22 19:10:25')";
+    private static final String TIMESTAMP_WITH_TIMEZONE = "('2022-06-22 19:10:25.123456+04')";
+    private static final String[] TIMESTAMP_TABLE_SCHEMA = new String[]{"tmp        TIMESTAMP"};
+    private static final String[] TIMESTAMP_TABLE_SCHEMA_WITH_TIMEZONE = new String[]{"tmp        TIMESTAMP WITH TIME ZONE"};
+    private static final String TIMESTAMP_PARQUET_FILE_NAME = "tmp_no_timezone.parquet";
+    private static final String TIMESTAMP_WITH_TIMEZONE_PARQUET_FILE_NAME = "tmp_with_timezone.parquet";
     private String hdfsPath;
 
     @Override
@@ -103,30 +103,30 @@ public class PxfParquetTimezoneParametersTest extends BaseFeature {
     @DataProvider
     private Object[][] useInt64TimestampsProvider() {
         return new Object[][]{
-                {SCHEMA, TIMESTAMP, true, INT64},
-                {SCHEMA_WITH_TIMEZONE, TIMESTAMP_WITH_TIMEZONE, true, INT64},
-                {SCHEMA, TIMESTAMP, false, INT96},
-                {SCHEMA_WITH_TIMEZONE, TIMESTAMP_WITH_TIMEZONE, false, INT96},
+                {TIMESTAMP_TABLE_SCHEMA, TIMESTAMP, true, INT64},
+                {TIMESTAMP_TABLE_SCHEMA_WITH_TIMEZONE, TIMESTAMP_WITH_TIMEZONE, true, INT64},
+                {TIMESTAMP_TABLE_SCHEMA, TIMESTAMP, false, INT96},
+                {TIMESTAMP_TABLE_SCHEMA_WITH_TIMEZONE, TIMESTAMP_WITH_TIMEZONE, false, INT96},
         };
     }
 
     @DataProvider
     private Object[][] useLocalPxfTimezoneWriteProvider() {
         return new Object[][]{
-                {SCHEMA, TIMESTAMP, true, "arenadata/parquet/check-writable-tables/timestamp/true"},
-                {SCHEMA_WITH_TIMEZONE, TIMESTAMP_WITH_TIMEZONE, true, "arenadata/parquet/check-writable-tables/timestamp-with-timezone"},
-                {SCHEMA, TIMESTAMP, false, "arenadata/parquet/check-writable-tables/timestamp/false"},
-                {SCHEMA_WITH_TIMEZONE, TIMESTAMP_WITH_TIMEZONE, false, "arenadata/parquet/check-writable-tables/timestamp-with-timezone"},
+                {TIMESTAMP_TABLE_SCHEMA, TIMESTAMP, true, "arenadata/parquet/check-writable-tables/timestamp/true"},
+                {TIMESTAMP_TABLE_SCHEMA_WITH_TIMEZONE, TIMESTAMP_WITH_TIMEZONE, true, "arenadata/parquet/check-writable-tables/timestamp-with-timezone"},
+                {TIMESTAMP_TABLE_SCHEMA, TIMESTAMP, false, "arenadata/parquet/check-writable-tables/timestamp/false"},
+                {TIMESTAMP_TABLE_SCHEMA_WITH_TIMEZONE, TIMESTAMP_WITH_TIMEZONE, false, "arenadata/parquet/check-writable-tables/timestamp-with-timezone"},
         };
     }
 
     @DataProvider
     private Object[][] useLocalPxfTimezoneReadProvider() {
         return new Object[][]{
-                {SCHEMA, TMP_PARQUET_FILE_NAME, true, "arenadata/parquet/check-readable-tables/timestamp/true"},
-                {SCHEMA_WITH_TIMEZONE, TMP_WITH_TIMEZONE_PARQUET_FILE_NAME, true, "arenadata/parquet/check-readable-tables/timestamp-with-timezone/true"},
-                {SCHEMA, TMP_PARQUET_FILE_NAME, false, "arenadata/parquet/check-readable-tables/timestamp/false"},
-                {SCHEMA_WITH_TIMEZONE, TMP_WITH_TIMEZONE_PARQUET_FILE_NAME, false, "arenadata/parquet/check-readable-tables/timestamp-with-timezone/false"}
+                {TIMESTAMP_TABLE_SCHEMA, TIMESTAMP_PARQUET_FILE_NAME, true, "arenadata/parquet/check-readable-tables/timestamp/true"},
+                {TIMESTAMP_TABLE_SCHEMA_WITH_TIMEZONE, TIMESTAMP_WITH_TIMEZONE_PARQUET_FILE_NAME, true, "arenadata/parquet/check-readable-tables/timestamp-with-timezone/true"},
+                {TIMESTAMP_TABLE_SCHEMA, TIMESTAMP_PARQUET_FILE_NAME, false, "arenadata/parquet/check-readable-tables/timestamp/false"},
+                {TIMESTAMP_TABLE_SCHEMA_WITH_TIMEZONE, TIMESTAMP_WITH_TIMEZONE_PARQUET_FILE_NAME, false, "arenadata/parquet/check-readable-tables/timestamp-with-timezone/false"}
         };
     }
 
