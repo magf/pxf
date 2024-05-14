@@ -22,7 +22,7 @@ import static parquet.schema.PrimitiveType.PrimitiveTypeName.INT64;
 import static parquet.schema.PrimitiveType.PrimitiveTypeName.INT96;
 
 @WorksWithFDW
-public class PxfHdfsParquetTimezoneTest extends BaseFeature {
+public class PxfParquetTimezoneParametersTest extends BaseFeature {
     private static final String PARQUET_FORMAT = "parquet";
     private static final String WRITABLE_EXTERNAL_TABLE_NAME = "writable_parquet_table";
     private static final String READABLE_EXTERNAL_TABLE_NAME = "readable_parquet_table";
