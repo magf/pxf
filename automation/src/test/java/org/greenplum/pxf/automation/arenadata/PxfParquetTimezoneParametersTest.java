@@ -30,8 +30,8 @@ public class PxfParquetTimezoneParametersTest extends BaseFeature {
     private static final String USE_LOCAL_PXF_TIMEZONE_WRITE_PARAM = "USE_LOCAL_PXF_TIMEZONE_WRITE=";
     private static final String USE_LOCAL_PXF_TIMEZONE_READ_PARAM = "USE_LOCAL_PXF_TIMEZONE_READ=";
     private static final String PXF_ENV_FILE_RELATIVE_PATH = "conf/pxf-env.sh";
-    private static final String TIMESTAMP = "('2022-06-22 19:10:25')";
-    private static final String TIMESTAMP_WITH_TIMEZONE = "('2022-06-22 19:10:25.123456+04')";
+    private static final String[] TIMESTAMP = new String[]{"('2022-06-22 19:10:25')"};
+    private static final String[] TIMESTAMP_WITH_TIMEZONE = new String[]{"('2022-06-22 19:10:25.123456+04')"};
     private static final String SCHEMA = "tmp        TIMESTAMP";
     private static final String SCHEMA_WITH_TIMEZONE = "tmp        TIMESTAMP WITH TIME ZONE";
     private static final String TMP_PARQUET_FILE_NAME = "tmp_no_timezone.parquet";
@@ -48,10 +48,9 @@ public class PxfParquetTimezoneParametersTest extends BaseFeature {
 
 
     @Test(groups = {"arenadata"}, dataProvider = "useInt64TimestampsProvider")
-    public void testUseInt64Timestamps(String tableSchema, String timestampValue, boolean useInt64IsEnabled, PrimitiveType.PrimitiveTypeName primitiveTypeName) throws Exception {
+    public void testUseInt64Timestamps(String[] tableSchema, String timestampValue, boolean useInt64IsEnabled, PrimitiveType.PrimitiveTypeName primitiveTypeName) throws Exception {
         String useInt64Param = USE_INT64_TIMESTAMPS_PARAM + useInt64IsEnabled;
-        String[] tableFullSchema = new String[]{tableSchema};
-        exTable = TableFactory.getPxfHcfsWritableTable(WRITABLE_EXTERNAL_TABLE_NAME, tableFullSchema, hdfsPath, hdfs.getBasePath(), PARQUET_FORMAT);
+        exTable = TableFactory.getPxfHcfsWritableTable(WRITABLE_EXTERNAL_TABLE_NAME, tableSchema, hdfsPath, hdfs.getBasePath(), PARQUET_FORMAT);
         exTable.setUserParameters(new String[]{useInt64Param});
         createTable(exTable);
         gpdb.insertData(timestampValue, exTable);
@@ -70,28 +69,26 @@ public class PxfParquetTimezoneParametersTest extends BaseFeature {
     }
 
     @Test(groups = {"arenadata"}, dataProvider = "useLocalPxfTimezoneWriteProvider")
-    public void testUseLocalPxfTimezoneWrite(String tableSchema, String timestampValue, boolean useLocalPxfTimezoneWriteIsEnabled, String sqlPath) throws Exception {
+    public void testUseLocalPxfTimezoneWrite(String[] tableSchema, String timestampValue, boolean useLocalPxfTimezoneWriteIsEnabled, String sqlPath) throws Exception {
         String fullTestPath = hdfsPath + "use_local_pxf_timezone_write";
         String useLocalPxfTimezoneWrite = USE_LOCAL_PXF_TIMEZONE_WRITE_PARAM + useLocalPxfTimezoneWriteIsEnabled;
-        String[] tableFullSchema = new String[]{tableSchema};
-        exTable = TableFactory.getPxfHcfsWritableTable(WRITABLE_EXTERNAL_TABLE_NAME, tableFullSchema, fullTestPath, hdfs.getBasePath(), PARQUET_FORMAT);
+        exTable = TableFactory.getPxfHcfsWritableTable(WRITABLE_EXTERNAL_TABLE_NAME, tableSchema, fullTestPath, hdfs.getBasePath(), PARQUET_FORMAT);
         exTable.setUserParameters(new String[]{useLocalPxfTimezoneWrite});
         createTable(exTable);
         gpdb.insertData(timestampValue, exTable);
         String useLocalPxfTimezoneRead = USE_LOCAL_PXF_TIMEZONE_READ_PARAM + false;
-        exTable = TableFactory.getPxfHcfsReadableTable(READABLE_EXTERNAL_TABLE_NAME, tableFullSchema, fullTestPath, hdfs.getBasePath(), PARQUET_FORMAT);
+        exTable = TableFactory.getPxfHcfsReadableTable(READABLE_EXTERNAL_TABLE_NAME, tableSchema, fullTestPath, hdfs.getBasePath(), PARQUET_FORMAT);
         exTable.setUserParameters(new String[]{useLocalPxfTimezoneRead});
         createTable(exTable);
         runSqlTest(sqlPath);
     }
 
     @Test(groups = {"arenadata"}, dataProvider = "useLocalPxfTimezoneReadProvider")
-    public void testUseLocalPxfTimezoneRead(String tableSchema, String resourceFile, boolean useLocalPxfTimezoneReadIsEnabled, String sqlPath) throws Exception {
+    public void testUseLocalPxfTimezoneRead(String[] tableSchema, String resourceFile, boolean useLocalPxfTimezoneReadIsEnabled, String sqlPath) throws Exception {
         String resourcePath = localDataResourcesFolder + "/parquet/";
         hdfs.copyFromLocal(resourcePath + resourceFile, hdfsPath);
         String useLocalPxfTimezoneRead = USE_LOCAL_PXF_TIMEZONE_READ_PARAM + useLocalPxfTimezoneReadIsEnabled;
-        String[] tableFullSchema = new String[]{tableSchema};
-        exTable = TableFactory.getPxfHcfsReadableTable(READABLE_EXTERNAL_TABLE_NAME, tableFullSchema, hdfsPath, hdfs.getBasePath(), PARQUET_FORMAT);
+        exTable = TableFactory.getPxfHcfsReadableTable(READABLE_EXTERNAL_TABLE_NAME, tableSchema, hdfsPath, hdfs.getBasePath(), PARQUET_FORMAT);
         exTable.setUserParameters(new String[]{useLocalPxfTimezoneRead});
         createTable(exTable);
         runSqlTest(sqlPath);
