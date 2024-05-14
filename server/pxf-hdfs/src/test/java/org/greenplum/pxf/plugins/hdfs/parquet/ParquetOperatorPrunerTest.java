@@ -115,25 +115,59 @@ public class ParquetOperatorPrunerTest extends ParquetBaseTest {
     }
 
     @Test
-    public void testUnsupportedFixedLenByteArrayFilter() throws Exception {
+    public void testSupportedFixedLenByteArrayFilter() throws Exception {
         // dec2 = 0
         Node result = helper("a14c23s1d0o5");
-        assertNull(result);
-
-        // name = 'row2' and dec2 = 0 -> name = 'row2'
-        result = helper("a1c25s4drow2o5a14c23s1d0o5l0");
         assertNotNull(result);
         assertTrue(result instanceof OperatorNode);
         OperatorNode operatorNode = (OperatorNode) result;
         assertEquals(Operator.EQUALS, operatorNode.getOperator());
         assertTrue(operatorNode.getLeft() instanceof ColumnIndexOperandNode);
-        assertEquals(1, ((ColumnIndexOperandNode) operatorNode.getLeft()).index());
+        assertEquals(14, ((ColumnIndexOperandNode) operatorNode.getLeft()).index());
         assertTrue(operatorNode.getRight() instanceof OperandNode);
-        assertEquals("row2", operatorNode.getRight().toString());
+        assertEquals("0", operatorNode.getRight().toString());
+
+        // name = 'row2' and dec2 = 0 -> name = 'row2'
+        result = helper("a1c25s4drow2o5a14c23s1d0o5l0");
+        assertNotNull(result);
+        assertTrue(result instanceof OperatorNode);
+        operatorNode = (OperatorNode) result;
+        assertEquals(Operator.AND, operatorNode.getOperator());
+        assertTrue(operatorNode.getLeft() instanceof OperatorNode);
+        OperatorNode nameOperatorNode = (OperatorNode) operatorNode.getLeft();
+        assertEquals(Operator.EQUALS, nameOperatorNode.getOperator());
+        assertTrue(nameOperatorNode.getLeft() instanceof ColumnIndexOperandNode);
+        assertEquals(1, ((ColumnIndexOperandNode) nameOperatorNode.getLeft()).index());
+        assertTrue(nameOperatorNode.getRight() instanceof OperandNode);
+        assertEquals("row2", nameOperatorNode.getRight().toString());
+        assertTrue(operatorNode.getRight() instanceof OperatorNode);
+        OperatorNode decimalOperatorNode = (OperatorNode) operatorNode.getRight();
+        assertEquals(Operator.EQUALS, decimalOperatorNode.getOperator());
+        assertTrue(decimalOperatorNode.getLeft() instanceof ColumnIndexOperandNode);
+        assertEquals(14, ((ColumnIndexOperandNode) decimalOperatorNode.getLeft()).index());
+        assertTrue(decimalOperatorNode.getRight() instanceof OperandNode);
+        assertEquals("0", decimalOperatorNode.getRight().toString());
 
         // name = 'row2' or dec2 = 0 -> null
         result = helper("a1c25s4drow2o5a14c23s1d0o5l1");
-        assertNull(result);
+        assertNotNull(result);
+        assertTrue(result instanceof OperatorNode);
+        operatorNode = (OperatorNode) result;
+        assertEquals(Operator.OR, operatorNode.getOperator());
+        assertTrue(operatorNode.getLeft() instanceof OperatorNode);
+        nameOperatorNode = (OperatorNode) operatorNode.getLeft();
+        assertEquals(Operator.EQUALS, nameOperatorNode.getOperator());
+        assertTrue(nameOperatorNode.getLeft() instanceof ColumnIndexOperandNode);
+        assertEquals(1, ((ColumnIndexOperandNode) nameOperatorNode.getLeft()).index());
+        assertTrue(nameOperatorNode.getRight() instanceof OperandNode);
+        assertEquals("row2", nameOperatorNode.getRight().toString());
+        assertTrue(operatorNode.getRight() instanceof OperatorNode);
+        decimalOperatorNode = (OperatorNode) operatorNode.getRight();
+        assertEquals(Operator.EQUALS, decimalOperatorNode.getOperator());
+        assertTrue(decimalOperatorNode.getLeft() instanceof ColumnIndexOperandNode);
+        assertEquals(14, ((ColumnIndexOperandNode) decimalOperatorNode.getLeft()).index());
+        assertTrue(decimalOperatorNode.getRight() instanceof OperandNode);
+        assertEquals("0", decimalOperatorNode.getRight().toString());
     }
 
     @Test

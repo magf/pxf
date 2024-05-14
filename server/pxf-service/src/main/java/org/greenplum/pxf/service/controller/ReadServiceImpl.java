@@ -85,7 +85,7 @@ public class ReadServiceImpl extends BaseServiceImpl<OperationStats> implements 
 
     /**
      * Calls Fragmenter service to get a list of fragments for the resource, then reads records for each fragment
-     * and writes them to the output stream. Maintains the satistics about the progress of the query and reports
+     * and writes them to the output stream. Maintains the statistics about the progress of the query and reports
      * it to the caller even if the operation failed or aborted.
      *
      * @param context      request context

@@ -64,6 +64,7 @@ import org.greenplum.pxf.plugins.hdfs.filter.BPCharOperatorTransformer;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetOperatorPruner;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetRecordFilterBuilder;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetUtilities;
+import org.greenplum.pxf.plugins.hdfs.utilities.DecimalOverflowOption;
 import org.greenplum.pxf.plugins.hdfs.utilities.HdfsUtilities;
 
 import java.io.IOException;
@@ -316,8 +317,9 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         }
 
         List<ColumnDescriptor> tupleDescription = context.getTupleDescription();
+        DecimalOverflowOption decimalOverflowOption = DecimalOverflowOption.valueOf(configuration.get(ParquetResolver.PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME, DecimalOverflowOption.ROUND.name()).toUpperCase());
         ParquetRecordFilterBuilder filterBuilder = new ParquetRecordFilterBuilder(
-                tupleDescription, originalFieldsMap);
+                tupleDescription, originalFieldsMap, decimalOverflowOption);
         TreeVisitor pruner = new ParquetOperatorPruner(
                 tupleDescription, originalFieldsMap, SUPPORTED_OPERATORS);
         TreeVisitor bpCharTransformer = new BPCharOperatorTransformer(tupleDescription);

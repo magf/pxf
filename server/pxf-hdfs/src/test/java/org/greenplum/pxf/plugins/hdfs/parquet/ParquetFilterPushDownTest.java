@@ -663,11 +663,41 @@ public class ParquetFilterPushDownTest extends ParquetBaseTest {
     }
 
     @Test
-    public void testUnsupportedFixedLenByteArrayFilter() throws Exception {
+    public void testSupportedFixedLenByteArrayFilter() throws Exception {
         // dec2 = 0
         context.setFilterString("a14c23s1d0o5");
-        // all rows are expected
-        assertRowsReturned(ALL);
+        int[] expectedRows = {1};
+        assertRowsReturned(expectedRows);
+
+        // dec2 > 0
+        context.setFilterString("a14c23s1d0o2");
+        expectedRows = new int[] {2, 4, 6, 8, 10, 12, 14, 17, 20, 21, 22, 23, 24, 25};
+        assertRowsReturned(expectedRows);
+
+        // dec2 < 0
+        context.setFilterString("a14c23s1d0o1");
+        expectedRows = new int[] {3, 5, 7, 9, 11, 13, 16, 18, 19};
+        assertRowsReturned(expectedRows);
+
+        // dec2 >= 0
+        context.setFilterString("a14c23s1d0o4");
+        expectedRows = new int[] {1, 2, 4, 6, 8, 10, 12, 14, 17, 20, 21, 22, 23, 24, 25};
+        assertRowsReturned(expectedRows);
+
+        // dec2 <= 0
+        context.setFilterString("a14c23s1d0o3");
+        expectedRows = new int[] {1, 3, 5, 7, 9, 11, 13, 16, 18, 19};
+        assertRowsReturned(expectedRows);
+
+        // dec2 == null
+        context.setFilterString("a14o8");
+        expectedRows = new int[] {15};
+        assertRowsReturned(expectedRows);
+
+        // dec2 != null
+        context.setFilterString("a14o9");
+        expectedRows = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25};
+        assertRowsReturned(expectedRows);
     }
 
     @Test

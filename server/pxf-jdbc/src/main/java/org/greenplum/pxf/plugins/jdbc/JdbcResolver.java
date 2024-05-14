@@ -136,7 +136,9 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
             DataType.SMALLINT,
             DataType.NUMERIC,
             DataType.TIMESTAMP,
-            DataType.DATE
+            DataType.DATE,
+            DataType.JSON,
+            DataType.JSONB
     );
 
     /**
