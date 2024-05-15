@@ -119,22 +119,26 @@ class ParquetTimestampUtilitiesTest {
     public void getLongFromTimestampWithTimeZoneWithoutConvertToUtc() {
         // epoch time with micro seconds is 250671662354795L (UTC)
         String timestamp = "1977-12-11 10:01:02.354795+03";
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         boolean isAdjustedToUTC = false;
         boolean isTimestampWithTimeZone = true;
         long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, isAdjustedToUTC, isTimestampWithTimeZone);
         assertEquals(250671662354795L, epoch);
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
     public void getLongFromTimestampWithTimeZoneWithConvertToUtc() {
         // epoch time with micro seconds is 250671662354000L (UTC)
         String timestamp = "1977-12-11 10:01:02.354+03";
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         boolean isAdjustedToUTC = true;
         boolean isTimestampWithTimeZone = true;
         long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, isAdjustedToUTC, isTimestampWithTimeZone);
         assertEquals(250671662354000L, epoch);
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
@@ -142,11 +146,13 @@ class ParquetTimestampUtilitiesTest {
         // epoch time with micro seconds converted to UTC based on the Default timezone: 250671662030000L (1977-12-11 07:01:02.03) (Europe/Moscow)
         // epoch time with micro seconds without conversion: 250682462030000L (1977-12-11 10:01:02.03)
         String timestamp = "1977-12-11 10:01:02.03";
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow")); // +03:00
         boolean isAdjustedToUTC = false;
         boolean isTimestampWithTimeZone = false;
         long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, isAdjustedToUTC, isTimestampWithTimeZone);
         assertEquals(250682462030000L, epoch);
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
@@ -154,11 +160,13 @@ class ParquetTimestampUtilitiesTest {
         // epoch time with micro seconds converted to UTC based on the Default timezone: 250671662354500L (1977-12-11 07:01:02.3545) (Europe/Moscow)
         // epoch time with micro seconds without conversion: 25068246235400L (1977-12-11 10:01:02.3545)
         String timestamp = "1977-12-11 10:01:02.3545";
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow")); // +03:00
         boolean isAdjustedToUTC = true;
         boolean isTimestampWithTimeZone = false;
         long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, isAdjustedToUTC, isTimestampWithTimeZone);
         assertEquals(250671662354500L, epoch);
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
@@ -170,10 +178,12 @@ class ParquetTimestampUtilitiesTest {
         when(group.getLong(columnIndex, repeatIndex)).thenReturn(value);
         when(type.getLogicalTypeAnnotation()).thenReturn(logicalTypeAnnotation);
         when(logicalTypeAnnotation.getUnit()).thenReturn(LogicalTypeAnnotation.TimeUnit.MICROS);
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         ParquetTypeConverter converter = new Int64ParquetTypeConverter(useLocalPxfTimezoneRead);
         String timestamp = (String) converter.getValue(group, columnIndex, repeatIndex, type);
         assertEquals("1977-12-11 10:01:02.3545", timestamp);
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
@@ -185,10 +195,12 @@ class ParquetTimestampUtilitiesTest {
         when(group.getLong(columnIndex, repeatIndex)).thenReturn(value);
         when(logicalTypeAnnotation.getUnit()).thenReturn(LogicalTypeAnnotation.TimeUnit.MICROS);
         when(type.getLogicalTypeAnnotation()).thenReturn(logicalTypeAnnotation);
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         ParquetTypeConverter converter = new Int64ParquetTypeConverter(useLocalPxfTimezoneRead);
         String timestamp = (String) converter.getValue(group, columnIndex, repeatIndex, type);
         assertEquals("1977-12-11 07:01:02.3545", timestamp);
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
@@ -200,10 +212,12 @@ class ParquetTimestampUtilitiesTest {
         when(group.getLong(columnIndex, repeatIndex)).thenReturn(value);
         when(type.getLogicalTypeAnnotation()).thenReturn(logicalTypeAnnotation);
         when(logicalTypeAnnotation.getUnit()).thenReturn(LogicalTypeAnnotation.TimeUnit.MILLIS);
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         ParquetTypeConverter converter = new Int64ParquetTypeConverter(useLocalPxfTimezoneRead);
         String timestamp = (String) converter.getValue(group, columnIndex, repeatIndex, type);
         assertEquals("1977-12-11 10:01:02.354", timestamp);
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
@@ -215,10 +229,12 @@ class ParquetTimestampUtilitiesTest {
         when(group.getLong(columnIndex, repeatIndex)).thenReturn(value);
         when(type.getLogicalTypeAnnotation()).thenReturn(logicalTypeAnnotation);
         when(logicalTypeAnnotation.getUnit()).thenReturn(LogicalTypeAnnotation.TimeUnit.MILLIS);
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         ParquetTypeConverter converter = new Int64ParquetTypeConverter(useLocalPxfTimezoneRead);
         String timestamp = (String) converter.getValue(group, columnIndex, repeatIndex, type);
         assertEquals("1977-12-11 07:01:02.354", timestamp);
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
@@ -230,11 +246,13 @@ class ParquetTimestampUtilitiesTest {
         when(group.getLong(columnIndex, repeatIndex)).thenReturn(value);
         when(type.getLogicalTypeAnnotation()).thenReturn(logicalTypeAnnotation);
         when(logicalTypeAnnotation.getUnit()).thenReturn(LogicalTypeAnnotation.TimeUnit.NANOS);
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         ParquetTypeConverter converter = new Int64ParquetTypeConverter(useLocalPxfTimezoneRead);
         String timestamp = (String) converter.getValue(group, columnIndex, repeatIndex, type);
         // Postgres Timestamp type support only microseconds
         assertEquals("1977-12-11 10:01:02.123456", timestamp);
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
@@ -246,11 +264,13 @@ class ParquetTimestampUtilitiesTest {
         when(group.getLong(columnIndex, repeatIndex)).thenReturn(value);
         when(type.getLogicalTypeAnnotation()).thenReturn(logicalTypeAnnotation);
         when(logicalTypeAnnotation.getUnit()).thenReturn(LogicalTypeAnnotation.TimeUnit.NANOS);
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         ParquetTypeConverter converter = new Int64ParquetTypeConverter(useLocalPxfTimezoneRead);
         String timestamp = (String) converter.getValue(group, columnIndex, repeatIndex, type);
         // Postgres Timestamp type support only microsecond
         assertEquals("1977-12-11 07:01:02.123456", timestamp);
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     // Helper function
