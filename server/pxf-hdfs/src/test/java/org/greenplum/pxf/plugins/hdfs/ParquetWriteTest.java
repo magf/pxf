@@ -570,6 +570,7 @@ public class ParquetWriteTest {
 
     @Test
     public void testWriteTimestampWithInt64() throws Exception {
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         String path = temp + "/out/timestamp_int64/";
         columnDescriptors.add(new ColumnDescriptor("tm", DataType.TIMESTAMP.getOID(), 0, "timestamp", null));
@@ -627,10 +628,12 @@ public class ParquetWriteTest {
         }
         assertNull(fileReader.read());
         fileReader.close();
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
     public void testWriteTimestampWithInt64DisableUseLocalPxfTimezoneForReadAndWrite() throws Exception {
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         String path = temp + "/out/timestamp_int64/";
         columnDescriptors.add(new ColumnDescriptor("tm", DataType.TIMESTAMP.getOID(), 0, "timestamp", null));
@@ -690,10 +693,12 @@ public class ParquetWriteTest {
         }
         assertNull(fileReader.read());
         fileReader.close();
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
     public void testWriteTimestampWithInt64DisableUseLocalPxfTimezoneForWrite() throws Exception {
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         String path = temp + "/out/timestamp_int64/";
         columnDescriptors.add(new ColumnDescriptor("tm", DataType.TIMESTAMP.getOID(), 0, "timestamp", null));
@@ -755,10 +760,12 @@ public class ParquetWriteTest {
         }
         assertNull(fileReader.read());
         fileReader.close();
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
     public void testWriteTimestampWithInt64DisableUseLocalPxfTimezoneForRead() throws Exception {
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         String path = temp + "/out/timestamp_int64/";
         columnDescriptors.add(new ColumnDescriptor("tm", DataType.TIMESTAMP.getOID(), 0, "timestamp", null));
@@ -820,6 +827,7 @@ public class ParquetWriteTest {
         }
         assertNull(fileReader.read());
         fileReader.close();
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
@@ -2070,6 +2078,7 @@ public class ParquetWriteTest {
 
     @Test
     public void testWriteTimestampWithTimezoneInt64() throws Exception {
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         String path = temp + "/out/timestamp_with_timezone_int64/";
         columnDescriptors.add(new ColumnDescriptor("tmtz", DataType.TIMESTAMP_WITH_TIME_ZONE.getOID(), 0, "timestamp_with_timezone", null));
@@ -2131,10 +2140,12 @@ public class ParquetWriteTest {
         }
         assertNull(fileReader.read());
         fileReader.close();
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
     public void testWriteTimestampWithTimezoneInt64DisableUseLocalPxfTimezoneForRead() throws Exception {
+        TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
         String path = temp + "/out/timestamp_with_timezone_int64/";
         columnDescriptors.add(new ColumnDescriptor("tmtz", DataType.TIMESTAMP_WITH_TIME_ZONE.getOID(), 0, "timestamp_with_timezone", null));
@@ -2200,6 +2211,7 @@ public class ParquetWriteTest {
         }
         assertNull(fileReader.read());
         fileReader.close();
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
