@@ -1,6 +1,5 @@
 package org.greenplum.pxf.plugins.hdfs.parquet;
 
-import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.predicate.FilterApi;
 import org.apache.parquet.filter2.predicate.FilterPredicate;
@@ -15,7 +14,6 @@ import org.greenplum.pxf.api.filter.Operator;
 import org.greenplum.pxf.api.filter.OperatorNode;
 import org.greenplum.pxf.api.filter.TreeVisitor;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
-import org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor;
 import org.greenplum.pxf.plugins.hdfs.ParquetResolver;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalOverflowOption;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
@@ -59,6 +57,7 @@ public class ParquetRecordFilterBuilder implements TreeVisitor {
     private final List<ColumnDescriptor> columnDescriptors;
     private final Deque<FilterPredicate> filterQueue;
     private final DecimalUtilities decimalUtilities;
+    private final boolean useLocalPxfTimezoneRead;
 
     /**
      * Constructor
@@ -67,11 +66,12 @@ public class ParquetRecordFilterBuilder implements TreeVisitor {
      * @param originalFields    a map of field names to types
      */
     public ParquetRecordFilterBuilder(List<ColumnDescriptor> columnDescriptors, Map<String, Type> originalFields,
-                                      DecimalOverflowOption decimalOverflowOption) {
+                                      DecimalOverflowOption decimalOverflowOption, boolean useLocalPxfTimezoneRead) {
         this.columnDescriptors = columnDescriptors;
         this.filterQueue = new LinkedList<>();
         this.fields = originalFields;
         this.decimalUtilities = new DecimalUtilities(decimalOverflowOption, true);
+        this.useLocalPxfTimezoneRead = useLocalPxfTimezoneRead;
     }
 
     @Override
@@ -129,7 +129,7 @@ public class ParquetRecordFilterBuilder implements TreeVisitor {
             left = filterQueue.poll();
 
             if (left == null) {
-                throw new IllegalStateException("Unable to process logical operator " + operator.toString());
+                throw new IllegalStateException("Unable to process logical operator " + operator);
             }
         }
 
@@ -283,12 +283,11 @@ public class ParquetRecordFilterBuilder implements TreeVisitor {
         return Integer.parseInt(valueOperand.toString());
     }
 
-    private static Long getLongForINT64(LogicalTypeAnnotation logicalTypeAnnotation, OperandNode valueOperand) {
+    private Long getLongForINT64(LogicalTypeAnnotation logicalTypeAnnotation, OperandNode valueOperand) {
         if (valueOperand == null) return null;
         String value = valueOperand.toString();
         if (logicalTypeAnnotation instanceof TimestampLogicalTypeAnnotation) {
-            TimestampLogicalTypeAnnotation typets = (TimestampLogicalTypeAnnotation) logicalTypeAnnotation;
-            return ParquetTimestampUtilities.getLongFromTimestamp(value, typets.isAdjustedToUTC(),
+            return ParquetTimestampUtilities.getLongFromTimestamp(value, useLocalPxfTimezoneRead,
                     ParquetResolver.TIMESTAMP_PATTERN.matcher(value).find());
         }
         return Long.parseLong(value);
