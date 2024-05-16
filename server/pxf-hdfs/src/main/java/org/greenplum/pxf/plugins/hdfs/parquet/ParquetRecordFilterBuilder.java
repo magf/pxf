@@ -304,6 +304,4 @@ public class ParquetRecordFilterBuilder implements TreeVisitor {
         }
         return Binary.fromString(value);
     }
-
-
 }
