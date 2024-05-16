@@ -159,7 +159,7 @@ public class ParquetRecordFilterBuilderTest extends ParquetBaseTest {
     private ParquetRecordFilterBuilder filterBuilderFromFilterString(String filterString) throws Exception {
 
         ParquetRecordFilterBuilder filterBuilder = new ParquetRecordFilterBuilder(columnDescriptors, originalFieldsMap,
-                DecimalOverflowOption.IGNORE);
+                DecimalOverflowOption.IGNORE, true);
 
         // Parse the filter string into a expression tree Node
         Node root = new FilterParser().parse(filterString);

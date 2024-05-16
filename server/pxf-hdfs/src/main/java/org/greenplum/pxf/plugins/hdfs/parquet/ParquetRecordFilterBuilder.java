@@ -66,12 +66,12 @@ public class ParquetRecordFilterBuilder implements TreeVisitor {
      * @param originalFields    a map of field names to types
      */
     public ParquetRecordFilterBuilder(List<ColumnDescriptor> columnDescriptors, Map<String, Type> originalFields,
-                                      DecimalOverflowOption decimalOverflowOption, boolean useLocalPxfTimezoneRead) {
+                                      DecimalOverflowOption decimalOverflowOption, boolean useLocalPxfTimezone) {
         this.columnDescriptors = columnDescriptors;
         this.filterQueue = new LinkedList<>();
         this.fields = originalFields;
         this.decimalUtilities = new DecimalUtilities(decimalOverflowOption, true);
-        this.useLocalPxfTimezoneRead = useLocalPxfTimezoneRead;
+        this.useLocalPxfTimezoneRead = useLocalPxfTimezone;
     }
 
     @Override
