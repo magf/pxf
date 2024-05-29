@@ -27,7 +27,7 @@ public class ParquetTimestampUtilities {
         return (int) date.toEpochDay();
     }
 
-    public static long getLongFromTimestamp(String timestampString, boolean isAdjustedToUTC, boolean isTimestampWithTimeZone) {
+    public static long getLongFromTimestamp(String timestampString, boolean useLocalPxfTimezone, boolean isTimestampWithTimeZone) {
         if (isTimestampWithTimeZone) {
             // We receive a timestamp string with time zone offset from GPDB
             OffsetDateTime date = OffsetDateTime.parse(timestampString, GreenplumDateTime.DATETIME_WITH_TIMEZONE_FORMATTER);
@@ -35,9 +35,9 @@ public class ParquetTimestampUtilities {
             return getEpochWithMicroSeconds(zdt, date.getNano());
         } else {
             // We receive a timestamp string from GPDB in the server timezone
-            // If isAdjustedToUTC = true we convert it to the UTC using local pxf server timezone and save it in the parquet as UTC
-            // If isAdjustedToUTC = false we don't convert timestamp to the instant and save it as is
-            ZoneId zoneId = isAdjustedToUTC ? ZoneId.systemDefault() : ZoneOffset.UTC;
+            // If useLocalPxfTimezone = true we convert it to the UTC using local pxf server timezone and save it in the parquet as UTC
+            // If useLocalPxfTimezone = false we don't convert timestamp to the instant and save it as is
+            ZoneId zoneId = useLocalPxfTimezone ? ZoneId.systemDefault() : ZoneOffset.UTC;
             LocalDateTime date = LocalDateTime.parse(timestampString, GreenplumDateTime.DATETIME_FORMATTER);
             ZonedDateTime zdt = ZonedDateTime.of(date, zoneId);
             return getEpochWithMicroSeconds(zdt, date.getNano());

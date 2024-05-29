@@ -22,7 +22,7 @@ public class ParquetOperatorPruner extends SupportedOperatorPruner {
     // INT96 and FIXED_LEN_BYTE_ARRAY cannot be pushed down
     // for more details look at
     // org.apache.parquet.filter2.dictionarylevel.DictionaryFilter#expandDictionary
-    // where INT96 and FIXED_LEN_BYTE_ARRAY are not dictionary values
+    // where INT96 are not dictionary values
     private static final EnumSet<PrimitiveType.PrimitiveTypeName> SUPPORTED_PRIMITIVE_TYPES =
             EnumSet.of(
                     PrimitiveType.PrimitiveTypeName.INT32,
@@ -30,7 +30,8 @@ public class ParquetOperatorPruner extends SupportedOperatorPruner {
                     PrimitiveType.PrimitiveTypeName.BOOLEAN,
                     PrimitiveType.PrimitiveTypeName.BINARY,
                     PrimitiveType.PrimitiveTypeName.FLOAT,
-                    PrimitiveType.PrimitiveTypeName.DOUBLE);
+                    PrimitiveType.PrimitiveTypeName.DOUBLE,
+                    PrimitiveType.PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
 
     private final Map<String, Type> fields;
     private final List<ColumnDescriptor> columnDescriptors;
