@@ -1,5 +1,5 @@
 FROM hub.adsw.io/library/gpdb6_regress:latest
-RUN sudo yum install -y epel-release  python-pip
+RUN sudo yum install -y epel-release
 
 # install maven
 RUN wget --no-check-certificate https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -P /tmp \
@@ -63,7 +63,6 @@ RUN mkdir workspace && ln -s /home/gpadmin/pxf_src /home/gpadmin/workspace/pxf &
 
 # Need to run automation tests
 ENV PXF_HOME=/usr/local/greenplum-db-devel/pxf
-RUN sudo -H -u gpadmin bash -c "pip install --user paramiko"
 RUN localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 RUN cp ${PXF_HOME}/templates/*-site.xml ${PXF_HOME}/servers/default/
 
