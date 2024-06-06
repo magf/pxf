@@ -20,6 +20,7 @@ package org.greenplum.pxf.service;
  */
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.Fragment;
 import org.greenplum.pxf.api.model.Fragmenter;
 import org.greenplum.pxf.api.model.RequestContext;
@@ -36,6 +37,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -48,7 +50,7 @@ import java.util.concurrent.ExecutionException;
 public class FragmenterService {
 
     private static final Logger LOG = LoggerFactory.getLogger(FragmenterService.class);
-
+    public static final String ACTIVE_SEGMENT_COUNT_OPTION = "ACTIVE_SEGMENT_COUNT";
     private final BasePluginFactory pluginFactory;
     private final FragmenterCacheFactory fragmenterCacheFactory;
     private final GSSFailureHandler failureHandler;
@@ -64,6 +66,10 @@ public class FragmenterService {
     public List<Fragment> getFragmentsForSegment(RequestContext context) throws IOException {
 
         LOG.trace("Received FRAGMENTER call");
+
+        // Get active segment count of logical segments which will take part in the request
+        int activeSegmentCount = getActiveSegmentCount(context);
+
         Instant startTime = Instant.now();
         final String path = context.getDataSource();
 
@@ -79,6 +85,7 @@ public class FragmenterService {
 
         List<Fragment> filteredFragments = filterFragments(fragments,
                 context.getSegmentId(),
+                activeSegmentCount,
                 context.getTotalSegments(),
                 context.getGpSessionId(),
                 context.getGpCommandCount());
@@ -93,6 +100,24 @@ public class FragmenterService {
         }
 
         return filteredFragments;
+    }
+
+    private int getActiveSegmentCount(RequestContext context) {
+        try {
+            int activeSegmentCount = Optional.ofNullable(context.getOptions().get(ACTIVE_SEGMENT_COUNT_OPTION))
+                    .map(Integer::valueOf)
+                    .orElse(context.getTotalSegments());
+            if (activeSegmentCount < 1 || activeSegmentCount > context.getTotalSegments()) {
+                String errorMessage = String.format("The parameter '%s' has the value %d. The value of this parameter " +
+                                "cannot be less than 1 or cannot be grater than the total amount of segments [%d segment(s)]",
+                        ACTIVE_SEGMENT_COUNT_OPTION, activeSegmentCount, context.getTotalSegments());
+                throw new PxfRuntimeException(errorMessage);
+            }
+            return activeSegmentCount;
+        } catch (Exception e) {
+            throw new PxfRuntimeException(String.format("Failed to get active segment count: %s. Check the value of the parameter '%s'",
+                    e.getMessage(), ACTIVE_SEGMENT_COUNT_OPTION), e);
+        }
     }
 
     /**
@@ -167,7 +192,12 @@ public class FragmenterService {
      * @param gpCommandCount the command number for this Greenplum Session ID
      * @return the filtered list of fragments for the given segment
      */
-    private List<Fragment> filterFragments(List<Fragment> fragments, int segmentId, int totalSegments, int gpSessionId, int gpCommandCount) {
+    private List<Fragment> filterFragments(List<Fragment> fragments,
+                                           int segmentId,
+                                           int activeSegmentCount,
+                                           int totalSegments,
+                                           int gpSessionId,
+                                           int gpCommandCount) {
         /*
         We use a mod function inside the loop to distribute fragments across all N segments for processing
         in a round-robin fashion, where each segment will be allocated to work on every N-th fragment.
@@ -178,15 +208,53 @@ public class FragmenterService {
         */
         int shiftedIndex = gpSessionId % totalSegments + gpCommandCount; // index of fragment #0 to use for mod function
 
-        List<Fragment> filteredFragments = new ArrayList<>((int) Math.ceil(fragments.size() / totalSegments));
-        // do not use fragments.get(i) to iterate over fragments as the incoming fragment list is a LinkedList
-        for (Fragment fragment : fragments) {
-            if (segmentId == (shiftedIndex % totalSegments)) {
-                filteredFragments.add(fragment);
+        if (totalSegments == activeSegmentCount) {
+            List<Fragment> filteredFragments = new ArrayList<>((int) Math.ceil(fragments.size() / totalSegments));
+            for (Fragment fragment : fragments) {
+                if (segmentId == (shiftedIndex % totalSegments)) {
+                    filteredFragments.add(fragment);
+                }
+                shiftedIndex++;
             }
-            shiftedIndex++;
+            return filteredFragments;
+        } else {
+            int index = 0;
+            List<Integer> activeSegmentList = getActiveSegmentList(shiftedIndex, activeSegmentCount, totalSegments);
+            List<Fragment> filteredFragments = new ArrayList<>((int) Math.ceil(fragments.size() / activeSegmentCount));
+            for (Fragment fragment : fragments) {
+                if (segmentId == activeSegmentList.get(index % activeSegmentList.size())) {
+                    filteredFragments.add(fragment);
+                }
+                index++;
+            }
+            return filteredFragments;
         }
-        return filteredFragments;
+    }
+
+    private static List<Integer> getActiveSegmentList(int shiftedIndex, int activeSegmentCount, int totalSegments) {
+        // We will try to distribute fragments evenly between segments hosts,
+        // but we don't know exactly how many logical segments per host.
+        // Also, we don't know how many segment hosts in the cluster.
+        List<Integer> activeSegmentList = new ArrayList<>();
+        while (activeSegmentCount > 0) {
+            int step = (int) Math.ceil((float) totalSegments / activeSegmentCount);
+            // How many segments might be evenly distributed with the step
+            int currentCount = totalSegments / step;
+            for (int i = 0; i < currentCount; i++) {
+                int id = shiftedIndex % totalSegments;
+                // We need to do shiftedIndex++ if the list has already contained the segment id
+                if (activeSegmentList.contains(id)) {
+                    shiftedIndex++;
+                    id = shiftedIndex % totalSegments;
+                }
+                activeSegmentList.add(id);
+                shiftedIndex += step;
+            }
+            // Get the rest of the segments and distribute them again if activeSegmentCount > 0
+            activeSegmentCount = activeSegmentCount - currentCount;
+        }
+        LOG.debug("The fragments will be distributed between segments with segment id: {}", activeSegmentList);
+        return activeSegmentList;
     }
 
     /**
