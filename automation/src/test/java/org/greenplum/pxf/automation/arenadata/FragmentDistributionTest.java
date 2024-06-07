@@ -49,15 +49,18 @@ public class FragmentDistributionTest extends BaseFeature {
     @Override
     protected void beforeClass() throws Exception {
         pxfHome = cluster.getPxfHome();
-        String pxfAppPropertyFile = pxfHome + "/" + PXF_APP_PROPERTIES_RELATIVE_PATH;
-        cluster.runCommandOnAllNodes("sed -i 's/# pxf.log.level=info/pxf.log.level=debug/' " + pxfAppPropertyFile);
-        cluster.restart(PhdCluster.EnumClusterServices.pxf);
         if (cluster instanceof MultiNodeCluster) {
             pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
         }
         pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
         hdfsPath = hdfs.getWorkingDirectory() + "/parquet_fragment_distribution/";
         prepareData();
+        changeLogLevel("debug");
+    }
+
+    @Override
+    public void afterClass() throws Exception {
+        changeLogLevel("info");
     }
 
     protected void prepareData() throws Exception {
@@ -219,6 +222,11 @@ public class FragmentDistributionTest extends BaseFeature {
         }
         assertEquals(4, activeSegmentCount);
         assertEquals(2, idleSegmentCount);
+    }
+
+    private void changeLogLevel(String level) throws Exception {
+        cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_LOG_LEVEL=%s", level));
+        cluster.restart(PhdCluster.EnumClusterServices.pxf);
     }
 
     private void cleanLogs() throws Exception {

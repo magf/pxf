@@ -21,7 +21,6 @@ import static org.greenplum.pxf.automation.PxfTestConstant.*;
 
 public class JdbcBackPressureTest extends BaseFeature {
     private static final String PXF_SERVER_PROFILE = "backpressure";
-    private static final String PXF_APP_PROPERTIES_FILE_RELATIVE_PATH = "conf/pxf-application.properties";
     private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/backpressure/jdbc-site.xml";
     private static final String PXF_TEMP_LOG_PATH = "/tmp/pxf-service.log";
     private static final String[] ORACLE_TARGET_TABLE_FIELDS = new String[]{
@@ -79,8 +78,13 @@ public class JdbcBackPressureTest extends BaseFeature {
             pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
         }
         oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
-        changeLogLevel();
         prepareData();
+        changeLogLevel("trace");
+    }
+
+    @Override
+    public void afterClass() throws Exception {
+        changeLogLevel("info");
     }
 
     protected void prepareData() throws Exception {
@@ -147,6 +151,7 @@ public class JdbcBackPressureTest extends BaseFeature {
                     "0", grepPxfLog(String.format(POOL_ACTIVE_TASK_GREP_COMMAND_TEMPLATE, 1)));
             Assert.assertEquals("Check semaphore remains when POOL_SIZE=1",
                     "0", grepPxfLog(String.format(SEMAPHORE_REMAINS_GREP_COMMAND_TEMPLATE, 1)));
+            cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
     }
 
@@ -182,9 +187,8 @@ public class JdbcBackPressureTest extends BaseFeature {
         runSqlTest("arenadata/backpressure/batch-timeout/success");
     }
 
-    private void changeLogLevel() throws Exception {
-        String pxfAppPropertiesFile = cluster.getPxfHome() + "/" + PXF_APP_PROPERTIES_FILE_RELATIVE_PATH;
-        cluster.runCommandOnAllNodes("sed -i 's/# pxf.log.level=info/pxf.log.level=trace/' " + pxfAppPropertiesFile);
+    private void changeLogLevel(String level) throws Exception {
+        cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_LOG_LEVEL=%s", level));
         cluster.restart(PhdCluster.EnumClusterServices.pxf);
     }
 

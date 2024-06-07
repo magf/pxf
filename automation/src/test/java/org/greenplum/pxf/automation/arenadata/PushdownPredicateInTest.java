@@ -70,6 +70,12 @@ public class PushdownPredicateInTest extends BaseFeature {
         pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
         oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
         prepareData();
+        changeLogLevel("debug");
+    }
+
+    @Override
+    public void afterClass() throws Exception {
+        changeLogLevel("info");
     }
 
     protected void prepareData() throws Exception {
@@ -142,6 +148,11 @@ public class PushdownPredicateInTest extends BaseFeature {
         runSqlTest("arenadata/predicate-in/oracle");
         Assert.assertEquals(1, oracle.getValueFromQuery(GET_STATS_QUERY));
         cluster.deleteFileFromNodes(pxfJdbcSiteConfFile, false);
+    }
+
+    private void changeLogLevel(String level) throws Exception {
+        cluster.runCommandOnNodes(Collections.singletonList(pxfNode), String.format("export PXF_LOG_LEVEL=%s", level));
+        cluster.restart(PhdCluster.EnumClusterServices.pxf);
     }
 
     private void cleanLogs() throws Exception {
