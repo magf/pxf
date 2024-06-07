@@ -614,7 +614,7 @@ public class ParquetWriteTest {
         ParquetConfig config = ParquetConfig.builder()
                 .useLocalPxfTimezoneRead(DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ)
                 .build();
-        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type, DataType.TIMESTAMP);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
         for (int i = 0; i < 10; i++) {
@@ -678,7 +678,7 @@ public class ParquetWriteTest {
         ParquetConfig config = ParquetConfig.builder()
                 .useLocalPxfTimezoneRead(false)
                 .build();
-        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type, DataType.TIMESTAMP);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
         // We don't use PXF local server time zone for write and read. So, the timestamp will be the same.
@@ -743,7 +743,7 @@ public class ParquetWriteTest {
         ParquetConfig config = ParquetConfig.builder()
                 .useLocalPxfTimezoneRead(DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ)
                 .build();
-        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type, DataType.TIMESTAMP);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
         // For write operation we didn't use local time zone. So, the timestamp was saved as is.
@@ -810,7 +810,7 @@ public class ParquetWriteTest {
         ParquetConfig config = ParquetConfig.builder()
                 .useLocalPxfTimezoneRead(false)
                 .build();
-        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type, DataType.TIMESTAMP);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
         // For write operation we used default pxf server time zone to convert the timestamp from the local time to the UTC.
@@ -2123,7 +2123,7 @@ public class ParquetWriteTest {
         ParquetConfig config = ParquetConfig.builder()
                 .useLocalPxfTimezoneRead(DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ)
                 .build();
-        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type, DataType.TIMESTAMP);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
         // For write operation we always convert the timestamp to UTC using the offset from GP.
@@ -2194,7 +2194,7 @@ public class ParquetWriteTest {
         ParquetConfig config = ParquetConfig.builder()
                 .useLocalPxfTimezoneRead(false)
                 .build();
-        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type);
+        ParquetTypeConverter converter = new ParquetTypeConverterFactory(config).create(type, DataType.TIMESTAMP);
         assertTrue(converter instanceof Int64ParquetTypeConverter);
 
         // For write operation we always convert the timestamp to UTC using the offset from GP.

@@ -5,6 +5,7 @@ import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
 import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.error.UnsupportedTypeException;
+import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.plugins.hdfs.parquet.converters.*;
 
 import java.util.Optional;
@@ -16,65 +17,51 @@ public class ParquetTypeConverterFactory {
         this.parquetConfig = parquetConfig;
     }
 
-    public ParquetTypeConverter create(Type type) {
+    @SuppressWarnings("deprecation")
+    public ParquetTypeConverter create(Type type, DataType dataType) {
         if (type.isPrimitive()) {
             PrimitiveType.PrimitiveTypeName primitiveTypeName = type.asPrimitiveType().getPrimitiveTypeName();
             if (primitiveTypeName == null) {
                 throw new PxfRuntimeException("Invalid Parquet primitive schema. Parquet primitive type name is null.");
             }
             try {
-                PxfParquetType pxfParquetType = PxfParquetType.valueOf(primitiveTypeName.name());
-                return Optional.ofNullable(createParquetTypeConverter(pxfParquetType))
+                return Optional.ofNullable(createParquetTypeConverter(type, dataType, primitiveTypeName))
                         .orElseThrow(() -> new UnsupportedTypeException(
-                                String.format("Primitive parquet type converter %s is not supported", pxfParquetType))
+                                String.format("  parquet type converter %s is not supported", primitiveTypeName.name()))
                         );
             } catch (IllegalArgumentException e) {
                 throw new UnsupportedTypeException(String.format("Primitive parquet type %s is not supported, error: %s", primitiveTypeName, e));
             }
         }
 
-        String complexTypeName = getComplexTypeName(type.asGroupType());
-        try {
-            // parquet LIST type
-            PxfParquetType pxfParquetType = PxfParquetType.valueOf(complexTypeName);
-            return Optional.ofNullable(createParquetTypeConverter(pxfParquetType))
-                    .orElseThrow(() -> new UnsupportedTypeException(String.format("Complex parquet type converter %s is not supported", pxfParquetType)));
-        } catch (IllegalArgumentException e) {
-            // other unsupported parquet complex type
-            throw new UnsupportedTypeException(String.format("Parquet complex type %s is not supported, error: %s", complexTypeName, e));
+        // parquet LIST type
+        GroupType groupType = type.asGroupType();
+        if (groupType.getOriginalType() == org.apache.parquet.schema.OriginalType.LIST) {
+            return new ListParquetTypeConverter(type, dataType, this);
+        } else {
+            throw new UnsupportedTypeException(String.format("Parquet complex type converter [%s] is not supported",
+                    groupType.getOriginalType() != null ? groupType.getOriginalType() : "customized struct"));
         }
     }
 
-    /**
-     * Get the type name of the input complex type
-     *
-     * @param complexType the GroupType we want to get the type name from
-     * @return the type name of the complex type
-     */
-    private String getComplexTypeName(GroupType complexType) {
-        return complexType.getOriginalType() == null ? "customized struct" : complexType.getOriginalType().name();
-    }
-
-    private ParquetTypeConverter createParquetTypeConverter(PxfParquetType pxfParquetType) {
-        switch (pxfParquetType) {
+    private ParquetTypeConverter createParquetTypeConverter(Type type, DataType dataType, PrimitiveType.PrimitiveTypeName primitiveTypeName) {
+        switch (primitiveTypeName) {
             case INT32:
-                return new Int32ParquetTypeConverter();
+                return new Int32ParquetTypeConverter(type, dataType);
             case INT64:
-                return new Int64ParquetTypeConverter(parquetConfig.isUseLocalPxfTimezoneRead());
+                return new Int64ParquetTypeConverter(type, dataType, parquetConfig.isUseLocalPxfTimezoneRead(), parquetConfig.isUseLocalPxfTimezoneWrite());
             case INT96:
-                return new Int96ParquetTypeConverter(parquetConfig.isUseLocalPxfTimezoneRead());
+                return new Int96ParquetTypeConverter(parquetConfig.isUseLocalPxfTimezoneRead(), parquetConfig.isUseLocalPxfTimezoneWrite());
             case BINARY:
-                return new BinaryParquetTypeConverter();
+                return new BinaryParquetTypeConverter(type, dataType);
             case BOOLEAN:
                 return new BooleanParquetTypeConverter();
             case DOUBLE:
                 return new DoubleParquetTypeConverter();
             case FIXED_LEN_BYTE_ARRAY:
-                return new FixedLenByteArrayParquetTypeConverter();
+                return new FixedLenByteArrayParquetTypeConverter(type, dataType, parquetConfig.getDecimalUtilities());
             case FLOAT:
                 return new FloatParquetTypeConverter();
-            case LIST:
-                return new ListParquetTypeConverter(this);
             default:
                 return null;
         }

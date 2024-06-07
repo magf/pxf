@@ -45,6 +45,10 @@ public class ParquetTimestampUtilities {
     }
 
     public static String getTimestampFromLong(long value, LogicalTypeAnnotation.TimeUnit timeUnit, boolean useLocalTimezone) {
+        return getTimestampFromLong(value, timeUnit, useLocalTimezone, false);
+    }
+
+    public static String getTimestampFromLong(long value, LogicalTypeAnnotation.TimeUnit timeUnit, boolean useLocalTimezone, boolean isTimestampWithTimeZone) {
         long seconds = 0L;
         long nanoseconds = 0L;
 
@@ -71,8 +75,8 @@ public class ParquetTimestampUtilities {
                 break;
         }
         Instant instant = Instant.ofEpochSecond(seconds, nanoseconds);
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, zoneId);
-        return localDateTime.format(GreenplumDateTime.DATETIME_FORMATTER);
+        ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, zoneId);
+        return zonedDateTime.format(isTimestampWithTimeZone ? GreenplumDateTime.DATETIME_WITH_TIMEZONE_FORMATTER : GreenplumDateTime.DATETIME_FORMATTER);
     }
 
     /**

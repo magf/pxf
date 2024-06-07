@@ -190,12 +190,12 @@ configure(javaProjects) {
             }
 
             // Parquet dependencies
-            dependency("org.apache.parquet:parquet-format:2.7.0")
             dependencySet(group:"org.apache.parquet", version:"${parquetVersion}") {
                 entry("parquet-column")
                 entry("parquet-common")
                 entry("parquet-encoding")
                 entry("parquet-generator")
+                entry("parquet-format-structures")
                 entry("parquet-hadoop")
                 entry("parquet-jackson")
                 entry("parquet-pig")

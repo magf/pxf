@@ -23,6 +23,7 @@ public class SupportedOperatorPruner extends BaseTreePruner {
         if (node instanceof OperatorNode) {
             OperatorNode operatorNode = (OperatorNode) node;
             Operator operator = operatorNode.getOperator();
+            //todo add filtering based on supported types
             if (!supportedOperators.contains(operator)) {
                 // prune the operator node if its operator is not supported
                 LOG.debug("Operator {} is not supported", operator);

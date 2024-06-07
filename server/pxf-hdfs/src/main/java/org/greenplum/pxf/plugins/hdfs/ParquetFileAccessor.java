@@ -578,6 +578,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                     throw new UnsupportedTypeException(String.format("Column %s is defined as NUMERIC with precision %d " +
                             "which exceeds the maximum supported precision %d.", columnName, precision, HiveDecimal.MAX_PRECISION));
                 }
+                //todo look at precision to determine type correctly
 
                 primitiveTypeName = PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY;
                 logicalTypeAnnotation = DecimalLogicalTypeAnnotation.decimalType(scale, precision);
@@ -609,6 +610,28 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 logicalTypeAnnotation = LogicalTypeAnnotation.dateType();
                 break;
             case TIME:
+                primitiveTypeName = PrimitiveTypeName.INT64;
+                // postgres supports only microsecond precision out of the box
+                logicalTypeAnnotation = LogicalTypeAnnotation.timeType(true, LogicalTypeAnnotation.TimeUnit.MICROS);
+                break;
+            case JSON:
+                primitiveTypeName = PrimitiveTypeName.BINARY;
+                logicalTypeAnnotation = LogicalTypeAnnotation.jsonType();
+                break;
+            case JSONB:
+                primitiveTypeName = PrimitiveTypeName.BINARY;
+                logicalTypeAnnotation = LogicalTypeAnnotation.bsonType();
+                break;
+            case INTERVAL:
+                primitiveTypeName = PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY;
+                logicalTypeAnnotation = LogicalTypeAnnotation.IntervalLogicalTypeAnnotation.getInstance();
+                length = 12;
+                break;
+            case UUID:
+                primitiveTypeName = PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY;
+                logicalTypeAnnotation = LogicalTypeAnnotation.uuidType();
+                length = LogicalTypeAnnotation.UUIDLogicalTypeAnnotation.BYTES;
+                break;
             case VARCHAR:
             case BPCHAR:
             case TEXT:
@@ -617,7 +640,8 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 break;
             default:
                 throw new UnsupportedTypeException(
-                        String.format("Type %d for column %s is not supported for writing Parquet.", columnTypeCode, columnName));
+                        String.format("Type %s(%d) for column %s is not supported for writing Parquet.",
+                                elementType.name(), columnTypeCode, columnName));
         }
 
         Types.BasePrimitiveBuilder<? extends Type, ?> builder;

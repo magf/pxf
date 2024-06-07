@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ParquetRecordFilterBuilderTest extends ParquetBaseTest {
 
     @Test
-    public void testUnsupportedOperationError() {
+    public void testUnsupportedInOperationError() {
         // a16 in (11, 12)
         Exception e = assertThrows(UnsupportedOperationException.class,
                 () -> filterBuilderFromFilterString("a16m1007s2d11s2d12o10"));

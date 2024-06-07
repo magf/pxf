@@ -8,6 +8,8 @@ import java.time.temporal.ChronoField;
  * Provides formatters for Greenplum DateTime
  */
 public class GreenplumDateTime {
+    public static final int NANOS_IN_MICROS = 1000;
+    public static final int NANOS_IN_MILLIS = NANOS_IN_MICROS * 1000;
 
     public static final String DATE_FORMATTER_BASE_PATTERN = "yyyy-MM-dd";
 
@@ -30,6 +32,17 @@ public class GreenplumDateTime {
                     .appendPattern(DATETIME_FORMATTER_BASE_PATTERN)
                     // Parsing nanos in strict mode, the number of parsed digits must be between 0 and 6 (microsecond support)
                     .appendFraction(ChronoField.NANO_OF_SECOND, 0, 6, true)
+                    .toFormatter();
+
+    /**
+     * Supports times with the format HH:mm:ss and
+     * optional microsecond
+     */
+    public static final DateTimeFormatter TIME_FORMATTER =
+            new DateTimeFormatterBuilder()
+                    .appendPattern("HH:mm:ss")
+                    // Parsing nanos in strict mode, the number of parsed digits must be between 0 and 6 (microsecond support)
+                    .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
                     .toFormatter();
 
     /**
