@@ -30,7 +30,6 @@ public class FragmentDistributionTest extends BaseFeature {
     private static final String[] SOURCE_TABLE_FIELDS = new String[]{
             "id    int",
             "descr   text"};
-    private static final String PXF_APP_PROPERTIES_RELATIVE_PATH = "conf/pxf-application.properties";
     private static final String PXF_TEMP_LOG_PATH = "/tmp/pxf-service.log";
     private static final String PARQUET_FORMAT = "parquet";
     private static final String CAT_COMMAND = "cat " + PXF_TEMP_LOG_PATH;

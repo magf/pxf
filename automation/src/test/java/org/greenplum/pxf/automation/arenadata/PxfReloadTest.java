@@ -207,11 +207,12 @@ public class PxfReloadTest extends BaseFeature {
             // Must be 1 record on each segment host
             String result = grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=, server="));
             assertEquals("1", result);
-            // Must be 1 record per each segment host because jdbc writable table run query for each logical segment
+            // Must be 2 record per each segment host because jdbc writable table run query for each logical segment
+            // Each segment host starts 1 pool for each query with different profiles
             shutDownPoolCount += Integer.parseInt(grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
-        assertEquals(2, shutDownPoolCount);
+        assertEquals(4, shutDownPoolCount);
         checkSessionCount(INSERT_QUERY_PART, 0);
     }
 
