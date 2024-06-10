@@ -171,7 +171,7 @@ public class SupportedOperatorPrunerTest {
                         String filterString,
                         EnumSet<Operator> supportedOperators) throws Exception {
         Node root = new FilterParser().parse(filterString);
-        SupportedOperatorPruner supportedOperatorPruner = new SupportedOperatorPruner(supportedOperators, supportedTypes);
+        SupportedOperatorPruner supportedOperatorPruner = new SupportedOperatorPruner(supportedOperators);
         ToStringTreeVisitor toStringTreeVisitor = new ToStringTreeVisitor();
         TRAVERSER.traverse(root, supportedOperatorPruner, toStringTreeVisitor);
         assertEquals(expected, toStringTreeVisitor.toString());
