@@ -30,7 +30,7 @@ public class HivePartitionPruner extends SupportedOperatorPruner {
                                boolean canPushDownIntegral,
                                Map<String, String> partitionKeys,
                                List<ColumnDescriptor> columnDescriptors) {
-        super(supportedOperators, supportedTypes);
+        super(supportedOperators);
         this.canPushDownIntegral = canPushDownIntegral;
         this.partitionKeys = partitionKeys;
         this.columnDescriptors = columnDescriptors;
