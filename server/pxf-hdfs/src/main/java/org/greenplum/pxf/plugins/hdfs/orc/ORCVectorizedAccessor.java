@@ -16,12 +16,8 @@ import org.apache.orc.RecordReader;
 import org.apache.orc.TypeDescription;
 import org.apache.orc.Writer;
 import org.greenplum.pxf.api.OneRow;
-import org.greenplum.pxf.api.filter.FilterParser;
-import org.greenplum.pxf.api.filter.Node;
-import org.greenplum.pxf.api.filter.Operator;
-import org.greenplum.pxf.api.filter.SupportedOperatorPruner;
-import org.greenplum.pxf.api.filter.TreeTraverser;
-import org.greenplum.pxf.api.filter.TreeVisitor;
+import org.greenplum.pxf.api.filter.*;
+import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.Accessor;
 import org.greenplum.pxf.api.model.BasePlugin;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
@@ -42,6 +38,24 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
+
+    static final EnumSet<DataType> SUPPORTED_DATATYPES =
+            EnumSet.of(
+                    DataType.BIGINT,
+                    DataType.INTEGER,
+                    DataType.SMALLINT,
+                    DataType.REAL,
+                    DataType.NUMERIC,
+                    DataType.FLOAT8,
+                    DataType.TEXT,
+                    DataType.VARCHAR,
+                    DataType.BPCHAR,
+                    DataType.BOOLEAN,
+                    DataType.DATE,
+                    DataType.TIMESTAMP,
+                    DataType.TIME,
+                    DataType.BYTEA
+            );
 
     public static final EnumSet<Operator> SUPPORTED_OPERATORS =
             EnumSet.of(
@@ -254,6 +268,8 @@ public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
         SearchArgumentBuilder searchArgumentBuilder =
                 new SearchArgumentBuilder(descriptors, configuration);
 
+        SupportedDataTypePruner supportedDataTypePruner = new SupportedDataTypePruner(context.getTupleDescription(), SUPPORTED_DATATYPES);
+
         TreeVisitor bpCharOperatorTransformer = new BPCharOperatorTransformer(descriptors);
 
         // Parse the filter string into a expression tree Node
@@ -261,7 +277,7 @@ public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
         // Prune the parsed tree with valid supported operators and then
         // traverse the pruned tree with the searchArgumentBuilder to produce a
         // SearchArgument for ORC
-        TRAVERSER.traverse(root, PRUNER, bpCharOperatorTransformer, searchArgumentBuilder);
+        TRAVERSER.traverse(root, supportedDataTypePruner, PRUNER, bpCharOperatorTransformer, searchArgumentBuilder);
 
         // Build the SearchArgument object
         return searchArgumentBuilder.getFilterBuilder().build();
