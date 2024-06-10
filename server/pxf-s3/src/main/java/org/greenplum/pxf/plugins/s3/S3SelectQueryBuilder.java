@@ -3,8 +3,10 @@ package org.greenplum.pxf.plugins.s3;
 import org.greenplum.pxf.api.filter.Operator;
 import org.greenplum.pxf.api.filter.SupportedOperatorPruner;
 import org.greenplum.pxf.api.filter.TreeVisitor;
+import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
+import org.greenplum.pxf.plugins.jdbc.JdbcFilterPruner;
 import org.greenplum.pxf.plugins.jdbc.JdbcPredicateBuilder;
 import org.greenplum.pxf.plugins.jdbc.SQLQueryBuilder;
 import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
@@ -39,8 +41,23 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
                     Operator.NOT,
                     Operator.OR
             );
-    static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS, supportedTypes);
 
+    static final EnumSet<DataType> SUPPORTED_DATA_TYPES =
+            EnumSet.of(
+                    DataType.SMALLINT,
+                    DataType.INTEGER,
+                    DataType.BIGINT,
+                    DataType.FLOAT8,
+                    DataType.REAL,
+                    DataType.NUMERIC,
+                    DataType.BOOLEAN,
+                    DataType.TEXT,
+                    DataType.VARCHAR,
+                    DataType.BPCHAR,
+                    DataType.DATE,
+                    DataType.TIMESTAMP
+            );
+    private final TreeVisitor pruner;
     private List<ColumnDescriptor> columns;
     private boolean usePositionToIdentifyColumn;
 
@@ -57,6 +74,7 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
         super(context, new S3SelectDatabaseMetaData());
         this.usePositionToIdentifyColumn = usePositionToIdentifyColumn;
         this.columns = context.getTupleDescription();
+        this.pruner = new JdbcFilterPruner(context.getTupleDescription(), SUPPORTED_DATA_TYPES, SUPPORTED_OPERATORS);
     }
 
     @Override
@@ -80,7 +98,7 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
 
     @Override
     protected TreeVisitor getPruner() {
-        return PRUNER;
+        return pruner;
     }
 
     @Override

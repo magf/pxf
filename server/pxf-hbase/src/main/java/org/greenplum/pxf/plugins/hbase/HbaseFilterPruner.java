@@ -1,17 +1,18 @@
-package org.greenplum.pxf.plugins.jdbc;
+package org.greenplum.pxf.plugins.hbase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.greenplum.pxf.api.filter.*;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
+import org.greenplum.pxf.plugins.hbase.utilities.HBaseTupleDescription;
 
 import java.util.EnumSet;
 import java.util.List;
 
 @Slf4j
-public class JdbcFilterPruner extends SupportedOperatorPruner {
+public class HbaseFilterPruner extends SupportedOperatorPruner {
     private final EnumSet<DataType> supportedTypes;
-    private final List<ColumnDescriptor> tupleDescription;
+    private final HBaseTupleDescription tupleDescription;
     /**
      * Constructor
      *
@@ -19,7 +20,7 @@ public class JdbcFilterPruner extends SupportedOperatorPruner {
      * @param supportedTypes the set of supported data types
      * @param supportedOperators the set of supported operators
      */
-    public JdbcFilterPruner(List<ColumnDescriptor> tupleDescription, EnumSet<DataType> supportedTypes, EnumSet<Operator> supportedOperators) {
+    public HbaseFilterPruner(HBaseTupleDescription tupleDescription, EnumSet<DataType> supportedTypes, EnumSet<Operator> supportedOperators) {
         super(supportedOperators);
         this.supportedTypes = supportedTypes;
         this.tupleDescription = tupleDescription;
@@ -31,7 +32,7 @@ public class JdbcFilterPruner extends SupportedOperatorPruner {
             OperatorNode operatorNode = (OperatorNode) node;
             Operator operator = operatorNode.getOperator();
             ColumnIndexOperandNode columnIndexOperand = operatorNode.getColumnIndexOperand();
-            ColumnDescriptor columnDescriptor = tupleDescription.get(columnIndexOperand.index());
+            ColumnDescriptor columnDescriptor = tupleDescription.getColumn(columnIndexOperand.index());
             if (!operator.isLogical()
                     && !supportedTypes.contains(columnDescriptor.getDataType())) {
                 log.debug("Type {} for column {} is not supported for filtering", columnDescriptor.getDataType(),

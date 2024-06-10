@@ -10,7 +10,6 @@ import java.util.EnumSet;
 public class SupportedOperatorPruner extends BaseTreePruner {
 
     private final EnumSet<Operator> supportedOperators;
-    private final EnumSet<DataType> supportedTypes;
 
     /**
      * Constructor
@@ -18,18 +17,7 @@ public class SupportedOperatorPruner extends BaseTreePruner {
      * @param supportedOperators the set of supported operators
      */
     public SupportedOperatorPruner(EnumSet<Operator> supportedOperators) {
-        this(supportedOperators, null);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param supportedOperators the set of supported operators
-     * @param supportedTypes
-     */
-    public SupportedOperatorPruner(EnumSet<Operator> supportedOperators, EnumSet<DataType> supportedTypes) {
         this.supportedOperators = supportedOperators;
-        this.supportedTypes = supportedTypes;
     }
 
     @Override
@@ -41,11 +29,6 @@ public class SupportedOperatorPruner extends BaseTreePruner {
             if (!supportedOperators.contains(operator)) {
                 // prune the operator node if its operator is not supported
                 LOG.debug("Operator {} is not supported", operator);
-                return null;
-            }
-            if (supportedTypes != null && !supportedTypes.contains(data.getDataType())) {
-                // prune type node if it's not supported
-                LOG.debug("Type {} is not supported", data.getDataType());
                 return null;
             }
         }

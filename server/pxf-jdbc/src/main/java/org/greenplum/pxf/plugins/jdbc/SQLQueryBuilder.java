@@ -6,6 +6,7 @@ import org.greenplum.pxf.api.filter.Operator;
 import org.greenplum.pxf.api.filter.SupportedOperatorPruner;
 import org.greenplum.pxf.api.filter.TreeTraverser;
 import org.greenplum.pxf.api.filter.TreeVisitor;
+import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.plugins.jdbc.partitioning.JdbcFragmentMetadata;
@@ -66,8 +67,24 @@ public class SQLQueryBuilder {
                     Operator.NOT,
                     Operator.OR
             );
-    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS, supportedTypes);
+
+    static final EnumSet<DataType> SUPPORTED_DATA_TYPES =
+            EnumSet.of(
+                DataType.SMALLINT,
+                DataType.INTEGER,
+                DataType.BIGINT,
+                DataType.FLOAT8,
+                DataType.REAL,
+                DataType.NUMERIC,
+                DataType.BOOLEAN,
+                DataType.TEXT,
+                DataType.VARCHAR,
+                DataType.BPCHAR,
+                DataType.DATE,
+                DataType.TIMESTAMP
+            );
     private static final TreeTraverser TRAVERSER = new TreeTraverser();
+    private final TreeVisitor pruner;
 
     protected final RequestContext context;
 
@@ -118,6 +135,7 @@ public class SQLQueryBuilder {
             source = String.format("(%s%s", subQuery, SUBQUERY_ALIAS_SUFFIX);
             subQueryUsed = true;
         }
+        pruner = new JdbcFilterPruner(context.getTupleDescription(), SUPPORTED_DATA_TYPES, SUPPORTED_OPERATORS);
 
         quoteString = "";
     }
@@ -284,7 +302,7 @@ public class SQLQueryBuilder {
      * @return the tree pruner
      */
     protected TreeVisitor getPruner() {
-        return PRUNER;
+        return pruner;
     }
 
     /**

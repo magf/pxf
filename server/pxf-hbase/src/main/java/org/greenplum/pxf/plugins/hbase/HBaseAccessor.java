@@ -46,6 +46,7 @@ import org.greenplum.pxf.plugins.hbase.utilities.HBaseColumnDescriptor;
 import org.greenplum.pxf.plugins.hbase.utilities.HBaseTupleDescription;
 import org.greenplum.pxf.plugins.hbase.utilities.HBaseUtilities;
 
+import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.util.EnumSet;
 
@@ -78,10 +79,14 @@ public class HBaseAccessor extends BasePlugin implements Accessor {
 
     static final EnumSet<DataType> SUPPORTED_DATA_TYPES =
             EnumSet.of(
-
+                    DataType.TEXT,
+                    DataType.SMALLINT,
+                    DataType.INTEGER,
+                    DataType.BIGINT,
+                    DataType.REAL,
+                    DataType.FLOAT8
             );
 
-    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS, SUPPORTED_DATA_TYPES);
     private static final TreeTraverser TRAVERSER = new TreeTraverser();
     private static final String UNSUPPORTED_ERR_MESSAGE = "HBase accessor does not support write operation.";
 
@@ -89,6 +94,7 @@ public class HBaseAccessor extends BasePlugin implements Accessor {
     private Connection connection;
     private Table table;
     private SplitBoundary split;
+    private TreeVisitor pruner;
     private Scan scanDetails;
     private ResultScanner currentScanner;
     private byte[] scanStartKey;
@@ -126,6 +132,7 @@ public class HBaseAccessor extends BasePlugin implements Accessor {
         split = null;
         scanStartKey = HConstants.EMPTY_START_ROW;
         scanEndKey = HConstants.EMPTY_END_ROW;
+        pruner = new HbaseFilterPruner(tupleDescription, SUPPORTED_DATA_TYPES, SUPPORTED_OPERATORS);
     }
 
     /**
@@ -313,7 +320,7 @@ public class HBaseAccessor extends BasePlugin implements Accessor {
         Node root = new FilterParser().parse(context.getFilterString());
         // Prune the parsed tree with valid supported operators and then
         // traverse the tree with the hBaseFilterBuilder to produce a filter
-        TRAVERSER.traverse(root, PRUNER, hBaseFilterBuilder);
+        TRAVERSER.traverse(root, pruner, hBaseFilterBuilder);
 
         // Retrieve the built filter
         Filter filter = hBaseFilterBuilder.build();
