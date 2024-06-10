@@ -66,7 +66,7 @@ public class SQLQueryBuilder {
                     Operator.NOT,
                     Operator.OR
             );
-    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS);
+    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS, supportedTypes);
     private static final TreeTraverser TRAVERSER = new TreeTraverser();
 
     protected final RequestContext context;

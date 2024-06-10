@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
 
 public class HBaseFilterBuilderTest {
 
-    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS);
+    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS, supportedTypes);
     private static final TreeTraverser TRAVERSER = new TreeTraverser();
 
     private HBaseTupleDescription tupleDescription;

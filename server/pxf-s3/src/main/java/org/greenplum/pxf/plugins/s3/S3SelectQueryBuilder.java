@@ -39,7 +39,7 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
                     Operator.NOT,
                     Operator.OR
             );
-    static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS);
+    static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS, supportedTypes);
 
     private List<ColumnDescriptor> columns;
     private boolean usePositionToIdentifyColumn;

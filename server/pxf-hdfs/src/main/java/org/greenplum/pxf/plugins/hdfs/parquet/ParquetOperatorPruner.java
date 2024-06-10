@@ -19,7 +19,7 @@ import java.util.Map;
  * expression tree.
  */
 public class ParquetOperatorPruner extends SupportedOperatorPruner {
-    // INT96 and FIXED_LEN_BYTE_ARRAY cannot be pushed down
+    // INT96 cannot be pushed down
     // for more details look at
     // org.apache.parquet.filter2.dictionarylevel.DictionaryFilter#expandDictionary
     // where INT96 are not dictionary values

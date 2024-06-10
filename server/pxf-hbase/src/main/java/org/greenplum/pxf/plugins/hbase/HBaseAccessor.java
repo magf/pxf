@@ -38,6 +38,7 @@ import org.greenplum.pxf.api.filter.Operator;
 import org.greenplum.pxf.api.filter.SupportedOperatorPruner;
 import org.greenplum.pxf.api.filter.TreeTraverser;
 import org.greenplum.pxf.api.filter.TreeVisitor;
+import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.Accessor;
 import org.greenplum.pxf.api.model.BasePlugin;
 import org.greenplum.pxf.api.model.RequestContext;
@@ -75,7 +76,12 @@ public class HBaseAccessor extends BasePlugin implements Accessor {
                     Operator.OR
             );
 
-    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS);
+    static final EnumSet<DataType> SUPPORTED_DATA_TYPES =
+            EnumSet.of(
+
+            );
+
+    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS, SUPPORTED_DATA_TYPES);
     private static final TreeTraverser TRAVERSER = new TreeTraverser();
     private static final String UNSUPPORTED_ERR_MESSAGE = "HBase accessor does not support write operation.";
 

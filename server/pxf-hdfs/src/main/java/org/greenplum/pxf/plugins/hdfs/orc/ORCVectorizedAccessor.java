@@ -60,7 +60,7 @@ public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
                     Operator.OR,
                     Operator.NOT
             );
-    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS);
+    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS, supportedTypes);
     private static final TreeTraverser TRAVERSER = new TreeTraverser();
 
     private static final String ORC_FILE_SUFFIX = ".orc";

@@ -642,7 +642,7 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
         TRAVERSER.traverse(
                 root,
                 new SupportedDataTypePruner(context.getTupleDescription(), getSupportedDatatypesForPushdown()),
-                new SupportedOperatorPruner(getSupportedOperatorsForPushdown()),
+                new SupportedOperatorPruner(getSupportedOperatorsForPushdown(), supportedTypes),
                 searchArgumentBuilder);
 
         String kryoString = toKryoString(searchArgumentBuilder.getFilterBuilder().build());
