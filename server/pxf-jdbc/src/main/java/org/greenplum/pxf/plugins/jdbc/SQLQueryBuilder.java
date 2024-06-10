@@ -1,11 +1,6 @@
 package org.greenplum.pxf.plugins.jdbc;
 
-import org.greenplum.pxf.api.filter.FilterParser;
-import org.greenplum.pxf.api.filter.Node;
-import org.greenplum.pxf.api.filter.Operator;
-import org.greenplum.pxf.api.filter.SupportedOperatorPruner;
-import org.greenplum.pxf.api.filter.TreeTraverser;
-import org.greenplum.pxf.api.filter.TreeVisitor;
+import org.greenplum.pxf.api.filter.*;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
@@ -83,14 +78,14 @@ public class SQLQueryBuilder {
                 DataType.DATE,
                 DataType.TIMESTAMP
             );
+    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS);
     private static final TreeTraverser TRAVERSER = new TreeTraverser();
-    private final TreeVisitor pruner;
 
     protected final RequestContext context;
 
     private final DatabaseMetaData databaseMetaData;
     private final DbProduct dbProduct;
-    private final List<ColumnDescriptor> columns;
+    protected final List<ColumnDescriptor> columns;
     private final String source;
     private String quoteString;
     private boolean wrapDateWithTime = false;
@@ -135,7 +130,6 @@ public class SQLQueryBuilder {
             source = String.format("(%s%s", subQuery, SUBQUERY_ALIAS_SUFFIX);
             subQueryUsed = true;
         }
-        pruner = new JdbcFilterPruner(context.getTupleDescription(), SUPPORTED_DATA_TYPES, SUPPORTED_OPERATORS);
 
         quoteString = "";
     }
@@ -302,7 +296,7 @@ public class SQLQueryBuilder {
      * @return the tree pruner
      */
     protected TreeVisitor getPruner() {
-        return pruner;
+        return PRUNER;
     }
 
     /**
@@ -325,7 +319,7 @@ public class SQLQueryBuilder {
             LOG.debug("FILTER source: {}", context.getFilterString());
             // Prune the parsed tree with the provided pruner and then
             // traverse the tree with the JDBC predicate builder to produce a predicate
-            TRAVERSER.traverse(root, getPruner(), jdbcPredicateBuilder);
+            TRAVERSER.traverse(root, getDataTypePruner(), getPruner(), jdbcPredicateBuilder);
             // No exceptions were thrown, change the provided query
             String where = jdbcPredicateBuilder.toString();
             LOG.debug("FILTER target: {}", where);
@@ -334,6 +328,10 @@ public class SQLQueryBuilder {
             LOG.debug("WHERE clause is omitted: " + e.toString());
             // Silence the exception and do not insert constraints
         }
+    }
+
+    protected SupportedDataTypePruner getDataTypePruner() {
+        return new SupportedDataTypePruner(columns, SUPPORTED_DATA_TYPES);
     }
 
     /**

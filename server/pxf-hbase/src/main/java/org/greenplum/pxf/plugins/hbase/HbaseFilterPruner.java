@@ -31,13 +31,15 @@ public class HbaseFilterPruner extends SupportedOperatorPruner {
         if (node instanceof OperatorNode) {
             OperatorNode operatorNode = (OperatorNode) node;
             Operator operator = operatorNode.getOperator();
-            ColumnIndexOperandNode columnIndexOperand = operatorNode.getColumnIndexOperand();
-            ColumnDescriptor columnDescriptor = tupleDescription.getColumn(columnIndexOperand.index());
-            if (!operator.isLogical()
-                    && !supportedTypes.contains(columnDescriptor.getDataType())) {
-                log.debug("Type {} for column {} is not supported for filtering", columnDescriptor.getDataType(),
-                        columnDescriptor.columnName());
-                return null;
+            if (!operator.isLogical()) {
+                ColumnIndexOperandNode columnIndexOperand = operatorNode.getColumnIndexOperand();
+                ColumnDescriptor columnDescriptor = tupleDescription.getColumn(columnIndexOperand.index());
+                if (!supportedTypes.contains(columnDescriptor.getDataType())) {
+                    log.debug("DataType (name={} oid={}) for column=(index:{} name:{}) is not supported",
+                            columnDescriptor.getDataType().name(), columnDescriptor.getDataType().getOID(),
+                            columnDescriptor.columnIndex(), columnDescriptor.columnName());
+                    return null;
+                }
             }
         }
         return super.visit(node, level);

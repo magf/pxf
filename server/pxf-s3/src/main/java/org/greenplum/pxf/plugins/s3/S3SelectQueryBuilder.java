@@ -1,12 +1,12 @@
 package org.greenplum.pxf.plugins.s3;
 
 import org.greenplum.pxf.api.filter.Operator;
+import org.greenplum.pxf.api.filter.SupportedDataTypePruner;
 import org.greenplum.pxf.api.filter.SupportedOperatorPruner;
 import org.greenplum.pxf.api.filter.TreeVisitor;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
-import org.greenplum.pxf.plugins.jdbc.JdbcFilterPruner;
 import org.greenplum.pxf.plugins.jdbc.JdbcPredicateBuilder;
 import org.greenplum.pxf.plugins.jdbc.SQLQueryBuilder;
 import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
@@ -57,8 +57,7 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
                     DataType.DATE,
                     DataType.TIMESTAMP
             );
-    private final TreeVisitor pruner;
-    private List<ColumnDescriptor> columns;
+    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS);
     private boolean usePositionToIdentifyColumn;
 
     /**
@@ -73,8 +72,6 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
                                 boolean usePositionToIdentifyColumn) throws SQLException {
         super(context, new S3SelectDatabaseMetaData());
         this.usePositionToIdentifyColumn = usePositionToIdentifyColumn;
-        this.columns = context.getTupleDescription();
-        this.pruner = new JdbcFilterPruner(context.getTupleDescription(), SUPPORTED_DATA_TYPES, SUPPORTED_OPERATORS);
     }
 
     @Override
@@ -93,12 +90,16 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
     protected JdbcPredicateBuilder getPredicateBuilder() {
         return new S3SelectPredicateBuilder(
                 usePositionToIdentifyColumn,
-                context.getTupleDescription());
+                columns);
     }
 
     @Override
     protected TreeVisitor getPruner() {
-        return pruner;
+        return PRUNER;
+    }
+
+    protected SupportedDataTypePruner getDataTypePruner() {
+        return new SupportedDataTypePruner(columns, SUPPORTED_DATA_TYPES);
     }
 
     @Override
