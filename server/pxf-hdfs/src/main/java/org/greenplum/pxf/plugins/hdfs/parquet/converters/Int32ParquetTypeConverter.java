@@ -60,7 +60,7 @@ public class Int32ParquetTypeConverter implements ParquetTypeConverter {
             String dateString = (String) fieldValue;
             group.add(columnIndex, ParquetTimestampUtilities.getDaysFromEpochFromDateString(dateString));
         } else if (detectedDataType == DataType.SMALLINT) {
-            group.add(columnIndex, (Short) fieldValue);
+            group.add(columnIndex, ((Number) fieldValue).shortValue());
         } else if (detectedDataType == DataType.NUMERIC) {
             LogicalTypeAnnotation.DecimalLogicalTypeAnnotation anno32 = (LogicalTypeAnnotation.DecimalLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
             group.add(columnIndex,  strToDecimal32((String) fieldValue, anno32));
