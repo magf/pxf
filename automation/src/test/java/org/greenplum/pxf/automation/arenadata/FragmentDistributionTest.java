@@ -4,7 +4,6 @@ import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.SegmentNode;
-import org.greenplum.pxf.automation.components.common.cli.ShellCommandErrorException;
 import org.greenplum.pxf.automation.enums.EnumPartitionType;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -13,10 +12,10 @@ import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.PXF_LOG_RELATIVE_PATH;
+import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
 import static org.junit.Assert.assertEquals;
 
 public class FragmentDistributionTest extends BaseFeature {
@@ -80,7 +79,7 @@ public class FragmentDistributionTest extends BaseFeature {
         int count = 20;
         String[][] rows = new String[count][2];
         for (int i = 0; i < count; i++) {
-            rows[i][0] = String.valueOf(i+1);
+            rows[i][0] = String.valueOf(i + 1);
             rows[i][1] = "text" + (i + 1);
         }
         dataTable = new Table("dataTable", SOURCE_TABLE_FIELDS);
@@ -165,7 +164,7 @@ public class FragmentDistributionTest extends BaseFeature {
         runSqlTest("arenadata/fragment-distribution/jdbc");
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
-            String result = grepLog(PXF_LOG_JDBC_GREP_COMMAND);
+            String result = getCmdResult(cluster, PXF_LOG_JDBC_GREP_COMMAND);
             assertEquals("3", result);
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
@@ -177,7 +176,7 @@ public class FragmentDistributionTest extends BaseFeature {
         runSqlTest("arenadata/fragment-distribution/jdbc-limit");
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
-            String result = grepLog(PXF_LOG_JDBC_GREP_COMMAND_LIMIT);
+            String result = getCmdResult(cluster, PXF_LOG_JDBC_GREP_COMMAND_LIMIT);
             assertEquals("2", result);
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
@@ -189,7 +188,7 @@ public class FragmentDistributionTest extends BaseFeature {
         runSqlTest("arenadata/fragment-distribution/hdfs");
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
-            String result = grepLog(PXF_LOG_HDFS_GREP_COMMAND);
+            String result = getCmdResult(cluster, PXF_LOG_HDFS_GREP_COMMAND);
             assertEquals("3", result);
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
@@ -201,7 +200,7 @@ public class FragmentDistributionTest extends BaseFeature {
         runSqlTest("arenadata/fragment-distribution/hdfs-limit");
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
-            String result = grepLog(PXF_LOG_HDFS_COMMAND_LIMIT);
+            String result = getCmdResult(cluster, PXF_LOG_HDFS_COMMAND_LIMIT);
             assertEquals("2", result);
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
@@ -215,8 +214,8 @@ public class FragmentDistributionTest extends BaseFeature {
         int idleSegmentCount = 0;
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
-            activeSegmentCount += Integer.parseInt(grepLog(PXF_LOG_HDFS_SEG_COMMAND_LIMIT));
-            idleSegmentCount += Integer.parseInt(grepLog(PXF_LOG_HDFS_COMMAND_LIMIT));
+            activeSegmentCount += Integer.parseInt(getCmdResult(cluster, PXF_LOG_HDFS_SEG_COMMAND_LIMIT));
+            idleSegmentCount += Integer.parseInt(getCmdResult(cluster, PXF_LOG_HDFS_COMMAND_LIMIT));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
         assertEquals(4, activeSegmentCount);
@@ -230,12 +229,5 @@ public class FragmentDistributionTest extends BaseFeature {
 
     private void cleanLogs() throws Exception {
         cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
-    }
-
-    private String grepLog(String command) throws ShellCommandErrorException, IOException {
-        cluster.runCommand(command);
-        String result = cluster.getLastCmdResult();
-        String[] results = result.split("\r\n");
-        return results.length > 1 ? results[1].trim() : "Result is empty";
     }
 }

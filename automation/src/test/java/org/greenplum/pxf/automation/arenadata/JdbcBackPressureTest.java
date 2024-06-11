@@ -5,7 +5,6 @@ import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.SegmentNode;
-import org.greenplum.pxf.automation.components.common.cli.ShellCommandErrorException;
 import org.greenplum.pxf.automation.components.oracle.Oracle;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -14,10 +13,10 @@ import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.junit.Assert;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.*;
+import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
 
 public class JdbcBackPressureTest extends BaseFeature {
     private static final String PXF_SERVER_PROFILE = "backpressure";
@@ -144,13 +143,13 @@ public class JdbcBackPressureTest extends BaseFeature {
         for (Node pxfNode : pxfNodes) {
             copyPxfLog(pxfNode);
             Assert.assertTrue("Check that information about pool is present in the log",
-                    Integer.parseInt(grepPxfLog(POOL_USED_GREP_COMMAND)) > 3);
+                    Integer.parseInt(getCmdResult(cluster, POOL_USED_GREP_COMMAND)) > 3);
             Assert.assertEquals("Check queue used when POOL_SIZE=1",
-                    "0", grepPxfLog(QUEUE_USED_GREP_COMMAND));
+                    "0", getCmdResult(cluster, QUEUE_USED_GREP_COMMAND));
             Assert.assertEquals("Check pool active tasks when POOL_SIZE=1",
-                    "0", grepPxfLog(String.format(POOL_ACTIVE_TASK_GREP_COMMAND_TEMPLATE, 1)));
+                    "0", getCmdResult(cluster, String.format(POOL_ACTIVE_TASK_GREP_COMMAND_TEMPLATE, 1)));
             Assert.assertEquals("Check semaphore remains when POOL_SIZE=1",
-                    "0", grepPxfLog(String.format(SEMAPHORE_REMAINS_GREP_COMMAND_TEMPLATE, 1)));
+                    "0", getCmdResult(cluster, String.format(SEMAPHORE_REMAINS_GREP_COMMAND_TEMPLATE, 1)));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
     }
@@ -164,13 +163,13 @@ public class JdbcBackPressureTest extends BaseFeature {
         for (Node pxfNode : pxfNodes) {
             copyPxfLog(pxfNode);
             Assert.assertTrue("Check that information about pool is present in the log",
-                    Integer.parseInt(grepPxfLog(POOL_USED_GREP_COMMAND)) > 3);
+                    Integer.parseInt(getCmdResult(cluster, POOL_USED_GREP_COMMAND)) > 3);
             Assert.assertEquals("Check queue used when POOL_SIZE=10",
-                    "0", grepPxfLog(QUEUE_USED_GREP_COMMAND));
+                    "0", getCmdResult(cluster, QUEUE_USED_GREP_COMMAND));
             Assert.assertEquals("Check pool active tasks when POOL_SIZE=10",
-                    "0", grepPxfLog(String.format(POOL_ACTIVE_TASK_GREP_COMMAND_TEMPLATE, 10)));
+                    "0", getCmdResult(cluster, String.format(POOL_ACTIVE_TASK_GREP_COMMAND_TEMPLATE, 10)));
             Assert.assertEquals("Check semaphore remains when POOL_SIZE=10",
-                    "0", grepPxfLog(String.format(SEMAPHORE_REMAINS_GREP_COMMAND_TEMPLATE, 10)));
+                    "0", getCmdResult(cluster, String.format(SEMAPHORE_REMAINS_GREP_COMMAND_TEMPLATE, 10)));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
     }
@@ -198,13 +197,6 @@ public class JdbcBackPressureTest extends BaseFeature {
 
     private void copyPxfLog(Node pxfNode) throws Exception {
         cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
-    }
-
-    private String grepPxfLog(String command) throws ShellCommandErrorException, IOException {
-        cluster.runCommand(command);
-        String result = cluster.getLastCmdResult();
-        String[] results = result.split("\r\n");
-        return results.length > 1 ? results[1].trim() : "Result is empty";
     }
 
     private void copyJdbcConfFile(String templateSource) throws Exception {

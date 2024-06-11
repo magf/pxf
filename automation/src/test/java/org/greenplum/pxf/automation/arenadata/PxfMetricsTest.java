@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static org.testng.Assert.assertEquals;
 
@@ -48,11 +49,9 @@ public class PxfMetricsTest extends BaseFeature {
         if (cluster instanceof MultiNodeCluster) {
             List<Node> pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
             for (Node pxfNode : pxfNodes) {
-                String pxfHostName = pxfNode.getHostName();
-                if (StringUtils.isEmpty(pxfNode.getHostName())) {
-                    pxfHostName = pxfNode.getHost();
-                }
-                pxfHostNames.add(pxfHostName);
+                pxfHostNames.add(Optional.ofNullable(pxfNode.getHostName())
+                        .filter(StringUtils::isNotEmpty)
+                        .orElse(pxfNode.getHost()));
             }
         } else {
             pxfHostNames.add(cluster.getHost());

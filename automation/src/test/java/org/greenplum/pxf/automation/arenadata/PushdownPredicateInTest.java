@@ -5,7 +5,6 @@ import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.SegmentNode;
-import org.greenplum.pxf.automation.components.common.cli.ShellCommandErrorException;
 import org.greenplum.pxf.automation.components.oracle.Oracle;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -14,10 +13,10 @@ import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.*;
+import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
 import static org.junit.Assert.assertEquals;
 
 public class PushdownPredicateInTest extends BaseFeature {
@@ -125,7 +124,8 @@ public class PushdownPredicateInTest extends BaseFeature {
     public void testPredicateInPostgres() throws Exception {
         cleanLogs();
         runSqlTest("arenadata/predicate-in/postgres");
-        String result = grepLog("grep -e 'SELECT id, descr FROM " + SOURCE_TABLE_NAME + " WHERE id IN (2,3)' " + GET_LATEST_MASTER_LOG_COMMAND + " | wc -l");
+        String result = getCmdResult(cluster,
+                "grep -e 'SELECT id, descr FROM " + SOURCE_TABLE_NAME + " WHERE id IN (2,3)' " + GET_LATEST_MASTER_LOG_COMMAND + " | wc -l");
         assertEquals("1", result);
     }
 
@@ -136,7 +136,7 @@ public class PushdownPredicateInTest extends BaseFeature {
         int result = 0;
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
-            result += Integer.parseInt(grepLog(POSTGRES_SEGMENT_LOG_GREP_COMMAND));
+            result += Integer.parseInt(getCmdResult(cluster, POSTGRES_SEGMENT_LOG_GREP_COMMAND));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
         assertEquals("Check that filter is present in the log at least on the one segment host", 1, result);
@@ -157,12 +157,5 @@ public class PushdownPredicateInTest extends BaseFeature {
     private void cleanLogs() throws Exception {
         cluster.runCommand("> " + GET_LATEST_MASTER_LOG_COMMAND);
         cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
-    }
-
-    private String grepLog(String command) throws ShellCommandErrorException, IOException {
-        cluster.runCommand(command);
-        String result = cluster.getLastCmdResult();
-        String[] results = result.split("\r\n");
-        return results.length > 1 ? results[1].trim() : "Result is empty";
     }
 }

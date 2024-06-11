@@ -5,7 +5,6 @@ import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.CoordinatorNode;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.SegmentNode;
-import org.greenplum.pxf.automation.components.common.cli.ShellCommandErrorException;
 import org.greenplum.pxf.automation.datapreparer.CustomTextPreparer;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -18,11 +17,11 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE;
+import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -94,10 +93,10 @@ public class PxfReloadTest extends BaseFeature {
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
             // Must be 1 record on each segment host
-            String result = grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=, server="));
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=, server="));
             assertEquals("1", result);
             // Must be 2 records for all segments because there are only 2 queries.
-            shutDownPoolCount += Integer.parseInt(grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
         assertEquals(2, shutDownPoolCount);
@@ -121,10 +120,10 @@ public class PxfReloadTest extends BaseFeature {
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
             // Must be 1 record on each segment host
-            String result = grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server="));
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server="));
             assertEquals("1", result);
             // Must be 2 records for all segments because there are only 2 queries.
-            shutDownPoolCount += Integer.parseInt(grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
         assertEquals(2, shutDownPoolCount);
@@ -150,11 +149,11 @@ public class PxfReloadTest extends BaseFeature {
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
             // Must be 1 record on each segment host
-            String result = grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server=default"));
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server=default"));
             assertEquals("1", result);
             // Maybe 1 or 2 records for all segments. It depends on where 2 queries run. If on the different servers then 2 records.
             // If on the same servers - 1 record.
-            shutDownPoolCount += Integer.parseInt(grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
         assertTrue(shutDownPoolCount > 0 && shutDownPoolCount <= 2);
@@ -179,10 +178,10 @@ public class PxfReloadTest extends BaseFeature {
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
             // Must be 1 record on each segment host
-            String result = grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server=reload"));
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server=reload"));
             assertEquals("1", result);
             // Must be 1 record for all segments because we reload only 1 profile
-            shutDownPoolCount += Integer.parseInt(grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
         assertEquals(1, shutDownPoolCount);
@@ -205,11 +204,11 @@ public class PxfReloadTest extends BaseFeature {
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
             // Must be 1 record on each segment host
-            String result = grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=, server="));
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=, server="));
             assertEquals("1", result);
             // Must be 2 record per each segment host because jdbc writable table run query for each logical segment
             // Each segment host starts 1 pool for each query with different profiles
-            shutDownPoolCount += Integer.parseInt(grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
         assertEquals(4, shutDownPoolCount);
@@ -233,10 +232,10 @@ public class PxfReloadTest extends BaseFeature {
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
             // Must be 1 record on each segment host
-            String result = grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server=reload"));
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server=reload"));
             assertEquals("1", result);
             // Must be 1 record per each segment host because jdbc writable table run query for each logical segment
-            shutDownPoolCount += Integer.parseInt(grepLog(String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
         assertEquals(2, shutDownPoolCount);
@@ -345,12 +344,5 @@ public class PxfReloadTest extends BaseFeature {
             }
         }
         return count;
-    }
-
-    private String grepLog(String command) throws ShellCommandErrorException, IOException {
-        cluster.runCommand(command);
-        String result = cluster.getLastCmdResult();
-        String[] results = result.split("\r\n");
-        return results.length > 1 ? results[1].trim() : "Result is empty";
     }
 }
