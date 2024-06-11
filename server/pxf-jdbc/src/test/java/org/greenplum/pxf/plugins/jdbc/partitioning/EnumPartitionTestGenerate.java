@@ -32,7 +32,8 @@ public class EnumPartitionTestGenerate {
         String COLUMN = "col";
         String RANGE = "excellent:good:general:bad";
 
-        EnumPartition[] parts = PartitionType.ENUM.generate(COLUMN, RANGE, null).stream().map(p -> EnumPartition.class.cast(p)).toArray(EnumPartition[]::new);
+        EnumPartition[] parts = PartitionType.ENUM.generate(COLUMN, RANGE, null, false).stream()
+                .map(p -> (EnumPartition) p).toArray(EnumPartition[]::new);
 
         assertEquals(5, parts.length);
         assertEnumPartitionEquals(parts[0], "excellent");
@@ -46,7 +47,8 @@ public class EnumPartitionTestGenerate {
         String COLUMN = "col";
         String RANGE = "100";
 
-        EnumPartition[] parts = PartitionType.ENUM.generate(COLUMN, RANGE, null).stream().map(p -> EnumPartition.class.cast(p)).toArray(EnumPartition[]::new);
+        EnumPartition[] parts = PartitionType.ENUM.generate(COLUMN, RANGE, null, false).stream()
+                .map(p -> (EnumPartition) p).toArray(EnumPartition[]::new);
 
         assertEquals(2, parts.length);
         assertEnumPartitionEquals(parts[0], "100");

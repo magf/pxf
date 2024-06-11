@@ -22,42 +22,36 @@ package org.greenplum.pxf.plugins.jdbc.partitioning;
 import lombok.Getter;
 import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
-/**
- * A special type of partition: contains IS NULL or IS NOT NULL constraint.
- * <p>
- * As it cannot be constructed (requested) by user, it has no type() method.
- * <p>
- * Currently, only {@link NullPartition#NullPartition(String)} is used to construct this class.
- * In other words, IS NOT NULL is never used (but is supported).
- */
+import java.util.Objects;
+
+import static org.greenplum.pxf.plugins.jdbc.partitioning.IntPartition.convert;
+
 @Getter
-class NullPartition extends BasePartition implements JdbcFragmentMetadata {
+public class IntRangePartition extends BaseRangePartition implements IntPartition {
 
-    private final boolean isNull;
+    private final Long start;
+    private final Long end;
 
     /**
-     * Construct a NullPartition with the given column and constraint
-     *
-     * @param column the partitioned column
-     * @param isNull true if IS NULL must be used
+     * @param column the partition column
+     * @param start  null for right-bounded interval
+     * @param end    null for left-bounded interval
      */
-    public NullPartition(String column, boolean isNull) {
+    public IntRangePartition(String column, Long start, Long end) {
         super(column);
-        this.isNull = isNull;
-    }
-
-    /**
-     * Construct a NullPartition with the given column and IS NULL constraint
-     *
-     * @param column the name of the column
-     */
-    public NullPartition(String column) {
-        this(column, true);
+        this.start = start;
+        this.end = end;
+        if (Objects.equals(start, end)) {
+            throw new RuntimeException("Start and end boundaries cannot be the same");
+        }
     }
 
     @Override
     public String toSqlConstraint(String quoteString, DbProduct dbProduct) {
-        return getQuotedColumn(quoteString) +
-                (isNull ? " IS NULL" : " IS NOT NULL");
+        return generateRangeConstraint(
+                getQuotedColumn(quoteString),
+                convert(start),
+                convert(end)
+        );
     }
 }

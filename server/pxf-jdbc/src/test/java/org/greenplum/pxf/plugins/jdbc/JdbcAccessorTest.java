@@ -233,7 +233,7 @@ public class JdbcAccessorTest {
         context.addOption("PARTITION_BY", "count:int");
         context.addOption("RANGE", "1:10");
         context.addOption("INTERVAL", "1");
-        context.setFragmentMetadata(new IntPartition("count", 1L, 2L));
+        context.setFragmentMetadata(IntPartition.create("count", 1L, 2L));
         ArgumentCaptor<String> queryPassed = ArgumentCaptor.forClass(String.class);
         when(mockStatement.executeQuery(queryPassed.capture())).thenReturn(mockResultSet);
         wireMocksForReadWithCreateStatement();
@@ -257,7 +257,7 @@ public class JdbcAccessorTest {
         context.addOption("PARTITION_BY", "count:int");
         context.addOption("RANGE", "1:10");
         context.addOption("INTERVAL", "1");
-        context.setFragmentMetadata(new IntPartition("count", 1L, 2L));
+        context.setFragmentMetadata(IntPartition.create("count", 1L, 2L));
         ArgumentCaptor<String> queryPassed = ArgumentCaptor.forClass(String.class);
         when(mockStatement.executeQuery(queryPassed.capture())).thenReturn(mockResultSet);
         wireMocksForReadWithCreateStatement();

@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DatePartitionTest {
 
-    private DbProduct dbProduct = DbProduct.POSTGRES;
+    private final DbProduct dbProduct = DbProduct.POSTGRES;
 
     private final String COL_RAW = "col";
     private final String QUOTE = "\"";
@@ -43,6 +43,18 @@ public class DatePartitionTest {
         assertEquals(
             COL + " >= date'2000-01-01' AND " + COL + " < date'2000-01-02'",
             constraint
+        );
+        assertEquals(COL_RAW, partition.getColumn());
+    }
+
+    @Test
+    public void testDateWideRange() {
+        DatePartition partition = new DatePartition(COL_RAW, LocalDate.of(-1, 2,3), LocalDate.of(99999, 4, 5), true);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
+
+        assertEquals(
+                COL + " >= date'0002-02-03 BC' AND " + COL + " < date'99999-04-05 AD'",
+                constraint
         );
         assertEquals(COL_RAW, partition.getColumn());
     }

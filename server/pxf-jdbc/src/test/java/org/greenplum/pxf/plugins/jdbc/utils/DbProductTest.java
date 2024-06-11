@@ -25,6 +25,7 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -64,8 +65,20 @@ public class DbProductTest {
         DbProduct dbProduct = DbProduct.getDbProduct(DB_NAME_UNKNOWN);
 
         for (int i = 0; i < DATES.length; i++) {
-            assertEquals(expected[i], dbProduct.wrapDate(DATES[i]));
+            assertEquals(expected[i], dbProduct.wrapDate(String.valueOf(DATES[i])));
         }
+    }
+
+    /**
+     * This test also applies to Postgres database
+     */
+    @Test
+    public void testUnknownLocalDate() {
+        DbProduct dbProduct = DbProduct.getDbProduct(DB_NAME_UNKNOWN);
+        assertEquals("date'2001-03-04'", dbProduct.wrapDate(LocalDate.of(2001, 3, 4), false));
+        assertEquals("date'2001-03-04 AD'", dbProduct.wrapDate(LocalDate.of(2001, 3, 4), true));
+        assertEquals("date'99999-03-04 AD'", dbProduct.wrapDate(LocalDate.of(99999, 3, 4), true));
+        assertEquals("date'0501-03-04 BC'", dbProduct.wrapDate(LocalDate.of(-500, 3, 4), true));
     }
 
     /**
@@ -78,7 +91,7 @@ public class DbProductTest {
         DbProduct dbProduct = DbProduct.getDbProduct(DB_NAME_UNKNOWN);
 
         for (int i = 0; i < TIMESTAMPS.length; i++) {
-            assertEquals(expected[i], dbProduct.wrapTimestamp(TIMESTAMPS[i]));
+            assertEquals(expected[i], dbProduct.wrapTimestamp(String.valueOf(TIMESTAMPS[i])));
         }
     }
 
@@ -92,8 +105,16 @@ public class DbProductTest {
         DbProduct dbProduct = DbProduct.getDbProduct(DB_NAME_ORACLE);
 
         for (int i = 0; i < DATES.length; i++) {
-            assertEquals(expected[i], dbProduct.wrapDate(DATES[i]));
+            assertEquals(expected[i], dbProduct.wrapDate(String.valueOf(DATES[i])));
         }
+    }
+
+    @Test
+    public void testOracleLocalDate() {
+        DbProduct dbProduct = DbProduct.getDbProduct(DB_NAME_ORACLE);
+        assertEquals("to_date('2001-03-04', 'YYYY-MM-DD')", dbProduct.wrapDate(LocalDate.of(2001, 3, 4), false));
+        assertEquals("to_date('2001-03-04', 'YYYY-MM-DD')", dbProduct.wrapDate(LocalDate.of(2001, 3, 4), true));
+        assertEquals("to_date('-0500-03-04', 'YYYY-MM-DD')", dbProduct.wrapDate(LocalDate.of(-500, 3, 4), true));
     }
 
     @Test
@@ -103,7 +124,7 @@ public class DbProductTest {
         DbProduct dbProduct = DbProduct.getDbProduct(DB_NAME_ORACLE);
 
         for (int i = 0; i < TIMESTAMPS.length; i++) {
-            assertEquals(expected[i], dbProduct.wrapDateWithTime(TIMESTAMPS[i]));
+            assertEquals(expected[i], dbProduct.wrapDateWithTime(String.valueOf(TIMESTAMPS[i])));
         }
     }
 
@@ -114,7 +135,7 @@ public class DbProductTest {
         DbProduct dbProduct = DbProduct.getDbProduct(DB_NAME_ORACLE);
 
         for (int i = 0; i < TIMESTAMPS.length; i++) {
-            assertEquals(expected[i], dbProduct.wrapTimestamp(TIMESTAMPS[i]));
+            assertEquals(expected[i], dbProduct.wrapTimestamp(String.valueOf(TIMESTAMPS[i])));
         }
     }
 
@@ -128,7 +149,7 @@ public class DbProductTest {
         DbProduct dbProduct = DbProduct.getDbProduct(DB_NAME_MICROSOFT);
 
         for (int i = 0; i < DATES.length; i++) {
-            assertEquals(expected[i], dbProduct.wrapDate(DATES[i]));
+            assertEquals(expected[i], dbProduct.wrapDate(String.valueOf(DATES[i])));
         }
     }
 
@@ -142,7 +163,7 @@ public class DbProductTest {
         DbProduct dbProduct = DbProduct.getDbProduct(DB_NAME_MYSQL);
 
         for (int i = 0; i < DATES.length; i++) {
-            assertEquals(expected[i], dbProduct.wrapDate(DATES[i]));
+            assertEquals(expected[i], dbProduct.wrapDate(String.valueOf(DATES[i])));
         }
     }
 }

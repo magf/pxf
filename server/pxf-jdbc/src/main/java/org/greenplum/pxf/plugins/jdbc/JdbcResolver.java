@@ -19,7 +19,6 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
-import org.greenplum.pxf.api.GreenplumDateTime;
 import io.arenadata.security.encryption.client.service.DecryptClient;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
@@ -42,87 +41,24 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.SignStyle;
-import java.time.temporal.ChronoField;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
-import static java.time.format.DateTimeFormatter.ISO_OFFSET_TIME;
+import static org.greenplum.pxf.api.GreenplumDateTime.DATETIME_FORMATTER;
+import static org.greenplum.pxf.api.GreenplumDateTime.DATE_FORMATTER;
+import static org.greenplum.pxf.plugins.jdbc.utils.DateTimeEraFormatters.LOCAL_DATE_FORMATTER;
+import static org.greenplum.pxf.plugins.jdbc.utils.DateTimeEraFormatters.LOCAL_DATE_TIME_FORMATTER;
+import static org.greenplum.pxf.plugins.jdbc.utils.DateTimeEraFormatters.OFFSET_DATE_TIME_FORMATTER;
+import static org.greenplum.pxf.plugins.jdbc.utils.DateTimeEraFormatters.getLocalDate;
+import static org.greenplum.pxf.plugins.jdbc.utils.DateTimeEraFormatters.getLocalDateTime;
 
 /**
  * JDBC tables resolver
  */
 public class JdbcResolver extends JdbcBasePlugin implements Resolver {
-    // Signifies the ERA format
-    final private static String DATE_TIME_FORMATTER_SPECIFIER = " G";
-    /**
-     * LOCAL_DATE_GET_FORMATTER is used to format LocalDate to String.
-     * Examples: 2023-01-10 -> "2023-01-10 AD"; +12345-02-01 -> "12345-02-01 AD"; -0009-12-11 -> "0010-12-11 BC"
-     */
-    private static final DateTimeFormatter LOCAL_DATE_GET_FORMATTER = (new DateTimeFormatterBuilder())
-            .appendValue(ChronoField.YEAR_OF_ERA, 4, 9, SignStyle.NORMAL).appendLiteral("-")
-            .appendValue(ChronoField.MONTH_OF_YEAR, 2).appendLiteral('-')
-            .appendValue(ChronoField.DAY_OF_MONTH, 2)
-            .appendPattern(DATE_TIME_FORMATTER_SPECIFIER)
-            .toFormatter();
-
-    /**
-     * LOCAL_DATE_TIME_GET_FORMATTER is used to format LocalDateTime to String.
-     * Examples: 2018-10-19T10:11 -> "2018-10-19 10:11:00 AD"; +123456-10-19T11:12:13 -> "123456-10-19 11:12:13 AD";
-     * -1233-10-19T10:11:15.456 -> "1234-10-19 10:11:15.456 BC"
-     */
-    private static final DateTimeFormatter LOCAL_DATE_TIME_GET_FORMATTER = (new DateTimeFormatterBuilder())
-            .appendValue(ChronoField.YEAR_OF_ERA, 4, 9, SignStyle.NORMAL).appendLiteral("-")
-            .appendValue(ChronoField.MONTH_OF_YEAR, 2).appendLiteral('-')
-            .appendValue(ChronoField.DAY_OF_MONTH, 2).appendLiteral(" ")
-            .append(ISO_LOCAL_TIME)
-            .appendPattern(DATE_TIME_FORMATTER_SPECIFIER)
-            .toFormatter();
-
-
-    /**
-     * OFFSET_DATE_TIME_GET_FORMATTER is used to format OffsetDateTime to String.
-     * Examples: 1956-02-01T07:15:16Z -> "1956-02-01 07:15:16Z AD"; +12345-02-01T10:15:16Z -> "12345-02-01 10:15:16Z AD";
-     * -1999-02-01T04:15:16Z -> "2000-02-01 04:15:16Z BC"
-     */
-    private static final DateTimeFormatter OFFSET_DATE_TIME_GET_FORMATTER = (new DateTimeFormatterBuilder())
-            .appendValue(ChronoField.YEAR_OF_ERA, 4, 9, SignStyle.NORMAL).appendLiteral("-")
-            .appendValue(ChronoField.MONTH_OF_YEAR, 2).appendLiteral('-')
-            .appendValue(ChronoField.DAY_OF_MONTH, 2).appendLiteral(" ")
-            .append(ISO_OFFSET_TIME)
-            .appendPattern(DATE_TIME_FORMATTER_SPECIFIER)
-            .toFormatter();
-
-    /**
-     * LOCAL_DATE_SET_FORMATTER is used to format String to LocalDate.
-     * Examples: "1977-12-11" -> 1977-12-11; "456789-12-11" -> +456789-12-11; "0010-12-11 BC" -> -0009-12-11
-     */
-    private static final DateTimeFormatter LOCAL_DATE_SET_FORMATTER = (new DateTimeFormatterBuilder())
-            .appendValue(ChronoField.YEAR_OF_ERA, 1, 9, SignStyle.NORMAL).appendLiteral('-')
-            .appendValue(ChronoField.MONTH_OF_YEAR, 2).appendLiteral('-')
-            .appendValue(ChronoField.DAY_OF_MONTH, 2)
-            .optionalStart().appendPattern(DATE_TIME_FORMATTER_SPECIFIER).optionalEnd()
-            .toFormatter();
-
-    /**
-     * LOCAL_DATE_TIME_SET_FORMATTER is used to transfer String to LocalDateTime.
-     * Examples: "1980-08-10 17:10:20" -> 1980-08-10T17:10:20; "123456-10-19 11:12:13" -> +123456-10-19T11:12:13;
-     * "1234-10-19 10:11:15.456 BC" -> -1233-10-19T10:11:15.456
-     */
-    private static final DateTimeFormatter LOCAL_DATE_TIME_SET_FORMATTER = (new DateTimeFormatterBuilder())
-            .appendValue(ChronoField.YEAR_OF_ERA, 1, 9, SignStyle.NORMAL).appendLiteral('-')
-            .appendValue(ChronoField.MONTH_OF_YEAR, 1, 2, SignStyle.NORMAL).appendLiteral('-')
-            .appendValue(ChronoField.DAY_OF_MONTH, 1, 2, SignStyle.NORMAL).appendLiteral(" ")
-            .append(ISO_LOCAL_TIME)
-            .optionalStart().appendPattern(DATE_TIME_FORMATTER_SPECIFIER).optionalEnd()
-            .toFormatter();
-
     private static final Set<DataType> DATATYPES_SUPPORTED = EnumSet.of(
             DataType.VARCHAR,
             DataType.BPCHAR,
@@ -216,25 +152,25 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                 case DATE:
                     if (isDateWideRange) {
                         LocalDate localDate = result.getObject(colName, LocalDate.class);
-                        value = localDate != null ? localDate.format(LOCAL_DATE_GET_FORMATTER) : null;
+                        value = localDate != null ? localDate.format(LOCAL_DATE_FORMATTER) : null;
                     } else {
                         Date date = result.getDate(colName);
-                        value = date != null ? date.toLocalDate().format(GreenplumDateTime.DATE_FORMATTER) : null;
+                        value = date != null ? date.toLocalDate().format(DATE_FORMATTER) : null;
                     }
                     break;
                 case TIMESTAMP:
                     if (isDateWideRange) {
                         LocalDateTime localDateTime = result.getObject(colName, LocalDateTime.class);
-                        value = localDateTime != null ? localDateTime.format(LOCAL_DATE_TIME_GET_FORMATTER) : null;
+                        value = localDateTime != null ? localDateTime.format(LOCAL_DATE_TIME_FORMATTER) : null;
                     } else {
                         Timestamp timestamp = result.getTimestamp(colName);
-                        value = timestamp != null ? timestamp.toLocalDateTime().format(GreenplumDateTime.DATETIME_FORMATTER) : null;
+                        value = timestamp != null ? timestamp.toLocalDateTime().format(DATETIME_FORMATTER) : null;
                     }
                     break;
                 case TIMESTAMP_WITH_TIME_ZONE:
                     if (isDateWideRange) {
                         OffsetDateTime offsetDateTime = result.getObject(colName, OffsetDateTime.class);
-                        value = offsetDateTime != null ? offsetDateTime.format(OFFSET_DATE_TIME_GET_FORMATTER) : null;
+                        value = offsetDateTime != null ? offsetDateTime.format(OFFSET_DATE_TIME_FORMATTER) : null;
                     } else {
                         throw new UnsupportedOperationException(
                                 String.format("Field type '%s' (column '%s') is not supported",
@@ -466,34 +402,6 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                 default:
                     throw new IOException("The data tuple from JdbcResolver is corrupted");
             }
-        }
-    }
-
-    /**
-     * Convert a string to LocalDate class with formatter
-     *
-     * @param rawVal the LocalDate in a string format
-     * @return LocalDate
-     */
-    private LocalDate getLocalDate(String rawVal) {
-        try {
-            return LocalDate.parse(rawVal, LOCAL_DATE_SET_FORMATTER);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to convert date '" + rawVal + "' to LocalDate class: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Convert a string to LocalDateTime class with formatter
-     *
-     * @param rawVal the LocalDateTime in a string format
-     * @return LocalDateTime
-     */
-    private LocalDateTime getLocalDateTime(String rawVal) {
-        try {
-            return LocalDateTime.parse(rawVal, LOCAL_DATE_TIME_SET_FORMATTER);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to convert timestamp '" + rawVal + "' to the LocalDateTime class: " + e.getMessage(), e);
         }
     }
 }
