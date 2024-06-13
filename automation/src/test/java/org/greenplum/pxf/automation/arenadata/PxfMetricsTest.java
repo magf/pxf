@@ -15,6 +15,10 @@ import org.testng.annotations.Test;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 import static org.testng.Assert.assertEquals;
 
@@ -22,32 +26,37 @@ public class PxfMetricsTest extends BaseFeature {
     private static final String CLUSTER_NAME = "TestEnv";
     private static final String[] SOURCE_TABLE_FIELDS = new String[]{"id    int"};
     private Table gpdbMetricsSourceTable, gpdbMetricsReadableTable;
-    private URL serviceMetricsUrl, clusterMetricsUrl;
+    private final Collection<URL> serviceMetricsUrls = new ArrayList<>();
+    private final Collection<URL> clusterMetricsUrls = new ArrayList<>();
 
     @Override
     protected void beforeClass() throws Exception {
         String pxfAppPropertiesFile = cluster.getPxfHome() + "/conf/pxf-application.properties";
         cluster.runCommandOnAllNodes("sed -i 's/# server.address=localhost/server.address=0\\.0\\.0\\.0\\ncluster-name=" + CLUSTER_NAME + "/' " + pxfAppPropertiesFile);
         cluster.restart(PhdCluster.EnumClusterServices.pxf);
-        String pxfHostName = getPxfHostName();
-        serviceMetricsUrl = new URL("http://" + pxfHostName + ":" + pxfPort + "/service-metrics");
-        clusterMetricsUrl = new URL("http://" + pxfHostName + ":" + pxfPort + "/service-metrics/cluster-metrics");
+        Collection<String> pxfHostNames = getPxfHostNames();
+        for (String pxfHostName : pxfHostNames) {
+            serviceMetricsUrls.add(new URL("http://" + pxfHostName + ":" + pxfPort + "/service-metrics"));
+            clusterMetricsUrls.add(new URL("http://" + pxfHostName + ":" + pxfPort + "/service-metrics/cluster-metrics"));
+        }
+
         prepareData();
         runQueryWithExternalTable();
     }
 
-    private String getPxfHostName() {
-        String pxfHostName;
+    private Collection<String> getPxfHostNames() {
+        Collection<String> pxfHostNames = new ArrayList<>();
         if (cluster instanceof MultiNodeCluster) {
-            Node pxfNode = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf).get(0);
-            pxfHostName = pxfNode.getHostName();
-            if (StringUtils.isEmpty(pxfNode.getHostName())) {
-                pxfHostName = pxfNode.getHost();
+            List<Node> pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
+            for (Node pxfNode : pxfNodes) {
+                pxfHostNames.add(Optional.ofNullable(pxfNode.getHostName())
+                        .filter(StringUtils::isNotEmpty)
+                        .orElse(pxfNode.getHost()));
             }
         } else {
-            pxfHostName = cluster.getHost();
+            pxfHostNames.add(cluster.getHost());
         }
-        return pxfHostName;
+        return pxfHostNames;
     }
 
     protected void prepareData() throws Exception {
@@ -84,31 +93,41 @@ public class PxfMetricsTest extends BaseFeature {
 
     @Test(groups = {"arenadata"}, description = "Check cluster metrics")
     public void testClusterMetrics() throws Exception {
-        String expectedPxfRecordsSent = "4.0";
-        String actualPxfRecordsSent = "";
-        String json = IOUtils.toString(clusterMetricsUrl, StandardCharsets.UTF_8);
-        JSONObject jsonObject = new JSONObject(json);
-        assertEquals(CLUSTER_NAME, jsonObject.get("cluster"));
-        JSONArray metrics = jsonObject.getJSONArray("metrics");
-        for (int i = 0; i < metrics.length(); i++) {
-            if (metrics.getJSONObject(i).getString("name").equals("pxf.records.sent")) {
-                actualPxfRecordsSent = metrics.getJSONObject(i).getJSONArray("measurements").getJSONObject(0).getString("value");
+        float expectedPxfRecordsSent = 4.0f;
+        float actualPxfRecordsSent = 0.0f;
+        for (URL clusterMetricsUrl : clusterMetricsUrls) {
+            String json = IOUtils.toString(clusterMetricsUrl, StandardCharsets.UTF_8);
+            JSONObject jsonObject = new JSONObject(json);
+            assertEquals(CLUSTER_NAME, jsonObject.get("cluster"));
+            JSONArray metrics = jsonObject.getJSONArray("metrics");
+            for (int i = 0; i < metrics.length(); i++) {
+                if (metrics.getJSONObject(i).getString("name").equals("pxf.records.sent")) {
+                    String actualPxfRecordsSentStr = metrics.getJSONObject(i).getJSONArray("measurements")
+                            .getJSONObject(0).getString("value");
+                    actualPxfRecordsSent += Float.parseFloat(actualPxfRecordsSentStr);
+                }
             }
         }
-        assertEquals(actualPxfRecordsSent, expectedPxfRecordsSent);
+        assertEquals(Float.compare(actualPxfRecordsSent, expectedPxfRecordsSent), 0,
+                "Check cluster metrics. If expected value is not 0 then the actual cluster metric is not the same we are expecting");
     }
 
     @Test(groups = {"arenadata"}, description = "Check service metrics")
     public void testServiceMetrics() throws Exception {
-        String expectedPxfRecordsSent = "4.0";
-        String actualPxfRecordsSent = "";
-        String json = IOUtils.toString(serviceMetricsUrl, StandardCharsets.UTF_8);
-        JSONArray metrics = new JSONObject(json).getJSONArray("metrics");
-        for (int i = 0; i < metrics.length(); i++) {
-            if (metrics.getJSONObject(i).getString("name").equals("pxf.records.sent")) {
-                actualPxfRecordsSent = metrics.getJSONObject(i).getJSONArray("measurements").getJSONObject(0).getString("value");
+        float expectedPxfRecordsSent = 4.0f;
+        float actualPxfRecordsSent = 0.0f;
+        for (URL serviceMetricsUrl : serviceMetricsUrls) {
+            String json = IOUtils.toString(serviceMetricsUrl, StandardCharsets.UTF_8);
+            JSONArray metrics = new JSONObject(json).getJSONArray("metrics");
+            for (int i = 0; i < metrics.length(); i++) {
+                if (metrics.getJSONObject(i).getString("name").equals("pxf.records.sent")) {
+                    String actualPxfRecordsSentStr = metrics.getJSONObject(i).getJSONArray("measurements")
+                            .getJSONObject(0).getString("value");
+                    actualPxfRecordsSent += Float.parseFloat(actualPxfRecordsSentStr);
+                }
             }
         }
-        assertEquals(actualPxfRecordsSent, expectedPxfRecordsSent);
+        assertEquals(Float.compare(actualPxfRecordsSent, expectedPxfRecordsSent), 0,
+                "Check service metrics. If expected value is not 0 then the actual service metric is not the same we are expecting");
     }
 }

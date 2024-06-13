@@ -29,7 +29,7 @@ CREATE FOREIGN TABLE pxf_fdw_test_table (id int, name text)
 --
 -- Table creation fails if config option is provided
 --
-CREATE FOREIGN TABLE pxf_fdw_test_table ()
+CREATE FOREIGN TABLE pxf_fdw_test_table (id int, name text)
     SERVER pxf_fdw_test_server
     OPTIONS ( config '/foo/bar' );
 
@@ -174,14 +174,14 @@ CREATE FOREIGN TABLE pxf_fdw_test_table_log_errors (id int, name text)
 --
 -- Table creation fails if quote is provided (CSV-only option)
 --
-CREATE FOREIGN TABLE pxf_fdw_test_table_csv_only ()
+CREATE FOREIGN TABLE pxf_fdw_test_table_csv_only (id int, name text)
     SERVER pxf_fdw_test_server
     OPTIONS ( resource '/foo', quote '9' );
 
 --
 -- Table creation fails if disable_ppd is non-boolean
 --
-CREATE FOREIGN TABLE pxf_fdw_test_table_disable_ppd ()
+CREATE FOREIGN TABLE pxf_fdw_test_table_disable_ppd (id int, name text)
     SERVER pxf_fdw_test_server
     OPTIONS ( resource '/ppd', disable_ppd '6' );
 

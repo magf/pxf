@@ -616,6 +616,30 @@ public abstract class TableFactory {
     }
 
     /**
+     * Generates a PXF External Readable or Foreign Table using JDBC profile, partitioned by given column
+     * on a given range with a given interval.
+     * Recommended to use for large tables.
+     *
+     * @param name name of the external table which will be generated
+     * @param fields fields of the external table
+     * @param dataSourcePath path to the data object i.e. schema_name.table_name
+     * @param partitionByColumnIndex index of column which table is partitioned/fragmented by
+     * @param rangeExpression partition range expression
+     * @param interval interval expression
+     * @param partitionType partition type used to get fragments
+     * @param customParameters additional user parameters
+     * @return PXF Readable External or Foreign table
+     */
+    public static ExternalTable getPxfJdbcReadablePartitionedTable(
+            String name, String[] fields, String dataSourcePath, Integer partitionByColumnIndex,
+            String rangeExpression, String interval, EnumPartitionType partitionType, String server, String customParameters) {
+
+        return getPxfJdbcReadableTable(name, fields, dataSourcePath, null,
+                null, true, partitionByColumnIndex, rangeExpression,
+                interval, null, partitionType, server, customParameters);
+    }
+
+    /**
      * Generates a PXF External Readable or Foreign Table using JDBC profile.
      * It's not recommended for large tables.
      *
