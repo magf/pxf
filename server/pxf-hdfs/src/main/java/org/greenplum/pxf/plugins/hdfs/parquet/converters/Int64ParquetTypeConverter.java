@@ -65,6 +65,37 @@ public class Int64ParquetTypeConverter implements ParquetTypeConverter {
         return value;
     }
 
+    @Override
+    public void write(Group group, int columnIndex, Object fieldValue) {
+        group.add(columnIndex, writeValue(fieldValue));
+    }
+
+    @Override
+    public Long filterValue(String val) {
+        if (detectedDataType == DataType.BIGINT) {
+            return Long.parseLong(val);
+        }
+        return writeValue(val);
+    }
+
+    private long writeValue(Object fieldValue) {
+        if (detectedDataType == DataType.TIMESTAMP || detectedDataType == DataType.TIMESTAMP_WITH_TIME_ZONE) {
+            String timestamp = (String) fieldValue;
+            boolean isTimestampWithTimeZone = TIMESTAMP_PATTERN.matcher(timestamp).find();
+            return ParquetTimestampUtilities
+                    .getLongFromTimestamp(timestamp, useLocalPxfTimezoneWrite, isTimestampWithTimeZone);
+        } else if (detectedDataType == DataType.NUMERIC) {
+            String decimalValue = (String) fieldValue;
+            LogicalTypeAnnotation.DecimalLogicalTypeAnnotation decimalAnno = (LogicalTypeAnnotation.DecimalLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
+            return new BigDecimal(decimalValue, MathContext.DECIMAL64).setScale(decimalAnno.getScale(), RoundingMode.HALF_EVEN).unscaledValue().longValue();
+        } else if (detectedDataType == DataType.TIME) {
+            String timeValue = (String) fieldValue;
+            return writeTimeValue(timeValue);
+        } else {
+            return (Long) fieldValue;
+        }
+    }
+
     private String readTime(long value) {
         LogicalTypeAnnotation.TimeLogicalTypeAnnotation timeAnno = (LogicalTypeAnnotation.TimeLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
         LocalTime time;
@@ -79,25 +110,6 @@ public class Int64ParquetTypeConverter implements ParquetTypeConverter {
                 throw new IllegalArgumentException("Unsupported time unit " + timeAnno.getUnit());
         }
         return time.format(GreenplumDateTime.TIME_FORMATTER);
-    }
-
-    @Override
-    public void write(Group group, int columnIndex, Object fieldValue) {
-        if (detectedDataType == DataType.TIMESTAMP || detectedDataType == DataType.TIMESTAMP_WITH_TIME_ZONE) {
-            String timestamp = (String) fieldValue;
-            boolean isTimestampWithTimeZone = TIMESTAMP_PATTERN.matcher(timestamp).find();
-            group.add(columnIndex, ParquetTimestampUtilities
-                    .getLongFromTimestamp(timestamp, useLocalPxfTimezoneWrite, isTimestampWithTimeZone));
-        } else if (detectedDataType == DataType.NUMERIC) {
-            String decimalValue = (String) fieldValue;
-            LogicalTypeAnnotation.DecimalLogicalTypeAnnotation decimalAnno = (LogicalTypeAnnotation.DecimalLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
-            group.add(columnIndex, new BigDecimal(decimalValue, MathContext.DECIMAL64).setScale(decimalAnno.getScale(), RoundingMode.HALF_EVEN).unscaledValue().longValue());
-        } else if (detectedDataType == DataType.TIME) {
-            String timeValue = (String) fieldValue;
-            group.add(columnIndex, writeTimeValue(timeValue));
-        } else {
-            group.add(columnIndex, (Long) fieldValue);
-        }
     }
 
     /**

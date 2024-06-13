@@ -1,17 +1,38 @@
 package org.greenplum.pxf.plugins.hdfs.parquet.converters;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.schema.Type;
 import org.greenplum.pxf.api.io.DataType;
 
+import java.nio.charset.StandardCharsets;
+
 public interface ParquetTypeConverter {
+    String HEX_PREPEND = "\\x";
+    String HEX_PREPEND_2 = "\\\\x";
+    String FILTER_COLUMN = "~~filter~~";
 
     DataType getDataType();
 
     Object read(Group group, int columnIndex, int repeatIndex);
 
     void write(Group group, int columnIndex, Object fieldValue);
+
+    default Object filterValue(String val) {
+        return val;
+    }
+    
+    default byte[] readByteArray(String val) throws DecoderException {
+        int beginIndex = val.startsWith(HEX_PREPEND) ? HEX_PREPEND.length() : (val.startsWith(HEX_PREPEND_2) ? HEX_PREPEND.length() : -1);
+        if (beginIndex > 0) {
+            return Hex.decodeHex(val.substring(beginIndex));
+        } else {
+            return val.getBytes(StandardCharsets.UTF_8);
+        }
+    }
 
     void addValueToJsonArray(Group group, int columnIndex, int repeatIndex, ArrayNode jsonNode);
 

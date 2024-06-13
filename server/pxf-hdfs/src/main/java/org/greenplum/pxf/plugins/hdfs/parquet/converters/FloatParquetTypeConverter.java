@@ -24,6 +24,11 @@ public class FloatParquetTypeConverter implements ParquetTypeConverter {
     }
 
     @Override
+    public Float filterValue(String val) {
+        return val != null ? Float.parseFloat(val) : null;
+    }
+
+    @Override
     public void addValueToJsonArray(Group group, int columnIndex, int repeatIndex, ArrayNode jsonNode) {
         jsonNode.add(group.getFloat(columnIndex, repeatIndex));
     }

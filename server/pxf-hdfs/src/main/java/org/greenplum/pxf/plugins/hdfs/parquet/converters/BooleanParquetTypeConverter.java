@@ -24,6 +24,11 @@ public class BooleanParquetTypeConverter implements ParquetTypeConverter {
     }
 
     @Override
+    public Boolean filterValue(String val) {
+        return val != null ?  Boolean.parseBoolean(val) : null;
+    }
+
+    @Override
     public void addValueToJsonArray(Group group, int columnIndex, int repeatIndex, ArrayNode jsonNode) {
         jsonNode.add(group.getBoolean(columnIndex, repeatIndex));
     }

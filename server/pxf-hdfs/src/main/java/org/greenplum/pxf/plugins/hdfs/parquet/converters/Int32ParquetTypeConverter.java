@@ -56,19 +56,31 @@ public class Int32ParquetTypeConverter implements ParquetTypeConverter {
 
     @Override
     public void write(Group group, int columnIndex, Object fieldValue) {
+        group.add(columnIndex, writeValue(fieldValue));
+    }
+
+    @Override
+    public Integer filterValue(String val) {
+        if (detectedDataType == DataType.SMALLINT || detectedDataType == DataType.INTEGER) {
+            return Integer.parseInt(val);
+        }
+        return writeValue(val);
+    }
+
+    private int writeValue(Object fieldValue) {
         if (detectedDataType == DataType.DATE) {
             String dateString = (String) fieldValue;
-            group.add(columnIndex, ParquetTimestampUtilities.getDaysFromEpochFromDateString(dateString));
+            return ParquetTimestampUtilities.getDaysFromEpochFromDateString(dateString);
         } else if (detectedDataType == DataType.SMALLINT) {
-            group.add(columnIndex, ((Number) fieldValue).shortValue());
+            return ((Number) fieldValue).shortValue();
         } else if (detectedDataType == DataType.NUMERIC) {
             LogicalTypeAnnotation.DecimalLogicalTypeAnnotation anno32 = (LogicalTypeAnnotation.DecimalLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
-            group.add(columnIndex,  strToDecimal32((String) fieldValue, anno32));
+            return strToDecimal32((String) fieldValue, anno32);
         } else if (detectedDataType == DataType.TIME) {
             String timeValue = (String) fieldValue;
-            group.add(columnIndex, writeTimeValue(timeValue));
+            return writeTimeValue(timeValue);
         } else {
-            group.add(columnIndex, (Integer) fieldValue);
+            return (Integer) fieldValue;
         }
     }
 
@@ -81,11 +93,11 @@ public class Int32ParquetTypeConverter implements ParquetTypeConverter {
      * @param timeValue the greenplum string of the timestamp with the time zone
      * @return # of time units provided by logical type annotation since Unix epoch
      */
-    private long writeTimeValue(String timeValue) {
+    private int writeTimeValue(String timeValue) {
         LocalTime time = LocalTime.parse(timeValue, GreenplumDateTime.TIME_FORMATTER);
         LogicalTypeAnnotation.TimeLogicalTypeAnnotation timeAnno = (LogicalTypeAnnotation.TimeLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
         if (Objects.requireNonNull(timeAnno.getUnit()) == LogicalTypeAnnotation.TimeUnit.MILLIS) {
-            return time.getLong(ChronoField.MILLI_OF_DAY);
+            return (int) time.getLong(ChronoField.MILLI_OF_DAY);
         }
         throw new IllegalArgumentException("Unsupported time unit " + timeAnno.getUnit());
     }

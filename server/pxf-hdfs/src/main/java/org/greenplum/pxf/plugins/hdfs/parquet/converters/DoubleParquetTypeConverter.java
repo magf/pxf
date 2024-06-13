@@ -24,6 +24,11 @@ public class DoubleParquetTypeConverter implements ParquetTypeConverter {
     }
 
     @Override
+    public Double filterValue(String val) {
+        return val != null ? Double.parseDouble(val) : null;
+    }
+
+    @Override
     public void addValueToJsonArray(Group group, int columnIndex, int repeatIndex, ArrayNode jsonNode) {
         jsonNode.add(group.getDouble(columnIndex, repeatIndex));
     }

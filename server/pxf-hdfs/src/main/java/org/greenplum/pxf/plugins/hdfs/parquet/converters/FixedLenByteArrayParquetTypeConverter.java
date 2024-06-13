@@ -1,7 +1,9 @@
 package org.greenplum.pxf.plugins.hdfs.parquet.converters;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.DecoderException;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
@@ -65,18 +67,40 @@ public class FixedLenByteArrayParquetTypeConverter implements ParquetTypeConvert
 
     @Override
     public void write(Group group, int columnIndex, Object fieldValue) {
-        if (detectedDataType == DataType.NUMERIC) {
-            byte[] fixedLenByteArray = getDecimalFixedLenByteArray((String) fieldValue, type, String.valueOf(columnIndex));
-            if (fixedLenByteArray == null) {
-                return;
+        Binary value = writeValue(fieldValue, String.valueOf(columnIndex));
+        if (value != null) {
+            group.add(columnIndex, value);
+        }
+    }
+
+    @Override
+    public Binary filterValue(String val) {
+        if (val == null) {
+            return null;
+        }
+        if (detectedDataType == DataType.BYTEA) {
+            try {
+                return writeValue(readByteArray(val), "");
+            } catch (DecoderException e) {
+                throw new IllegalArgumentException("Couldn't decode byte array sequence for value " + val);
             }
-            group.add(columnIndex, Binary.fromReusedByteArray(fixedLenByteArray));
+        }
+        return writeValue(val, FILTER_COLUMN);
+    }
+
+    private Binary writeValue(Object fieldValue, String columnIndex) {
+        if (detectedDataType == DataType.NUMERIC) {
+            byte[] fixedLenByteArray = getDecimalFixedLenByteArray((String) fieldValue, type, columnIndex);
+            if (fixedLenByteArray == null) {
+                return null;
+            }
+            return Binary.fromReusedByteArray(fixedLenByteArray);
         } else if (detectedDataType == DataType.INTERVAL) {
-            group.add(columnIndex, ParquetIntervalUtilities.write((String) fieldValue));
+            return ParquetIntervalUtilities.write((String) fieldValue);
         } else if (detectedDataType == DataType.UUID) {
-            group.add(columnIndex, writeUUID((String) fieldValue));
+            return writeUUID((String) fieldValue);
         } else {
-            group.add(columnIndex, Binary.fromReusedByteArray((byte[]) fieldValue));
+            return Binary.fromReusedByteArray((byte[]) fieldValue);
         }
     }
 

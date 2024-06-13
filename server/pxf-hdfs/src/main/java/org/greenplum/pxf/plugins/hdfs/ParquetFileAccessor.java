@@ -61,10 +61,9 @@ import org.greenplum.pxf.api.model.Accessor;
 import org.greenplum.pxf.api.model.BasePlugin;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.plugins.hdfs.filter.BPCharOperatorTransformer;
-import org.greenplum.pxf.plugins.hdfs.parquet.ParquetOperatorPruner;
-import org.greenplum.pxf.plugins.hdfs.parquet.ParquetRecordFilterBuilder;
-import org.greenplum.pxf.plugins.hdfs.parquet.ParquetUtilities;
+import org.greenplum.pxf.plugins.hdfs.parquet.*;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalOverflowOption;
+import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
 import org.greenplum.pxf.plugins.hdfs.utilities.HdfsUtilities;
 
 import java.io.IOException;
@@ -321,8 +320,14 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         List<ColumnDescriptor> tupleDescription = context.getTupleDescription();
         DecimalOverflowOption decimalOverflowOption = DecimalOverflowOption.valueOf(configuration.get(ParquetResolver.PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME, DecimalOverflowOption.ROUND.name()).toUpperCase());
         boolean useLocalPxfTimezoneRead = context.getOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
+        ParquetConfig parquetConfig = ParquetConfig.builder()
+                .useLocalPxfTimezoneWrite(useLocalPxfTimezoneRead)
+                .useLocalPxfTimezoneRead(useLocalPxfTimezoneRead)
+                .decimalUtilities(new DecimalUtilities(decimalOverflowOption, true))
+                .build();
+        ParquetTypeConverterFactory parquetTypeConverterFactory = new ParquetTypeConverterFactory(parquetConfig);
         ParquetRecordFilterBuilder filterBuilder = new ParquetRecordFilterBuilder(
-                tupleDescription, originalFieldsMap, decimalOverflowOption, useLocalPxfTimezoneRead);
+                tupleDescription, originalFieldsMap, parquetTypeConverterFactory);
         TreeVisitor pruner = new ParquetOperatorPruner(
                 tupleDescription, originalFieldsMap, SUPPORTED_OPERATORS);
         TreeVisitor bpCharTransformer = new BPCharOperatorTransformer(tupleDescription);

@@ -116,6 +116,11 @@ public class ListParquetTypeConverter implements ParquetTypeConverter {
     }
 
     @Override
+    public Object filterValue(String val) {
+        throw new UnsupportedOperationException("Filtering on list values is unsupported for column " + FILTER_COLUMN);
+    }
+
+    @Override
     public void addValueToJsonArray(Group group, int columnIndex, int repeatIndex, ArrayNode jsonNode) {
         String complexTypeName = getComplexTypeName(type.asGroupType());
         throw new UnsupportedTypeException(String.format("Parquet LIST of %s is not supported.", complexTypeName));
