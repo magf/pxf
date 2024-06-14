@@ -45,7 +45,7 @@ public class Int64ParquetTypeConverter implements ParquetTypeConverter {
             return DataType.NUMERIC;
         } else if (type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation) {
             return dataType == DataType.TIMESTAMP_WITH_TIME_ZONE ? DataType.TIMESTAMP_WITH_TIME_ZONE : DataType.TIMESTAMP;
-        } else if (type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimeLogicalTypeAnnotation) {
+        } else if (type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimeLogicalTypeAnnotation || dataType == DataType.TIME) {
             return DataType.TIME;
         }
         return DataType.BIGINT;
@@ -98,6 +98,9 @@ public class Int64ParquetTypeConverter implements ParquetTypeConverter {
 
     private String readTime(long value) {
         LogicalTypeAnnotation.TimeLogicalTypeAnnotation timeAnno = (LogicalTypeAnnotation.TimeLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
+        if (timeAnno == null) {
+            return LocalTime.ofNanoOfDay(value * NANOS_IN_MICROS).format(GreenplumDateTime.TIME_FORMATTER);
+        }
         LocalTime time;
         switch (timeAnno.getUnit()) {
             case NANOS:
@@ -124,6 +127,9 @@ public class Int64ParquetTypeConverter implements ParquetTypeConverter {
     private long writeTimeValue(String timeValue) {
         LocalTime time = LocalTime.parse(timeValue, GreenplumDateTime.TIME_FORMATTER);
         LogicalTypeAnnotation.TimeLogicalTypeAnnotation timeAnno = (LogicalTypeAnnotation.TimeLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
+        if (timeAnno == null) {
+            return time.getLong(ChronoField.MICRO_OF_DAY);
+        }
         switch (timeAnno.getUnit()) {
             case NANOS:
                 return time.getLong(ChronoField.NANO_OF_DAY);

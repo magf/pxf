@@ -98,6 +98,7 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
         return PRUNER;
     }
 
+    @Override
     protected SupportedDataTypePruner getDataTypePruner() {
         return new SupportedDataTypePruner(columns, SUPPORTED_DATA_TYPES);
     }

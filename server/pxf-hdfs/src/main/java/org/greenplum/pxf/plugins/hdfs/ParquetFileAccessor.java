@@ -101,8 +101,11 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     private static final CompressionCodecName DEFAULT_COMPRESSION = CompressionCodecName.SNAPPY;
     public static final String USE_INT64_TIMESTAMPS_NAME = "USE_INT64_TIMESTAMPS";
     public static final String USE_LOCAL_PXF_TIMEZONE_WRITE_NAME = "USE_LOCAL_PXF_TIMEZONE_WRITE";
+    public static final String USE_LOGICAL_TYPE_INTERVAL = "USE_LOGICAL_TYPE_INTERVAL";
+    public static final String USE_LOGICAL_TYPE_TIME = "USE_LOGICAL_TYPE_INTERVAL";
     public static final boolean DEFAULT_USE_INT64_TIMESTAMPS = false;
     public static final boolean DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE = true;
+    public static final boolean DEFAULT_USE_NEW_ANNOTATIONS = false;
 
     // From org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe
     public static final int[] PRECISION_TO_BYTE_COUNT = new int[38];
@@ -147,6 +150,8 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     private long totalReadTimeInNanos;
     private boolean useInt64Timestamps;
     private boolean useLocalPxfTimezoneWrite;
+    private boolean useLogicalTypeInterval;
+    private boolean useLogicalTypeTime;
 
     /**
      * Opens the resource for read.
@@ -243,6 +248,8 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         parquetVersion = parquetVerStr != null ? WriterVersion.fromString(parquetVerStr.toLowerCase()) : DEFAULT_WRITER_VERSION;
         useInt64Timestamps = context.getOption(USE_INT64_TIMESTAMPS_NAME, DEFAULT_USE_INT64_TIMESTAMPS);
         useLocalPxfTimezoneWrite = context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
+        useLogicalTypeInterval = context.getOption(USE_LOGICAL_TYPE_INTERVAL, DEFAULT_USE_NEW_ANNOTATIONS);
+        useLogicalTypeTime = context.getOption(USE_LOGICAL_TYPE_TIME, DEFAULT_USE_NEW_ANNOTATIONS);
         LOG.debug("{}-{}: Parquet options: PAGE_SIZE = {}, ROWGROUP_SIZE = {}, DICTIONARY_PAGE_SIZE = {}, " +
                         "PARQUET_VERSION = {}, ENABLE_DICTIONARY = {}, USE_INT64_TIMESTAMPS = {}, USE_LOCAL_PXF_TIMEZONE_WRITE = {}",
                 context.getTransactionId(), context.getSegmentId(), pageSize, rowGroupSize, dictionarySize,
@@ -616,8 +623,11 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 break;
             case TIME:
                 primitiveTypeName = PrimitiveTypeName.INT64;
-                // postgres supports only microsecond precision out of the box
-                logicalTypeAnnotation = LogicalTypeAnnotation.timeType(true, LogicalTypeAnnotation.TimeUnit.MICROS);
+                // latest spark doesn't support time
+                if (useLogicalTypeTime) {
+                    // postgres supports only microsecond precision out of the box
+                    logicalTypeAnnotation = LogicalTypeAnnotation.timeType(true, LogicalTypeAnnotation.TimeUnit.MICROS);
+                }
                 break;
             case JSON:
                 primitiveTypeName = PrimitiveTypeName.BINARY;
@@ -629,7 +639,10 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 break;
             case INTERVAL:
                 primitiveTypeName = PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY;
-                logicalTypeAnnotation = LogicalTypeAnnotation.IntervalLogicalTypeAnnotation.getInstance();
+                // latest spark doesn't support time
+                if (useLogicalTypeInterval) {
+                    logicalTypeAnnotation = LogicalTypeAnnotation.IntervalLogicalTypeAnnotation.getInstance();
+                }
                 length = 12;
                 break;
             case UUID:

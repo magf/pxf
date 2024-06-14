@@ -37,7 +37,7 @@ public class FixedLenByteArrayParquetTypeConverter implements ParquetTypeConvert
         LogicalTypeAnnotation logicalTypeAnnotation = type.getLogicalTypeAnnotation();
         if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.DecimalLogicalTypeAnnotation) {
             return DataType.NUMERIC;
-        } else if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.IntervalLogicalTypeAnnotation) {
+        } else if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.IntervalLogicalTypeAnnotation || dataType == DataType.INTERVAL) {
             return DataType.INTERVAL;
         } else if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.UUIDLogicalTypeAnnotation) {
             return DataType.UUID;
