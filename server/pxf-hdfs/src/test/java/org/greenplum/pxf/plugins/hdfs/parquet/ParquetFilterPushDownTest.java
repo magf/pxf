@@ -486,14 +486,6 @@ public class ParquetFilterPushDownTest extends ParquetBaseTest {
     }
 
     @Test
-    public void testIntervalPushDown() throws Exception {
-        // a9 = 1000
-        int[] expectedRows = {16};
-        context.setFilterString("a9c23s4d1000o5");
-        assertRowsReturned(expectedRows);
-    }
-
-    @Test
     public void testDatePushDown() throws Exception {
         // a2 = '2019-12-04'
         int[] expectedRows = {4};

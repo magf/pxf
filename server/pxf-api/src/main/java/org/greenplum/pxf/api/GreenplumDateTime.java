@@ -30,8 +30,8 @@ public class GreenplumDateTime {
     public static final DateTimeFormatter DATETIME_FORMATTER =
             new DateTimeFormatterBuilder()
                     .appendPattern(DATETIME_FORMATTER_BASE_PATTERN)
-                    // Parsing nanos in strict mode, the number of parsed digits must be between 0 and 6 (microsecond support)
-                    .appendFraction(ChronoField.NANO_OF_SECOND, 0, 6, true)
+                    // Parsing nanos in strict mode, the number of parsed digits must be between 0 and 9 (nanosecond support)
+                    .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
                     .toFormatter();
 
     /**
@@ -41,7 +41,7 @@ public class GreenplumDateTime {
     public static final DateTimeFormatter TIME_FORMATTER =
             new DateTimeFormatterBuilder()
                     .appendPattern("HH:mm:ss")
-                    // Parsing nanos in strict mode, the number of parsed digits must be between 0 and 6 (microsecond support)
+                    // Parsing nanos in strict mode, the number of parsed digits must be between 0 and 9 (nanosecond support)
                     .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
                     .toFormatter();
 

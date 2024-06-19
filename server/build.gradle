@@ -135,6 +135,8 @@ configure(javaProjects) {
             // revert once springboot provided postgresql is upgraded to bundle postgresql:42.7.2+
             dependency("org.postgresql:postgresql:42.7.2")
 
+            dependency("org.mongodb:bson:5.1.1")
+
             dependency("org.simplify4u:slf4j-mock:2.3.0")
             dependency("org.threeten:threeten-extra:1.5.0")
             dependency("org.tukaani:xz:1.8")

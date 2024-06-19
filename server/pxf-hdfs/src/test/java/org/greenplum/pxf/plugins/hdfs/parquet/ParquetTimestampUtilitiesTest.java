@@ -59,14 +59,6 @@ class ParquetTimestampUtilitiesTest {
     }
 
     @Test
-    public void testUnsupportedNanoSeconds() {
-        String timestamp = "2019-03-14 20:52:48.1234567";
-        Exception e = assertThrows(DateTimeParseException.class,
-                () -> ParquetTimestampUtilities.getBinaryFromTimestamp(timestamp, true));
-        assertEquals("Text '2019-03-14 20:52:48.1234567' could not be parsed, unparsed text found at index 26", e.getMessage());
-    }
-
-    @Test
     public void testBinaryWithNanos() {
         Instant instant = Instant.parse("2019-03-15T03:52:48.123456Z"); // UTC
         ZonedDateTime localTime = instant.atZone(ZoneId.systemDefault());
@@ -257,7 +249,7 @@ class ParquetTimestampUtilitiesTest {
         ParquetTypeConverter converter = new Int64ParquetTypeConverter(type, DataType.TIMESTAMP, useLocalPxfTimezoneRead, useLocalPxfTimezoneWrite);
         String timestamp = (String) converter.read(group, columnIndex, repeatIndex);
         // Postgres Timestamp type support only microseconds
-        assertEquals("1977-12-11 10:01:02.123456", timestamp);
+        assertEquals("1977-12-11 10:01:02.123456789", timestamp);
         TimeZone.setDefault(defaultTimeZone);
     }
 
@@ -276,7 +268,7 @@ class ParquetTimestampUtilitiesTest {
         ParquetTypeConverter converter = new Int64ParquetTypeConverter(type, DataType.TIMESTAMP, useLocalPxfTimezoneRead, useLocalPxfTimezoneWrite);
         String timestamp = (String) converter.read(group, columnIndex, repeatIndex);
         // Postgres Timestamp type support only microsecond
-        assertEquals("1977-12-11 07:01:02.123456", timestamp);
+        assertEquals("1977-12-11 07:01:02.123456789", timestamp);
         TimeZone.setDefault(defaultTimeZone);
     }
 

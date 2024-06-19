@@ -90,6 +90,7 @@ import static org.apache.parquet.hadoop.api.ReadSupport.PARQUET_READ_SCHEMA;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import static org.greenplum.pxf.plugins.hdfs.ParquetResolver.DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ;
 import static org.greenplum.pxf.plugins.hdfs.ParquetResolver.USE_LOCAL_PXF_TIMEZONE_READ_NAME;
+import static org.greenplum.pxf.plugins.hdfs.parquet.ParquetIntervalUtilities.INTERVAL_TYPE_LENGTH;
 
 /**
  * Parquet file accessor.
@@ -102,7 +103,8 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     public static final String USE_INT64_TIMESTAMPS_NAME = "USE_INT64_TIMESTAMPS";
     public static final String USE_LOCAL_PXF_TIMEZONE_WRITE_NAME = "USE_LOCAL_PXF_TIMEZONE_WRITE";
     public static final String USE_LOGICAL_TYPE_INTERVAL = "USE_LOGICAL_TYPE_INTERVAL";
-    public static final String USE_LOGICAL_TYPE_TIME = "USE_LOGICAL_TYPE_INTERVAL";
+    public static final String USE_LOGICAL_TYPE_TIME = "USE_LOGICAL_TYPE_TIME";
+    public static final String USE_LOGICAL_TYPE_UUID = "USE_LOGICAL_TYPE_UUID";
     public static final boolean DEFAULT_USE_INT64_TIMESTAMPS = false;
     public static final boolean DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE = true;
     public static final boolean DEFAULT_USE_NEW_ANNOTATIONS = false;
@@ -152,6 +154,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     private boolean useLocalPxfTimezoneWrite;
     private boolean useLogicalTypeInterval;
     private boolean useLogicalTypeTime;
+    private boolean useLogicalTypeUUID;
 
     /**
      * Opens the resource for read.
@@ -250,6 +253,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         useLocalPxfTimezoneWrite = context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
         useLogicalTypeInterval = context.getOption(USE_LOGICAL_TYPE_INTERVAL, DEFAULT_USE_NEW_ANNOTATIONS);
         useLogicalTypeTime = context.getOption(USE_LOGICAL_TYPE_TIME, DEFAULT_USE_NEW_ANNOTATIONS);
+        useLogicalTypeUUID = context.getOption(USE_LOGICAL_TYPE_UUID, DEFAULT_USE_NEW_ANNOTATIONS);
         LOG.debug("{}-{}: Parquet options: PAGE_SIZE = {}, ROWGROUP_SIZE = {}, DICTIONARY_PAGE_SIZE = {}, " +
                         "PARQUET_VERSION = {}, ENABLE_DICTIONARY = {}, USE_INT64_TIMESTAMPS = {}, USE_LOCAL_PXF_TIMEZONE_WRITE = {}",
                 context.getTransactionId(), context.getSegmentId(), pageSize, rowGroupSize, dictionarySize,
@@ -643,11 +647,14 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 if (useLogicalTypeInterval) {
                     logicalTypeAnnotation = LogicalTypeAnnotation.IntervalLogicalTypeAnnotation.getInstance();
                 }
-                length = 12;
+                length = INTERVAL_TYPE_LENGTH;
                 break;
             case UUID:
                 primitiveTypeName = PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY;
-                logicalTypeAnnotation = LogicalTypeAnnotation.uuidType();
+                // latest spark doesn't support uuid
+                if (useLogicalTypeUUID) {
+                    logicalTypeAnnotation = LogicalTypeAnnotation.uuidType();
+                }
                 length = LogicalTypeAnnotation.UUIDLogicalTypeAnnotation.BYTES;
                 break;
             case VARCHAR:

@@ -11,12 +11,15 @@ import org.apache.parquet.schema.Type;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetFixedLenByteArrayUtilities;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetIntervalUtilities;
+import org.greenplum.pxf.plugins.hdfs.parquet.ParquetUUIDUtilities;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.UUID;
+
+import static org.greenplum.pxf.plugins.hdfs.parquet.ParquetIntervalUtilities.INTERVAL_TYPE_LENGTH;
 
 @Slf4j
 public class FixedLenByteArrayParquetTypeConverter implements ParquetTypeConverter {
@@ -37,9 +40,11 @@ public class FixedLenByteArrayParquetTypeConverter implements ParquetTypeConvert
         LogicalTypeAnnotation logicalTypeAnnotation = type.getLogicalTypeAnnotation();
         if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.DecimalLogicalTypeAnnotation) {
             return DataType.NUMERIC;
-        } else if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.IntervalLogicalTypeAnnotation || dataType == DataType.INTERVAL) {
+        } else if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.IntervalLogicalTypeAnnotation
+                || (dataType == DataType.INTERVAL && type.asPrimitiveType().getTypeLength() == INTERVAL_TYPE_LENGTH)) {
             return DataType.INTERVAL;
-        } else if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.UUIDLogicalTypeAnnotation) {
+        } else if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.UUIDLogicalTypeAnnotation
+                || (dataType == DataType.UUID && type.asPrimitiveType().getTypeLength() == LogicalTypeAnnotation.UUIDLogicalTypeAnnotation.BYTES)) {
             return DataType.UUID;
         } else {
             return DataType.BYTEA;
@@ -59,7 +64,7 @@ public class FixedLenByteArrayParquetTypeConverter implements ParquetTypeConvert
         } else if (detectedDataType == DataType.INTERVAL) {
             return ParquetIntervalUtilities.read(group.getBinary(columnIndex, repeatIndex).getBytes());
         } else if (detectedDataType == DataType.UUID) {
-            return readUUID(group.getBinary(columnIndex, repeatIndex).getBytes());
+            return ParquetUUIDUtilities.readUUID(group.getBinary(columnIndex, repeatIndex).getBytes());
         } else {
             return group.getBinary(columnIndex, repeatIndex).getBytes();
         }
@@ -98,25 +103,10 @@ public class FixedLenByteArrayParquetTypeConverter implements ParquetTypeConvert
         } else if (detectedDataType == DataType.INTERVAL) {
             return ParquetIntervalUtilities.write((String) fieldValue);
         } else if (detectedDataType == DataType.UUID) {
-            return writeUUID((String) fieldValue);
+            return ParquetUUIDUtilities.writeUUID((String) fieldValue);
         } else {
             return Binary.fromReusedByteArray((byte[]) fieldValue);
         }
-    }
-
-    private String readUUID(byte[] bytes) {
-        ByteBuffer bb = ByteBuffer.wrap(bytes);
-        long most = bb.getLong();
-        long least = bb.getLong();
-        return new UUID(most, least).toString();
-    }
-
-    private Binary writeUUID(String str) {
-        UUID uuid = UUID.fromString(str);
-        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
-        bb.putLong(uuid.getMostSignificantBits());
-        bb.putLong(uuid.getLeastSignificantBits());
-        return Binary.fromReusedByteArray(bb.array());
     }
 
     private byte[] getDecimalFixedLenByteArray(String value, Type type, String columnName) {

@@ -1,5 +1,6 @@
 package org.greenplum.pxf.plugins.hdfs.parquet;
 
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.parquet.example.data.simple.BinaryValue;
 import org.apache.parquet.example.data.simple.Primitive;
@@ -13,7 +14,9 @@ import java.nio.ByteBuffer;
 import java.sql.SQLException;
 
 @Slf4j
+@UtilityClass
 public class ParquetIntervalUtilities {
+    public static final int INTERVAL_TYPE_LENGTH = 12;
     public static String read(byte[] bytes) {
         ByteBuffer bb = ByteBuffer.wrap(bytes);
         int months = bb.getInt();

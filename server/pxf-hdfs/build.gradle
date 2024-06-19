@@ -46,7 +46,7 @@ dependencies {
     implementation("org.apache.parquet:parquet-jackson")             { transitive = false }
     implementation("org.apache.hive:hive-storage-api")               { transitive = false } // for parquet writing
     implementation("org.postgresql:postgresql")                      { transitive = false } // for Interval support
-
+    implementation("org.mongodb:bson")                               { transitive = false } // for bson support
     implementation("org.codehaus.jackson:jackson-core-asl")          { transitive = false }
     implementation("org.codehaus.jackson:jackson-mapper-asl")        { transitive = false }
 
