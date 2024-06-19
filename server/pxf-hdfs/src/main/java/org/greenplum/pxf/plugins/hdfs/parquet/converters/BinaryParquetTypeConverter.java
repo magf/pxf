@@ -1,36 +1,26 @@
 package org.greenplum.pxf.plugins.hdfs.parquet.converters;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import de.undercouch.bson4jackson.BsonFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.parquet.example.data.Group;
-import org.apache.parquet.example.data.simple.BinaryValue;
-import org.apache.parquet.example.data.simple.Primitive;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
-import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
-import org.bson.*;
-import org.bson.codecs.*;
+import org.bson.BsonBinaryReader;
+import org.bson.BsonBinaryWriter;
+import org.bson.BsonDocument;
+import org.bson.codecs.BsonDocumentCodec;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.EncoderContext;
 import org.bson.io.BasicOutputBuffer;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.utilities.Utilities;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetIntervalUtilities;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetUUIDUtilities;
 import org.greenplum.pxf.plugins.hdfs.utilities.PgUtilities;
-import org.postgresql.util.PGInterval;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
-import java.util.UUID;
 
 @Slf4j
 public class BinaryParquetTypeConverter implements ParquetTypeConverter {
