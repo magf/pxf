@@ -26,7 +26,7 @@ public class DateTimeEraFormatters {
             .appendText(ChronoField.ERA, TextStyle.SHORT)
             .toFormatter();
     /**
-     * LOCAL_DATE_TIME_SET_FORMATTER is used to parse String to LocalDateTime.
+     * Used to parse String to LocalDateTime.
      * Examples: "1980-08-10 17:10:20" -> 1980-08-10T17:10:20; "123456-10-19 11:12:13" -> +123456-10-19T11:12:13;
      * "1234-10-19 10:11:15.456 BC" -> -1233-10-19T10:11:15.456
      */
@@ -39,7 +39,7 @@ public class DateTimeEraFormatters {
             .toFormatter()
             .withLocale(Locale.ROOT);
     /**
-     * LOCAL_DATE_SET_FORMATTER is used to parse String to LocalDate.
+     * Used to parse String to LocalDate.
      * Examples: "1977-12-11" -> 1977-12-11; "456789-12-11" -> +456789-12-11; "0010-12-11 BC" -> -0009-12-11
      */
     public static final DateTimeFormatter LOCAL_DATE_PARSE_FORMATTER = new DateTimeFormatterBuilder()
@@ -50,7 +50,7 @@ public class DateTimeEraFormatters {
             .toFormatter()
             .withLocale(Locale.ROOT);
     /**
-     * OFFSET_DATE_TIME_GET_FORMATTER is used to format OffsetDateTime to String.
+     * Used to format OffsetDateTime to String.
      * Examples: 1956-02-01T07:15:16Z -> "1956-02-01 07:15:16Z AD"; +12345-02-01T10:15:16Z -> "12345-02-01 10:15:16Z AD";
      * -1999-02-01T04:15:16Z -> "2000-02-01 04:15:16Z BC"
      */
@@ -63,7 +63,7 @@ public class DateTimeEraFormatters {
             .toFormatter()
             .withLocale(Locale.ROOT);
     /**
-     * LOCAL_DATE_TIME_GET_FORMATTER is used to format LocalDateTime to String.
+     * Used to format LocalDateTime to String.
      * Examples: 2018-10-19T10:11 -> "2018-10-19 10:11:00 AD"; +123456-10-19T11:12:13 -> "123456-10-19 11:12:13 AD";
      * -1233-10-19T10:11:15.456 -> "1234-10-19 10:11:15.456 BC"
      */
@@ -76,7 +76,7 @@ public class DateTimeEraFormatters {
             .toFormatter()
             .withLocale(Locale.ROOT);
     /**
-     * LOCAL_DATE_GET_FORMATTER is used to format LocalDate to String.
+     * Used to format LocalDate to String.
      * Examples: 2023-01-10 -> "2023-01-10 AD"; +12345-02-01 -> "12345-02-01 AD"; -0009-12-11 -> "0010-12-11 BC"
      */
     public static final DateTimeFormatter LOCAL_DATE_FORMATTER = new DateTimeFormatterBuilder()
