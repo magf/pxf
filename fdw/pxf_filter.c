@@ -1290,11 +1290,6 @@ ScalarConstToStr(Const *constval, StringInfo buf)
 static void
 ListConstToStr(Const *constval, StringInfo buf)
 {
-	StringInfo	interm_buf;
-	Datum	   *dats;
-	ArrayType  *arr;
-	int			len;
-
 	if (constval->constisnull)
 	{
 		elog(DEBUG1, "Null constant is not expected in this context.");
@@ -1308,107 +1303,55 @@ ListConstToStr(Const *constval, StringInfo buf)
 		return;
 	}
 
-	arr = DatumGetArrayTypeP(constval->constvalue);
-
-	interm_buf = makeStringInfo();
-
 	switch (constval->consttype)
 	{
 		case INT2ARRAYOID:
-			{
-				int16		value;
-
-				deconstruct_array(arr,
-								  INT2OID,
-								  sizeof(value),
-								  true,
-								  's',
-								  &dats,
-								  NULL,
-								  &len);
-
-				for (int i = 0; i < len; i++)
-				{
-					value = DatumGetInt16(dats[i]);
-
-					appendStringInfo(interm_buf, "%hd", value);
-
-					appendStringInfo(buf, "%c%d%c%s",
-									 PXF_SIZE_BYTES, interm_buf->len,
-									 PXF_CONST_DATA, interm_buf->data);
-					resetStringInfo(interm_buf);
-				}
-				break;
-			}
 		case INT4ARRAYOID:
-			{
-				int32		value;
-
-				deconstruct_array(arr,
-								  INT4OID,
-								  sizeof(value),
-								  true,
-								  'i',
-								  &dats,
-								  NULL,
-								  &len);
-
-				for (int i = 0; i < len; i++)
-				{
-					value = DatumGetInt32(dats[i]);
-
-					appendStringInfo(interm_buf, "%d", value);
-
-					appendStringInfo(buf, "%c%d%c%s",
-									 PXF_SIZE_BYTES, interm_buf->len,
-									 PXF_CONST_DATA, interm_buf->data);
-					resetStringInfo(interm_buf);
-				}
-				break;
-			}
 		case INT8ARRAYOID:
-			{
-				int64		value;
-
-				deconstruct_array(arr,
-								  INT8OID,
-								  sizeof(value),
-								  true,
-								  'd',
-								  &dats,
-								  NULL,
-								  &len);
-
-				for (int i = 0; i < len; i++)
-				{
-					value = DatumGetInt64(dats[i]);
-
-					appendStringInfo(interm_buf, "%ld", value);
-
-					appendStringInfo(buf, "%c%d%c%s",
-									 PXF_SIZE_BYTES, interm_buf->len,
-									 PXF_CONST_DATA, interm_buf->data);
-					resetStringInfo(interm_buf);
-				}
-				break;
-			}
 		case TEXTARRAYOID:
 			{
-				char	   *value;
+				StringInfo	interm_buf;
+				Datum	   *dats;
+				ArrayType  *arr;
+				int			len;
+				Oid			typoutput;
+				bool		typIsVarlena;
+				int16		elmlen;
+				bool		elmbyval;
+				char		elmalign;
 
-				deconstruct_array(arr, TEXTOID, -1, false, 'i', &dats, NULL, &len);
+				arr = DatumGetArrayTypeP(constval->constvalue);
+
+				interm_buf = makeStringInfo();
+				/*
+				 * Get necessary data for deconstruct_array() and output function
+				 * from the catalog.
+				 */
+				get_typlenbyvalalign(ARR_ELEMTYPE(arr), &elmlen, &elmbyval, &elmalign);
+				deconstruct_array(arr,
+								  ARR_ELEMTYPE(arr),
+								  elmlen,
+								  elmbyval,
+								  elmalign,
+								  &dats,
+								  NULL,
+								  &len);
+
+				getTypeOutputInfo(ARR_ELEMTYPE(arr), &typoutput, &typIsVarlena);
 
 				for (int i = 0; i < len; i++)
 				{
-					value = DatumGetCString(DirectFunctionCall1(textout, dats[i]));
+					char *extval = OidOutputFunctionCall(typoutput, dats[i]);
 
-					appendStringInfo(interm_buf, "%s", value);
+					appendStringInfo(interm_buf, "%s", extval);
 
 					appendStringInfo(buf, "%c%d%c%s",
 									 PXF_SIZE_BYTES, interm_buf->len,
 									 PXF_CONST_DATA, interm_buf->data);
 					resetStringInfo(interm_buf);
+					pfree(extval);
 				}
+				pfree(interm_buf->data);
 				break;
 			}
 		default:
@@ -1419,8 +1362,6 @@ ListConstToStr(Const *constval, StringInfo buf)
 				 constval->consttype);
 
 	}
-
-	pfree(interm_buf->data);
 }
 
 /*
