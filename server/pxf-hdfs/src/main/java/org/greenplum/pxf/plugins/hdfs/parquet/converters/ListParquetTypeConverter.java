@@ -28,7 +28,7 @@ public class ListParquetTypeConverter implements ParquetTypeConverter {
         this.dataType = dataType;
         this.elementType = getElementType(type.asGroupType());
         validateElementTypeInListType(elementType);
-        this.elementConverter = parquetTypeConverterFactory.create(elementType, dataType);
+        this.elementConverter = parquetTypeConverterFactory.create(elementType, dataType.isArrayType() ? dataType.getTypeElem() : dataType);
         this.pgUtilities = new PgUtilities();
         this.parquetUtilities = new ParquetUtilities(pgUtilities);
     }
