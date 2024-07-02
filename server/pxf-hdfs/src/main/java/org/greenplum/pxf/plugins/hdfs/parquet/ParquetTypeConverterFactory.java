@@ -27,7 +27,7 @@ public class ParquetTypeConverterFactory {
             try {
                 return Optional.ofNullable(createParquetTypeConverter(type, dataType, primitiveTypeName))
                         .orElseThrow(() -> new UnsupportedTypeException(
-                                String.format("  parquet type converter %s is not supported", primitiveTypeName.name()))
+                                String.format("Parquet type converter %s is not supported", primitiveTypeName.name()))
                         );
             } catch (IllegalArgumentException e) {
                 throw new UnsupportedTypeException(String.format("Primitive parquet type %s is not supported, error: %s", primitiveTypeName, e));

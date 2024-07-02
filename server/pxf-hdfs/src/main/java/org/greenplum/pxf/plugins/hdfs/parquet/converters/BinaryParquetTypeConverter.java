@@ -21,9 +21,12 @@ import org.greenplum.pxf.plugins.hdfs.parquet.ParquetUUIDUtilities;
 import org.greenplum.pxf.plugins.hdfs.utilities.PgUtilities;
 
 import java.nio.ByteBuffer;
+import java.util.EnumSet;
 
 @Slf4j
 public class BinaryParquetTypeConverter implements ParquetTypeConverter {
+    private static final EnumSet<DataType> STRING_DATA_TYPES = EnumSet.of(DataType.TEXT, DataType.JSON, DataType.NUMERIC,
+            DataType.BPCHAR);
 
     private final PgUtilities pgUtilities = new PgUtilities();
     private final Type type;
@@ -90,8 +93,7 @@ public class BinaryParquetTypeConverter implements ParquetTypeConverter {
 
     @Override
     public void write(Group group, int columnIndex, Object fieldValue) {
-        if (detectedDataType == DataType.TEXT || detectedDataType == DataType.JSON
-                || detectedDataType == DataType.NUMERIC || dataType == DataType.BPCHAR) {
+        if (STRING_DATA_TYPES.contains(detectedDataType)) {
             String strVal = (String) fieldValue;
             /*
              * We need to right trim the incoming value from Greenplum. This is
