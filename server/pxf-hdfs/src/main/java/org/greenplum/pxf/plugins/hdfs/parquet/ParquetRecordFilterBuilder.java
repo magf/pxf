@@ -5,44 +5,21 @@ import org.apache.parquet.filter2.predicate.FilterApi;
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.filter2.predicate.Operators;
 import org.apache.parquet.io.api.Binary;
-import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
-import org.greenplum.pxf.api.error.UnsupportedTypeException;
-import org.greenplum.pxf.api.filter.ColumnIndexOperandNode;
-import org.greenplum.pxf.api.filter.Node;
-import org.greenplum.pxf.api.filter.OperandNode;
-import org.greenplum.pxf.api.filter.Operator;
-import org.greenplum.pxf.api.filter.OperatorNode;
-import org.greenplum.pxf.api.filter.TreeVisitor;
+import org.greenplum.pxf.api.filter.*;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
-import org.greenplum.pxf.plugins.hdfs.ParquetResolver;
 import org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConverter;
-import org.greenplum.pxf.plugins.hdfs.utilities.DecimalOverflowOption;
-import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import static org.apache.parquet.filter2.predicate.FilterApi.and;
-import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.doubleColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.floatColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.longColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.not;
-import static org.apache.parquet.filter2.predicate.FilterApi.or;
-import static org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
-import static org.apache.parquet.schema.LogicalTypeAnnotation.TimestampLogicalTypeAnnotation;
-import static org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
+import static org.apache.parquet.filter2.predicate.FilterApi.*;
 import static org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConverter.FILTER_COLUMN;
 
 /**

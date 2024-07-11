@@ -1,7 +1,6 @@
 package org.greenplum.pxf.plugins.hdfs.parquet.converters;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.parquet.example.data.Group;
@@ -16,8 +15,6 @@ import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.UUID;
 
 import static org.greenplum.pxf.plugins.hdfs.parquet.ParquetIntervalUtilities.INTERVAL_TYPE_LENGTH;
 
@@ -27,7 +24,7 @@ public class FixedLenByteArrayParquetTypeConverter implements ParquetTypeConvert
     private final Type type;
     private final DataType dataType;
     private final DataType detectedDataType;
-    private DecimalUtilities decimalUtilities;
+    private final DecimalUtilities decimalUtilities;
 
     public FixedLenByteArrayParquetTypeConverter(Type type, DataType dataType, DecimalUtilities decimalUtilities) {
         this.type = type;

@@ -1,13 +1,8 @@
 package org.greenplum.pxf.plugins.hdfs.parquet;
 
-import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
-import org.greenplum.pxf.api.filter.ColumnIndexOperandNode;
-import org.greenplum.pxf.api.filter.Node;
-import org.greenplum.pxf.api.filter.Operator;
-import org.greenplum.pxf.api.filter.OperatorNode;
-import org.greenplum.pxf.api.filter.SupportedOperatorPruner;
+import org.greenplum.pxf.api.filter.*;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 
 import java.util.EnumSet;

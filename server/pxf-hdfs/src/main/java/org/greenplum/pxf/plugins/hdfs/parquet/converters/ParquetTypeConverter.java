@@ -3,9 +3,7 @@ package org.greenplum.pxf.plugins.hdfs.parquet.converters;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.parquet.example.data.Group;
-import org.apache.parquet.schema.Type;
 import org.greenplum.pxf.api.io.DataType;
 
 import java.nio.charset.StandardCharsets;

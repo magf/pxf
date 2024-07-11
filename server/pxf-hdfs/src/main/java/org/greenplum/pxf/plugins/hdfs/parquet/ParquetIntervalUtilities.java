@@ -2,10 +2,7 @@ package org.greenplum.pxf.plugins.hdfs.parquet;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.parquet.example.data.simple.BinaryValue;
-import org.apache.parquet.example.data.simple.Primitive;
 import org.apache.parquet.io.api.Binary;
-import org.greenplum.pxf.api.io.DataType;
 import org.postgresql.util.PGInterval;
 
 import java.math.BigDecimal;

@@ -3,7 +3,6 @@ package org.greenplum.pxf.plugins.hdfs.parquet.converters;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
-import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
 import org.greenplum.pxf.api.GreenplumDateTime;
 import org.greenplum.pxf.api.io.DataType;
@@ -17,7 +16,6 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoField;
 
 import static org.greenplum.pxf.api.GreenplumDateTime.NANOS_IN_MICROS;
-import static org.greenplum.pxf.api.GreenplumDateTime.NANOS_IN_MILLIS;
 import static org.greenplum.pxf.plugins.hdfs.ParquetResolver.TIMESTAMP_PATTERN;
 
 public class Int64ParquetTypeConverter implements ParquetTypeConverter {

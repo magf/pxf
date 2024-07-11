@@ -2,10 +2,7 @@ package org.greenplum.pxf.plugins.hdfs.parquet.converters;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.parquet.example.data.Group;
-import org.apache.parquet.schema.PrimitiveType;
-import org.apache.parquet.schema.Type;
 import org.greenplum.pxf.api.io.DataType;
-import org.greenplum.pxf.plugins.hdfs.ParquetResolver;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetTimestampUtilities;
 
 import static org.greenplum.pxf.plugins.hdfs.ParquetResolver.TIMESTAMP_PATTERN;

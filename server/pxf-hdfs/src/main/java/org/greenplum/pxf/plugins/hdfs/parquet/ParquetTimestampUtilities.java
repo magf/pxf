@@ -1,6 +1,7 @@
 package org.greenplum.pxf.plugins.hdfs.parquet;
 
 import org.apache.parquet.example.data.simple.NanoTime;
+import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.greenplum.pxf.api.GreenplumDateTime;
 import org.slf4j.Logger;
@@ -10,8 +11,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.*;
 import java.util.Base64;
-
-import org.apache.parquet.io.api.Binary;
 
 import static org.greenplum.pxf.plugins.hdfs.parquet.ParquetConstant.*;
 
