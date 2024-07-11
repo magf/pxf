@@ -109,7 +109,7 @@ public class FragmenterService {
                     .orElse(context.getTotalSegments());
             if (activeSegmentCount < 1 || activeSegmentCount > context.getTotalSegments()) {
                 String errorMessage = String.format("The parameter '%s' has the value %d. The value of this parameter " +
-                                "cannot be less than 1 or cannot be grater than the total amount of segments [%d segment(s)]",
+                                "cannot be less than 1 or cannot be greater than the total amount of segments [%d segment(s)]",
                         ACTIVE_SEGMENT_COUNT_OPTION, activeSegmentCount, context.getTotalSegments());
                 throw new PxfRuntimeException(errorMessage);
             }
