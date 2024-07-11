@@ -1,25 +1,7 @@
-FROM hub.adsw.io/library/gpdb6_regress:latest
-
-ARG CENTOS_REPOS_URL="https://mirror.axelname.ru/centos"
-
-# Change URL for repos, because Centos 7 EOL 30.06.2024
-RUN if [[ "x86_64" == "$(uname -i)" ]]; then \
-        sed -i "s|mirrorlist=http://mirrorlist.centos.org/?release=\$releasever\&arch=\$basearch\&repo=os\&infra=\$infra|baseurl=$CENTOS_REPOS_URL/\$releasever/os/\$basearch|g" /etc/yum.repos.d/CentOS-Base.repo; \
-        sed -i "s|mirrorlist=http://mirrorlist.centos.org/?release=\$releasever\&arch=\$basearch\&repo=updates\&infra=\$infra|baseurl=$CENTOS_REPOS_URL/\$releasever/updates/\$basearch|g" /etc/yum.repos.d/CentOS-Base.repo; \
-        sed -i "s|mirrorlist=http://mirrorlist.centos.org/?release=\$releasever\&arch=\$basearch\&repo=extras\&infra=\$infra|baseurl=$CENTOS_REPOS_URL/\$releasever/extras/\$basearch|g" /etc/yum.repos.d/CentOS-Base.repo; \
-        sed -i "s|mirrorlist=http://mirrorlist.centos.org?arch=\$basearch\&release=7\&repo=sclo-rh|baseurl=$CENTOS_REPOS_URL/\$releasever/sclo/\$basearch/rh/|g" /etc/yum.repos.d/CentOS-SCLo-scl-rh.repo; \
-        sed -i "s|mirrorlist=http://mirrorlist.centos.org?arch=\$basearch\&release=7\&repo=sclo-sclo|baseurl=$CENTOS_REPOS_URL/\$releasever/sclo/\$basearch/sclo/|g" /etc/yum.repos.d/CentOS-SCLo-scl.repo; \
-    else \
-        sed -i "s|mirrorlist=http://mirrorlist.centos.org/?release=\$releasever\&arch=\$basearch\&repo=os\&infra=\$infra|baseurl=$CENTOS_REPOS_URL/altarch/\$releasever/os/\$basearch|g" /etc/yum.repos.d/CentOS-Base.repo; \
-        sed -i "s|mirrorlist=http://mirrorlist.centos.org/?release=\$releasever\&arch=\$basearch\&repo=updates\&infra=\$infra|baseurl=$CENTOS_REPOS_URL/altarch/\$releasever/updates/\$basearch|g" /etc/yum.repos.d/CentOS-Base.repo; \
-        sed -i "s|mirrorlist=http://mirrorlist.centos.org/?release=\$releasever\&arch=\$basearch\&repo=extras\&infra=\$infra|baseurl=$CENTOS_REPOS_URL/altarch/\$releasever/extras/\$basearch|g" /etc/yum.repos.d/CentOS-Base.repo; \
-        sed -i "s|mirrorlist=http://mirrorlist.centos.org?arch=\$basearch\&release=7\&repo=sclo-rh|baseurl=$CENTOS_REPOS_URL/altarch/\$releasever/sclo/\$basearch/rh/|g" /etc/yum.repos.d/CentOS-SCLo-scl-rh.repo; \
-        sed -i "s|mirrorlist=http://mirrorlist.centos.org?arch=\$basearch\&release=7\&repo=sclo-sclo|baseurl=$CENTOS_REPOS_URL/altarch/\$releasever/sclo/\$basearch/sclo/|g" /etc/yum.repos.d/CentOS-SCLo-scl.repo; \
-    fi && \
-    yum install -y python-paramiko
+FROM hub.adsw.io/library/gpdb6_regress:adb-6.x-dev
 
 # install maven
-RUN wget --no-check-certificate https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -P /tmp \
+RUN curl -fSL https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o /tmp/apache-maven-3.9.6-bin.tar.gz \
     && tar -xf /tmp/apache-maven-3.9.6-bin.tar.gz -C /opt \
     && ln -s /opt/apache-maven-3.9.6 /opt/maven
 
