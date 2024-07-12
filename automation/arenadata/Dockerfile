@@ -1,8 +1,7 @@
-FROM hub.adsw.io/library/gpdb6_regress:latest
-RUN sudo yum install -y epel-release
+FROM hub.adsw.io/library/gpdb6_regress:adb-6.x-dev
 
 # install maven
-RUN wget --no-check-certificate https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -P /tmp \
+RUN curl -fSL https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o /tmp/apache-maven-3.9.6-bin.tar.gz \
     && tar -xf /tmp/apache-maven-3.9.6-bin.tar.gz -C /opt \
     && ln -s /opt/apache-maven-3.9.6 /opt/maven
 

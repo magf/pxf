@@ -1,4 +1,4 @@
-FROM hub.adsw.io/library/gpdb6_regress:latest as base
+FROM hub.adsw.io/library/gpdb6_regress:adb-6.x-dev as base
 
 # install go, ginkgo and keep env variables which may be used as a part of base image
 RUN set -eux; \
