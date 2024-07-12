@@ -40,7 +40,6 @@ public class HiveMetastoreCompatibilityTest {
     private Map<String, String> hiveTableParameters;
 
     @BeforeEach
-    @SuppressWarnings("unchecked")
     public void setup() throws MetaException {
         mockThriftClient = mock(ThriftHiveMetastore.Client.class);
         hiveClientFactory = new HiveClientWrapper.HiveClientFactory();
