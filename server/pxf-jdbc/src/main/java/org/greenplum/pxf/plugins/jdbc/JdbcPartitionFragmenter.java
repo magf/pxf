@@ -38,6 +38,7 @@ public class JdbcPartitionFragmenter extends BaseFragmenter {
     private String column;
     private String range;
     private String interval;
+    protected boolean isDateWideRange;
 
     @Override
     public void afterPropertiesSet() {
@@ -54,6 +55,7 @@ public class JdbcPartitionFragmenter extends BaseFragmenter {
 
         range = context.getOption("RANGE");
         interval = context.getOption("INTERVAL");
+        isDateWideRange = JdbcBasePlugin.getIsDateWideRange(context);
     }
 
     /**
@@ -67,7 +69,9 @@ public class JdbcPartitionFragmenter extends BaseFragmenter {
         if (partitionType == null) {
             fragments.add(new Fragment(context.getDataSource()));
         } else {
-            List<JdbcFragmentMetadata> fragmentsMetadata = partitionType.getFragmentsMetadata(column, range, interval);
+            List<JdbcFragmentMetadata> fragmentsMetadata = partitionType.getFragmentsMetadata(
+                    column, range, interval, isDateWideRange
+            );
             for (JdbcFragmentMetadata fragmentMetadata : fragmentsMetadata) {
                 fragments.add(new Fragment(context.getDataSource(), fragmentMetadata));
             }

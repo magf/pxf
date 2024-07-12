@@ -19,9 +19,11 @@ package org.greenplum.pxf.plugins.jdbc.partitioning;
  * under the License.
  */
 
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Date;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,7 +36,8 @@ public class DatePartitionTestGenerate {
         final String RANGE = "2008-01-01:2008-01-11";
         final String INTERVAL = "1:day";
 
-        DatePartition[] parts = PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL).stream().map(p -> DatePartition.class.cast(p)).toArray(DatePartition[]::new);
+        DatePartition[] parts = PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, false).stream()
+                .map(p -> (DatePartition) p).toArray(DatePartition[]::new);
 
         assertEquals(12, parts.length);
         assertDatePartitionEquals(parts[0], null, Date.valueOf("2008-01-01"));
@@ -50,7 +53,8 @@ public class DatePartitionTestGenerate {
         final String RANGE = "2008-01-01:2008-12-31";
         final String INTERVAL = "1:month";
 
-        DatePartition[] parts = PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL).stream().map(p -> DatePartition.class.cast(p)).toArray(DatePartition[]::new);
+        DatePartition[] parts = PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, false).stream()
+                .map(p -> (DatePartition) p).toArray(DatePartition[]::new);
 
         assertEquals(14, parts.length);
         assertDatePartitionEquals(parts[0], null, Date.valueOf("2008-01-01"));
@@ -70,7 +74,8 @@ public class DatePartitionTestGenerate {
         final String RANGE = "2008-02-03:2018-02-02";
         final String INTERVAL = "1:year";
 
-        DatePartition[] parts = PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL).stream().map(p -> DatePartition.class.cast(p)).toArray(DatePartition[]::new);
+        DatePartition[] parts = PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, false).stream()
+                .map(p -> (DatePartition) p).toArray(DatePartition[]::new);
 
         assertEquals(12, parts.length);
         assertDatePartitionEquals(parts[0], null, Date.valueOf("2008-02-03"));
@@ -81,12 +86,31 @@ public class DatePartitionTestGenerate {
     }
 
     @Test
+    public void testPartitionByDateIntervalYearDateWideRange() {
+        final String COLUMN = "col";
+        final String RANGE = "0101-02-03 BC:10001-02-02 AD";
+        final String INTERVAL = "1000:year";
+        final DbProduct dbProduct = DbProduct.POSTGRES;
+
+        DatePartition[] parts = PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, true).stream()
+                .map(p -> (DatePartition) p).toArray(DatePartition[]::new);
+
+        assertEquals(13, parts.length);
+        assertEquals("col < date'0101-02-03 BC'", parts[0].toSqlConstraint("", dbProduct));
+        assertEquals("col >= date'10001-02-02 AD'", parts[1].toSqlConstraint("", dbProduct));
+        assertEquals("col >= date'0101-02-03 BC' AND col < date'0900-02-03 AD'", parts[2].toSqlConstraint("", dbProduct));
+        assertEquals("col >= date'4900-02-03 AD' AND col < date'5900-02-03 AD'", parts[7].toSqlConstraint("", dbProduct));
+        assertEquals("col >= date'9900-02-03 AD' AND col < date'10001-02-02 AD'", parts[12].toSqlConstraint("", dbProduct));
+    }
+
+    @Test
     public void testPartitionByDateIntervalYearIncomplete() {
         final String COLUMN = "col";
         final String RANGE = "2008-02-03:2010-01-15";
         final String INTERVAL = "1:year";
 
-        DatePartition[] parts = PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL).stream().map(p -> DatePartition.class.cast(p)).toArray(DatePartition[]::new);
+        DatePartition[] parts = PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, false).stream()
+                .map(p -> (DatePartition) p).toArray(DatePartition[]::new);
 
         assertEquals(4, parts.length);
         assertDatePartitionEquals(parts[0], null, Date.valueOf("2008-02-03"));
@@ -102,7 +126,7 @@ public class DatePartitionTestGenerate {
         final String INTERVAL = "1:month";
 
         assertThrows(IllegalArgumentException.class,
-            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL));
+            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, false));
     }
 
     @Test
@@ -112,7 +136,7 @@ public class DatePartitionTestGenerate {
         final String INTERVAL = "-1:month";
 
         assertThrows(IllegalArgumentException.class,
-            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL));
+            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, false));
     }
 
     @Test
@@ -122,7 +146,7 @@ public class DatePartitionTestGenerate {
         final String INTERVAL = "6:hour";
 
         assertThrows(IllegalArgumentException.class,
-            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL));
+            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, false));
     }
 
     @Test
@@ -132,7 +156,7 @@ public class DatePartitionTestGenerate {
         final String INTERVAL = "6";
 
         assertThrows(IllegalArgumentException.class,
-            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL));
+            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, false));
     }
 
     @Test
@@ -142,7 +166,7 @@ public class DatePartitionTestGenerate {
         final String INTERVAL = "1:year";
 
         assertThrows(IllegalArgumentException.class,
-            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL));
+            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, false));
     }
 
     @Test
@@ -152,7 +176,7 @@ public class DatePartitionTestGenerate {
         final String INTERVAL = "1:month";
 
         assertThrows(IllegalArgumentException.class,
-            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL));
+            () -> PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, false));
     }
 
     /**
@@ -163,8 +187,14 @@ public class DatePartitionTestGenerate {
      * @param rangeEnd   (null is allowed)
      */
     private void assertDatePartitionEquals(DatePartition partition, Date rangeStart, Date rangeEnd) {
-        Date[] boundaries = partition.getBoundaries();
-        assertEquals(rangeStart, boundaries[0]);
-        assertEquals(rangeEnd, boundaries[1]);
+        assertEquals(rangeStart, convertToDate(partition.getStart()));
+        assertEquals(rangeEnd, convertToDate(partition.getEnd()));
+    }
+
+    private static Date convertToDate(LocalDate date) {
+        if (date == null) {
+            return null;
+        }
+        return Date.valueOf(date);
     }
 }

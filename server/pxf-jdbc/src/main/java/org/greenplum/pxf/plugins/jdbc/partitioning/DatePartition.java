@@ -20,18 +20,17 @@ package org.greenplum.pxf.plugins.jdbc.partitioning;
  */
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
-import java.sql.Date;
 import java.time.LocalDate;
-import java.util.stream.Stream;
+import java.util.Objects;
 
-@NoArgsConstructor
-class DatePartition extends BasePartition implements JdbcFragmentMetadata {
+@Getter
+class DatePartition extends BaseRangePartition {
 
-    @Getter
-    private Date[] boundaries;
+    private final LocalDate start;
+    private final LocalDate end;
+    private final boolean isDateWideRange;
 
     /**
      * Construct a DatePartition covering a range of values from 'start' to 'end'
@@ -41,30 +40,34 @@ class DatePartition extends BasePartition implements JdbcFragmentMetadata {
      * @param end    null for left-bounded interval
      */
     public DatePartition(String column, LocalDate start, LocalDate end) {
-        this(column, new Date[]{
-                start == null ? null : Date.valueOf(start),
-                end == null ? null : Date.valueOf(end)
-        });
+        this(column, start, end, false);
+    }
+
+    /**
+     * Construct a DatePartition covering a range of values from 'start' to 'end'
+     *
+     * @param column          the partitioned column
+     * @param start           null for right-bounded interval
+     * @param end             null for left-bounded interval
+     * @param isDateWideRange flag which is used when the year might contain more than 4 digits
+     */
+    public DatePartition(String column, LocalDate start, LocalDate end, boolean isDateWideRange) {
+        super(column);
+        this.start = start;
+        this.end = end;
+        this.isDateWideRange = isDateWideRange;
         if (start == null && end == null) {
             throw new RuntimeException("Both boundaries cannot be null");
         }
-        if (start != null && start.equals(end)) {
+        if (Objects.equals(start, end)) {
             throw new RuntimeException(String.format(
                     "Boundaries cannot be equal for partition of type '%s'", PartitionType.DATE
             ));
         }
     }
 
-    public DatePartition(String column, Date[] boundaries) {
-        super(column);
-        this.boundaries = boundaries;
-    }
-
     @Override
     public String toSqlConstraint(String quoteString, DbProduct dbProduct) {
-        if (quoteString == null) {
-            throw new RuntimeException("Quote string cannot be null");
-        }
         if (dbProduct == null) {
             throw new RuntimeException(String.format(
                     "DbProduct cannot be null for partitions of type '%s'", PartitionType.DATE
@@ -72,8 +75,16 @@ class DatePartition extends BasePartition implements JdbcFragmentMetadata {
         }
 
         return generateRangeConstraint(
-                quoteString + column + quoteString,
-                Stream.of(boundaries).map(b -> b == null ? null : dbProduct.wrapDate(b)).toArray(String[]::new)
+                getQuotedColumn(quoteString),
+                convert(start, dbProduct),
+                convert(end, dbProduct)
         );
+    }
+
+    private String convert(LocalDate value, DbProduct dbProduct) {
+        if (value == null) {
+            return null;
+        }
+        return dbProduct.wrapDate(value, isDateWideRange);
     }
 }

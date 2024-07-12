@@ -218,7 +218,7 @@ class FragmenterServiceTest {
 
         Exception e = assertThrows(PxfRuntimeException.class, () -> fragmenterService.getFragmentsForSegment(context1));
         assertTrue(e.getMessage().contains("The parameter 'ACTIVE_SEGMENT_COUNT' has the value 0. The value of this " +
-                "parameter cannot be less than 1 or cannot be grater than the total amount of segments [1 segment(s)]"));
+                "parameter cannot be less than 1 or cannot be greater than the total amount of segments [1 segment(s)]"));
     }
 
     @Test

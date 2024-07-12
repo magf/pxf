@@ -20,20 +20,16 @@ package org.greenplum.pxf.plugins.jdbc.partitioning;
  */
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.StringJoiner;
 
-@NoArgsConstructor
-public class EnumPartition extends BasePartition implements JdbcFragmentMetadata {
+@Getter
+public class EnumPartition extends BaseValuePartition implements JdbcFragmentMetadata {
 
-    @Getter
-    private String value;
+    private final String value;
 
-    @Getter
-    private String[] excluded;
+    private final String[] excluded;
 
     /**
      * Construct an EnumPartition with given column and constraint
@@ -73,24 +69,17 @@ public class EnumPartition extends BasePartition implements JdbcFragmentMetadata
 
     @Override
     public String toSqlConstraint(String quoteString, DbProduct dbProduct) {
-        if (quoteString == null) {
-            throw new RuntimeException("Quote string cannot be null");
-        }
+        String quotedColumn = getQuotedColumn(quoteString);
 
-        StringBuilder sb = new StringBuilder();
-        String quotedColumn = quoteString + column + quoteString;
-
-        if (excluded == null) {
-            sb.append(quotedColumn).append(" = '").append(value).append("'");
-        } else {
+        if (excluded != null && excluded.length > 0) {
             // We use inequality operator as it is the widest supported method
-            sb.append("( ")
-                    .append(Stream.of(excluded)
-                            .map(excludedValue -> quotedColumn + " <> '" + excludedValue + "'")
-                            .collect(Collectors.joining(" AND "))
-                    ).append(" )");
+            StringJoiner joiner = new StringJoiner( " AND ", "( ", " )");
+            for (String excludedValue : excluded) {
+                joiner.add(quotedColumn + " <> '" + excludedValue + "'");
+            }
+            return joiner.toString();
         }
 
-        return sb.toString();
+        return generateConstraint(quotedColumn, "'" + value + "'");
     }
 }
