@@ -32,7 +32,8 @@ public class IntPartitionTestGenerate {
         String RANGE = "2001:2012";
         String INTERVAL = "2";
 
-        IntPartition[] parts = PartitionType.INT.generate(COLUMN, RANGE, INTERVAL).stream().map(p -> IntPartition.class.cast(p)).toArray(IntPartition[]::new);
+        IntPartition[] parts = PartitionType.INT.generate(COLUMN, RANGE, INTERVAL, false).stream()
+                .map(p -> (IntPartition) p).toArray(IntPartition[]::new);
 
         assertEquals(8, parts.length);
         assertFragmentRangeEquals(parts[0], null, 2001L);
@@ -51,7 +52,8 @@ public class IntPartitionTestGenerate {
         String RANGE = "2001:2012";
         String INTERVAL = "7";
 
-        IntPartition[] parts = PartitionType.INT.generate(COLUMN, RANGE, INTERVAL).stream().map(p -> IntPartition.class.cast(p)).toArray(IntPartition[]::new);
+        IntPartition[] parts = PartitionType.INT.generate(COLUMN, RANGE, INTERVAL, false).stream()
+                .map(p -> (IntPartition) p).toArray(IntPartition[]::new);
 
         assertEquals(4, parts.length);
 
@@ -67,7 +69,7 @@ public class IntPartitionTestGenerate {
         final String RANGE = "42:17";
         final String INTERVAL = "2";
         assertThrows(IllegalArgumentException.class,
-            () -> PartitionType.INT.generate(COLUMN, RANGE, INTERVAL));
+            () -> PartitionType.INT.generate(COLUMN, RANGE, INTERVAL, false));
     }
 
     /**
@@ -78,8 +80,7 @@ public class IntPartitionTestGenerate {
      * @param rangeEnd   (null is allowed)
      */
     private void assertFragmentRangeEquals(IntPartition partition, Long rangeStart, Long rangeEnd) {
-        Long[] boundaries = partition.getBoundaries();
-        assertEquals(rangeStart, boundaries[0]);
-        assertEquals(rangeEnd, boundaries[1]);
+        assertEquals(rangeStart, partition.getStart());
+        assertEquals(rangeEnd, partition.getEnd());
     }
 }

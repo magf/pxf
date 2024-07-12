@@ -19,22 +19,39 @@ package org.greenplum.pxf.plugins.jdbc.partitioning;
  * under the License.
  */
 
-import java.util.Objects;
+import lombok.Getter;
+import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
-public interface IntPartition extends JdbcFragmentMetadata {
-    Long getStart();
-    Long getEnd();
 
-    static IntPartition create(String column, Long start, Long end) {
-        if (start == null && end == null) {
-            throw new RuntimeException("Both boundaries cannot be null");
-        }
-        return Objects.equals(start, end) ?
-                new IntValuePartition(column, start) :
-                new IntRangePartition(column, start, end);
+@Getter
+public class IntValuePartition extends BaseValuePartition implements IntPartition {
+
+    private final long value;
+
+    /**
+     * @param column the partition column
+     * @param value  value to base constraint on
+     */
+    public IntValuePartition(String column, long value) {
+        super(column);
+        this.value = value;
     }
 
-    static String convert(Long b) {
-        return b == null ? null : b.toString();
+    @Override
+    public String toSqlConstraint(String quoteString, DbProduct dbProduct) {
+        return generateConstraint(
+                getQuotedColumn(quoteString),
+                String.valueOf(value)
+        );
+    }
+
+    @Override
+    public Long getStart() {
+        return value;
+    }
+
+    @Override
+    public Long getEnd() {
+        return value;
     }
 }

@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.greenplum.pxf.plugins.jdbc.utils.DateTimeEraFormatters.getLocalDate;
+
 /**
  * The high-level partitioning feature controller.
  * <p>
@@ -57,8 +59,8 @@ public enum PartitionType {
         }
 
         @Override
-        BasePartition createPartition(String column, Object start, Object end) {
-            return new IntPartition(column, (Long) start, (Long) end);
+        JdbcFragmentMetadata createPartition(String column, Object start, Object end, boolean isDateWideRange) {
+            return IntPartition.create(column, (Long) start, (Long) end);
         }
 
         @Override
@@ -69,7 +71,7 @@ public enum PartitionType {
     DATE {
         @Override
         protected Object parseRange(String value) {
-            return LocalDate.parse(value);
+            return getLocalDate(value);
         }
 
         @Override
@@ -96,12 +98,12 @@ public enum PartitionType {
             }
 
             LocalDate next = ((LocalDate) start).plus(interval.getValue(), unit);
-            return next.compareTo((LocalDate) end) > 0 ? end : next;
+            return next.isAfter((LocalDate) end) ? end : next;
         }
 
         @Override
-        BasePartition createPartition(String column, Object start, Object end) {
-            return new DatePartition(column, (LocalDate) start, (LocalDate) end);
+        BasePartition createPartition(String column, Object start, Object end, boolean isDateWideRange) {
+            return new DatePartition(column, (LocalDate) start, (LocalDate) end, isDateWideRange);
         }
 
         @Override
@@ -113,12 +115,14 @@ public enum PartitionType {
         private static final String UNSUPPORTED_ERR_MESSAGE = "Current operation is not supported";
 
         @Override
-        protected List<? extends BasePartition> generate(String column, String range, String interval) {
+        protected List<JdbcFragmentMetadata> generate(String column, String range, String interval,
+                                                      boolean isDateWideRange
+        ) {
             // Parse RANGE
             String[] rangeValues = range.split(":");
 
             // Generate partitions
-            List<BasePartition> partitions = new LinkedList<>();
+            List<JdbcFragmentMetadata> partitions = new LinkedList<>();
 
             for (String rangeValue : rangeValues) {
                 partitions.add(new EnumPartition(column, rangeValue));
@@ -136,7 +140,7 @@ public enum PartitionType {
         }
 
         @Override
-        BasePartition createPartition(String column, Object start, Object end) {
+        BasePartition createPartition(String column, Object start, Object end, boolean isDateWideRange) {
             throw new UnsupportedOperationException(UNSUPPORTED_ERR_MESSAGE);
         }
 
@@ -166,7 +170,8 @@ public enum PartitionType {
         }
     };
 
-    protected List<? extends BasePartition> generate(String column, String range, String interval) {
+    protected List<JdbcFragmentMetadata> generate(String column, String range, String interval,
+                                                  boolean isDateWideRange) {
         String[] rangeBoundaries = range.split(":");
         if (rangeBoundaries.length != 2) {
             throw new IllegalArgumentException(String.format(
@@ -195,19 +200,19 @@ public enum PartitionType {
         }
 
         // Generate partitions
-        List<BasePartition> partitions = new ArrayList<>();
+        List<JdbcFragmentMetadata> partitions = new ArrayList<>();
 
         // create (-infinity to rangeStart) partition
-        partitions.add(createPartition(column, null, rangeStart));
+        partitions.add(createPartition(column, null, rangeStart, isDateWideRange));
 
         // create (rangeEnd to infinity) partition
-        partitions.add(createPartition(column, rangeEnd, null));
+        partitions.add(createPartition(column, rangeEnd, null, isDateWideRange));
 
         Object fragmentEnd;
         Object fragmentStart = rangeStart;
         while (isLessThan(fragmentStart, rangeEnd)) {
             fragmentEnd = next(fragmentStart, rangeEnd, parsedInterval);
-            partitions.add(createPartition(column, fragmentStart, fragmentEnd));
+            partitions.add(createPartition(column, fragmentStart, fragmentEnd, isDateWideRange));
             fragmentStart = fragmentEnd;
         }
 
@@ -220,7 +225,7 @@ public enum PartitionType {
 
     abstract Interval parseInterval(String interval);
 
-    abstract BasePartition createPartition(String column, Object start, Object end);
+    abstract JdbcFragmentMetadata createPartition(String column, Object start, Object end, boolean isDateWideRange);
 
     /**
      * Return the start of the next partition
@@ -239,16 +244,18 @@ public enum PartitionType {
     /**
      * Analyze the user-provided parameters (column name, RANGE and INTERVAL values) and form a list of getFragmentsMetadata for this partition according to those parameters.
      *
-     * @param column   the partition column name
-     * @param range    RANGE string value
-     * @param interval INTERVAL string value
+     * @param column          the partition column name
+     * @param range           RANGE string value
+     * @param interval        INTERVAL string value
+     * @param isDateWideRange determine if the year might contain more than 4 digits
      * @return a list of getFragmentsMetadata (of various concrete types)
      */
-    public List<JdbcFragmentMetadata> getFragmentsMetadata(String column, String range, String interval) {
+    public List<JdbcFragmentMetadata> getFragmentsMetadata(String column, String range, String interval,
+                                                           boolean isDateWideRange
+    ) {
         checkValidInput(column, range, interval);
 
-        List<JdbcFragmentMetadata> result = new LinkedList<>();
-        result.addAll(generate(column, range, interval));
+        List<JdbcFragmentMetadata> result = generate(column, range, interval, isDateWideRange);
         result.add(new NullPartition(column));
 
         return result;

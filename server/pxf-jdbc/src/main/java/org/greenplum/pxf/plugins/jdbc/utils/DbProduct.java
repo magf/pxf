@@ -19,25 +19,20 @@ package org.greenplum.pxf.plugins.jdbc.utils;
  * under the License.
  */
 
+import lombok.NonNull;
 import org.greenplum.pxf.plugins.jdbc.utils.oracle.OracleJdbcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.LocalDate;
+
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 
 /**
  * A tool class to change PXF-JDBC plugin behaviour for certain external databases
  */
 public enum DbProduct {
     MICROSOFT {
-        @Override
-        public String wrapDate(Object val) {
-            return "'" + val + "'";
-        }
-
-        @Override
-        public String wrapDateWithTime(Object val) {
-            return wrapTimestamp(val);
-        }
-
         @Override
         public String buildSessionQuery(String key, String value) {
             return String.format("SET %s %s", key, value);
@@ -46,24 +41,19 @@ public enum DbProduct {
 
     MYSQL {
         @Override
-        public String wrapDate(Object val) {
+        public String wrapDate(String val) {
             return "DATE('" + val + "')";
-        }
-
-        @Override
-        public String wrapDateWithTime(Object val) {
-            return wrapTimestamp(val);
         }
     },
 
     ORACLE {
         @Override
-        public String wrapDate(Object val) {
+        public String wrapDate(String val) {
             return "to_date('" + val + "', 'YYYY-MM-DD')";
         }
 
         @Override
-        public String wrapDateWithTime(Object val) {
+        public String wrapDateWithTime(String val) {
             String valStr = String.valueOf(val);
             int index = valStr.lastIndexOf('.');
             if (index != -1) {
@@ -73,7 +63,7 @@ public enum DbProduct {
         }
 
         @Override
-        public String wrapTimestamp(Object val) {
+        public String wrapTimestamp(String val) {
             return "to_timestamp('" + val + "', 'YYYY-MM-DD HH24:MI:SS.FF')";
         }
 
@@ -85,42 +75,34 @@ public enum DbProduct {
 
     POSTGRES {
         @Override
-        public String wrapDate(Object val) {
+        public String wrapDate(String val) {
             return "date'" + val + "'";
         }
 
         @Override
-        public String wrapDateWithTime(Object val) {
-            return wrapTimestamp(val);
+        public String wrapDate(@NonNull LocalDate val, boolean isDateWideRange) {
+            return wrapDate(isDateWideRange ? val.format(DateTimeEraFormatters.LOCAL_DATE_FORMATTER) : val.toString());
         }
     },
 
     S3_SELECT {
         @Override
-        public String wrapDate(Object val) {
+        public String wrapDate(String val) {
             return "TO_TIMESTAMP('" + val + "')";
         }
 
         @Override
-        public String wrapDateWithTime(Object val) {
+        public String wrapDateWithTime(String val) {
             return wrapTimestamp(val);
         }
 
         @Override
-        public String wrapTimestamp(Object val) {
+        public String wrapTimestamp(String val) {
             return "TO_TIMESTAMP('" + val + "')";
         }
     },
 
     SYBASE {
-        @Override
-        public String wrapDate(Object val) { return "'" + val + "'"; }
-
-        @Override
-        public String wrapDateWithTime(Object val) {
-            return wrapTimestamp(val);
-        }
-
         @Override
         public String buildSessionQuery(String key, String value) {
             return String.format("SET %s %s", key, value);
@@ -133,7 +115,20 @@ public enum DbProduct {
      * @param val {@link java.sql.Date} object to wrap
      * @return a string with a properly wrapped date object
      */
-    public abstract String wrapDate(Object val);
+    public String wrapDate(String val) {
+        return "'" + val + "'";
+    }
+
+    /**
+     * Wraps a given date value the way required by target database
+     *
+     * @param val             {@link java.time.LocalDate} object to wrap
+     * @param isDateWideRange flag which is used when the year might contain more than 4 digits
+     * @return a string with a properly wrapped date object
+     */
+    public String wrapDate(@NonNull LocalDate val, boolean isDateWideRange) {
+        return wrapDate(isDateWideRange ? val.format(ISO_LOCAL_DATE) : val.toString());
+    }
 
     /**
      * Wraps a given date value to the date with time.
@@ -142,7 +137,9 @@ public enum DbProduct {
      * @param val {@link java.sql.Date} object to wrap
      * @return a string with a properly wrapped date object
      */
-    public abstract String wrapDateWithTime(Object val);
+    public String wrapDateWithTime(String val) {
+        return wrapTimestamp(val);
+    }
 
     /**
      * Wraps a given timestamp value the way required by target database
@@ -150,7 +147,7 @@ public enum DbProduct {
      * @param val {@link java.sql.Timestamp} object to wrap
      * @return a string with a properly wrapped timestamp object
      */
-    public String wrapTimestamp(Object val) {
+    public String wrapTimestamp(String val) {
         return "'" + val + "'";
     }
 
@@ -173,26 +170,27 @@ public enum DbProduct {
      */
     public static DbProduct getDbProduct(String dbName) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Database product name is '" + dbName + "'");
+            LOG.debug("Database product name is '{}'", dbName);
         }
 
         dbName = dbName.toUpperCase();
         DbProduct result;
-        if (dbName.contains("MICROSOFT"))
+        if (dbName.contains("MICROSOFT")) {
             result = DbProduct.MICROSOFT;
-        else if (dbName.contains("MYSQL"))
+        } else if (dbName.contains("MYSQL")) {
             result = DbProduct.MYSQL;
-        else if (dbName.contains("ORACLE"))
+        } else if (dbName.contains("ORACLE")) {
             result = DbProduct.ORACLE;
-        else if (dbName.contains("S3 SELECT"))
+        } else if (dbName.contains("S3 SELECT")) {
             result = DbProduct.S3_SELECT;
-        else if (dbName.contains("ADAPTIVE SERVER ENTERPRISE"))
+        } else if (dbName.contains("ADAPTIVE SERVER ENTERPRISE")) {
             result = DbProduct.SYBASE;
-        else
+        } else {
             result = DbProduct.POSTGRES;
+        }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("DbProduct '" + result + "' is used");
+            LOG.debug("DbProduct '{}' is used", result);
         }
         return result;
     }
