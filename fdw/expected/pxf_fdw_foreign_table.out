@@ -28,7 +28,7 @@ ERROR:  the resource option must be defined at the foreign table level
 --
 -- Table creation fails if config option is provided
 --
-CREATE FOREIGN TABLE pxf_fdw_test_table ()
+CREATE FOREIGN TABLE pxf_fdw_test_table (id int, name text)
     SERVER pxf_fdw_test_server
     OPTIONS ( config '/foo/bar' );
 ERROR:  the config option can only be defined at the pg_foreign_server level
@@ -162,14 +162,14 @@ ERROR:  log_errors requires a Boolean value
 --
 -- Table creation fails if quote is provided (CSV-only option)
 --
-CREATE FOREIGN TABLE pxf_fdw_test_table_csv_only ()
+CREATE FOREIGN TABLE pxf_fdw_test_table_csv_only (id int, name text)
     SERVER pxf_fdw_test_server
     OPTIONS ( resource '/foo', quote '9' );
 ERROR:  quote available only in CSV mode
 --
 -- Table creation fails if disable_ppd is non-boolean
 --
-CREATE FOREIGN TABLE pxf_fdw_test_table_disable_ppd ()
+CREATE FOREIGN TABLE pxf_fdw_test_table_disable_ppd (id int, name text)
     SERVER pxf_fdw_test_server
     OPTIONS ( resource '/ppd', disable_ppd '6' );
 ERROR:  disable_ppd requires a Boolean value
