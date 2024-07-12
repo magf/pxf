@@ -21,6 +21,9 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE;
+import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class PxfReloadTest extends BaseFeature {
     private static final String SUFFIX_CLASS = ".class";
@@ -35,13 +38,15 @@ public class PxfReloadTest extends BaseFeature {
     String hdfsFilePath = "";
     String testPackageLocation = "/org/greenplum/pxf/automation/testplugin/";
     String throwOn10000Accessor = "ThrowOn10000Accessor";
-    private Node pxfNode;
+    private List<Node> pxfNodes;
     private Node masterNode;
     private String pxfLogFile;
     private static final String PXF_LOG_RELATIVE_PATH = "logs/pxf-service.log";
     private static final String PXF_RELOAD_SERVER_PROFILE = "reload";
     private static final String PXF_RELOAD_SECOND_SERVER_PROFILE = "reload-second";
     private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/pxf-reload/jdbc-site.xml";
+    private static final String PXF_TEMP_LOG_PATH = "/tmp/pxf-service.log";
+    private static final String GREP_COMMAND_TEMPLATE = "cat %s | grep \"%s\" | wc -l";
     private static final String[] TABLE_FIELDS = new String[]{
             "id  int",
             "name text"};
@@ -58,11 +63,10 @@ public class PxfReloadTest extends BaseFeature {
         cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfSecondJdbcSiteConfPath, true, false);
 
         if (cluster instanceof MultiNodeCluster) {
-            pxfNode = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf).get(0);
+            pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
             masterNode = ((MultiNodeCluster) cluster).getNode(CoordinatorNode.class, PhdCluster.EnumClusterServices.pxf).get(0);
         }
         pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
-        changeLogLevelToInfo();
         //hdfs preparation
         String resourcePath = "target/classes" + testPackageLocation;
         String newPath = "/tmp/publicstage/pxf";
@@ -83,11 +87,19 @@ public class PxfReloadTest extends BaseFeature {
         cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable1, extTable1));
         cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable2, extTable2));
         checkSessionCount(SELECT_QUERY_PG_PART, 2);
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
+        cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a");
-
-        checkStringInPxfLog("profile=, server=", 1);
-        checkStringInPxfLog("Shutdown completed.", 2);
+        int shutDownPoolCount = 0;
+        for (Node pxfNode : pxfNodes) {
+            cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
+            // Must be 1 record on each segment host
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=, server="));
+            assertEquals("1", result);
+            // Must be 2 records for all segments because there are only 2 queries.
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
+        }
+        assertEquals(2, shutDownPoolCount);
         checkSessionCount(SELECT_QUERY_PG_PART, 0);
     }
 
@@ -101,11 +113,20 @@ public class PxfReloadTest extends BaseFeature {
         cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable2, extTable2));
 
         checkSessionCount(SELECT_QUERY_PG_PART, 2);
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
+        cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc");
 
-        checkStringInPxfLog("profile=jdbc, server=", 1);
-        checkStringInPxfLog("Shutdown completed.", 2);
+        int shutDownPoolCount = 0;
+        for (Node pxfNode : pxfNodes) {
+            cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
+            // Must be 1 record on each segment host
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server="));
+            assertEquals("1", result);
+            // Must be 2 records for all segments because there are only 2 queries.
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
+        }
+        assertEquals(2, shutDownPoolCount);
         checkSessionCount(SELECT_QUERY_PG_PART, 0);
     }
 
@@ -121,11 +142,21 @@ public class PxfReloadTest extends BaseFeature {
         cluster.runCommand(String.format(PSQL_SELECT_HDFS_TEMPLATE, exTable.getName(), exTable.getName()));
 
         checkSessionCount(SELECT_QUERY_PG_PART, 2);
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
+        cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc -s default");
 
-        checkStringInPxfLog("profile=jdbc, server=default", 1);
-        checkStringInPxfLog("Shutdown completed.", 1);
+        int shutDownPoolCount = 0;
+        for (Node pxfNode : pxfNodes) {
+            cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
+            // Must be 1 record on each segment host
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server=default"));
+            assertEquals("1", result);
+            // Maybe 1 or 2 records for all segments. It depends on where 2 queries run. If on the different servers then 2 records.
+            // If on the same servers - 1 record.
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
+        }
+        assertTrue(shutDownPoolCount > 0 && shutDownPoolCount <= 2);
         checkSessionCount(SELECT_QUERY_PG_PART, 0);
         checkSessionCount(SELECT_QUERY_HDFS_PART, 1);
     }
@@ -140,11 +171,20 @@ public class PxfReloadTest extends BaseFeature {
         cluster.runCommand(String.format(PSQL_SELECT_PG_TEMPLATE, extTable2, extTable2));
 
         checkSessionCount(SELECT_QUERY_PG_PART, 2);
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
+        cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc -s " + PXF_RELOAD_SERVER_PROFILE);
 
-        checkStringInPxfLog("profile=jdbc, server=reload", 1);
-        checkStringInPxfLog("Shutdown completed.", 1);
+        int shutDownPoolCount = 0;
+        for (Node pxfNode : pxfNodes) {
+            cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
+            // Must be 1 record on each segment host
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server=reload"));
+            assertEquals("1", result);
+            // Must be 1 record for all segments because we reload only 1 profile
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
+        }
+        assertEquals(1, shutDownPoolCount);
         checkSessionCount(SELECT_QUERY_PG_PART, 1);
     }
 
@@ -158,11 +198,20 @@ public class PxfReloadTest extends BaseFeature {
         cluster.runCommand(String.format(PSQL_INSERT_PG_TEMPLATE, extTable2));
 
         checkSessionCount(INSERT_QUERY_PART, 2);
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
+        cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a");
-
-        checkStringInPxfLog("profile=, server=", 1);
-        checkStringInPxfLog("Shutdown completed.", 2);
+        int shutDownPoolCount = 0;
+        for (Node pxfNode : pxfNodes) {
+            cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
+            // Must be 1 record on each segment host
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=, server="));
+            assertEquals("1", result);
+            // Must be 2 record per each segment host because jdbc writable table run query for each logical segment
+            // Each segment host starts 1 pool for each query with different profiles
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
+        }
+        assertEquals(4, shutDownPoolCount);
         checkSessionCount(INSERT_QUERY_PART, 0);
     }
 
@@ -176,17 +225,21 @@ public class PxfReloadTest extends BaseFeature {
         cluster.runCommand(String.format(PSQL_INSERT_PG_TEMPLATE, extTable2));
 
         checkSessionCount(INSERT_QUERY_PART, 2);
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode), "> " + pxfLogFile);
+        cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
         cluster.runCommandOnNodes(Collections.singletonList(masterNode), "pxf cluster reload -a -p jdbc -s " + PXF_RELOAD_SERVER_PROFILE);
 
-        checkStringInPxfLog("profile=jdbc, server=reload", 1);
-        checkStringInPxfLog("Shutdown completed.", 1);
+        int shutDownPoolCount = 0;
+        for (Node pxfNode : pxfNodes) {
+            cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
+            // Must be 1 record on each segment host
+            String result = getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "profile=jdbc, server=reload"));
+            assertEquals("1", result);
+            // Must be 1 record per each segment host because jdbc writable table run query for each logical segment
+            shutDownPoolCount += Integer.parseInt(getCmdResult(cluster, String.format(GREP_COMMAND_TEMPLATE, PXF_TEMP_LOG_PATH, "Shutdown completed.")));
+            cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
+        }
+        assertEquals(2, shutDownPoolCount);
         checkSessionCount(INSERT_QUERY_PART, 1);
-    }
-
-    private void checkStringInPxfLog(String logLine, int countInLogs) throws Exception {
-        cluster.runCommandOnNodes(Collections.singletonList(pxfNode),
-                String.format("cat %s | grep \"%s\" | { [ $(wc -l) -eq %d ] && exit 0 || exit 1; }", pxfLogFile, logLine, countInLogs));
     }
 
     private void checkSessionCount(String text, int expectedCount) throws Exception {
@@ -278,12 +331,6 @@ public class PxfReloadTest extends BaseFeature {
         exTable.setProfile("test:text");
         gpdb.createTableAndVerify(exTable);
         hdfs.writeTableToFile(hdfsFilePath, dataTable, ",");
-    }
-
-    private void changeLogLevelToInfo() throws Exception {
-        String pxfAppPropertiesFile = cluster.getPxfHome() + "/conf/pxf-application.properties";
-        cluster.runCommandOnAllNodes("sed -i 's/pxf.log.level=trace/# pxf.log.level=info/' " + pxfAppPropertiesFile);
-        cluster.restart(PhdCluster.EnumClusterServices.pxf);
     }
 
     private int countArrayListsWithField(List<List<String>> listOfLists, String searchText) {
