@@ -250,7 +250,7 @@ public class JsonAccessor extends LineBreakAccessor {
                 // closing of streams failed, but if there was a more important exception caught before, suppress this one
                 if (caughtException) {
                     // suppress the new exception, just log its message and let the original one propagate
-                    LOG.warn("Suppressing exception when closing Json generator: ", e.getMessage());
+                    LOG.warn("Suppressing exception when closing Json generator: {}", e.getMessage());
                 } else {
                     // since this is the first and only exception we see, throw it
                     throw e;
