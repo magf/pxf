@@ -99,7 +99,7 @@ public class ParquetUtilities {
                 }
             case INT64:
                 if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation
-                    || logicalTypeAnnotation instanceof LogicalTypeAnnotation.TimeLogicalTypeAnnotation) {
+                    || logicalTypeAnnotation instanceof LogicalTypeAnnotation.TimeLogicalTypeAnnotation || val.contains(":")) {
                     return val;
                 } else {
                     return Long.parseLong(val);
