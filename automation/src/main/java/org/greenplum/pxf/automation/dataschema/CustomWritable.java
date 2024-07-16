@@ -93,7 +93,6 @@ public class CustomWritable implements Writable {
         shrt = 0;
 
         // 8. Init bytes
-        initBytesArray();
         bts = "Sarkozy".getBytes();
     }
 
@@ -147,7 +146,6 @@ public class CustomWritable implements Writable {
         shrt = 100;
 
         // 8. Init bytes
-        initBytesArray();
         bts = "Writable".getBytes();
     }
 
@@ -169,10 +167,6 @@ public class CustomWritable implements Writable {
 
     void initLongsArray() {
         lngs = new long[2];
-    }
-
-    void initBytesArray() {
-        // bts = new byte[10];
     }
 
     void initBoolsArray() {

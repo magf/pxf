@@ -48,7 +48,7 @@ public class DummyAccessor extends BasePlugin implements Accessor {
 
     @Override
     public void closeForRead() {
-        /* fclose or similar */
+        LOG.info("Close dummy accessor connection for read");
     }
 
     @Override
@@ -66,6 +66,6 @@ public class DummyAccessor extends BasePlugin implements Accessor {
 
     @Override
     public void closeForWrite() {
-        /* fclose or similar */
+        LOG.info("Close dummy accessor connection for write");
     }
 }

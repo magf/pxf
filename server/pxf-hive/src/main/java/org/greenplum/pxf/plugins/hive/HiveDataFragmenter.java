@@ -116,14 +116,6 @@ public class HiveDataFragmenter extends HdfsDataFragmenter {
      * {@inheritDoc}
      */
     @Override
-    public void afterPropertiesSet() {
-        super.afterPropertiesSet();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public List<Fragment> getFragments() throws Exception {
         Metadata.Item tblDesc = hiveClientWrapper.extractTableFromName(context.getDataSource());
 

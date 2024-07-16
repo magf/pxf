@@ -37,11 +37,6 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 	}
 
 	@Override
-	public void init() throws Exception {
-		super.init();
-	}
-
-	@Override
 	public Position[] getPositions() {
 		return null;
 	}

@@ -79,16 +79,6 @@ public class PivotalSshRsa extends SSH {
 	}
 
 	@Override
-	public void disconnect() {
-		super.disconnect();
-	}
-
-	@Override
-	public boolean isConnected() {
-		return super.isConnected();
-	}
-
-	@Override
 	public String getConnectionName() {
 		return "SSH_RSA";
 	}
