@@ -12,7 +12,7 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
  */
 public class QuotedLineTextPreparer implements IDataPreparer {
 
-	private String lineSeparator = System.getProperty("line.separator");
+	private String lineSeparator = System.lineSeparator();
 
 	public QuotedLineTextPreparer() {
 		// in case "line.separator" property had empty value put '\n'
