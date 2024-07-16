@@ -98,6 +98,7 @@ public class ParquetUtilities {
                     return Integer.parseInt(val);
                 }
             case INT64:
+                // ":" here is only for purpose of supporting libraries that don't support new parquet annotations (spark for example)
                 if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation
                     || logicalTypeAnnotation instanceof LogicalTypeAnnotation.TimeLogicalTypeAnnotation || val.contains(":")) {
                     return val;
