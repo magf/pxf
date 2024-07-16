@@ -48,23 +48,6 @@ public class Oracle extends DbSystemObject {
     }
 
     @Override
-    public void createTableAndVerify(Table table) throws Exception {
-        ReportUtils.startLevel(report, getClass(), "Create and Verify Table: " + table.getFullName());
-        try {
-            dropTable(table, true);
-            createTable(table);
-        } catch (Exception e) {
-            ReportUtils.stopLevel(report);
-            throw e;
-        }
-        if (!checkTableExists(table)) {
-            ReportUtils.stopLevel(report);
-            throw new Exception("Table " + table.getName() + " do not exists");
-        }
-        ReportUtils.stopLevel(report);
-    }
-
-    @Override
     public void dropTable(Table table, boolean cascade) throws Exception {
         String queryDropTable = "DROP TABLE " + table.getSchema() + "." + table.getName();
         runQuery(queryDropTable, true, false);
