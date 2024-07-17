@@ -553,10 +553,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
             int minorVersion = Integer.parseInt(versions[1]);
 
             // we do not need to check the patch version since it went in 1.2.0
-            if (majorVersion == 1 && minorVersion < 2) {
-                return false;
-            }
-            return true;
+            return majorVersion != 1 || minorVersion >= 2;
         } catch (Exception e) {
             // Hive 1.2.1 fails to find the version as `select version()` was not introduced until Hive 2.1
             // We fail here due to this UDF not existing, so if we get this err, catch it and return true

@@ -32,25 +32,16 @@ public class QuotedLineTextPreparer implements IDataPreparer {
 			ArrayList<String> row = new ArrayList<String>();
 
 			// on every even i, add new line in the second field
-			if (i % 2 != 0) {
-
-				row.add(String.valueOf(num1));
-				row.add("\"aaa_" + num1 + "\"");
-				row.add(String.valueOf(num1 + 1));
-
-				dataTable.addRow(row);
-				data[i] = row;
-
-			} else {
-				row.add(String.valueOf(num1));
-				row.add("\"aaa_" + num1 + lineSeparator + "_c\"");
-				row.add(String.valueOf(num1 + 1));
-
-				dataTable.addRow(row);
-				data[i] = row;
-			}
-		}
-
+            row.add(String.valueOf(num1));
+            if (i % 2 != 0) {
+                row.add("\"aaa_" + num1 + "\"");
+            } else {
+                row.add("\"aaa_" + num1 + lineSeparator + "_c\"");
+            }
+            row.add(String.valueOf(num1 + 1));
+            dataTable.addRow(row);
+            data[i] = row;
+        }
 		return data;
 	}
 }

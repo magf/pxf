@@ -288,8 +288,8 @@ public class AvroResolver extends BasePlugin implements Resolver {
                     fieldValue = avroTypeConverter.timeMillis((int) fieldValue, fieldSchema, logicalType);
                 }
 
-                DataType gpdbWritableDataType = (logicalType != null) ? gpdbColType : DataType.INTEGER;
-                ret = addOneFieldToRecord(record, gpdbWritableDataType, fieldValue);
+                DataType gpdbWritableIntDataType = (logicalType != null) ? gpdbColType : DataType.INTEGER;
+                ret = addOneFieldToRecord(record, gpdbWritableIntDataType, fieldValue);
                 break;
             case DOUBLE:
                 ret = addOneFieldToRecord(record, DataType.FLOAT8, fieldValue);
@@ -307,7 +307,7 @@ public class AvroResolver extends BasePlugin implements Resolver {
                 ret = addOneFieldToRecord(record, DataType.REAL, fieldValue);
                 break;
             case LONG:
-                gpdbWritableDataType = (logicalType != null) ? gpdbColType : DataType.BIGINT;
+                DataType gpdbWritableLongDataType = (logicalType != null) ? gpdbColType : DataType.BIGINT;
                 if (logicalType == LogicalTypes.timeMicros()) {
                     fieldValue = avroTypeConverter.timeMicros((long) fieldValue, fieldSchema, logicalType);
                 } else if (logicalType == LogicalTypes.timestampMillis()) {
@@ -319,7 +319,7 @@ public class AvroResolver extends BasePlugin implements Resolver {
                 } else if (logicalType == LogicalTypes.localTimestampMicros()) {
                     fieldValue = avroTypeConverter.localTimestampMicros((long) fieldValue, fieldSchema, logicalType);
                 }
-                ret = addOneFieldToRecord(record, gpdbWritableDataType, fieldValue);
+                ret = addOneFieldToRecord(record, gpdbWritableLongDataType, fieldValue);
                 break;
             case BYTES:
             case FIXED:

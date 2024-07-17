@@ -199,7 +199,7 @@ public class ChunkRecordReader implements
         long curPos = getFilePosition();
         int newSize = 0;
 
-        while (curPos <= end) {
+        if (curPos <= end) {
             key.set(pos);
 
             if ((end - curPos) > limit) {
@@ -209,7 +209,7 @@ public class ChunkRecordReader implements
                         Math.max(maxBytesToConsume(pos), maxLineLength));
             }
             if (newSize == 0) {
-                break;
+                return false;
             }
 
             pos += newSize;

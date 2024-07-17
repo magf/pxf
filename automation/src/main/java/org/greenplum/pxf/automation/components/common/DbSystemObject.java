@@ -326,11 +326,8 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	@Override
 	public boolean checkTableExists(Table table) throws Exception {
 		ResultSet res = getTablesForSchema(table);
-		if (res.next()) {
-			return true;
-		}
-		return false;
-	}
+        return res.next();
+    }
 
 	@Override
 	public ArrayList<String> getTableList(String schema) throws Exception {

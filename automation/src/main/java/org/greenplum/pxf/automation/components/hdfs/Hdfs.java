@@ -163,7 +163,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         }
 
         // for Hadoop clusters provisioned in the cloud when running from local workstation
-        if (useDatanodeHostname != null && Boolean.parseBoolean(useDatanodeHostname)) {
+        if (Boolean.parseBoolean(useDatanodeHostname)) {
             config.set("dfs.client.use.datanode.hostname", "true");
         }
 

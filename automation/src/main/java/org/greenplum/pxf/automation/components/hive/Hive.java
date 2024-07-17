@@ -179,11 +179,7 @@ public class Hive extends DbSystemObject {
         queryResults(table, query);
 
         // check if result has entry
-        if (!table.getData().isEmpty()) {
-            return true;
-        }
-
-        return false;
+        return !table.getData().isEmpty();
     }
 
     @Override
