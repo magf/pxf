@@ -55,13 +55,13 @@ public class RecordkeyAdapter {
      * the records.
      */
     private interface ValExtractor {
-        public Object get(Object key);
+        Object get(Object key);
     }
 
     private ValExtractor extractor = null;
 
     private interface ValConverter {
-        public Writable get(Object key);
+        Writable get(Object key);
     }
 
     private ValConverter converter = null;

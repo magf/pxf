@@ -13,5 +13,5 @@ public enum EnumPxfDefaultProfiles {
 	GemFireXD,
 	HiveRC,
 	HiveText,
-	HiveORC;
+	HiveORC
 }

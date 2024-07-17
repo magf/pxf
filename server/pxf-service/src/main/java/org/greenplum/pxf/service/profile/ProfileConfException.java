@@ -26,7 +26,7 @@ package org.greenplum.pxf.service.profile;
  * {@link ProfileConfException.MessageFormat#NO_PROFILE_DEF} when a profile entry or attribute is missing.
  */
 public class ProfileConfException extends RuntimeException {
-    private MessageFormat msgFormat;
+    private final MessageFormat msgFormat;
 
     /**
      * Constructs a ProfileConfException.

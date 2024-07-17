@@ -31,7 +31,7 @@ public class JsonRecordReaderTest {
     private LongWritable key;
     private Text data;
     private Path path;
-    private String[] hosts = null;
+    private final String[] hosts = null;
     private JsonRecordReader jsonRecordReader;
 
     @BeforeEach

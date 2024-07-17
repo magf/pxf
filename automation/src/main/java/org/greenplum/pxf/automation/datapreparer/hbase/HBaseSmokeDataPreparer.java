@@ -42,7 +42,7 @@ public class HBaseSmokeDataPreparer implements IDataPreparer {
 			newRow.addColumn(columnFamilyName.getBytes(), qualifiers[2].getBytes(), value.getBytes());
 
 			// long value
-			value = String.valueOf(Long.toString(100000000000L * (i)));
+			value = Long.toString(100000000000L * (i));
 			newRow.addColumn(columnFamilyName.getBytes(), qualifiers[3].getBytes(), value.getBytes());
 
 			// boolean value

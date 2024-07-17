@@ -26,7 +26,7 @@ public enum EnumAggregationType {
     private final String aggOperationCode;
     private final boolean optimizationSupported;
 
-    private EnumAggregationType(String aggOperationCode, boolean optimizationSupported) {
+    EnumAggregationType(String aggOperationCode, boolean optimizationSupported) {
         this.aggOperationCode = aggOperationCode;
         this.optimizationSupported = optimizationSupported;
     }

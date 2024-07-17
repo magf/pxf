@@ -192,7 +192,7 @@ public class HiveResolver extends BasePlugin implements Resolver {
         partitionColumnNames = new HashMap<>();
 
         List<HivePartition> hivePartitionList = metadata.getPartitions();
-        if (hivePartitionList == null || hivePartitionList.size() == 0) {
+        if (hivePartitionList == null || hivePartitionList.isEmpty()) {
             // no partition column information
             return;
         }
@@ -292,7 +292,7 @@ public class HiveResolver extends BasePlugin implements Resolver {
      */
     void initTextPartitionFields(StringBuilder parts) {
         List<HivePartition> hivePartitionList = metadata.getPartitions();
-        if (hivePartitionList == null || hivePartitionList.size() == 0) {
+        if (hivePartitionList == null || hivePartitionList.isEmpty()) {
             return;
         }
         for (HivePartition partition : hivePartitionList) {

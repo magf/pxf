@@ -293,7 +293,7 @@ public class BridgeOutputBuilder {
      *                            field
      */
     void fillText(List<OneField> recFields) throws BadRecordException {
-        if (recFields.size() < 1)
+        if (recFields.isEmpty())
             throw new BadRecordException(
                     "BridgeOutputBuilder must receive one field when handling the TEXT format");
 

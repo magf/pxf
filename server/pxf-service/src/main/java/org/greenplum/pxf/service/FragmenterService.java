@@ -76,7 +76,7 @@ public class FragmenterService {
         if (LOG.isDebugEnabled()) {
             LOG.debug("fragmentCache size={}, stats={}",
                     fragmenterCacheFactory.getCache().size(),
-                    fragmenterCacheFactory.getCache().stats().toString());
+                    fragmenterCacheFactory.getCache().stats());
         }
 
         LOG.debug("FRAGMENTER started for path \"{}\"", path);

@@ -38,8 +38,8 @@ public class Metadata {
      * Class representing item name - db/schema/path name and table/file name.
      */
     public static class Item {
-        private String path;
-        private String name;
+        private final String path;
+        private final String name;
 
         public Item(String path, String itemName) {
 
@@ -77,10 +77,10 @@ public class Metadata {
      * Modifiers - additional attributes which describe type or field
      */
     public static class Field {
-        private String name;
-        private EnumGpdbType type; // field type which PXF exposes
+        private final String name;
+        private final EnumGpdbType type; // field type which PXF exposes
         private boolean isComplexType; // whether source field's type is complex
-        private String sourceType; // field type PXF reads from
+        private final String sourceType; // field type PXF reads from
         private String[] modifiers; // type modifiers, optional field
 
         public Field(String name, EnumGpdbType type, String sourceType) {
@@ -134,7 +134,7 @@ public class Metadata {
     /**
      * Item name
      */
-    private Item item;
+    private final Item item;
 
     /**
      * Item's fields

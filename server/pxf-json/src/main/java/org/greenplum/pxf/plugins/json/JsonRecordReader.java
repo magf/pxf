@@ -46,17 +46,17 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
     public static final String RECORD_MEMBER_IDENTIFIER = "json.input.format.record.identifier";
     public static final String RECORD_MAX_LENGTH = "multilinejsonrecordreader.maxlength";
     private static final Logger LOG = LoggerFactory.getLogger(JsonRecordReader.class);
-    private long start;
+    private final long start;
     private long pos;
-    private long end;
-    private int maxObjectLength;
-    private PartitionedJsonParser parser;
+    private final long end;
+    private final int maxObjectLength;
+    private final PartitionedJsonParser parser;
     private LineRecordReader lineRecordReader;
     // position of the underlying lineRecordReader
     private long filePos;
     // line that was read in by the line record reader
-    private Text currentLine;
-    private JobConf conf;
+    private final Text currentLine;
+    private final JobConf conf;
     private final Path file;
     // this is the current line in buffer form
     private StringBuffer currentLineBuffer;
@@ -64,7 +64,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
     private int currentLineIndex = Integer.MAX_VALUE;
     private boolean inNextSplit = false;
     // used to store characters that were read before we hit a json begin object marker
-    private StringBuilder readValues = new StringBuilder(MAX_CHARS);
+    private final StringBuilder readValues = new StringBuilder(MAX_CHARS);
     // max number of characters to read before we update the position
     private static final int MAX_CHARS = 1024;
 

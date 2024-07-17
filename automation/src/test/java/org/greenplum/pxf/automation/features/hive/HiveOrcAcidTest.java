@@ -12,9 +12,9 @@ public class HiveOrcAcidTest extends HiveBaseTest {
     private HiveTable hiveOrcSmallDataTable;
     private HiveTable hiveOrcPartitionedTable;
 
-    private String ACID_POSTPEND = "_acid";
-    private List<String> transactionalTrue = Arrays.asList("transactional", "true");
-    private List<String> defaultTransactionalProperties = Arrays.asList("transactional_properties", "default");
+    private final String ACID_POSTPEND = "_acid";
+    private final List<String> transactionalTrue = Arrays.asList("transactional", "true");
+    private final List<String> defaultTransactionalProperties = Arrays.asList("transactional_properties", "default");
 
     @Override
     protected void createExternalTable(String tableName, String[] fields, HiveTable hiveTable) throws Exception {

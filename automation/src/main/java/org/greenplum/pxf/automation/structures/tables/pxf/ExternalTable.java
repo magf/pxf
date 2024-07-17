@@ -32,7 +32,7 @@ public abstract class ExternalTable extends Table {
 
     private String formatter;
 
-    private List<String> formatterOptions = new ArrayList<>();
+    private final List<String> formatterOptions = new ArrayList<>();
 
     private String delimiter;
 
@@ -194,7 +194,7 @@ public abstract class ExternalTable extends Table {
         if (getFormatter() != null) {
             String formatterOption = isFormatterMixedCase() ? "FoRmAtTeR" : "formatter";
             createStatement += String.format(" (%s='%s'", formatterOption, getFormatter());
-            if (formatterOptions.size() > 0) {
+            if (!formatterOptions.isEmpty()) {
                 createStatement += ", ";
                 createStatement += formatterOptions.stream().collect(Collectors.joining(", "));
             }

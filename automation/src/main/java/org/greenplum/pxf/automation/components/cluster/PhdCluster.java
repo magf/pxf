@@ -269,7 +269,7 @@ public abstract class PhdCluster extends ShellSystemObject {
 
 		private String serviceName = "";
 
-		private EnumClusterServices(String serviceName) {
+		EnumClusterServices(String serviceName) {
 			this.setServiceName(serviceName);
 		}
 

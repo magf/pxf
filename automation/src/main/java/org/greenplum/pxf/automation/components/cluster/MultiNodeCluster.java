@@ -108,7 +108,7 @@ public class MultiNodeCluster extends PhdCluster {
             command = "sudo -s /etc/init.d/" + service.getServiceName() + " " + operation;
         }
         // run on relevant nodes
-        ReportUtils.startLevel(report, getClass(), operation + " " + service.toString());
+        ReportUtils.startLevel(report, getClass(), operation + " " + service);
         // get List of Nodes to run operation on according to service
         List<Node> nodesListByService;
         switch (service) {

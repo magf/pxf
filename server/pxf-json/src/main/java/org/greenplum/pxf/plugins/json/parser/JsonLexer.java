@@ -66,7 +66,7 @@ public class JsonLexer {
 	/**
 	 * Represents the possible states of a cursor can take in a JSON document.
 	 */
-	public static enum JsonLexerState {
+	public enum JsonLexerState {
 		NULL,
 
 		DONT_CARE,

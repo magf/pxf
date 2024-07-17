@@ -19,7 +19,7 @@ public class HBaseUtils {
 	 */
 	public static void getFilterListPrint(StringBuilder result, FilterList filterList) {
 
-		if (filterList == null || filterList.getFilters().size() == 0) {
+		if (filterList == null || filterList.getFilters().isEmpty()) {
 			return;
 		}
 

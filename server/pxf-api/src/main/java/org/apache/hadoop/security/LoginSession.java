@@ -17,15 +17,15 @@ import java.util.Objects;
 public class LoginSession {
 
     // fields establishing session identity from configuration
-    private String configDirectory;
-    private String principalName;
-    private String keytabPath;
-    private long kerberosMinMillisBeforeRelogin;
-    private float kerberosTicketRenewWindow;
+    private final String configDirectory;
+    private final String principalName;
+    private final String keytabPath;
+    private final long kerberosMinMillisBeforeRelogin;
+    private final float kerberosTicketRenewWindow;
 
     // derived fields stored to be re-used for subsequent requests
-    private UserGroupInformation loginUser;
-    private Subject subject;
+    private final UserGroupInformation loginUser;
+    private final Subject subject;
     private User user;
 
     /**

@@ -67,8 +67,8 @@ public class HBaseLookupTable implements Closeable {
 
     private static final Log LOG = LogFactory.getLog(HBaseLookupTable.class);
 
-    private Connection connection;
-    private Admin admin;
+    private final Connection connection;
+    private final Admin admin;
     private Map<byte[], byte[]> rawTableMapping;
     private Table lookupTable;
 

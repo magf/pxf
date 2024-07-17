@@ -151,7 +151,7 @@ public enum EnumHiveToGpdbType {
             }
         }
 
-        if (types.size() == 0)
+        if (types.isEmpty())
             throw new UnsupportedTypeException("Unable to find compatible Hive type for given GPDB's type: " + dataType);
 
         return types.last();

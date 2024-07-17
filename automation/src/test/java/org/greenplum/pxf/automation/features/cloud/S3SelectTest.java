@@ -56,7 +56,7 @@ public class S3SelectTest extends BaseFeature {
     @Override
     public void beforeClass() throws Exception {
         // Initialize server objects
-        s3Path = String.format("gpdb-ud-scratch/tmp/pxf_automation_data/%s/s3select/", UUID.randomUUID().toString());
+        s3Path = String.format("gpdb-ud-scratch/tmp/pxf_automation_data/%s/s3select/", UUID.randomUUID());
         Configuration s3Configuration = new Configuration();
         s3Configuration.set("fs.s3a.access.key", ProtocolUtils.getAccess());
         s3Configuration.set("fs.s3a.secret.key", ProtocolUtils.getSecret());

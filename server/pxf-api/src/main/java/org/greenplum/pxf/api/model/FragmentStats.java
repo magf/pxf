@@ -68,8 +68,8 @@ public class FragmentStats {
         /**
          * TB
          */
-        TB;
-    };
+        TB
+    }
 
     /**
      * Container for size and unit

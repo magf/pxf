@@ -325,7 +325,7 @@ public class SQLQueryBuilder {
             LOG.debug("FILTER target: {}", where);
             query.append(where);
         } catch (Exception e) {
-            LOG.debug("WHERE clause is omitted: " + e.toString());
+            LOG.debug("WHERE clause is omitted: " + e.getMessage());
             // Silence the exception and do not insert constraints
         }
     }

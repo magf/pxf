@@ -60,7 +60,7 @@ public class ConnectionManager {
                                     hds.getPoolName(),
                                     notification.getKey().getServer(),
                                     notification.getKey().getUser(),
-                                    notification.getCause().toString());
+                                    notification.getCause());
                             // if connection pool has been removed from the cache while active query is executing
                             // wait until all connections finish execution and become idle, but no longer that cleanupTimeout
                             final long startTime = ticker.read();

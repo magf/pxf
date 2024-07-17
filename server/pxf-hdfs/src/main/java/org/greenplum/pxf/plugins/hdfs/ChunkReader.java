@@ -34,8 +34,8 @@ import java.util.List;
  */
 public class ChunkReader implements Closeable {
     public static final int DEFAULT_BUFFER_SIZE = 64 * 1024;
-    private InputStream in;
-    private byte[] buffer;
+    private final InputStream in;
+    private final byte[] buffer;
     // the number of bytes of real data in the buffer
     private int bufferLength = 0;
     // the current position in the buffer

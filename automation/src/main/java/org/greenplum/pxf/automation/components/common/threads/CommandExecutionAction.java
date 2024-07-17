@@ -11,8 +11,8 @@ import org.greenplum.pxf.automation.components.common.cli.ShellCommandErrorExcep
  * else return 0.
  */
 public class CommandExecutionAction implements Callable<Integer> {
-	private ShellSystemObject connection;
-	private String commandToExecute;
+	private final ShellSystemObject connection;
+	private final String commandToExecute;
 
 	public CommandExecutionAction(ShellSystemObject connection, String commandToExecute) {
 		this.connection = connection;

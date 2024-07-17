@@ -38,7 +38,7 @@ public class PartitionedJsonParser {
 
 	private static final char START_BRACE = '{';
 	private final JsonLexer lexer;
-	private String memberName;
+	private final String memberName;
 
 	private MemberSearchState memberState;
 	private StringBuilder currentObject;

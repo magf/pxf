@@ -9,10 +9,10 @@ import org.greenplum.pxf.automation.components.common.ShellSystemObject;
  * elsewhere.
  */
 public class FileCopyAction implements Callable<Integer> {
-	private ShellSystemObject from;
-	private ShellSystemObject to;
-	private String fromPath;
-	private String toPath;
+	private final ShellSystemObject from;
+	private final ShellSystemObject to;
+	private final String fromPath;
+	private final String toPath;
 
 	public FileCopyAction(ShellSystemObject from, ShellSystemObject to, String fromPath, String toPath) {
 		this.from = from;

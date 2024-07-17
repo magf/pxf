@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class PxfErrorReporterTest {
     class TestReporter extends PxfErrorReporter<String> {}
-    private TestReporter reporter = new TestReporter();
+    private final TestReporter reporter = new TestReporter();
 
     @Mock
     private ThrowingSupplier<String, Exception> mockAction;

@@ -42,7 +42,7 @@ public class MetadataResponse implements StreamingResponseBody {
 
     private static final String METADATA_DEFAULT_RESPONSE = "{\"PXFMetadata\":[]}";
 
-    private List<Metadata> metadataList;
+    private final List<Metadata> metadataList;
 
     /**
      * Constructs metadata response out of a metadata list

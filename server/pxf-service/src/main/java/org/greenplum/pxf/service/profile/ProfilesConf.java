@@ -177,7 +177,7 @@ public class ProfilesConf implements PluginConf {
                 Map<String, String> optionsMap = profile.getOptionsMap();
 
                 // We were unable to get this working in the Profile class
-                if (mappings != null && mappings.size() > 0) {
+                if (mappings != null && !mappings.isEmpty()) {
                     mappings.forEach(m -> optionsMap.put(m.getOption(), m.getProperty()));
                 }
             }

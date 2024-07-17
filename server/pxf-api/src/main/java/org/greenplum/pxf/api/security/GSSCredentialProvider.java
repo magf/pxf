@@ -143,7 +143,7 @@ public class GSSCredentialProvider {
                 .removalListener((RemovalListener<String, GSSCredentialHolder>) notification ->
                         LOG.debug("Removed GSS credential from cache for key {} with cause {}",
                                 notification.getKey(),
-                                notification.getCause().toString()))
+                                notification.getCause()))
                 .build();
     }
 

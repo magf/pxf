@@ -20,9 +20,9 @@ import com.aqua.sysobj.conn.Position;
  */
 public class PivotalCliConnectionImpl extends CliConnectionImpl {
 
-	private ArrayList<Prompt> prompts = new ArrayList<Prompt>();;
+	private final ArrayList<Prompt> prompts = new ArrayList<Prompt>();
 
-	public PivotalCliConnectionImpl() {
+    public PivotalCliConnectionImpl() {
 		setDump(true);
 		setUseTelnetInputStream(true);
 		setProtocol("ssh-rsa");

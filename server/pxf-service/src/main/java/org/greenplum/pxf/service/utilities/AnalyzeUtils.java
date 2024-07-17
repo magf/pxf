@@ -117,8 +117,7 @@ public class AnalyzeUtils {
             }
         }
 
-        LOG.debug("sampling bit map has " + chosen + " elements:"
-                + bitSet.toString());
+        LOG.debug("sampling bit map has " + chosen + " elements: " + bitSet);
 
         return bitSet;
     }

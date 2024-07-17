@@ -52,19 +52,19 @@ public class HBaseFilterBuilderTest {
     private static final TreeTraverser TRAVERSER = new TreeTraverser();
 
     private HBaseTupleDescription tupleDescription;
-    private byte[][] families = new byte[][]{
+    private final byte[][] families = new byte[][]{
             new byte[]{},
             new byte[]{},
             new byte[]{},
             new byte[]{},
     };
-    private byte[][] qualifiers = new byte[][]{
+    private final byte[][] qualifiers = new byte[][]{
             new byte[]{},
             new byte[]{},
             new byte[]{},
             new byte[]{},
     };
-    private int[] columnCodes = {
+    private final int[] columnCodes = {
             DataType.INTEGER.getOID(),
             DataType.TEXT.getOID(),
             DataType.REAL.getOID(),

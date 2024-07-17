@@ -30,7 +30,7 @@ import org.greenplum.pxf.api.utilities.ColumnDescriptor;
  */
 public class ColumnDescriptorCache {
 
-	private static Pattern ARRAY_PROJECTION_PATTERN = Pattern.compile("(.+)\\[([0-9]+)\\]");
+	private static final Pattern ARRAY_PROJECTION_PATTERN = Pattern.compile("(.+)\\[([0-9]+)\\]");
 	private static final int ARRAY_NAME_GROUPID = 1;
 	private static final int ARRAY_INDEX_GROUPID = 2;
 
@@ -38,7 +38,7 @@ public class ColumnDescriptorCache {
 	private final String[] normalizedProjection;
     private final int arrayNodeIndex;
 	private final boolean isArray;
-	private String columnName;
+	private final String columnName;
 
 	public ColumnDescriptorCache(ColumnDescriptor columnDescriptor) {
 

@@ -14,7 +14,7 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
  */
 public class CustomAvroPreparer implements IDataPreparer {
 
-	private String schemaName;
+	private final String schemaName;
 
 	public CustomAvroPreparer(String schemaName) {
 		this.schemaName = schemaName;

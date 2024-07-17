@@ -50,7 +50,7 @@ public class DemoFileWritableAccessor extends DemoAccessor {
 
         Path file = FileSystems.getDefault().getPath(fileName);
         if (Files.exists(file)) {
-            throw new IOException("File " + file.toString() + " already exists.");
+            throw new IOException("File " + file + " already exists.");
         }
 
         Path parent = file.getParent();

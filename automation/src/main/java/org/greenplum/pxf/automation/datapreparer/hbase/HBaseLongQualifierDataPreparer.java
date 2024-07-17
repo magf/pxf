@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.datapreparer.hbase;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class HBaseLongQualifierDataPreparer implements IDataPreparer {
 	}
 
 	private void addValue(Put row, byte[] cf, String ql, String value) throws java.io.UnsupportedEncodingException {
-		addValue(row, cf, ql, value.getBytes("UTF-8"));
+		addValue(row, cf, ql, value.getBytes(StandardCharsets.UTF_8));
 	}
 
 	public String getColumnFamilyName() {

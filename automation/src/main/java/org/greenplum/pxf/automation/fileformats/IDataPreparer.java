@@ -17,5 +17,5 @@ public interface IDataPreparer {
 	 * @return Array of Data
 	 * @throws Exception
 	 */
-	public Object[] prepareData(int rows, Table dataTable) throws Exception;
+    Object[] prepareData(int rows, Table dataTable) throws Exception;
 }

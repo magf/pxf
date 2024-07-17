@@ -91,7 +91,7 @@ public class SingleCluster extends PhdCluster {
     public void restart(EnumClusterServices service) throws Exception {
         // currently singlecluster restart scripts supports only PXF and GPHD
         if ((!service.equals(EnumClusterServices.pxf)) && (!service.equals(EnumClusterServices.gphd))) {
-            throw new UnsupportedOperationException("SingleCluster -> restart is not supported for " + service.toString() + " service");
+            throw new UnsupportedOperationException("SingleCluster -> restart is not supported for " + service + " service");
         }
         ReportUtils.startLevel(report, getClass(), "Restart " + service);
 
@@ -223,7 +223,7 @@ public class SingleCluster extends PhdCluster {
 
         private final int instances;
 
-        private EnumScProcesses(int instances) {
+        EnumScProcesses(int instances) {
             this.instances = instances;
         }
 

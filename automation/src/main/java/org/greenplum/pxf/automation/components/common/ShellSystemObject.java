@@ -52,7 +52,7 @@ public class ShellSystemObject extends BaseSystemObject {
     // the max timeout for command execution
     private long commandTimeout = _30_SECONDS;
 
-    private String[] requiredEnvParams = new String[] {
+    private final String[] requiredEnvParams = new String[] {
             "JAVA_HOME",
             "GPHOME",
             "GPHD_ROOT",

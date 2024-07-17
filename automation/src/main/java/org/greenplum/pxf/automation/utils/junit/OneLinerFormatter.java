@@ -34,17 +34,17 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 	/**
 	 * Used as part of formatting the results.
 	 */
-	private StringWriter results;
+	private final StringWriter results;
 
 	/**
 	 * Used for writing formatted results to.
 	 */
-	private PrintWriter resultWriter;
+	private final PrintWriter resultWriter;
 
 	/**
 	 * Formatter for timings.
 	 */
-	private NumberFormat numberFormat = NumberFormat.getInstance();
+	private final NumberFormat numberFormat = NumberFormat.getInstance();
 
 	/**
 	 * Output suite is written to System.out
@@ -59,11 +59,11 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 	/**
 	 * tests that failed.
 	 */
-	private Hashtable<Test, Throwable> failedTests = new Hashtable<Test, Throwable>();
+	private final Hashtable<Test, Throwable> failedTests = new Hashtable<Test, Throwable>();
 	/**
 	 * Timing helper.
 	 */
-	private Hashtable<Test, Long> testStarts = new Hashtable<Test, Long>();
+	private final Hashtable<Test, Long> testStarts = new Hashtable<Test, Long>();
 
 	/**
 	 * Constructor for OneLinerFormatter.

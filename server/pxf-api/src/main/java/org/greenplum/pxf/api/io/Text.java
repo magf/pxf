@@ -28,12 +28,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.MalformedInputException;
+import java.nio.charset.*;
 import java.util.Arrays;
 
 /**
@@ -52,18 +47,18 @@ public class Text implements Writable {
     private static final int EOF = -1;
 
     private static final byte[] EMPTY_BYTES = new byte[0];
-    private static ThreadLocal<CharsetEncoder> ENCODER_FACTORY = new ThreadLocal<CharsetEncoder>() {
+    private static final ThreadLocal<CharsetEncoder> ENCODER_FACTORY = new ThreadLocal<CharsetEncoder>() {
         @Override
         protected CharsetEncoder initialValue() {
-            return Charset.forName("UTF-8").newEncoder().onMalformedInput(
+            return StandardCharsets.UTF_8.newEncoder().onMalformedInput(
                     CodingErrorAction.REPORT).onUnmappableCharacter(
                     CodingErrorAction.REPORT);
         }
     };
-    private static ThreadLocal<CharsetDecoder> DECODER_FACTORY = new ThreadLocal<CharsetDecoder>() {
+    private static final ThreadLocal<CharsetDecoder> DECODER_FACTORY = new ThreadLocal<CharsetDecoder>() {
         @Override
         protected CharsetDecoder initialValue() {
-            return Charset.forName("UTF-8").newDecoder().onMalformedInput(
+            return StandardCharsets.UTF_8.newDecoder().onMalformedInput(
                     CodingErrorAction.REPORT).onUnmappableCharacter(
                     CodingErrorAction.REPORT);
         }
@@ -246,8 +241,7 @@ public class Text implements Writable {
             bytes = bb.array();
             length = bb.limit();
         } catch (CharacterCodingException e) {
-            throw new RuntimeException("Should not have happened "
-                    + e.toString());
+            throw new RuntimeException("Should not have happened " + e.getMessage());
         }
     }
 
@@ -333,8 +327,7 @@ public class Text implements Writable {
         try {
             return decode(bytes, 0, length);
         } catch (CharacterCodingException e) {
-            throw new RuntimeException("Should not have happened "
-                    + e.toString());
+            throw new RuntimeException("Should not have happened " + e.getMessage());
         }
     }
 

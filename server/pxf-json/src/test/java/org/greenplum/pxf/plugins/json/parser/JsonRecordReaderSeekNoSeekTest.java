@@ -46,7 +46,7 @@ public class JsonRecordReaderSeekNoSeekTest {
 
     private static final String RECORD_MEMBER_IDENTIFIER = "json.input.format.record.identifier";
     private JobConf jobConf;
-    private String[] hosts = null;
+    private final String[] hosts = null;
 
     @BeforeEach
     public void setup() {
@@ -105,7 +105,7 @@ public class JsonRecordReaderSeekNoSeekTest {
         Arrays.sort(jsonObjectFiles);
         if (jsonObjectFiles.length == 0) {
             jsonRecordReader.next(key, data);
-            assertEquals(0, data.getLength(), "File " + jsonFile.getAbsolutePath() + " got result '" + data.toString() + "'");
+            assertEquals(0, data.getLength(), "File " + jsonFile.getAbsolutePath() + " got result '" + data + "'");
         } else {
             for (File jsonObjectFile : jsonObjectFiles) {
                 String expected = normalizeWhitespaces(FileUtils.readFileToString(jsonObjectFile, Charset.defaultCharset()));

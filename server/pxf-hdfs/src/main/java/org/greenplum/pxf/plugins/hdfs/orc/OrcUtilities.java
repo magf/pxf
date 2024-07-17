@@ -17,7 +17,7 @@ public final class OrcUtilities {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrcUtilities.class);
 
-    private PgUtilities pgUtilities;
+    private final PgUtilities pgUtilities;
 
     /**
      * default constructor

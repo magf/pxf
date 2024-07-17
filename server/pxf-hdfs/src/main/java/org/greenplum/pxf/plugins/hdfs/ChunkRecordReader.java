@@ -57,12 +57,12 @@ public class ChunkRecordReader implements
     private long start;
     private long pos;
     private long end;
-    private long fileLength;
-    private ChunkReader in;
-    private FSDataInputStream fileIn;
+    private final long fileLength;
+    private final ChunkReader in;
+    private final FSDataInputStream fileIn;
     private final Seekable filePosition;
-    private int maxLineLength;
-    private CompressionCodec codec;
+    private final int maxLineLength;
+    private final CompressionCodec codec;
     private Decompressor decompressor;
     private static final int CHUNK_SIZE = 1024 * 1024;
 

@@ -16,12 +16,13 @@ public class PoolDescriptor {
     private static final Set<String> PROHIBITED_PROPERTIES =
             Sets.newHashSet("username", "password", "dataSource.user", "dataSource.password", "dataSourceClassName", "jdbcUrl");
 
-    private String server;
-    private String jdbcUrl;
+    private final String server;
+    private final String jdbcUrl;
     private String user;
     private String password;
-    private Properties connectionConfig, poolConfig;
-    private String qualifier;
+    private Properties connectionConfig;
+    private final Properties poolConfig;
+    private final String qualifier;
 
 
     public PoolDescriptor(String server, String jdbcUrl, Properties connectionConfig, Properties poolConfig, String qualifier) {

@@ -435,7 +435,7 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
             ToStringTreeVisitor toStringTreeVisitor = new ToStringTreeVisitor();
             new TreeTraverser().traverse(root, toStringTreeVisitor);
 
-            LOG.debug("Filter string after pruning {}", toStringTreeVisitor.toString());
+            LOG.debug("Filter string after pruning {}", toStringTreeVisitor);
         }
 
         return returnData;

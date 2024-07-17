@@ -105,7 +105,7 @@ public class JsonAccessor extends LineBreakAccessor {
      * for an object layout the name of the root element that will have a tuple array as the value
      */
     private String rootName;
-    private JsonFactory jsonFactory;
+    private final JsonFactory jsonFactory;
     private JsonGenerator jsonGenerator;
     private ColumnDescriptor[] columnDescriptors;
     private boolean isFirstRecord;

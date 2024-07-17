@@ -164,7 +164,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
         ReportUtils.startLevel(
                 report,
                 getClass(),
-                "Remove " + sBuilder.toString() + " rowIds from "
+                "Remove " + sBuilder + " rowIds from "
                         + table.getName());
         org.apache.hadoop.hbase.client.Table hTable = connection.getTable(TableName.valueOf(table.getName()));
         hTable.delete(deleteList);

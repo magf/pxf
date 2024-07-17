@@ -44,7 +44,7 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
     public byte[] bts;
 
     // Avro variables
-    private String schema_name;
+    private final String schema_name;
     private Schema schema;
     private GenericRecord datum;
     private DatumWriter<GenericRecord> writer;

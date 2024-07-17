@@ -114,7 +114,7 @@ public class HiveTable extends Table {
 			sb.append(" LOCATION '").append(getLocation()).append("'");
 		}
 
-		if (tableProperties != null && tableProperties.size() > 0) {
+		if (tableProperties != null && !tableProperties.isEmpty()) {
 			addTablePropertiesToString(sb);
 		}
 
@@ -214,5 +214,5 @@ public class HiveTable extends Table {
 
 	protected String getLocation() {
 		return null;
-	};
+	}
 }

@@ -246,7 +246,7 @@ public class SearchArgumentBuilder implements TreeVisitor {
         } else if (literal instanceof List) {
             @SuppressWarnings("unchecked")
             List<Object> l = (List<Object>) literal;
-            if (l.size() > 0)
+            if (!l.isEmpty())
                 return getType(l.get(0));
         }
         throw new IllegalArgumentException(String.format("Unknown type for literal %s", literal));

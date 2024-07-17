@@ -25,12 +25,12 @@ public class RecordGenerator {
 	//BOOLEAN   values {true/false } max length :4(true)/5(false) bytes
 	//BYTEA     values {} max length : undefined
 
-	private String columnsSeparator;
-	private List<String> columnTypes;
+	private final String columnsSeparator;
+	private final List<String> columnTypes;
 
-	private Map<String, Generator<?>> mapGenerator = new HashMap<>();
+	private final Map<String, Generator<?>> mapGenerator = new HashMap<>();
 
-	private ArrayList<Character> characters = new ArrayList<Character>();
+	private final ArrayList<Character> characters = new ArrayList<Character>();
 
 	/*
 	 * ConstructorH
@@ -91,7 +91,7 @@ public class RecordGenerator {
 		}
 
 		// Remove last separator
-		if(columnTypes.size() > 0) {
+		if(!columnTypes.isEmpty()) {
 			record.deleteCharAt(record.length()-1);
 		}
 
@@ -131,7 +131,7 @@ public class RecordGenerator {
 
 	private class RandomIntegerGenerator extends Generator<Integer>{
 
-		private Random rand = new Random(0);
+		private final Random rand = new Random(0);
 
 		public RandomIntegerGenerator(int maxSize) {
 			super(maxSize);
@@ -160,7 +160,7 @@ public class RecordGenerator {
 
 	private class RandomBigIntegerGenerator extends Generator<Long>{
 
-		private Random rand = new Random(0);
+		private final Random rand = new Random(0);
 
 		public RandomBigIntegerGenerator(int maxSize) {
 			super(maxSize);
@@ -189,7 +189,7 @@ public class RecordGenerator {
 
 	private class RandomSmallIntegerGenerator extends Generator<Short>{
 
-		private Random rand = new Random(0);
+		private final Random rand = new Random(0);
 
 		public RandomSmallIntegerGenerator(int maxSize) {
 			super(maxSize);
@@ -219,7 +219,7 @@ public class RecordGenerator {
 
 	private class RandomDoubleGenerator extends Generator<Double>{
 
-		private Random rand = new Random(0);
+		private final Random rand = new Random(0);
 
 		public RandomDoubleGenerator(int maxSize) {
 			super(maxSize);
@@ -248,7 +248,7 @@ public class RecordGenerator {
 
 	private class RandomFloatGenerator extends Generator<Float>{
 
-		private Random rand = new Random(0);
+		private final Random rand = new Random(0);
 
 		public RandomFloatGenerator(int maxSize) {
 			super(maxSize);
@@ -263,7 +263,7 @@ public class RecordGenerator {
 	/* NUMERIC    */
 	private class FixedNumericGenerator extends Generator<String>{
 
-		private StringBuilder number = new StringBuilder();
+		private final StringBuilder number = new StringBuilder();
 
 		public FixedNumericGenerator(int maxSize) {
 			super(maxSize);
@@ -279,7 +279,7 @@ public class RecordGenerator {
 
 	private class RandomNumericGenerator extends Generator<String>{
 
-		private Random rand = new Random(0);
+		private final Random rand = new Random(0);
 
 		public RandomNumericGenerator(int maxSize) {
 			super(maxSize);
@@ -299,7 +299,7 @@ public class RecordGenerator {
 	/* BOOLEAN */
 	private class RandomBooleanGenerator extends Generator<Boolean>{
 
-		private Random rand = new Random(0);
+		private final Random rand = new Random(0);
 
 		public RandomBooleanGenerator(int maxSize) {
 			super(maxSize);
@@ -316,7 +316,7 @@ public class RecordGenerator {
 	/* VARCHAR/TEXT */
 	private class FixedTextGenerator extends Generator<String>{
 
-		private StringBuilder text = new StringBuilder();
+		private final StringBuilder text = new StringBuilder();
 
 		public FixedTextGenerator(int maxSize) {
 			super(maxSize);
@@ -334,7 +334,7 @@ public class RecordGenerator {
 
 	private class RandomTextGenerator extends Generator<String>{
 
-		private Random rand = new Random(0);
+		private final Random rand = new Random(0);
 
 		public RandomTextGenerator(int maxSize) {
 			super(maxSize);
@@ -353,7 +353,7 @@ public class RecordGenerator {
 	/* BYTEA */
 	private class RandomBYTEAGenerator extends Generator<String>{
 
-		private Random rand = new Random(0);
+		private final Random rand = new Random(0);
 
 		public RandomBYTEAGenerator(int maxSize) {
 			super(maxSize);

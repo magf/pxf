@@ -60,7 +60,7 @@ public class JsonResolver extends BasePlugin implements Resolver {
         MAPPER.configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
     }
 
-    private PgUtilities pgUtilities;
+    private final PgUtilities pgUtilities;
 
     private ArrayList<OneField> oneFieldList;
     private ColumnDescriptorCache[] columnDescriptorCache;

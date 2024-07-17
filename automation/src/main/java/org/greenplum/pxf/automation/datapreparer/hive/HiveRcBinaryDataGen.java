@@ -43,7 +43,7 @@ public class HiveRcBinaryDataGen {
         FileOutputStream fos = new FileOutputStream(tempDataFile);
 
         for (int i = 0; i < 10; i++) {
-            fos.write(("index_" + String.valueOf(i + 1)).getBytes());
+            fos.write(("index_" + (i + 1)).getBytes());
             fos.write(delimiter);
             fos.write(String.valueOf(i + 1).getBytes());
             fos.write(delimiter);

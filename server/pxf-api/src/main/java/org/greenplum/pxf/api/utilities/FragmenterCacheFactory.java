@@ -35,7 +35,7 @@ public class FragmenterCacheFactory {
                         LOG.debug("Removed fragmenterCache entry for transactionId {} with {} fragments with cause {}",
                                 notification.getKey(),
                                 (notification.getValue() != null ? notification.getValue().size() : 0),
-                                notification.getCause().toString()))
+                                notification.getCause()))
                 .build();
     }
 

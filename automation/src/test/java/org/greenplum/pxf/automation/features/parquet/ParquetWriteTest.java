@@ -94,7 +94,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
     };
 
     // CDH (Hive 1.1) does not support date, so we will add the date_arr column as needed in the test case
-    private static List<String> PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE = Lists.newArrayList(
+    private static final List<String> PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE = Lists.newArrayList(
             "id                   int"                  ,
             "bool_arr             array<boolean>"       ,           // DataType.BOOLARRAY
             "smallint_arr         array<smallint>"      ,           // DataType.INT2ARRAY

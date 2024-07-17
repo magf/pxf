@@ -571,7 +571,7 @@ public class Table {
         sb.append(System.lineSeparator()).append(getClass().getSimpleName()).append(": ").append(" Name: ").append(getName()).append(System.lineSeparator());
         sb.append("Data:").append(System.lineSeparator());
         if (columnsHeaders != null) {
-            sb.append(columnsHeaders.toString()).append(System.lineSeparator());
+            sb.append(columnsHeaders).append(System.lineSeparator());
         }
         if (data != null) {
             for (List<String> line : data) {

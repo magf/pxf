@@ -58,7 +58,7 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
                     DataType.TIMESTAMP
             );
     private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS);
-    private boolean usePositionToIdentifyColumn;
+    private final boolean usePositionToIdentifyColumn;
 
     /**
      * Constructor
