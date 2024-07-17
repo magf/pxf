@@ -79,7 +79,9 @@ public class ParquetUtilities {
         }
         switch (primitiveTypeName) {
             case BINARY:
-                if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.StringLogicalTypeAnnotation) {
+                if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.StringLogicalTypeAnnotation
+                    || logicalTypeAnnotation instanceof LogicalTypeAnnotation.JsonLogicalTypeAnnotation
+                    || logicalTypeAnnotation instanceof LogicalTypeAnnotation.BsonLogicalTypeAnnotation) {
                     return val;
                 } else {
                     return pgUtilities.parseByteaLiteral(val);
