@@ -14,7 +14,7 @@ public abstract class XmlBasedComponents {
 
 	private XMLConfiguration conf;
 
-	private final long _2_SECONDS = 2000;
+	private static final long _2_SECONDS = 2000;
 
 	XmlBasedComponents(String fileName) {
 		this.xmlFilePath = fileName;

@@ -85,8 +85,6 @@ public class JsonWriteTest extends BaseWritableFeature {
         assertTrue(filename.endsWith(".jsonl.gz"), "file " + filename + " does not end with .jsonl.gz");
     };
 
-    private String resourcePath;
-
     // tables that store seed data for insertion into writable external tables
     private Table gpdbPrimitiveTypesTable;
     private Table gpdbArrayTypesTable;
@@ -95,7 +93,7 @@ public class JsonWriteTest extends BaseWritableFeature {
     public void beforeClass() throws Exception {
         // path for storing data on HDFS that will be auto-cleanup after each test method
         hdfsWritePath = hdfs.getWorkingDirectory() + "/json/";
-        resourcePath = localDataResourcesFolder + "/json/";
+        String resourcePath = localDataResourcesFolder + "/json/";
 
         // seed the source data in GPDB internal table -- primitive types
         gpdbPrimitiveTypesTable = new Table("gpdb_" + PRIMITIVE_TYPES, PRIMITIVE_TYPES_FIELDS);

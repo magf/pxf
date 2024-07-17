@@ -61,13 +61,12 @@ public class HttpRequestParserTest {
     private HttpRequestParser parser;
     private MultiValueMap<String, String> parameters;
     private PluginConf mockPluginConf;
-    private BuildProperties mockBuildProperties;
     private PxfApiVersionChecker mockApiVersionChecker;
 
     @BeforeEach
     public void setUp() {
         mockPluginConf = mock(PluginConf.class);
-        mockBuildProperties = mock(BuildProperties.class);
+        BuildProperties mockBuildProperties = mock(BuildProperties.class);
         when(mockBuildProperties.get("pxfApiVersion")).thenReturn("16");
 
         mockApiVersionChecker = mock(PxfApiVersionChecker.class);

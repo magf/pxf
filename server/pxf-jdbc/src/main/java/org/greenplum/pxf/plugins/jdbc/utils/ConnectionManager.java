@@ -40,13 +40,12 @@ public class ConnectionManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConnectionManager.class);
 
-    private final Executor datasourceClosingExecutor;
     private final LoadingCache<PoolDescriptor, HikariDataSource> dataSources;
     private final DriverManagerWrapper driverManagerWrapper;
 
     public ConnectionManager(DataSourceFactory factory, Ticker ticker, PxfJdbcProperties properties, DriverManagerWrapper driverManagerWrapper) {
         this.driverManagerWrapper = driverManagerWrapper;
-        this.datasourceClosingExecutor = Executors.newCachedThreadPool();
+        Executor datasourceClosingExecutor = Executors.newCachedThreadPool();
 
         // the connection properties
         final PxfJdbcProperties.Connection connection = properties.getConnection();

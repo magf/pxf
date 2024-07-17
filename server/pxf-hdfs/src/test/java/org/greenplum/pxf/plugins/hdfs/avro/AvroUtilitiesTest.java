@@ -31,7 +31,6 @@ public class AvroUtilitiesTest {
     private Schema testSchema;
     private String avroDirectory;
     private AvroUtilities avroUtilities;
-    private PgUtilities pgUtilities;
     private HcfsType hcfsType;
 
 
@@ -46,7 +45,7 @@ public class AvroUtilitiesTest {
         testSchema = generateTestSchema();
         avroUtilities = new AvroUtilities();
         avroSchemaFileReaderFactory = new AvroSchemaFileReaderFactory();
-        pgUtilities = new PgUtilities();
+        PgUtilities pgUtilities = new PgUtilities();
         avroUtilities.setSchemaFileReaderFactory(avroSchemaFileReaderFactory);
         avroUtilities.setPgUtilities(pgUtilities);
         hcfsType = HcfsType.getHcfsType(context);

@@ -31,13 +31,12 @@ import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 public class ColumnDescriptorCache {
 
 	private static Pattern ARRAY_PROJECTION_PATTERN = Pattern.compile("(.+)\\[([0-9]+)\\]");
-	private static int ARRAY_NAME_GROUPID = 1;
-	private static int ARRAY_INDEX_GROUPID = 2;
+	private static final int ARRAY_NAME_GROUPID = 1;
+	private static final int ARRAY_INDEX_GROUPID = 2;
 
 	private final DataType columnType;
 	private final String[] normalizedProjection;
-	private final String arrayNodeName;
-	private final int arrayNodeIndex;
+    private final int arrayNodeIndex;
 	private final boolean isArray;
 	private String columnName;
 
@@ -61,15 +60,14 @@ public class ColumnDescriptorCache {
 		if (matcher.matches()) {
 			this.isArray = true;
 			// extracts the array node name from the projection path
-			this.arrayNodeName = matcher.group(ARRAY_NAME_GROUPID);
+			String arrayNodeName = matcher.group(ARRAY_NAME_GROUPID);
 			// extracts the array index from the projection path
 			this.arrayNodeIndex = Integer.parseInt(matcher.group(ARRAY_INDEX_GROUPID));
 
 			System.arraycopy(projection, 0, normalizedProjection, 0, projection.length - 1);
-			normalizedProjection[projection.length - 1] = this.arrayNodeName;
+			normalizedProjection[projection.length - 1] = arrayNodeName;
 		} else {
 			this.isArray = false;
-			this.arrayNodeName = null;
 			this.arrayNodeIndex = -1;
 
 			System.arraycopy(projection, 0, normalizedProjection, 0, projection.length);

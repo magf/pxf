@@ -23,8 +23,8 @@ public enum EnumAggregationType {
 
     COUNT("count", true);
 
-    private String aggOperationCode;
-    private boolean optimizationSupported;
+    private final String aggOperationCode;
+    private final boolean optimizationSupported;
 
     private EnumAggregationType(String aggOperationCode, boolean optimizationSupported) {
         this.aggOperationCode = aggOperationCode;

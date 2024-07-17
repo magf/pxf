@@ -17,13 +17,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class OrcUtilitiesTest {
     private OrcUtilities orcUtilities;
-    private PgUtilities pgUtilities;
 
 
     @BeforeEach
     public void setup() {
-        pgUtilities = new PgUtilities();
-        orcUtilities = new OrcUtilities(pgUtilities);
+        orcUtilities = new OrcUtilities(new PgUtilities());
     }
 
     @Test

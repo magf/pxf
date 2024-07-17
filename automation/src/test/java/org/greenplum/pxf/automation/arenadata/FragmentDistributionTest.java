@@ -38,7 +38,6 @@ public class FragmentDistributionTest extends BaseFeature {
     private static final String PXF_LOG_HDFS_COMMAND_LIMIT = CAT_COMMAND + " | grep 'Returning 0/6 fragment' | wc -l";
     private static final String PXF_LOG_HDFS_SEG_COMMAND_LIMIT = CAT_COMMAND + " | grep -E 'Returning [1-3]/6 fragment' | wc -l";
     private List<Node> pxfNodes;
-    private String pxfHome;
     private String pxfLogFile;
     private String hdfsPath;
     private Table dataTable;
@@ -47,7 +46,7 @@ public class FragmentDistributionTest extends BaseFeature {
 
     @Override
     protected void beforeClass() throws Exception {
-        pxfHome = cluster.getPxfHome();
+        String pxfHome = cluster.getPxfHome();
         restartCommand = pxfHome + "/bin/pxf restart";
         if (cluster instanceof MultiNodeCluster) {
             pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);

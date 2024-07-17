@@ -34,7 +34,7 @@ public class DataSchemaException extends RuntimeException {
 		SCHEMA_NOT_ON_CLASSPATH("schema resource \"%s\" is not located on the classpath"),
 		SCHEMA_NOT_FOUND("schema resource \"%s\" is not located on the classpath nor is it a full path to a file");
 
-        String format;
+        private final String format;
 
         MessageFmt(String format) {
             this.format = format;
@@ -45,8 +45,6 @@ public class DataSchemaException extends RuntimeException {
         }
     }
 
-    private MessageFmt msgFormat;
-
     /**
      * Constructs a DataSchemaException.
      *
@@ -55,7 +53,6 @@ public class DataSchemaException extends RuntimeException {
      */
     public DataSchemaException(MessageFmt msgFormat, String... msgArgs) {
         super(String.format(msgFormat.getFormat(), (Object[]) msgArgs));
-        this.msgFormat = msgFormat;
     }
     
 }

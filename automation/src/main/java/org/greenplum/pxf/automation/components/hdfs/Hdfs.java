@@ -65,6 +65,7 @@ import static org.testng.Assert.assertEquals;
 public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     public static final int K_BYTE = 1024;
     public static final int M_BYTE = K_BYTE * K_BYTE;
+    private static final int ROW_BUFFER = 10000;
     private FileSystem fs;
     private Configuration config;
     // NN host
@@ -75,7 +76,6 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     private short replicationSize;
     private long blockSize;
     private int bufferSize;
-    private final int ROW_BUFFER = 10000;
     private String workingDirectory;
     private String haNameservice;
     private String sshUserName;
@@ -88,8 +88,6 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
 
     // for SSH connection to the namenode and performing HA failover operations
     private ShellSystemObject namenodeSso;
-    private String namenodePrincipal;
-    private String namenodeKeytab;
     private String relativeWorkingDirectory;
 
     public Hdfs() {
@@ -196,8 +194,8 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
 
             // source environment file
             namenodeSso.runCommand("source ~/.bash_profile");
-            namenodePrincipal = config.get("dfs.namenode.kerberos.principal");
-            namenodeKeytab = config.get("dfs.namenode.keytab.file");
+            String namenodePrincipal = config.get("dfs.namenode.kerberos.principal");
+            String namenodeKeytab = config.get("dfs.namenode.keytab.file");
             if (namenodePrincipal != null) {
                 // substitute _HOST portion of the principal with the namenode FQDN, need to get it from the
                 // configuration, since namenodeHost might contain a short hostname

@@ -46,7 +46,6 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
     public static final String RECORD_MEMBER_IDENTIFIER = "json.input.format.record.identifier";
     public static final String RECORD_MAX_LENGTH = "multilinejsonrecordreader.maxlength";
     private static final Logger LOG = LoggerFactory.getLogger(JsonRecordReader.class);
-    private final String jsonMemberName;
     private long start;
     private long pos;
     private long end;
@@ -87,7 +86,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
      */
     public JsonRecordReader(JobConf conf, FileSplit split) throws IOException {
 
-        jsonMemberName = conf.get(RECORD_MEMBER_IDENTIFIER);
+        String jsonMemberName = conf.get(RECORD_MEMBER_IDENTIFIER);
         maxObjectLength = conf.getInt(RECORD_MAX_LENGTH, Integer.MAX_VALUE);
 
         start = split.getStart();

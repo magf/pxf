@@ -14,9 +14,7 @@ import java.io.File;
 
 public class PluginTest extends BaseFeature {
 
-    private String resourcePath;
-
-    private final String SUFFIX_CLASS = ".class";
+    private final static String SUFFIX_CLASS = ".class";
 
     String testPackageLocation = "/org/greenplum/pxf/automation/testplugin/";
     String testPackage = "org.greenplum.pxf.automation.testplugin.";
@@ -27,7 +25,7 @@ public class PluginTest extends BaseFeature {
     @Override
     public void beforeClass() throws Exception {
         // location of test plugin files
-        resourcePath = "target/classes" + testPackageLocation;
+        String resourcePath = "target/classes" + testPackageLocation;
 
         String newPath = "/tmp/publicstage/pxf";
         // copy test plugin files to cluster nodes

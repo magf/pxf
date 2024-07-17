@@ -22,8 +22,8 @@ public enum EnumHiveToGpdbType {
     StructType("struct", "text", "[<,>]"),
     UnionType("uniontype", "text", "[<,>]");
 
-    private String hiveType;
-    private String gpdbTypeName;
+    private final String hiveType;
+    private final String gpdbTypeName;
     private String splitExpression;
 
     EnumHiveToGpdbType(String hiveType, String gpdbTypeName) {

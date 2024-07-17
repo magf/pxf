@@ -47,7 +47,6 @@ public class JsonAccessorWriteTest {
 
     private JsonAccessor accessor;
     private RequestContext context;
-    private Configuration configuration;
     private List<ColumnDescriptor> columnDescriptors;
 
     @BeforeEach
@@ -55,7 +54,7 @@ public class JsonAccessorWriteTest {
         columnDescriptors = new ArrayList<>();
 
         context = new RequestContext();
-        configuration = new Configuration();
+        Configuration configuration = new Configuration();
         configuration.set("pxf.fs.basePath", "/");
         context.setConfiguration(configuration);
 

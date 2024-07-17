@@ -221,7 +221,7 @@ public class SingleCluster extends PhdCluster {
         RunJar(1),
         Bootstrap(3);
 
-        private int instances;
+        private final int instances;
 
         private EnumScProcesses(int instances) {
             this.instances = instances;

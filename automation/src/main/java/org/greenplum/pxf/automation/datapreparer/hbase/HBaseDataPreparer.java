@@ -24,9 +24,9 @@ public class HBaseDataPreparer implements IDataPreparer {
 	private String rowKeyPrefix = "";
 	private String columnFamilyName = "cf1";
 	private boolean useNull = false;
-	private final int UNSUPORTTED_CHAR = 92;
-	private final int FIRST_PRINTABLE_CHAR = 32;
-	private final int LAST_PRINTABLE_CHAR = 126;
+	private final static int UNSUPPORTED_CHAR = 92;
+	private final static int FIRST_PRINTABLE_CHAR = 32;
+	private final static int LAST_PRINTABLE_CHAR = 126;
 
 	@Override
 	public Object[] prepareData(int rows, Table dataTable) throws Exception {
@@ -114,7 +114,7 @@ public class HBaseDataPreparer implements IDataPreparer {
 
 		chars++;
 
-		if (chars == UNSUPORTTED_CHAR) {
+		if (chars == UNSUPPORTED_CHAR) {
 			chars++;
 		}
 

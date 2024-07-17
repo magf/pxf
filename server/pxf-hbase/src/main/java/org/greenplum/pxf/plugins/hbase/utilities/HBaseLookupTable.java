@@ -68,7 +68,6 @@ public class HBaseLookupTable implements Closeable {
     private static final Log LOG = LogFactory.getLog(HBaseLookupTable.class);
 
     private Connection connection;
-    private Configuration hbaseConfiguration;
     private Admin admin;
     private Map<byte[], byte[]> rawTableMapping;
     private Table lookupTable;
@@ -81,8 +80,7 @@ public class HBaseLookupTable implements Closeable {
      * @throws IOException when initializing HBaseAdmin fails
      */
     public HBaseLookupTable(Configuration conf) throws Exception {
-        hbaseConfiguration = conf;
-        connection = ConnectionFactory.createConnection(hbaseConfiguration);
+        connection = ConnectionFactory.createConnection(conf);
         admin = connection.getAdmin();
         ClusterStatus cs = admin.getClusterStatus();
         LOG.debug("HBase cluster has " + cs.getServersSize()

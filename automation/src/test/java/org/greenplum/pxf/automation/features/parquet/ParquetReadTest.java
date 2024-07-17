@@ -108,13 +108,11 @@ public class ParquetReadTest extends BaseFeature {
             "tm_arr        TIMESTAMP[]",
     };
     private String hdfsPath;
-    private ProtocolEnum protocol;
 
     @Override
     public void beforeClass() throws Exception {
         // path for storing data on HDFS (for processing by PXF)
         hdfsPath = hdfs.getWorkingDirectory() + "/parquet/";
-        protocol = ProtocolUtils.getProtocol();
 
         String resourcePath = localDataResourcesFolder + "/parquet/";
         hdfs.copyFromLocal(resourcePath + PARQUET_PRIMITIVE_TYPES, hdfsPath + PARQUET_PRIMITIVE_TYPES);

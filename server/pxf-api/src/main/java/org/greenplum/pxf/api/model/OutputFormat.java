@@ -29,7 +29,7 @@ public enum OutputFormat {
     TEXT("org.greenplum.pxf.api.io.Text"),
     GPDBWritable("org.greenplum.pxf.api.io.GPDBWritable");
 
-    private String className;
+    private final String className;
 
     OutputFormat(String className) {
         this.className = className;

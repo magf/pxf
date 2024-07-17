@@ -59,8 +59,8 @@ public enum EnumGpdbType {
     NumericType("numeric", DataType.NUMERIC, (byte) 2),
     BpcharType("bpchar", DataType.BPCHAR, (byte) 1);
 
-    private DataType dataType;
-    private String typeName;
+    private final DataType dataType;
+    private final String typeName;
     private byte modifiersNum;
 
     EnumGpdbType(String typeName, DataType dataType) {

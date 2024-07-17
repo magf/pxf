@@ -84,13 +84,11 @@ public class OrcReadTest extends BaseFeature {
     };
 
     private String hdfsPath;
-    private ProtocolEnum protocol;
 
     @Override
     public void beforeClass() throws Exception {
         // path for storing data on HDFS (for processing by PXF)
         hdfsPath = hdfs.getWorkingDirectory() + "/orc/";
-        protocol = ProtocolUtils.getProtocol();
 
         String resourcePath = localDataResourcesFolder + "/orc/";
         hdfs.copyFromLocal(resourcePath + ORC_PRIMITIVE_TYPES, hdfsPath + ORC_PRIMITIVE_TYPES);

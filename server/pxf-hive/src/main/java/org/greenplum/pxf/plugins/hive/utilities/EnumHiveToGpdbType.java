@@ -53,8 +53,8 @@ public enum EnumHiveToGpdbType {
     StructType("struct", EnumGpdbType.TextType, "[<,>]", true),
     UnionType("uniontype", EnumGpdbType.TextType, "[<,>]", true);
 
-    private String typeName;
-    private EnumGpdbType gpdbType;
+    private final String typeName;
+    private final EnumGpdbType gpdbType;
     private String splitExpression;
     private byte size;
     private boolean isComplexType;

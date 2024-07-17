@@ -30,14 +30,13 @@ public class JsonRecordReaderTest {
     private FileSplit fileSplit;
     private LongWritable key;
     private Text data;
-    private RequestContext context;
     private Path path;
     private String[] hosts = null;
     private JsonRecordReader jsonRecordReader;
 
     @BeforeEach
     public void setup() throws URISyntaxException {
-        context = new RequestContext();
+        RequestContext context = new RequestContext();
         context.setConfiguration(new Configuration());
 
         jobConf = new JobConf(context.getConfiguration());

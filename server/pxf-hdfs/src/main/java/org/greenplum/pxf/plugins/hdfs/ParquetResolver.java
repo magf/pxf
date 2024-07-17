@@ -65,8 +65,6 @@ public class ParquetResolver extends BasePlugin implements Resolver {
     private MessageType schema;
     private SimpleGroupFactory groupFactory;
     private List<ColumnDescriptor> columnDescriptors;
-    private DecimalUtilities decimalUtilities;
-    private ParquetConfig parquetConfig;
     private ParquetTypeConverterFactory parquetTypeConverterFactory;
     private List<ParquetTypeConverter> schemaConverters;
 
@@ -75,10 +73,10 @@ public class ParquetResolver extends BasePlugin implements Resolver {
         super.afterPropertiesSet();
         columnDescriptors = context.getTupleDescription();
         DecimalOverflowOption decimalOverflowOption = DecimalOverflowOption.valueOf(configuration.get(PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME, DecimalOverflowOption.ROUND.name()).toUpperCase());
-        decimalUtilities = new DecimalUtilities(decimalOverflowOption, true);
+        DecimalUtilities decimalUtilities = new DecimalUtilities(decimalOverflowOption, true);
         boolean useLocalPxfTimezoneWrite = context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
         boolean useLocalPxfTimezoneRead = context.getOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
-        parquetConfig = ParquetConfig.builder()
+        ParquetConfig parquetConfig = ParquetConfig.builder()
                 .useLocalPxfTimezoneWrite(useLocalPxfTimezoneWrite)
                 .useLocalPxfTimezoneRead(useLocalPxfTimezoneRead)
                 .decimalUtilities(decimalUtilities)

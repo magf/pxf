@@ -21,12 +21,10 @@ import static org.greenplum.pxf.api.GreenplumDateTime.NANOS_IN_MILLIS;
 public class Int32ParquetTypeConverter implements ParquetTypeConverter {
 
     private final Type type;
-    private final DataType dataType;
     private final DataType detectedDataType;
 
     public Int32ParquetTypeConverter(Type type, DataType dataType) {
         this.type = type;
-        this.dataType = dataType;
         this.detectedDataType = detectDataType();
     }
 

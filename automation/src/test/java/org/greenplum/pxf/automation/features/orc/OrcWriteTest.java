@@ -125,16 +125,13 @@ public class OrcWriteTest extends BaseFeature {
     private String gpdbTableNamePrefix;
     private String hdfsPath;
     private String fullTestPath;
-    private ProtocolEnum protocol;
     private Hive hive;
-    private HiveTable hiveTable;
 
 
     @Override
     public void beforeClass() throws Exception {
         // path for storing data on HDFS (for processing by PXF)
         hdfsPath = hdfs.getWorkingDirectory() + "/writableOrc/";
-        protocol = ProtocolUtils.getProtocol();
     }
 
     @Override
@@ -178,7 +175,7 @@ public class OrcWriteTest extends BaseFeature {
         attemptInsert(() -> insertDataWithoutNulls(gpdbTableNamePrefix, 33), fullTestPath, NUM_RETRIES);
 
         // load the data into hive to check that PXF-written ORC files can be read by other data
-        hiveTable = new HiveExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS_HIVE, "hdfs:/" + fullTestPath);
+        HiveTable hiveTable = new HiveExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS_HIVE, "hdfs:/" + fullTestPath);
         hiveTable.setStoredAs("ORC");
         hive.createTableAndVerify(hiveTable);
 

@@ -144,7 +144,6 @@ public class ORCVectorizedResolver extends BasePlugin implements ReadVectorizedR
 
     private List<List<OneField>> cachedBatch;
     private VectorizedRowBatch vectorizedRowBatch;
-    private DecimalOverflowOption decimalOverflowOption;
     private DecimalUtilities decimalUtilities;
 
     /**
@@ -155,7 +154,8 @@ public class ORCVectorizedResolver extends BasePlugin implements ReadVectorizedR
         super.afterPropertiesSet();
         columnDescriptors = context.getTupleDescription();
         positionalAccess = context.getOption(MAP_BY_POSITION_OPTION, false);
-        decimalOverflowOption = DecimalOverflowOption.valueOf(configuration.get(PXF_ORC_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME, DecimalOverflowOption.ROUND.name()).toUpperCase());
+        DecimalOverflowOption decimalOverflowOption = DecimalOverflowOption
+                .valueOf(configuration.get(PXF_ORC_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME, DecimalOverflowOption.ROUND.name()).toUpperCase());
         decimalUtilities = new DecimalUtilities(decimalOverflowOption, false);
     }
 

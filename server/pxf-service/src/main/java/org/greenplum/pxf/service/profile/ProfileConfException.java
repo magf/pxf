@@ -49,7 +49,7 @@ public class ProfileConfException extends RuntimeException {
         NO_PROFILE_DEF("%s is not defined in %s"),
         NO_PLUGINS_IN_PROFILE_DEF("Profile %s does not define any plugins in %s");
 
-        String format;
+        final String format;
 
         MessageFormat(String format) {
             this.format = format;

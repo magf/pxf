@@ -34,7 +34,6 @@ import java.util.List;
  */
 public class ChunkReader implements Closeable {
     public static final int DEFAULT_BUFFER_SIZE = 64 * 1024;
-    private int bufferSize = DEFAULT_BUFFER_SIZE;
     private InputStream in;
     private byte[] buffer;
     // the number of bytes of real data in the buffer
@@ -50,7 +49,7 @@ public class ChunkReader implements Closeable {
      */
     public ChunkReader(InputStream in) {
         this.in = in;
-        this.buffer = new byte[this.bufferSize];
+        this.buffer = new byte[DEFAULT_BUFFER_SIZE];
     }
 
     /**

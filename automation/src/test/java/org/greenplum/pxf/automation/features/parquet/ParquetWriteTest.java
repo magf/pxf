@@ -136,8 +136,6 @@ public class ParquetWriteTest extends BaseWritableFeature {
             "bigint_arr", "real_arr", "double_arr", "text_arr", "bytea_arr", "char_arr", "varchar_arr", "numeric_arr", "date_arr"};
     private String hdfsPath;
     private ProtocolEnum protocol;
-    private Hive hive;
-    private HiveTable hiveTable;
     private String resourcePath;
 
     @Override
@@ -313,7 +311,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
     @Test(groups = {"features", "gpdb"})
     public void parquetWriteListsReadWithHive() throws Exception {
         // init only here, not in beforeClass() method as other tests run in environments without Hive
-        hive = (Hive) SystemManagerImpl.getInstance().getSystemObject("hive");
+        Hive hive = (Hive) SystemManagerImpl.getInstance().getSystemObject("hive");
 
         String writeTableName = "pxf_parquet_write_list_read_with_hive_writable";
         String readTableName = "pxf_parquet_write_list_read_with_hive_readable";
@@ -332,7 +330,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
         String[] parquetArrayTableCols = PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.toArray(new String[PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.size()]);
         PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.toArray(parquetArrayTableCols);
 
-        hiveTable = new HiveExternalTable(hiveExternalTableName, parquetArrayTableCols, "hdfs:/" + fullTestPath);
+        HiveTable hiveTable = new HiveExternalTable(hiveExternalTableName, parquetArrayTableCols, "hdfs:/" + fullTestPath);
         hiveTable.setStoredAs("PARQUET");
         hive.createTableAndVerify(hiveTable);
 

@@ -46,7 +46,6 @@ public class HcfsFixedwidthReadTest extends BaseFeature {
     private static final String fixedwidthSmallCorrectCRLFDelimFileName = "fixedwidth_small_correct_crlf_delim.txt";
 
     private String hdfsPath;
-    private String resourcePath;
 
     /**
      * Prepare all components and all data flow (Hdfs to GPDB)
@@ -58,7 +57,7 @@ public class HcfsFixedwidthReadTest extends BaseFeature {
 
         // location of the data files
         String absolutePath = getClass().getClassLoader().getResource("data").getPath();
-        resourcePath = absolutePath + "/fixedwidth/";
+        String resourcePath = absolutePath + "/fixedwidth/";
         hdfs.copyFromLocal(resourcePath + fixedwidthSmallCorrectFileName, hdfsPath + "lines/nocomp/" + fixedwidthSmallCorrectFileName);
         hdfs.copyFromLocal(resourcePath + fixedwidthSmallCorrectGzipFileName, hdfsPath + "lines/gzip/" + fixedwidthSmallCorrectGzipFileName);
         hdfs.copyFromLocal(resourcePath + fixedwidthSmallCorrectCustomDelimFileName, hdfsPath + fixedwidthSmallCorrectCustomDelimFileName);

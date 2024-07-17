@@ -54,7 +54,6 @@ import org.apache.hadoop.mapred.RecordReader;
 public class ChunkRecordReader implements
         RecordReader<LongWritable, ChunkWritable> {
 
-    private CompressionCodecFactory compressionCodecs = null;
     private long start;
     private long pos;
     private long end;
@@ -107,7 +106,7 @@ public class ChunkRecordReader implements
         start = split.getStart();
         end = start + split.getLength();
         final Path file = split.getPath();
-        compressionCodecs = new CompressionCodecFactory(job);
+        CompressionCodecFactory compressionCodecs = new CompressionCodecFactory(job);
         codec = compressionCodecs.getCodec(file);
 
         // openForWrite the file and seek to the start of the split

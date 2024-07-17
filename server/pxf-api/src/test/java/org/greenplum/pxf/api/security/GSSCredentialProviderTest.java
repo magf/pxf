@@ -30,7 +30,6 @@ import static org.mockito.Mockito.when;
 public class GSSCredentialProviderTest {
 
     private GSSCredentialProvider provider;
-    private Configuration configuration;
 
     @Mock
     private GSSManager mockGSSManager;
@@ -57,7 +56,6 @@ public class GSSCredentialProviderTest {
 
     @BeforeEach
     public void setup() {
-        configuration = new Configuration();
         provider = new GSSCredentialProvider(mockPxfUgi, Duration.ofHours(1L));
         provider.setGssManager(mockGSSManager);
     }

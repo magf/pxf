@@ -43,7 +43,6 @@ public class OracleParallelSessionTest extends BaseFeature {
             "id    int",
             "descr   text"};
 
-    private String pxfHome;
     private String pxfJdbcSiteConfPath;
     private String pxfJdbcSiteConfFile;
     private String pxfJdbcSiteConfTemplate;
@@ -51,7 +50,7 @@ public class OracleParallelSessionTest extends BaseFeature {
 
     @Override
     public void beforeClass() throws Exception {
-        pxfHome = cluster.getPxfHome();
+        String pxfHome = cluster.getPxfHome();
         pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_ORACLE_SERVER_PROFILE);
         pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
         pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;

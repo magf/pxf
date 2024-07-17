@@ -55,7 +55,7 @@ public enum HcfsType {
     protected Logger LOG = LoggerFactory.getLogger(this.getClass());
 
     private static final String FILE_SCHEME = "file";
-    protected String prefix;
+    protected final String prefix;
 
     HcfsType() {
         this(null);
