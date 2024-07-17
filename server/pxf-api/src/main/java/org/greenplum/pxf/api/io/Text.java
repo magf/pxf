@@ -119,7 +119,7 @@ public class Text implements Writable {
             i = i << 8;
             i = i | (b & 0xFF);
         }
-        return (isNegativeVInt(firstByte) ? (i ^ -1L) : i);
+        return (isNegativeVInt(firstByte) ? ~i : i);
     }
 
     public static int decodeVIntSize(byte value) {

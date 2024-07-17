@@ -530,7 +530,7 @@ public class GPDBWritable implements Writable {
         if (commonAlignment == 8) {
             commonAlignment = alignmentOfEightBytes;
         }
-        return (((len) + ((commonAlignment) - 1)) & ~((commonAlignment) - 1));
+        return ((len + (commonAlignment - 1)) & -commonAlignment);
     }
 
     /**
