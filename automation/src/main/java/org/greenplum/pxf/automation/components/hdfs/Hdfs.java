@@ -361,8 +361,10 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
 
         // Even though this method is deprecated we need to pass the correct
         // fs for multi hadoop tests
-        SequenceFile.Writer writer = SequenceFile.createWriter(fs, config,
-                path, key.getClass(), writableData[0].getClass());
+        SequenceFile.Writer writer = SequenceFile.createWriter(config,
+                SequenceFile.Writer.file(path),
+                SequenceFile.Writer.keyClass(key.getClass()),
+                SequenceFile.Writer.valueClass(writableData[0].getClass()));
         for (int i = 1; i < writableData.length; i++) {
             writer.append(key, writableData[i]);
         }
@@ -379,8 +381,10 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
 
         // Even though this method is deprecated we need to pass the correct
         // fs for multi hadoop tests
-        SequenceFile.Writer writer = SequenceFile.createWriter(fs, config, path,
-                key.getClass(), val.getClass());
+        SequenceFile.Writer writer = SequenceFile.createWriter(config,
+                SequenceFile.Writer.file(path),
+                SequenceFile.Writer.keyClass(key.getClass()),
+                SequenceFile.Writer.valueClass(val.getClass()));
 
         for (IAvroSchema datum : data) {
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -617,6 +621,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         assertEquals("active", getNamenodeStatus(to));
         assertEquals("standby", getNamenodeStatus(from));
     }
+
     /**
      * @return the hadoop configuration
      */

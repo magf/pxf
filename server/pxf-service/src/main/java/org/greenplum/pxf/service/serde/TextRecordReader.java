@@ -166,10 +166,6 @@ public class TextRecordReader extends BaseRecordReader {
         switch (dataType) {
             case BOOLEAN:
                 return Boolean.class;
-         // this section below should've been here, but since I could not get univocity to return null value properly
-         // for the custom BinaryConversion, we treat BYTEA as a String here and will do parsing in readRecord method
-         // case BYTEA:
-         //     return ByteBuffer.class;
             case BIGINT:
                 return Long.class;
             case SMALLINT:

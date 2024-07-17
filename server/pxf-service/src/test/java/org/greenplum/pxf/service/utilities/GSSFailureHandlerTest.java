@@ -38,11 +38,6 @@ public class GSSFailureHandlerTest {
         configuration = new Configuration(); // using real configuration instead of mock
     }
 
-//    @Test
-//    public void testGetInstance() {
-//        assertSame(handler, GSSFailureHandler.getInstance());
-//    }
-
     // ---------- NON-SECURE TESTS ----------
     @Test
     public void testNonSecureSuccess() throws Exception {

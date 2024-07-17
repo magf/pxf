@@ -111,7 +111,7 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 		output.write("Ran [");
 		output.write(((System.currentTimeMillis() - l.longValue()) / 1000.0) + "] ");
 		output.write(getTestName(test) + " ... " + (failed ? "FAILED" : "OK"));
-		output.write(StringUtils.LINE_SEP);
+		output.write(System.lineSeparator());
 		output.flush();
 	}
 
@@ -133,8 +133,8 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 		sb.append(" sec");
 		sb.append(" (" + numberFormat.format(suite.getRunTime() / 1000.0 / 60));
 		sb.append(" min)");
-		sb.append(StringUtils.LINE_SEP);
-		sb.append(StringUtils.LINE_SEP);
+		sb.append(System.lineSeparator());
+		sb.append(System.lineSeparator());
 
 		if (output != null) {
 			try {
@@ -171,14 +171,14 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 		if (output == null) {
 			return;
 		}
-		StringBuffer sb = new StringBuffer(StringUtils.LINE_SEP);
+		StringBuffer sb = new StringBuffer(System.lineSeparator());
 		sb.append("----------------------------------------------------------");
-		sb.append(StringUtils.LINE_SEP);
+		sb.append(System.lineSeparator());
 		sb.append("Testsuite: ");
 		sb.append(suite.getName());
-		sb.append(StringUtils.LINE_SEP);
+		sb.append(System.lineSeparator());
 		sb.append("----------------------------------------------------------");
-		sb.append(StringUtils.LINE_SEP);
+		sb.append(System.lineSeparator());
 		output.write(sb.toString());
 		output.flush();
 	}

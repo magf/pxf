@@ -48,10 +48,7 @@ public class PluginTest extends BaseFeature {
     @Test(groups = "features")
     public void readableTableExternalPlugins() throws Exception {
 
-        ReadableExternalTable exTable = new ReadableExternalTable("extens", new String[] {
-                "num1 integer",
-                "t1 text",
-                "num2 integer" }, "regression_location", "CUSTOM");
+        ReadableExternalTable exTable = createReadableExternalTable();
 
         exTable.setFragmenter(testPackage + "DummyFragmenter");
         exTable.setAccessor(testPackage + "DummyAccessor");
@@ -86,10 +83,7 @@ public class PluginTest extends BaseFeature {
      */
     @Test(groups = "features")
     public void optionsCaseInsensitive() throws Exception {
-        ReadableExternalTable exTable = new ReadableExternalTable("extens", new String[] {
-                "num1 integer",
-                "t1 text",
-                "num2 integer" }, "regression_location", "CUSTOM");
+        ReadableExternalTable exTable = createReadableExternalTable();
 
         exTable.setUserParameters(new String[] {
                 "fragmenter=org.greenplum.pxf.automation.testplugin.DummyFragmenter",
@@ -149,10 +143,7 @@ public class PluginTest extends BaseFeature {
     @Test(groups = "features")
     public void credentialsGUCsTransferredToFragmenter() throws Exception {
 
-        ReadableExternalTable exTable = new ReadableExternalTable("extens", new String[] {
-                "num1 integer",
-                "t1 text",
-                "num2 integer" }, "regression_location", "CUSTOM");
+        ReadableExternalTable exTable = createReadableExternalTable();
 
         exTable.setFragmenter(testPackage + "FaultyGUCFragmenter");
         exTable.setAccessor(testPackage + "DummyAccessor");
@@ -178,10 +169,7 @@ public class PluginTest extends BaseFeature {
     @Test(groups = "features")
     public void credentialsGUCsTransferredToAccessor() throws Exception {
 
-        ReadableExternalTable exTable = new ReadableExternalTable("extens", new String[] {
-                "num1 integer",
-                "t1 text",
-                "num2 integer" }, "regression_location", "CUSTOM");
+        ReadableExternalTable exTable = createReadableExternalTable();
 
         exTable.setFragmenter(testPackage + "DummyFragmenter");
         exTable.setAccessor(testPackage + "FaultyGUCAccessor");
@@ -207,10 +195,7 @@ public class PluginTest extends BaseFeature {
     @Test(groups = "features")
     public void emptyCredentialsGUCsTransferredAsNull() throws Exception {
 
-        ReadableExternalTable exTable = new ReadableExternalTable("extens", new String[] {
-                "num1 integer",
-                "t1 text",
-                "num2 integer" }, "regression_location", "CUSTOM");
+        ReadableExternalTable exTable = createReadableExternalTable();
 
         exTable.setFragmenter(testPackage + "DummyFragmenter");
         exTable.setAccessor(testPackage + "FaultyGUCAccessor");
@@ -233,10 +218,7 @@ public class PluginTest extends BaseFeature {
     @Test(groups = "features")
     public void defaultCredentialsGUCsTransferredAsNull() throws Exception {
 
-        ReadableExternalTable exTable = new ReadableExternalTable("extens", new String[] {
-                "num1 integer",
-                "t1 text",
-                "num2 integer" }, "regression_location", "CUSTOM");
+        ReadableExternalTable exTable = createReadableExternalTable();
 
         exTable.setFragmenter(testPackage + "DummyFragmenter");
         exTable.setAccessor(testPackage + "FaultyGUCAccessor");
@@ -252,5 +234,12 @@ public class PluginTest extends BaseFeature {
         } catch (Exception e) {
             ExceptionUtils.validate(null, e, new PSQLException("FaultyGUCAccessor: login null secret null", null), true);
         }
+    }
+
+    private ReadableExternalTable createReadableExternalTable() {
+        return new ReadableExternalTable("extens", new String[] {
+                "num1 integer",
+                "t1 text",
+                "num2 integer" }, "regression_location", "CUSTOM");
     }
 }

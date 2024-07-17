@@ -48,6 +48,10 @@ public class BasePluginFactory {
             throw new RuntimeException(String.format("Class %s does not implement Plugin interface", pluginClassName));
         }
 
+        return createPluginInstance(pluginClassName, cls);
+    }
+
+    private Plugin createPluginInstance(String pluginClassName, Class<?> cls) {
         // get the empty constructor
         Constructor<?> con;
         try {

@@ -324,8 +324,6 @@ public class CustomWritable implements Writable {
         sw.write(out);
 
         // 8. bytes
-        // BytesWritable btsw = new BytesWritable(bts);
-        // btsw.write(out);
         BytesWritable btsw = new BytesWritable();
         btsw.setCapacity(bts.length);
         btsw.setSize(bts.length);
