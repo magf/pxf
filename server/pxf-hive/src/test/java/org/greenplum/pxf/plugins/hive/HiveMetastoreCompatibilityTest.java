@@ -232,8 +232,7 @@ public class HiveMetastoreCompatibilityTest {
                      // second run through (retry 1 = success)
                      invocation ->  {
                          if (invocation.getMethod().getName().equals("get_table_req")) {
-                             GetTableResult tempRes = new GetTableResult(hiveTable);
-                             return tempRes;
+                             return new GetTableResult(hiveTable);
                          }
                          return null;
                      }

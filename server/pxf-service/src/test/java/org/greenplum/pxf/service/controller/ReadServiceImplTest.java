@@ -71,8 +71,7 @@ public class ReadServiceImplTest {
         when(mockFragmenterService.getFragmentsForSegment(mockContext)).thenReturn(mockFragmentList);
         when(mockSecurityService.doAs(same(mockContext), any())).thenAnswer(invocation -> {
             PrivilegedAction<OperationResult> action = invocation.getArgument(1);
-            OperationResult result = action.run();
-            return result;
+            return action.run();
         });
 
         readService = new ReadServiceImpl(mockConfigurationFactory, mockBridgeFactory, mockSecurityService, mockFragmenterService, mockMetricReporter);

@@ -107,9 +107,8 @@ public class CustomAutomationLogger implements ITestListener {
 
 		// split according to '.' and grab the last split as the class simple name
 		String[] classNameSplit = result.getTestClass().getName().split("\\.");
-		String classSimpleName = classNameSplit[classNameSplit.length - 1];
 
-		return classSimpleName;
+        return classNameSplit[classNameSplit.length - 1];
 	}
 
 	/**

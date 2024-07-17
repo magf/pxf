@@ -219,8 +219,7 @@ public class ShellSystemObject extends BaseSystemObject {
         // go over splitResult and look for Numeric result
         for (int i = 0; i < splitArray.length; i++) {
             try {
-                int result = Integer.parseInt(splitArray[i].trim());
-                return result;
+                return Integer.parseInt(splitArray[i].trim());
             } catch (Exception e) {
                 continue;
             }

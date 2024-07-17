@@ -75,10 +75,9 @@ public class Hive extends DbSystemObject {
      */
     private String createLoadDataStmt(HiveTable table, String filePath,
                                       boolean isLocal) {
-        String statement = "LOAD DATA " + ((isLocal) ? "LOCAL" : "")
+        return "LOAD DATA " + ((isLocal) ? "LOCAL" : "")
                 + " INPATH '" + ((isLocal) ? "" : "/") + filePath
                 + "' INTO TABLE " + table.getName();
-        return statement;
     }
 
     /**

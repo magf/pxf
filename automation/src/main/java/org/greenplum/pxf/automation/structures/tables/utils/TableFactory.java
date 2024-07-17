@@ -474,8 +474,7 @@ public abstract class TableFactory {
      */
     public static HiveTable getHiveByRowCommaTable(String name, String[] fields) {
 
-    	HiveTable table = getHiveByRowCommaTable(name, null, fields);
-        return table;
+        return getHiveByRowCommaTable(name, null, fields);
     }
 
 

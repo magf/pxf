@@ -25,8 +25,6 @@ public class CustomSequencePreparer implements IDataPreparer {
 
             ArrayList<String> row = new ArrayList<String>();
 
-            int num1 = i;
-
             String tms = "1919-06-28 23:59:59.2233";
 
             // full package name
@@ -39,7 +37,7 @@ public class CustomSequencePreparer implements IDataPreparer {
 
             row.add(tms.toString());
 
-            cwArr[i] = constructor.newInstance(tms, num1, 10 * num1, 20 * num1);
+            cwArr[i] = constructor.newInstance(tms, i, 10 * i, 20 * i);
 
             if (i > 0) {
                 /**

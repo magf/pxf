@@ -70,8 +70,7 @@ public class ProfileFactory {
      * @return name of optimal profile
      */
     public static String get(InputFormat inputFormat, boolean hasComplexTypes) {
-        String profileName = get(inputFormat, hasComplexTypes, null);
-        return profileName;
+        return get(inputFormat, hasComplexTypes, null);
     }
 
 }

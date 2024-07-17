@@ -192,7 +192,6 @@ public class GSSCredentialProvider {
      */
     private String getSessionPrincipal(String userName, String realm) {
         String realmSuffix = "@" + realm;
-        String userPrincipal = userName.endsWith(realmSuffix) ? userName : userName + realmSuffix;
-        return userPrincipal;
+        return userName.endsWith(realmSuffix) ? userName : userName + realmSuffix;
     }
 }
