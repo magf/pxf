@@ -37,14 +37,13 @@ import java.io.OutputStream;
 public class NotSoNiceCodec implements CompressionCodec {
 
     @Override
-    public CompressionOutputStream createOutputStream(OutputStream out)
-            throws IOException {
+    public CompressionOutputStream createOutputStream(OutputStream out) {
         return null;
     }
 
     @Override
     public CompressionOutputStream createOutputStream(OutputStream out,
-                                                      Compressor compressor) throws IOException {
+                                                      Compressor compressor) {
         return null;
     }
 
@@ -59,14 +58,13 @@ public class NotSoNiceCodec implements CompressionCodec {
     }
 
     @Override
-    public CompressionInputStream createInputStream(InputStream in)
-            throws IOException {
+    public CompressionInputStream createInputStream(InputStream in) {
         return null;
     }
 
     @Override
     public CompressionInputStream createInputStream(InputStream in,
-                                                    Decompressor decompressor) throws IOException {
+                                                    Decompressor decompressor) {
         return null;
     }
 

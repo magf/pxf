@@ -99,7 +99,7 @@ public final class OrcUtilities {
      * @param val the array value that caused the error
      * @return the appropriate error hint
      */
-    protected String createErrorHintFromValue(boolean isMultiDimensional, String val) {
+    String createErrorHintFromValue(boolean isMultiDimensional, String val) {
         if (isMultiDimensional) {
             return "Column value \""+ val + "\" is a multi-dimensional array, PXF does not support multi-dimensional arrays for writing ORC files.";
         } else {

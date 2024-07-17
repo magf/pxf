@@ -197,14 +197,14 @@ public final class AvroUtilities {
         }
     }
 
-    private Schema generateSchema(List<ColumnDescriptor> tupleDescription) throws IOException {
+    private Schema generateSchema(List<ColumnDescriptor> tupleDescription) {
         Schema schema = Schema.createRecord("tableName", "", COMMON_NAMESPACE, false);
         List<Schema.Field> fields = new ArrayList<>();
 
         for (ColumnDescriptor cd : tupleDescription) {
             fields.add(new Schema.Field(
                     cd.columnName(),
-                    getFieldSchema(DataType.get(cd.columnTypeCode()), cd.columnName()),
+                    getFieldSchema(DataType.get(cd.columnTypeCode())),
                     "",
                     null
             ));
@@ -215,7 +215,7 @@ public final class AvroUtilities {
         return schema;
     }
 
-    private Schema getFieldSchema(DataType type, String colName) {
+    private Schema getFieldSchema(DataType type) {
         List<Schema> unionList = new ArrayList<>();
         // in this version of gpdb, external table should not set 'notnull' attribute
         // so we should use union between NULL and another type everywhere

@@ -22,7 +22,7 @@ public class FileCopyAction implements Callable<Integer> {
 	}
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		ShellSystemObject connection = null;
 		try {
 			// create new connection for each thread so it will happen in parallel

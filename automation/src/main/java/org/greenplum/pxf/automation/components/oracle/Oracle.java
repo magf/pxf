@@ -44,7 +44,7 @@ public class Oracle extends DbSystemObject {
     }
 
     @Override
-    public void createDataBase(String schemaName, boolean ignoreFail, String encoding, String localeCollate, String localeCollateType) throws Exception {
+    public void createDataBase(String schemaName, boolean ignoreFail, String encoding, String localeCollate, String localeCollateType) {
     }
 
     @Override

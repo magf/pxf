@@ -479,12 +479,12 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	}
 
     @Override
-    public void grantReadOnTable(Table table, String user) throws Exception {
+    public void grantReadOnTable(Table table, String user) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void grantWriteOnTable(Table table, String user) throws Exception {
+    public void grantWriteOnTable(Table table, String user) {
         throw new UnsupportedOperationException();
     }
 

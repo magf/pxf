@@ -255,7 +255,7 @@ public class ChunkRecordReader implements
      * @return pos - start byte of the unread tail of the file
      */
     @Override
-    public synchronized long getPos() throws IOException {
+    public synchronized long getPos() {
         return pos;
     }
 

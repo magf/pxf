@@ -14,9 +14,8 @@ public interface IAvroSchema {
 	/**
 	 * 
 	 * @return Serialized Generic Record of one record data
-	 * @throws IOException
 	 */
-    GenericRecord serialize() throws IOException;
+    GenericRecord serialize();
 
 	/**
 	 * For Avro inside sequence file, get the serialized sequence value as stream.

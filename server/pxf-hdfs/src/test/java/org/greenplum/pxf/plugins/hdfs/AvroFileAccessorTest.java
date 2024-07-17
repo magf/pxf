@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class AvroFileAccessorTest {
     AvroFileAccessor accessor;
     RequestContext context;
-    String avroDirectory;
 
     @BeforeEach
     public void setup() {
@@ -25,7 +24,7 @@ public class AvroFileAccessorTest {
         context.setConfig("fakeConfig");
         context.setServerName("fakeServerName");
         context.setUser("fakeUser");
-        context.setDataSource(avroDirectory + "test.avro");
+        context.setDataSource("test.avro");
         context.setSegmentId(0);
         context.setTransactionId("testID");
         context.setProfileScheme("localfile");

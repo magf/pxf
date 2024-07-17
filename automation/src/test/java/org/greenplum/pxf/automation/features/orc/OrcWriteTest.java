@@ -129,7 +129,7 @@ public class OrcWriteTest extends BaseFeature {
 
 
     @Override
-    public void beforeClass() throws Exception {
+    public void beforeClass() {
         // path for storing data on HDFS (for processing by PXF)
         hdfsPath = hdfs.getWorkingDirectory() + "/writableOrc/";
     }

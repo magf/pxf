@@ -122,7 +122,7 @@ public class HBaseDataFragmenter extends BaseFragmenter {
         regionLocator.close();
     }
 
-    private void addFragment(HRegionLocation location, Map<String, byte[]> userData) throws IOException {
+    private void addFragment(HRegionLocation location, Map<String, byte[]> userData) {
         HRegionInfo region = location.getRegionInfo();
         HBaseFragmentMetadata metadata = new HBaseFragmentMetadata(region, userData);
         Fragment fragment = new Fragment(context.getDataSource(), metadata);

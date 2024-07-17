@@ -104,7 +104,7 @@ public class GSSFailureHandlerTest {
     }
 
     @Test
-    public void testSecureGSSExceptionFailureNegativeCustomRetries() throws Exception {
+    public void testSecureGSSExceptionFailureNegativeCustomRetries() {
         expectSecure();
         configuration.set("pxf.sasl.connection.retries", "-1");
 

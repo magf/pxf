@@ -41,7 +41,7 @@ public class RecordGenerator {
 	 * @throws Exception
 	 */
 	public RecordGenerator(final int columnMaxSize,final  List<String> columnTypes,
-						   final String columnsSeparator,final boolean random) throws Exception {
+						   final String columnsSeparator,final boolean random) {
 
 		// Fill characters for TEXT type column
 		for(int i = 65 ;  i <= 90; i++) // A-Z
@@ -105,7 +105,7 @@ public class RecordGenerator {
 	 */
 	private abstract class Generator<T> {
 
-		protected int maxSize;
+		protected final int maxSize;
 
 		public Generator(int maxSize) {
 			this.maxSize = maxSize;

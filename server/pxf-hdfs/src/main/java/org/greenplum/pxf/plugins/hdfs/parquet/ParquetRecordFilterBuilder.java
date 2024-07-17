@@ -31,14 +31,10 @@ import static org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConve
  * scan.
  */
 public class ParquetRecordFilterBuilder implements TreeVisitor {
-
-    protected final Logger LOG = LoggerFactory.getLogger(this.getClass());
-
     private final Map<String, Type> fields;
     private final List<ColumnDescriptor> columnDescriptors;
     private final Deque<FilterPredicate> filterQueue;
-
-    ParquetTypeConverterFactory parquetTypeConverterFactory;
+    private final ParquetTypeConverterFactory parquetTypeConverterFactory;
 
     /**
      * Constructor

@@ -106,7 +106,7 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
     private String hiveColumnTypesString;
     private boolean isPredicatePushdownAllowed;
 
-    protected HiveUtilities hiveUtilities;
+    protected final HiveUtilities hiveUtilities;
     protected List<Integer> hiveIndexes;
 
     // ----- members for predicate pushdown handling -----

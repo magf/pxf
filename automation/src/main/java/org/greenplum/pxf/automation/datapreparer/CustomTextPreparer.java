@@ -18,7 +18,7 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
 public class CustomTextPreparer implements IDataPreparer {
 
     @Override
-    public Object[] prepareData(int rows, Table dataTable) throws Exception {
+    public Object[] prepareData(int rows, Table dataTable) {
 
         Object[] data = new Object[rows];
 

@@ -36,8 +36,6 @@ public class FragmentStats {
      */
     public static final long DEFAULT_FRAGMENT_SIZE = 67108864L;
 
-    private static final Log LOG = LogFactory.getLog(FragmentStats.class);
-
     // number of fragments
     private long fragmentsNumber;
     // first fragment size

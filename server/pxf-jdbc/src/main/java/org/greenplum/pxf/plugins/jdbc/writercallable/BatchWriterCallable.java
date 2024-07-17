@@ -85,7 +85,7 @@ class BatchWriterCallable implements WriterCallable {
     }
 
     @Override
-    public SQLException call() throws IOException, SQLException {
+    public SQLException call() throws SQLException {
         log.trace("Writer {}: call() to insert {} rows", this, rows.size());
         long start = System.nanoTime();
         if (rows.isEmpty()) {

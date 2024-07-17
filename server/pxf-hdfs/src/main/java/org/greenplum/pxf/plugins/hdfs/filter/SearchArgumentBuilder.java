@@ -120,9 +120,8 @@ public class SearchArgumentBuilder implements TreeVisitor {
      * Builds a single argument
      *
      * @param operatorNode the operatorNode node
-     * @return true if the argument is build, false otherwise
      */
-    private boolean buildArgument(OperatorNode operatorNode) {
+    private void buildArgument(OperatorNode operatorNode) {
 
         Operator operator = operatorNode.getOperator();
         ColumnIndexOperandNode columnIndexOperand = operatorNode.getColumnIndexOperand();
@@ -208,10 +207,8 @@ public class SearchArgumentBuilder implements TreeVisitor {
                 break;
             default: {
                 LOG.debug("Filter push-down is not supported for {} operation.", operator);
-                return false;
             }
         }
-        return true;
     }
 
     /**

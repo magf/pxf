@@ -18,8 +18,7 @@ import java.util.List;
  */
 public class JsonUtils {
 
-	public static List<Table> getTablesDataFromFile(String filename)
-			throws JsonParseException, JsonMappingException, IOException {
+	public static List<Table> getTablesDataFromFile(String filename) throws IOException {
 
 		// Initialize the collection of table/data meta info from JSON format file.
 		MetaTableDataCollection mtdCollection = new ObjectMapper().readValue(new File(filename), MetaTableDataCollection.class);

@@ -289,10 +289,9 @@ public abstract class BaseTestParent {
      *
      * @param methodName to check
      * @return true if method exists in declared methods
-     * @throws NoSuchMethodException
      * @throws SecurityException
      */
-    private boolean checkMethodImplExists(String methodName) throws NoSuchMethodException, SecurityException {
+    private boolean checkMethodImplExists(String methodName) throws SecurityException {
         // get all declared methods
         Method[] methods = getClass().getDeclaredMethods();
         // run over methods and look for methodName

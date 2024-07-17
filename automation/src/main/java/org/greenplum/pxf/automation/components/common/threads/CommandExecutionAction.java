@@ -20,7 +20,7 @@ public class CommandExecutionAction implements Callable<Integer> {
 	}
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		try {
 			connection.runCommand(commandToExecute);
 			return 1;

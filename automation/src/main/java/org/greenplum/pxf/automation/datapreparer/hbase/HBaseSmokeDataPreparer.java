@@ -17,7 +17,7 @@ public class HBaseSmokeDataPreparer implements IDataPreparer {
 	private String columnFamilyName;
 	private String[] qualifiers;
 
-	public Object[] prepareData(int rows, Table table) throws Exception {
+	public Object[] prepareData(int rows, Table table) {
 
 		HBaseTable hbaseTable = (HBaseTable) table;
 		String[] qualifiers = hbaseTable.getQualifiers();

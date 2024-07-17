@@ -268,7 +268,7 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
     }
 
     @Override
-    public GenericRecord serialize() throws IOException {
+    public GenericRecord serialize() {
 
         // 1. num, int1, int2
         Schema.Field field = schema.getField("num");
@@ -352,7 +352,7 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
         deserialize(record);
     }
 
-    public void deserialize(GenericRecord record) throws IOException {
+    public void deserialize(GenericRecord record) {
 
         // 1. integers
         @SuppressWarnings("unchecked")

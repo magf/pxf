@@ -12,7 +12,7 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
  */
 public class MultiLineSmokeDataPreparer implements IDataPreparer {
 
-	public Object[] prepareData(int rows, Table dataTable) throws Exception {
+	public Object[] prepareData(int rows, Table dataTable) {
 
 		Object[] data = new Object[rows];
 

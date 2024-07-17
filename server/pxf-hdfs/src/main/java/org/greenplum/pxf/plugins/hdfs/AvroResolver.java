@@ -225,7 +225,8 @@ public class AvroResolver extends BasePlugin implements Resolver {
         switch (fieldType) {
             case ARRAY:
                 if (fieldValue == null) {
-                    return addOneFieldToRecord(record, gpdbColType, null);
+                    addOneFieldToRecord(record, gpdbColType, null);
+                    return ++ret;
                 }
                 List<OneField> listRecord = new LinkedList<>();
                 ret = setArrayField(listRecord, fieldValue, fieldSchema, gpdbColType);
@@ -242,25 +243,27 @@ public class AvroResolver extends BasePlugin implements Resolver {
 
                 addOneFieldToRecord(record, type, String.format(formatType,
                         HdfsUtilities.toString(listRecord, collectionDelim)));
-                break;
+                return ++ret;
             case MAP:
                 if (fieldValue == null) {
-                    return addOneFieldToRecord(record, DataType.TEXT, null);
+                    addOneFieldToRecord(record, DataType.TEXT, null);
+                    return ++ret;
                 }
                 List<OneField> mapRecord = new LinkedList<>();
                 ret = setMapField(mapRecord, fieldValue, fieldSchema);
                 addOneFieldToRecord(record, DataType.TEXT, String.format("{%s}",
                         HdfsUtilities.toString(mapRecord, collectionDelim)));
-                break;
+                return ++ret;
             case RECORD:
                 if (fieldValue == null) {
-                    return addOneFieldToRecord(record, DataType.TEXT, null);
+                    addOneFieldToRecord(record, DataType.TEXT, null);
+                    return ++ret;
                 }
                 List<OneField> recRecord = new LinkedList<>();
                 ret = setRecordField(recRecord, fieldValue, fieldSchema);
                 addOneFieldToRecord(record, DataType.TEXT, String.format("{%s}",
                         HdfsUtilities.toString(recRecord, collectionDelim)));
-                break;
+                return ++ret;
             case UNION:
                 /*
                  * When an Avro field is actually a union, we resolve the type
@@ -277,10 +280,10 @@ public class AvroResolver extends BasePlugin implements Resolver {
                     unionIndex ^= 1; // exclusive or assignment
                 }
                 ret = populateRecord(record, fieldValue, fieldSchema.getTypes().get(unionIndex), gpdbColType);
-                break;
+                return ret;
             case ENUM:
-                ret = addOneFieldToRecord(record, DataType.TEXT, fieldValue);
-                break;
+                addOneFieldToRecord(record, DataType.TEXT, fieldValue);
+                return ++ret;
             case INT:
                 if (logicalType == LogicalTypes.date()) {
                     fieldValue = avroTypeConverter.dateFromInt((int) fieldValue, fieldSchema, logicalType);
@@ -289,23 +292,23 @@ public class AvroResolver extends BasePlugin implements Resolver {
                 }
 
                 DataType gpdbWritableIntDataType = (logicalType != null) ? gpdbColType : DataType.INTEGER;
-                ret = addOneFieldToRecord(record, gpdbWritableIntDataType, fieldValue);
-                break;
+                addOneFieldToRecord(record, gpdbWritableIntDataType, fieldValue);
+                return ++ret;
             case DOUBLE:
-                ret = addOneFieldToRecord(record, DataType.FLOAT8, fieldValue);
-                break;
+                addOneFieldToRecord(record, DataType.FLOAT8, fieldValue);
+                return ++ret;
             case STRING:
                 String str = (fieldValue != null) ? fieldValue.toString() : null;
                 fieldValue = (gpdbColType.isArrayType()) ? pgUtilities.escapeArrayElement(str) : str;
                 if(logicalType == LogicalTypes.uuid()){
-                    ret = addOneFieldToRecord(record, DataType.UUID, fieldValue);
+                    addOneFieldToRecord(record, DataType.UUID, fieldValue);
                 } else {
-                    ret = addOneFieldToRecord(record, DataType.TEXT, fieldValue);
+                    addOneFieldToRecord(record, DataType.TEXT, fieldValue);
                 }
-                break;
+                return ++ret;
             case FLOAT:
-                ret = addOneFieldToRecord(record, DataType.REAL, fieldValue);
-                break;
+                addOneFieldToRecord(record, DataType.REAL, fieldValue);
+                return ++ret;
             case LONG:
                 DataType gpdbWritableLongDataType = (logicalType != null) ? gpdbColType : DataType.BIGINT;
                 if (logicalType == LogicalTypes.timeMicros()) {
@@ -319,23 +322,22 @@ public class AvroResolver extends BasePlugin implements Resolver {
                 } else if (logicalType == LogicalTypes.localTimestampMicros()) {
                     fieldValue = avroTypeConverter.localTimestampMicros((long) fieldValue, fieldSchema, logicalType);
                 }
-                ret = addOneFieldToRecord(record, gpdbWritableLongDataType, fieldValue);
-                break;
+                addOneFieldToRecord(record, gpdbWritableLongDataType, fieldValue);
+                return ++ret;
             case BYTES:
             case FIXED:
                 if (logicalType != null && logicalType.getName().equalsIgnoreCase("decimal")) {
                     fieldValue = avroTypeConverter.convertToDecimal(fieldValue, fieldSchema, logicalType);
                 }
                 DataType gpdbWritableType = (gpdbColType == DataType.TEXT) ? DataType.BYTEA : gpdbColType;
-                ret = addOneFieldToRecord(record, gpdbWritableType, fieldValue);
-                break;
+                addOneFieldToRecord(record, gpdbWritableType, fieldValue);
+                return ++ret;
             case BOOLEAN:
-                ret = addOneFieldToRecord(record, DataType.BOOLEAN, fieldValue);
-                break;
+                addOneFieldToRecord(record, DataType.BOOLEAN, fieldValue);
+                return ++ret;
             default:
-                break;
+                return ret;
         }
-        return ret;
     }
 
     /**
@@ -427,10 +429,9 @@ public class AvroResolver extends BasePlugin implements Resolver {
      * @param record           list of fields to be populated
      * @param gpdbWritableType field type
      * @param val              field value
-     * @return 1 (number of populated fields)
      */
-    int addOneFieldToRecord(List<OneField> record, DataType gpdbWritableType,
-                            Object val) {
+    void addOneFieldToRecord(List<OneField> record, DataType gpdbWritableType,
+                             Object val) {
         OneField oneField = new OneField();
         oneField.type = gpdbWritableType.getOID();
         switch (gpdbWritableType) {
@@ -455,9 +456,6 @@ public class AvroResolver extends BasePlugin implements Resolver {
                 oneField.val = val;
                 break;
         }
-
         record.add(oneField);
-        return 1;
     }
-
 }

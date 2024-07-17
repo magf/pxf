@@ -73,7 +73,7 @@ class SimpleWriterCallable implements WriterCallable {
     }
 
     @Override
-    public SQLException call() throws IOException, SQLException {
+    public SQLException call() throws SQLException {
         log.trace("Writer {}: call() to insert row", this);
         long start = System.nanoTime();
         if (row == null) {

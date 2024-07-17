@@ -29,7 +29,7 @@ import java.io.IOException;
  */
 public class HiveRcBinaryDataGen {
 
-    public static byte delimiter = '\001';
+    public static final byte delimiter = '\001';
 
     public static void main(String[] args) throws IOException {
         byte[] data = new byte[223];

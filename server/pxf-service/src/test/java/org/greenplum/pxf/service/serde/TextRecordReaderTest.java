@@ -35,17 +35,17 @@ public class TextRecordReaderTest {
     }
 
     @Test
-    public void testReadCSVFile() throws Exception {
+    public void testReadCSVFile() {
         runScenario(GPDataGenerator.FORMAT.CSV);
     }
 
     @Test
-    public void testReadTextFile() throws Exception {
+    public void testReadTextFile() {
         runScenario(GPDataGenerator.FORMAT.TEXT);
     }
 
     @Test
-    public void testReadPipeCSVFile() throws Exception {
+    public void testReadPipeCSVFile() {
         runScenario(GPDataGenerator.FORMAT.CSV_PIPE);
     }
 
@@ -53,9 +53,8 @@ public class TextRecordReaderTest {
      * Run the test scenario where the sample data of a given format is read from a previously generated file,
      * deserialized by the TextRecordReader and then compared with the original data values in Java object format.
      * @param format format of data
-     * @throws Exception if a problem occurs when reading data
      */
-    private void runScenario(GPDataGenerator.FORMAT format) throws Exception {
+    private void runScenario(GPDataGenerator.FORMAT format) {
         when(mockRequestContext.getDatabaseEncoding()).thenReturn(StandardCharsets.UTF_8);
         when(mockRequestContext.getGreenplumCSV()).thenReturn(mockGreenplumCSV);
         when(mockGreenplumCSV.getNewline()).thenReturn("\n");

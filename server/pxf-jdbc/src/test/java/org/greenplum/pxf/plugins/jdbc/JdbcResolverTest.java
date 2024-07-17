@@ -230,7 +230,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateWithWideRangeTest() throws ParseException {
+    void setFieldDateWithWideRangeTest() {
         isDateWideRange = true;
         LocalDate expectedLocalDate = LocalDate.of(1977, 12, 11);
         String date = "1977-12-11";
@@ -240,7 +240,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateWithoutWideRangeTest() throws ParseException {
+    void setFieldDateWithoutWideRangeTest() {
         isDateWideRange = false;
         String date = "1977-12-11";
         Date expectedDate = Date.valueOf(date);
@@ -250,7 +250,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateWithWideRangeWithLeadingZeroTest() throws ParseException {
+    void setFieldDateWithWideRangeWithLeadingZeroTest() {
         isDateWideRange = true;
         LocalDate expectedLocalDate = LocalDate.of(3, 5, 4);
         String date = "0003-05-04";
@@ -260,7 +260,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateWithoutWideRangeWithLeadingZeroTest() throws ParseException {
+    void setFieldDateWithoutWideRangeWithLeadingZeroTest() {
         isDateWideRange = false;
         String date = "0003-5-4";
         Date expectedDate = Date.valueOf(date);
@@ -277,7 +277,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateWithMoreThan4digitsInYearTest() throws ParseException {
+    void setFieldDateWithMoreThan4digitsInYearTest() {
         isDateWideRange = true;
         LocalDate expectedLocalDate = LocalDate.of(+12345678, 12, 11);
         String date = "12345678-12-11";
@@ -294,7 +294,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateWithEraWithMoreThan4digitsInYearTest() throws ParseException {
+    void setFieldDateWithEraWithMoreThan4digitsInYearTest() {
         isDateWideRange = true;
         LocalDate expectedLocalDate = LocalDate.of(-1234567, 6, 1);
         String date = "1234568-06-01 BC";
@@ -304,7 +304,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateWithEraTest() throws ParseException {
+    void setFieldDateWithEraTest() {
         isDateWideRange = true;
         LocalDate expectedLocalDate = LocalDate.of(-1234, 11, 1);
         String date = "1235-11-01 BC";
@@ -321,7 +321,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateTimeWithWideRangeTest() throws ParseException {
+    void setFieldDateTimeWithWideRangeTest() {
         isDateWideRange = true;
         LocalDateTime expectedLocalDateTime = LocalDateTime.of(1977, 12, 11, 15, 12, 11, 123456789);
         String timestamp = "1977-12-11 15:12:11.123456789";
@@ -331,7 +331,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateTimeWithoutWideRangeTest() throws ParseException {
+    void setFieldDateTimeWithoutWideRangeTest() {
         isDateWideRange = false;
         String timestamp = "1977-12-11 15:12:11.123456789";
         Timestamp expectedDateTime = Timestamp.valueOf(timestamp);
@@ -341,7 +341,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateTimeWithWideRangeWithLeadingZeroTest() throws ParseException {
+    void setFieldDateTimeWithWideRangeWithLeadingZeroTest() {
         isDateWideRange = true;
         LocalDateTime expectedLocalDateTime = LocalDateTime.of(3, 5, 4, 1, 2, 1);
         String timestamp = "0003-05-04 01:02:01";
@@ -351,7 +351,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateTimeWithoutWideRangeWithLeadingZeroTest() throws ParseException {
+    void setFieldDateTimeWithoutWideRangeWithLeadingZeroTest() {
         isDateWideRange = false;
         String timestamp = "0003-05-04 01:02:01.23";
         Timestamp expectedTimestamp = Timestamp.valueOf(timestamp);
@@ -361,7 +361,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateTimeWithMoreThan4digitsInYearTest() throws ParseException {
+    void setFieldDateTimeWithMoreThan4digitsInYearTest() {
         isDateWideRange = true;
         LocalDateTime expectedLocalDateTime = LocalDateTime.of(+12345678, 12, 11, 15, 35);
         String timestamp = "12345678-12-11 15:35 AD";
@@ -378,7 +378,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateTimeWithEraWithMoreThan4digitsInYearTest() throws ParseException {
+    void setFieldDateTimeWithEraWithMoreThan4digitsInYearTest() {
         isDateWideRange = true;
         LocalDateTime expectedLocalDateTime = LocalDateTime.of(-1234567, 6, 1, 19, 56, 43, 12);
         String timestamp = "1234568-06-01 19:56:43.000000012 BC";
@@ -388,7 +388,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldDateTimeWithEraTest() throws ParseException {
+    void setFieldDateTimeWithEraTest() {
         isDateWideRange = true;
         LocalDateTime expectedLocalDateTime = LocalDateTime.of(-1234, 11, 1, 16, 20);
         String timestamp = "1235-11-01 16:20 BC";
@@ -405,7 +405,7 @@ class JdbcResolverTest {
     }
 
     @Test
-    void setFieldUUIDTest() throws ParseException {
+    void setFieldUUIDTest() {
         oneFieldList.add(new OneField(DataType.TEXT.getOID(), "decafbad-0000-0000-0000-000000000000"));
         columnDescriptors.add(new ColumnDescriptor("uuid_col", DataType.UUID.getOID(), 1, DataType.UUID.name(), null));
         context.setTupleDescription(columnDescriptors);
@@ -452,7 +452,7 @@ class JdbcResolverTest {
         return oneFields.get(0);
     }
 
-    private OneField setFields(String date, int dataTypeOid, String typeName) throws ParseException {
+    private OneField setFields(String date, int dataTypeOid, String typeName) {
         oneFieldList.add(new OneField(DataType.TEXT.getOID(), date));
         columnDescriptors.add(new ColumnDescriptor("birth_date", dataTypeOid, 0, typeName, null));
         context.setTupleDescription(columnDescriptors);

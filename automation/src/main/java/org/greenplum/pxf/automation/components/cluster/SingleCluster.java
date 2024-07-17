@@ -285,12 +285,12 @@ public class SingleCluster extends PhdCluster {
     }
 
     @Override
-    public void runCommandOnAllNodes(String command) throws Exception {
+    public void runCommandOnAllNodes(String command) {
         throw new UnsupportedOperationException("runCommandOnAllNodes is not supported over SingleCluster");
     }
 
     @Override
-    public void runCommandOnNodes(List<Node> nodes, String command) throws Exception {
+    public void runCommandOnNodes(List<Node> nodes, String command) {
         throw new UnsupportedOperationException("runCommandOnNodes is not supported over SingleCluster");
     }
 }

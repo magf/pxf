@@ -50,7 +50,7 @@ public class HBaseLongQualifierDataPreparer implements IDataPreparer {
 		row.addColumn(cf, ql.getBytes(), value);
 	}
 
-	private void addValue(Put row, byte[] cf, String ql, String value) throws java.io.UnsupportedEncodingException {
+	private void addValue(Put row, byte[] cf, String ql, String value) {
 		addValue(row, cf, ql, value.getBytes(StandardCharsets.UTF_8));
 	}
 

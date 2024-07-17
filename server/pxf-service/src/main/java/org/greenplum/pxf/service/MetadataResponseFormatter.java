@@ -41,9 +41,8 @@ public class MetadataResponseFormatter {
      * @param metadataList list of metadata objects to convert
      * @param path path string
      * @return JSON formatted response
-     * @throws IOException if converting the data to JSON fails
      */
-    public static MetadataResponse formatResponse(List<Metadata> metadataList, String path) throws IOException {
+    public static MetadataResponse formatResponse(List<Metadata> metadataList, String path) {
         /* print the fragment list to log when in debug level */
         if (LOG.isDebugEnabled()) {
             MetadataResponseFormatter.printMetadata(metadataList, path);

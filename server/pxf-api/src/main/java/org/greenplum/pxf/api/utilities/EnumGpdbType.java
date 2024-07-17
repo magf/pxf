@@ -32,8 +32,7 @@ class EnumGpdbTypeSerializer extends JsonSerializer<EnumGpdbType> {
 
     @Override
     public void serialize(EnumGpdbType value, JsonGenerator generator,
-                          SerializerProvider provider) throws IOException,
-            JsonProcessingException {
+                          SerializerProvider provider) throws IOException {
       generator.writeString(value.getTypeName());
     }
   }

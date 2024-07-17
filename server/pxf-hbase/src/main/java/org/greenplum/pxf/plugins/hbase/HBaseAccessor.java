@@ -105,8 +105,8 @@ public class HBaseAccessor extends BasePlugin implements Accessor {
      * i.e. a start key and an end key
      */
     private static class SplitBoundary {
-        protected byte[] startKey;
-        protected byte[] endKey;
+        protected final byte[] startKey;
+        protected final byte[] endKey;
 
         SplitBoundary(byte[] first, byte[] second) {
             startKey = first;

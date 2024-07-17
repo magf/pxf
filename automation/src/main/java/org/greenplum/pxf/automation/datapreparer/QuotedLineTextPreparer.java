@@ -22,7 +22,7 @@ public class QuotedLineTextPreparer implements IDataPreparer {
 	}
 
 	@Override
-	public Object[] prepareData(int rows, Table dataTable) throws Exception {
+	public Object[] prepareData(int rows, Table dataTable) {
 
 		Object[] data = new Object[rows];
 

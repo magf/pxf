@@ -115,9 +115,8 @@ public class ComparisonUtils {
      * @param dataColT1
      * @param dataColT2
      * @return true if columns are equal
-     * @throws ParseException
      */
-    private static boolean checkColData(int colType, String dataColT1, String dataColT2, Reporter report) throws ParseException {
+    private static boolean checkColData(int colType, String dataColT1, String dataColT2, Reporter report) {
 
         try {
             if ((dataColT1.equals("null") && dataColT2.equals("")) || (dataColT2.equals("null") && dataColT1.equals(""))) {
@@ -222,9 +221,8 @@ public class ComparisonUtils {
      * @param row1HtmlReport GPDB html collector
      * @param row2Data       External data source row data
      * @param row2HtmlReport External data source html collector
-     * @throws Exception
      */
-    private static boolean compareRowData(List<Integer> row1Types, List<String> row1Data, StringBuilder row1HtmlReport, List<String> row2Data, StringBuilder row2HtmlReport, Reporter report, String... ignoreChars) throws Exception {
+    private static boolean compareRowData(List<Integer> row1Types, List<String> row1Data, StringBuilder row1HtmlReport, List<String> row2Data, StringBuilder row2HtmlReport, Reporter report, String... ignoreChars) {
 
         boolean result = true;
 
@@ -351,7 +349,7 @@ public class ComparisonUtils {
     /**
      * Compares given (results) with expected table's column names and column types
      */
-    public static void compareTablesMetadata(Table expected, Table results) throws Exception {
+    public static void compareTablesMetadata(Table expected, Table results) {
         Assert.assertEquals("table column types mismatch", expected.getColsDataType(), results.getColsDataType());
         Assert.assertEquals("table column names mismatch", expected.getColumnNames(), results.getColumnNames());
     }
@@ -362,10 +360,9 @@ public class ComparisonUtils {
      * @param psqlOutput psql output of \d command
      * @param hiveTables list of Hive tables
      * @return true if psql output matches given list of Hive tables
-     * @throws Exception
      */
     public static boolean comparePsqlDescribeHive(String psqlOutput,
-                                                  List<HiveTable> hiveTables) throws Exception {
+                                                  List<HiveTable> hiveTables) {
 
         boolean isEquals = true;
         int totalFieldsNum = 0;

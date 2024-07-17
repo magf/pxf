@@ -190,7 +190,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
     }
 
     @Override
-    public long getPos() throws IOException {
+    public long getPos() {
         return pos;
     }
 
@@ -208,7 +208,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
      * {@inheritDoc}
      */
     @Override
-    public float getProgress() throws IOException {
+    public float getProgress() {
         if (start == end) {
             return 0.0f;
         } else {

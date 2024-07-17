@@ -41,7 +41,7 @@ public abstract class BaseFunctionality extends BaseTestParent {
         return dataTable;
     }
 
-    protected Table getSmallData() throws IOException {
+    protected Table getSmallData() {
         return getSmallData("");
     }
 

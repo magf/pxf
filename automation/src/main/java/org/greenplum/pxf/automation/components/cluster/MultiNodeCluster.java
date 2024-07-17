@@ -59,12 +59,12 @@ public class MultiNodeCluster extends PhdCluster {
     }
 
     @Override
-    public void startHiveServer() throws Exception {
+    public void startHiveServer() {
         throw new UnsupportedOperationException("Start Hive Server is not supported yet");
     }
 
     @Override
-    public void stopHiveServer() throws Exception {
+    public void stopHiveServer() {
         throw new UnsupportedOperationException("Stop Hive Server is not supported yet");
     }
 
@@ -130,7 +130,7 @@ public class MultiNodeCluster extends PhdCluster {
     }
 
     @Override
-    public boolean isUp(EnumClusterServices service) throws Exception {
+    public boolean isUp(EnumClusterServices service) {
         // TODO: need to implement, for now return true;
         return true;
     }

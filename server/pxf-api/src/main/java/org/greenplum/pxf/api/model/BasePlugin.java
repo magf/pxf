@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class BasePlugin implements Plugin {
 
-    protected Logger LOG = LoggerFactory.getLogger(this.getClass());
+    protected static final Logger LOG = LoggerFactory.getLogger(BasePlugin.class);
 
     protected Configuration configuration;
     protected RequestContext context;

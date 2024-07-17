@@ -22,7 +22,7 @@ import java.io.IOException;
  */
 public class HiveBinaryDataGen {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         try {
             FileOutputStream outputStream = new FileOutputStream("src/test/resources/data/hive/hiveBinaryData");
             BufferedOutputStream out = new BufferedOutputStream(outputStream);

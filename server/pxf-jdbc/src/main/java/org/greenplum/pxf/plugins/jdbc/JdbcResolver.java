@@ -202,10 +202,9 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
      * moment, there is no way to correct the order of the fields if it is not.
      * In practice, the 'record' provided is always ordered the right way.
      * @throws UnsupportedOperationException if field of some type is not supported
-     * @throws ParseException                if the record cannot be parsed
      */
     @Override
-    public OneRow setFields(List<OneField> record) throws UnsupportedOperationException, ParseException {
+    public OneRow setFields(List<OneField> record) throws UnsupportedOperationException {
         int columnIndex = 0;
 
         for (OneField oneField : record) {

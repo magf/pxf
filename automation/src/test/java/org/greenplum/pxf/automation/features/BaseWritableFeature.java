@@ -10,7 +10,6 @@ public class BaseWritableFeature extends BaseFeature {
     // path in hdfs for writable output
     protected String hdfsWritePath;
     protected String writableTableName = "writable_table";
-    protected String readableTableName = "readable_table";
 
     /**
      * Set writable directory

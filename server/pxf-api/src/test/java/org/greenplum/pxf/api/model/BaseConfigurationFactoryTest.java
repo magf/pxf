@@ -191,9 +191,8 @@ public class BaseConfigurationFactoryTest {
     }
 
     @Test
-    public void testConfigurationSetsSessionUser() throws IOException {
+    public void testConfigurationSetsSessionUser() {
         Configuration configuration = factory.initConfiguration("default", "default", "dummy", additionalProperties);
-        File defaultServerDirectory = new File(serversDirectory, "default");
 
         assertEquals("dummy", configuration.get(PXF_SESSION_USER_PROPERTY));
     }

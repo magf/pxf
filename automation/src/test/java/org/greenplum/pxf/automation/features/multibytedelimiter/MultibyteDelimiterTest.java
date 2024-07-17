@@ -142,7 +142,7 @@ public class MultibyteDelimiterTest extends BaseFeature {
      * Prepare all components and all data flow (Hdfs to GPDB)
      */
     @Override
-    public void beforeClass() throws Exception {
+    public void beforeClass() {
         protocol = ProtocolUtils.getProtocol();
     }
 

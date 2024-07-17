@@ -42,7 +42,7 @@ public class HiveProxySmokeTest extends BaseSmoke {
     }
 
     @Override
-    public void afterClass() throws Exception {
+    public void afterClass() {
         // close hive connection
         if (hive != null)
             hive.close();

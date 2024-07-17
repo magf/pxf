@@ -89,7 +89,7 @@ public class HBaseFilterBuilderTest {
     }
 
     @Test
-    public void parseNotOpCodeInConstant() throws Exception {
+    public void parseNotOpCodeInConstant() {
 
         String filter = "a1c25s2dl2o1a1c20s1d2o2l0";
         // Testing that we get past the parsing stage

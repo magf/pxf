@@ -48,7 +48,7 @@ import java.util.zip.ZipException;
  */
 public class ReadBridge extends BaseBridge {
 
-    protected BridgeOutputBuilder outputBuilder;
+    protected final BridgeOutputBuilder outputBuilder;
     protected Deque<Writable> outputQueue = new LinkedList<>();
 
     public ReadBridge(BasePluginFactory pluginFactory, RequestContext context, GSSFailureHandler failureHandler) {

@@ -10,15 +10,15 @@ import java.util.logging.Logger;
 
 public class FakeJdbcDriver implements Driver {
 
-    public Connection connect(String url, Properties info) throws SQLException {
+    public Connection connect(String url, Properties info) {
         return null;
     }
 
-    public boolean acceptsURL(String url) throws SQLException {
+    public boolean acceptsURL(String url) {
         return false;
     }
 
-    public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
+    public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) {
         return new DriverPropertyInfo[0];
     }
 
@@ -34,7 +34,7 @@ public class FakeJdbcDriver implements Driver {
         return false;
     }
 
-    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+    public Logger getParentLogger() {
         return null;
     }
 }

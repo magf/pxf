@@ -100,7 +100,7 @@ public class HiveResolver extends BasePlugin implements Resolver {
     protected String serdeClassName;
     protected List<Integer> hiveIndexes;
     protected HiveMetadata metadata;
-    protected HiveUtilities hiveUtilities;
+    protected final HiveUtilities hiveUtilities;
 
     private int numberOfPartitions;
     private Map<String, OneField> partitionColumnNames;

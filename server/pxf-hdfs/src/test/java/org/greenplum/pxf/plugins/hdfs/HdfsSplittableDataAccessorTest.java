@@ -25,22 +25,22 @@ public class HdfsSplittableDataAccessorTest {
         }
 
         @Override
-        public boolean openForWrite() throws Exception {
+        public boolean openForWrite() {
             return false;
         }
 
         @Override
-        public boolean writeNextObject(OneRow onerow) throws Exception {
+        public boolean writeNextObject(OneRow onerow) {
             return false;
         }
 
         @Override
-        public void closeForWrite() throws Exception {
+        public void closeForWrite() {
 
         }
 
         @Override
-        protected Object getReader(JobConf jobConf, InputSplit split) throws IOException {
+        protected Object getReader(JobConf jobConf, InputSplit split) {
             return null;
         }
 

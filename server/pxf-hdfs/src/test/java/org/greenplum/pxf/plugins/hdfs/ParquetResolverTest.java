@@ -105,7 +105,7 @@ public class ParquetResolverTest {
     }
 
     @Test
-    public void testSetFields_Primitive() throws IOException {
+    public void testSetFields_Primitive() {
         schema = getParquetSchemaForPrimitiveTypes(Type.Repetition.OPTIONAL, false);
         // schema has changed, set metadata again
         context.setMetadata(schema);
@@ -176,27 +176,27 @@ public class ParquetResolverTest {
     }
 
     @Test
-    public void testSetFields_RightTrimChar() throws IOException {
+    public void testSetFields_RightTrimChar() {
         testSetFields_RightTrimCharHelper("abcd  ", "abc   ", "abc");
     }
 
     @Test
-    public void testSetFields_RightTrimCharDontTrimTabChars() throws IOException {
+    public void testSetFields_RightTrimCharDontTrimTabChars() {
         testSetFields_RightTrimCharHelper("abcd\t\t", "abc\t\t\t ", "abc\t\t\t");
     }
 
     @Test
-    public void testSetFields_RightTrimCharDontTrimNewlineChars() throws IOException {
+    public void testSetFields_RightTrimCharDontTrimNewlineChars() {
         testSetFields_RightTrimCharHelper("abcd\n\n", "abc\n\n\n ", "abc\n\n\n");
     }
 
     @Test
-    public void testSetFields_RightTrimCharNoLeftTrim() throws IOException {
+    public void testSetFields_RightTrimCharNoLeftTrim() {
         testSetFields_RightTrimCharHelper("  abcd  ", "  abc   ", "  abc");
     }
 
     @Test
-    public void testSetFields_Primitive_Nulls() throws IOException {
+    public void testSetFields_Primitive_Nulls() {
         schema = getParquetSchemaForPrimitiveTypes(Type.Repetition.OPTIONAL, false);
         // schema has changed, set metadata again
         context.setMetadata(schema);
@@ -1093,7 +1093,7 @@ public class ParquetResolverTest {
     }
 
     @SuppressWarnings("deprecation")
-    private void testSetFields_RightTrimCharHelper(String varchar, String inputChar, String expectedChar) throws IOException {
+    private void testSetFields_RightTrimCharHelper(String varchar, String inputChar, String expectedChar) {
         List<Type> typeFields = new ArrayList<>();
         typeFields.add(new PrimitiveType(Type.Repetition.OPTIONAL, PrimitiveTypeName.BINARY, "vc1", org.apache.parquet.schema.OriginalType.UTF8));
         typeFields.add(new PrimitiveType(Type.Repetition.OPTIONAL, PrimitiveTypeName.BINARY, "c1", org.apache.parquet.schema.OriginalType.UTF8));

@@ -18,7 +18,7 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
 public class HiveRcBinaryPreparer implements IDataPreparer {
 
     @Override
-    public Object[] prepareData(int rows, Table dataTable) throws Exception {
+    public Object[] prepareData(int rows, Table dataTable) {
         String binaryData = generateBinaryData();
         // fill the dataTable with data * rows
         for (int i = 0; i < rows; i++) {
