@@ -90,9 +90,8 @@ public class PerformanceTest extends BaseFeature {
         hiveTextPerfTable = TableFactory.getHiveByRowCommaTable(
                 "perf_test_text", getColumnTypeHive());
         DataPattern dp = new DataPattern();
-        ArrayList<String> columnsTypeList = new ArrayList<String>();
 
-        columnsTypeList.addAll(getColumnTypeDataPattern());
+        ArrayList<String> columnsTypeList = new ArrayList<>(getColumnTypeDataPattern());
 
         dp.setCoulmnsTypeList(columnsTypeList);
         dp.setColumnDelimiter(GENERATE_TEXT_DATA_COL_DELIMITER);

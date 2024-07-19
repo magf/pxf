@@ -36,6 +36,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -89,7 +90,7 @@ public class JsonRecordReaderSeekNoSeekTest {
 
         int start = 0;
         if (seek) {
-            try (InputStream jsonInputStream = new FileInputStream(jsonFile)) {
+            try (InputStream jsonInputStream = Files.newInputStream(jsonFile.toPath())) {
                 start = seekToStart(jsonInputStream);
             }
 

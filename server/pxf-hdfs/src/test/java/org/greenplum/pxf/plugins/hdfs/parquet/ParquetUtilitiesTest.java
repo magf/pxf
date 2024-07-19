@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -276,6 +277,6 @@ public class ParquetUtilitiesTest {
         // nothing is thrown here because we don't decode strings and check for multidimensionality. This check is done later
         List<Object> result = parquetUtilities.parsePostgresArray(value, PrimitiveType.PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY, null);
         assertEquals(2, result.size());
-        assertEquals(Arrays.asList("{\"1.11\",\"2.22\"}, {\"3.33\",\"4.44\"}").toString(), result.toString());
+        assertEquals(Collections.singletonList("{\"1.11\",\"2.22\"}, {\"3.33\",\"4.44\"}").toString(), result.toString());
     }
 }

@@ -327,7 +327,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
         if (includeDateCol) {
             PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.add("date_arr array<date>");
         }
-        String[] parquetArrayTableCols = PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.toArray(new String[PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.size()]);
+        String[] parquetArrayTableCols = PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.toArray(new String[0]);
         PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.toArray(parquetArrayTableCols);
 
         HiveTable hiveTable = new HiveExternalTable(hiveExternalTableName, parquetArrayTableCols, "hdfs:/" + fullTestPath);

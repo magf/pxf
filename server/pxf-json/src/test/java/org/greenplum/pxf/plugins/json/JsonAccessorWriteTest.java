@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -198,8 +199,8 @@ public class JsonAccessorWriteTest {
         if (useCompression) {
             // file contents are not equal as written, but should be equal once the written file is uncompressed
             assertFalse(FileUtils.contentEqualsIgnoreEOL(expectedFile, writtenFile, "UTF-8"));
-            try (Reader expectedInput = new InputStreamReader(new FileInputStream(expectedFile), StandardCharsets.UTF_8);
-                 Reader writtenInput  = new InputStreamReader(new GZIPInputStream(new FileInputStream(writtenFile)), StandardCharsets.UTF_8)) {
+            try (Reader expectedInput = new InputStreamReader(Files.newInputStream(expectedFile.toPath()), StandardCharsets.UTF_8);
+                 Reader writtenInput  = new InputStreamReader(new GZIPInputStream(Files.newInputStream(writtenFile.toPath())), StandardCharsets.UTF_8)) {
                 assertTrue(IOUtils.contentEqualsIgnoreEOL(expectedInput, writtenInput));
             }
         } else {

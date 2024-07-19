@@ -29,6 +29,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.regex.Matcher;
@@ -59,7 +60,7 @@ public class JsonLexerTest {
     public void runTest(File jsonFile, File stateFile) throws IOException {
         List<String> lexerStates = FileUtils.readLines(stateFile, Charset.defaultCharset());
 
-        try (InputStream jsonInputStream = new FileInputStream(jsonFile)) {
+        try (InputStream jsonInputStream = Files.newInputStream(jsonFile.toPath())) {
             JsonLexer lexer = new JsonLexer();
 
             int byteOffset = 0;
@@ -91,7 +92,7 @@ public class JsonLexerTest {
                     String state = stateIterator.next().trim();
                     stateFileLineNum++;
 
-                    while (state.equals("") || state.startsWith("#")) {
+                    while (state.isEmpty() || state.startsWith("#")) {
                         if (!stateIterator.hasNext()) {
                             fail(formatStateInfo(jsonFile, sb.toString(), byteOffset, stateFileLineNum)
                                     + ": Input stream had character '" + c + "' but no matching state");

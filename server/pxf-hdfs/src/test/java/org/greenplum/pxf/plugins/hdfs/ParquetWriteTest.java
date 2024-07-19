@@ -2464,7 +2464,7 @@ public class ParquetWriteTest {
                 "",
                 "22.220000000000000000"
         };
-        validateWriteNumeric(expectedValues, new HashSet<Integer>(Arrays.asList(8)), 38, 18);
+        validateWriteNumeric(expectedValues, new HashSet<Integer>(Collections.singletonList(8)), 38, 18);
     }
 
     // Numeric precision not defined, test error flag when data precision overflow. An error should be thrown
