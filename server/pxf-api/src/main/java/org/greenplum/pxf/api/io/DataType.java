@@ -50,8 +50,8 @@ public enum DataType {
     INTERVAL(1186, false),
     NUMERIC(1700, false),
     UUID(2950, false),
-    JSON(114, false),
-    JSONB(3802, false),
+    JSON(114, true),
+    JSONB(3802, true),
 
     INT2ARRAY(1005),
     INT4ARRAY(1007),
