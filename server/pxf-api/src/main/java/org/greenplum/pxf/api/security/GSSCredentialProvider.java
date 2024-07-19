@@ -56,7 +56,7 @@ public class GSSCredentialProvider {
      * A holder class wrapping a credential and a TGT. It is used as an entry in the credential cache.
      */
     @Data
-    class GSSCredentialHolder {
+    static class GSSCredentialHolder {
         private final GSSCredential credential;
         private final KerberosTicket tgt;
     }

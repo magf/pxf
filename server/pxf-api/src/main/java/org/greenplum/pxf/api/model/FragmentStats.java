@@ -70,7 +70,7 @@ public class FragmentStats {
     /**
      * Container for size and unit
      */
-    public class SizeAndUnit {
+    public static class SizeAndUnit {
         long size;
         SizeUnit unit;
 

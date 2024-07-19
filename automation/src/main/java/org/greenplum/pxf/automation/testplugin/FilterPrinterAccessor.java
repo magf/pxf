@@ -19,7 +19,7 @@ public class FilterPrinterAccessor extends BasePlugin implements Accessor
     /*
      * exception for exposing the filter to the world
      */
-    class FilterPrinterException extends Exception {
+    static class FilterPrinterException extends Exception {
         FilterPrinterException(String filter) {
             super("Filter string: '" + filter + "'");
         }

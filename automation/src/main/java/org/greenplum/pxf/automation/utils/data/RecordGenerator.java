@@ -103,7 +103,7 @@ public class RecordGenerator {
 	 *  Root class for all below generator implementation
 	 *  Where T is the type that the implementor shell return on call to next method
 	 */
-	private abstract class Generator<T> {
+	private abstract static class Generator<T> {
 
 		protected final int maxSize;
 
@@ -115,7 +115,7 @@ public class RecordGenerator {
 	}
 
 	/*    INTEGER    */
-	private class IncrementalIntegerGenerator extends Generator<Integer>{
+	private static class IncrementalIntegerGenerator extends Generator<Integer>{
 
 		private Integer i = 0;
 
@@ -129,7 +129,7 @@ public class RecordGenerator {
 		}
 	}
 
-	private class RandomIntegerGenerator extends Generator<Integer>{
+	private static class RandomIntegerGenerator extends Generator<Integer>{
 
 		private final Random rand = new Random(0);
 
@@ -144,7 +144,7 @@ public class RecordGenerator {
 	}
 
 	/*    BIGINT    */
-	private class IncrementalBigIntegerGenerator extends Generator<Long>{
+	private static class IncrementalBigIntegerGenerator extends Generator<Long>{
 
 		private Long l = 0L;
 
@@ -158,7 +158,7 @@ public class RecordGenerator {
 		}
 	}
 
-	private class RandomBigIntegerGenerator extends Generator<Long>{
+	private static class RandomBigIntegerGenerator extends Generator<Long>{
 
 		private final Random rand = new Random(0);
 
@@ -173,7 +173,7 @@ public class RecordGenerator {
 	}
 
 	/*  SMALLINT */
-	private class IncrementalSmallIntegerGenerator extends Generator<Short>{
+	private static class IncrementalSmallIntegerGenerator extends Generator<Short>{
 
 		private Short s = 0;
 
@@ -187,7 +187,7 @@ public class RecordGenerator {
 		}
 	}
 
-	private class RandomSmallIntegerGenerator extends Generator<Short>{
+	private static class RandomSmallIntegerGenerator extends Generator<Short>{
 
 		private final Random rand = new Random(0);
 
@@ -203,7 +203,7 @@ public class RecordGenerator {
 
 
 	/*  DOUBLE/REAL */
-	private class IncrementalDoubleGenerator extends Generator<Double>{
+	private static class IncrementalDoubleGenerator extends Generator<Double>{
 
 		private Double d = 0d;
 
@@ -217,7 +217,7 @@ public class RecordGenerator {
 		}
 	}
 
-	private class RandomDoubleGenerator extends Generator<Double>{
+	private static class RandomDoubleGenerator extends Generator<Double>{
 
 		private final Random rand = new Random(0);
 
@@ -232,7 +232,7 @@ public class RecordGenerator {
 	}
 
 	/*  FLOAT */
-	private class IncrementalFloatGenerator extends Generator<Float>{
+	private static class IncrementalFloatGenerator extends Generator<Float>{
 
 		private Float f = 0f;
 
@@ -246,7 +246,7 @@ public class RecordGenerator {
 		}
 	}
 
-	private class RandomFloatGenerator extends Generator<Float>{
+	private static class RandomFloatGenerator extends Generator<Float>{
 
 		private final Random rand = new Random(0);
 
@@ -261,7 +261,7 @@ public class RecordGenerator {
 	}
 
 	/* NUMERIC    */
-	private class FixedNumericGenerator extends Generator<String>{
+	private static class FixedNumericGenerator extends Generator<String>{
 
 		private final StringBuilder number = new StringBuilder();
 
@@ -277,7 +277,7 @@ public class RecordGenerator {
 		}
 	}
 
-	private class RandomNumericGenerator extends Generator<String>{
+	private static class RandomNumericGenerator extends Generator<String>{
 
 		private final Random rand = new Random(0);
 
@@ -297,7 +297,7 @@ public class RecordGenerator {
 
 
 	/* BOOLEAN */
-	private class RandomBooleanGenerator extends Generator<Boolean>{
+	private static class RandomBooleanGenerator extends Generator<Boolean>{
 
 		private final Random rand = new Random(0);
 
@@ -351,7 +351,7 @@ public class RecordGenerator {
 	}
 
 	/* BYTEA */
-	private class RandomBYTEAGenerator extends Generator<String>{
+	private static class RandomBYTEAGenerator extends Generator<String>{
 
 		private final Random rand = new Random(0);
 
@@ -368,7 +368,7 @@ public class RecordGenerator {
 	}
 
 	/* TIMESTAMP */
-	private class TimeStampGenerator extends Generator<java.sql.Timestamp>{
+	private static class TimeStampGenerator extends Generator<java.sql.Timestamp>{
 
 		public TimeStampGenerator(int maxSize) {
 			super(maxSize);

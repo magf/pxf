@@ -66,7 +66,7 @@ public class ChunkReader implements Closeable {
      * doing several read operation until we reach the chunk size -
      * maxBytesToConsume
      */
-    private class Node {
+    private static class Node {
         /* part of a chunk brought in a single inputstream.read() operation */
         public byte[] slice;
         /* the size of the slice */
