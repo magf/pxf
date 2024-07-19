@@ -155,9 +155,9 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
         // 5. Init longs
         initLongsArray();
         for (int i = 0; i < lngs.length; i++) {
-            lngs[i] = i1 * 10 * (i + 3);
+            lngs[i] = i1 * 10L * (i + 3);
         }
-        lng = i1 * 10 + 5;
+        lng = i1 * 10L + 5;
 
         // 6. Init booleans
         initBooleanArray();

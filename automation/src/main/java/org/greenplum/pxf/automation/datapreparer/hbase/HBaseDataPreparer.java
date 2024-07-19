@@ -91,7 +91,7 @@ public class HBaseDataPreparer implements IDataPreparer {
 				// Removing system timezone so tests will pass anywhere in the
 				// world :)
 				int timeZoneOffset = TimeZone.getDefault().getRawOffset();
-				addValue(newRow, columnFamily, qualifiers[11], (new Timestamp((6000 * i) - timeZoneOffset)).toString());
+				addValue(newRow, columnFamily, qualifiers[11], (new Timestamp((6000L * i) - timeZoneOffset)).toString());
 
 				generatedRows.add(newRow);
 

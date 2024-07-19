@@ -490,7 +490,7 @@ public class GPDBWritable implements Writable {
         byte[] byts = new byte[getNullByteArraySize(len)];
 
         for (int i = 0, j = 0, k = 7; i < data.length; i++) {
-            byts[j] |= (data[i] ? 1 : 0) << k--;
+            byts[j] |= (byte) ((data[i] ? 1 : 0) << k--);
             if (k < 0) {
                 j++;
                 k = 7;
