@@ -20,7 +20,6 @@ package org.greenplum.pxf.service;
  */
 
 
-import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.logging.Log;

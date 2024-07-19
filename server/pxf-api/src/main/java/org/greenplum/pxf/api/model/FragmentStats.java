@@ -19,8 +19,6 @@ package org.greenplum.pxf.api.model;
  * under the License.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;

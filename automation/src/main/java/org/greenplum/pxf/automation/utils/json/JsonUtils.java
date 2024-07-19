@@ -1,7 +1,5 @@
 package org.greenplum.pxf.automation.utils.json;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.greenplum.pxf.automation.structures.data.MetaTableData;
 import org.greenplum.pxf.automation.structures.data.MetaTableDataCollection;

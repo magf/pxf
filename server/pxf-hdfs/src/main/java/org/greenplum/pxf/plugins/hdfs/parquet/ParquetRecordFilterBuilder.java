@@ -10,8 +10,6 @@ import org.apache.parquet.schema.Type;
 import org.greenplum.pxf.api.filter.*;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Deque;
 import java.util.LinkedList;

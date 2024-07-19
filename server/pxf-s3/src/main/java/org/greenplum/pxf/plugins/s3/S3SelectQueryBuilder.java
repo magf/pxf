@@ -13,7 +13,6 @@ import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
 import java.sql.SQLException;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**

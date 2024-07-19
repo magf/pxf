@@ -25,7 +25,6 @@ import org.greenplum.pxf.plugins.jdbc.JdbcResolver;
 import org.greenplum.pxf.plugins.jdbc.JdbcBasePlugin;
 import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
-import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
