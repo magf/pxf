@@ -304,11 +304,11 @@ public class ShellSystemObject extends BaseSystemObject {
      * @return export command for the env vars
      */
     protected String getExportForRequiredEnvVars() {
-        String result = "export";
+        StringBuilder result = new StringBuilder("export");
         for (String requiredEnvParam : requiredEnvParams) {
-            result += " " + getEnvVarStatement(requiredEnvParam);
+            result.append(" ").append(getEnvVarStatement(requiredEnvParam));
         }
-        return result;
+        return result.toString();
     }
 
     /**

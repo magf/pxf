@@ -27,18 +27,18 @@ public class CurlUtils {
 
     private void formCommand(String host, String port, String path, String requestType, Map<String, String> headers, List<String> params) {
         StringBuilder str = new StringBuilder();
-        str.append("curl -X " + requestType);
-        str.append(" \"" + PROTOCOL + "://" + host + ":" + port + "/" + path + "\" ");
+        str.append("curl -X ").append(requestType);
+        str.append(" \"" + PROTOCOL + "://").append(host).append(":").append(port).append("/").append(path).append("\" ");
 
         if (headers != null && !headers.isEmpty()) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
-                str.append("--header \"" + entry.getKey() + "=" + entry.getValue() + "\" ");
+                str.append("--header \"").append(entry.getKey()).append("=").append(entry.getValue()).append("\" ");
             }
         }
 
         if (params != null && !params.isEmpty()) {
             for (String param: params) {
-                str.append("--data \"" + param + "\" ");
+                str.append("--data \"").append(param).append("\" ");
             }
         }
         command = str.toString();

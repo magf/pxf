@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 
 public class JsonAvroSchemaFileReader implements AvroSchemaFileReader {
     @Override
@@ -25,7 +26,7 @@ public class JsonAvroSchemaFileReader implements AvroSchemaFileReader {
                 FileSystem fs = FileSystem.get(path.toUri(), configuration);
                 schemaStream = new FSDataInputStream(fs.open(path));
             } else {
-                schemaStream = new FileInputStream(file);
+                schemaStream = Files.newInputStream(file.toPath());
             }
             return (new Schema.Parser()).parse(schemaStream);
         } finally {

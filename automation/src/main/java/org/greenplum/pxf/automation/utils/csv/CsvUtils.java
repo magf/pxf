@@ -88,7 +88,7 @@ public abstract class CsvUtils {
 			throws IOException {
 
 		// create CsvWriter using OutputStreamWriter to allow for user given values
-		CSVWriter csvWriter = new CSVWriter(new OutputStreamWriter(new FileOutputStream(targetCsvFile), charset), delimiter, quotechar, escapechar, eol);
+		CSVWriter csvWriter = new CSVWriter(new OutputStreamWriter(Files.newOutputStream(Paths.get(targetCsvFile)), charset), delimiter, quotechar, escapechar, eol);
 		try {
 			// go over list and write each inner list to csv file
 			for (List<String> currentList : table.getData()) {

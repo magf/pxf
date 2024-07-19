@@ -417,9 +417,7 @@ public class CustomWritable implements Writable {
         btsw.readFields(in);
         byte[] buffer = btsw.getBytes();
         bts = new byte[btsw.getLength()];
-        for (int i = 0; i < btsw.getLength(); i++) {
-            bts[i] = buffer[i];
-        }
+        if (btsw.getLength() >= 0) System.arraycopy(buffer, 0, bts, 0, btsw.getLength());
     }
 
     public void printFieldTypes() {

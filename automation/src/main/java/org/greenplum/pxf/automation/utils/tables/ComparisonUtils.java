@@ -69,7 +69,7 @@ public class ComparisonUtils {
             htmlFormat2.append("<tr>");
 
             for (Integer t1Type : t1Types) {
-                htmlFormat1.append("<td>" + t1Type + "</td>");
+                htmlFormat1.append("<td>").append(t1Type).append("</td>");
             }
 
             htmlFormat1.append("</tr>");
@@ -80,7 +80,7 @@ public class ComparisonUtils {
             htmlFormat2.append("<tr>");
 
             for (Integer t2Type : t2Types) {
-                htmlFormat2.append("<td>" + t2Type + "</td>");
+                htmlFormat2.append("<td>").append(t2Type).append("</td>");
             }
 
             htmlFormat2.append("</tr>");
@@ -102,7 +102,14 @@ public class ComparisonUtils {
         htmlFormat1.append("</table>");
         htmlFormat2.append("</table>");
 
-        htmlReport.append(table1.getFullName() + "<br>" + htmlFormat1 + "<br><br>" + table2.getFullName() + "<br>" + htmlFormat2);
+        htmlReport
+                .append(table1.getFullName())
+                .append("<br>")
+                .append(htmlFormat1)
+                .append("<br><br>")
+                .append(table2.getFullName())
+                .append("<br>")
+                .append(htmlFormat2);
 
         return result;
     }
@@ -118,7 +125,7 @@ public class ComparisonUtils {
     private static boolean checkColData(int colType, String dataColT1, String dataColT2, Reporter report) {
 
         try {
-            if ((dataColT1.equals("null") && dataColT2.equals("")) || (dataColT2.equals("null") && dataColT1.equals(""))) {
+            if ((dataColT1.equals("null") && dataColT2.isEmpty()) || (dataColT2.equals("null") && dataColT1.isEmpty())) {
                 return true;
             }
 
@@ -268,9 +275,19 @@ public class ComparisonUtils {
                 result &= isEqual;
             }
 
-            row1HtmlReport.append("<td>" + ((isEqual) ? "" : "<font color=\"red\">") + dataColT1 + ((isEqual) ? "" : "</font>") + "</td>");
+            row1HtmlReport
+                    .append("<td>")
+                    .append((isEqual) ? "" : "<font color=\"red\">")
+                    .append(dataColT1)
+                    .append((isEqual) ? "" : "</font>")
+                    .append("</td>");
 
-            row2HtmlReport.append("<td>" + ((isEqual) ? "" : "<font color=\"red\">") + dataColT2 + ((isEqual) ? "" : "</font>") + "</td>");
+            row2HtmlReport
+                    .append("<td>")
+                    .append((isEqual) ? "" : "<font color=\"red\">")
+                    .append(dataColT2)
+                    .append((isEqual) ? "" : "</font>")
+                    .append("</td>");
 
             if (result) {
                 result = isEqual;

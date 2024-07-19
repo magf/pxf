@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -128,7 +131,7 @@ public class Table {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append("DROP TABLE IF EXISTS " + getFullName());
+        sb.append("DROP TABLE IF EXISTS ").append(getFullName());
         if (cascade) {
             sb.append(" CASCADE");
         }
@@ -242,7 +245,7 @@ public class Table {
     }
 
     /**
-     * Appends all rows from from table to this table
+     * Appends all rows from table to this table
      *
      * @param from from table
      */
@@ -268,10 +271,10 @@ public class Table {
         dataHtml.append("<tr bgcolor=\"#c1cdc1\">");
 
         for (int i = 0; i < columnsHeaders.size(); i++) {
-            dataHtml.append("<td> " + columnsHeaders.get(i));
+            dataHtml.append("<td> ").append(columnsHeaders.get(i));
 
             if (colsDataType != null && colsDataType.size() == columnsHeaders.size()) {
-                dataHtml.append(" (" + JdbcTypesUtils.getSqlTypeName(colsDataType.get(i)) + ")");
+                dataHtml.append(" (").append(JdbcTypesUtils.getSqlTypeName(colsDataType.get(i))).append(")");
             }
 
             dataHtml.append("</td>");
@@ -284,7 +287,7 @@ public class Table {
         for (List<String> row : data) {
 
             for (String s : row) {
-                dataHtml.append("<td> " + s + "</td>");
+                dataHtml.append("<td> ").append(s).append("</td>");
             }
 
             dataHtml.append("</tr>");
@@ -335,27 +338,28 @@ public class Table {
      * Load data from Text file to Table data List according to provided delimiter. The data is
      * being read as UTF-8. If the file is compressed the compression type should be mentioned.
      *
-     * @param path file to required file to load
+     * @param pathStr file to required file to load
      * @param delimiter for splitting data on file
      * @param sortColumnIndex for splitting data on file
      * @param encoding text encoding type (like UTF-8...)
      * @param compressionType required compression type.
      * @throws IOException if I/O error occurs
      */
-    public void loadDataFromFile(String path, String delimiter, final int sortColumnIndex, String encoding, EnumCompressionTypes compressionType, boolean appendData) throws IOException {
-        File file = new File(path);
+    public void loadDataFromFile(String pathStr, String delimiter, final int sortColumnIndex, String encoding, EnumCompressionTypes compressionType, boolean appendData) throws IOException {
+        File file = new File(pathStr);
 
         if (!file.exists()) {
-            throw new FileNotFoundException("Error Loading data from File:" + path + " File Not Found");
+            throw new FileNotFoundException("Error Loading data from File:" + pathStr + " File Not Found");
         }
 
         InputStream in = null;
+        Path path = Paths.get(pathStr);
         switch (compressionType) {
         case GZip:
-            in = new GZIPInputStream(new FileInputStream(path));
+            in = new GZIPInputStream(Files.newInputStream(path));
             break;
         case BZip2:
-            in = new BZip2CompressorInputStream(new FileInputStream(path));
+            in = new BZip2CompressorInputStream(Files.newInputStream(path));
             break;
         case None:
             break;
@@ -385,7 +389,7 @@ public class Table {
             if (delimiter != null) {
                 // find out if quoted values exist in line
                 String[] csvSplit = line.split(delimiter + "\"|\"" + delimiter);
-                String shapedLine = "";
+                StringBuilder shapedLine = new StringBuilder();
                 // if so shape it to be without quotes, add back slash to delimiter in the quoted
                 // value.
                 if (csvSplit != null) {
@@ -395,17 +399,17 @@ public class Table {
                         }
                         // add delimiter if not first split
                         if (i > 0) {
-                            shapedLine += delimiter;
+                            shapedLine.append(delimiter);
                         }
                         // collect all shaped splits to shapedLine
-                        shapedLine += csvSplit[i];
+                        shapedLine.append(csvSplit[i]);
                     }
                 } else {
                     // if no quoted cells get the line as is
-                    shapedLine = line;
+                    shapedLine = new StringBuilder(line);
                 }
                 // split according to delimiter without backslash before it.
-                columns = shapedLine.split("(?<!\\\\)" + delimiter);
+                columns = shapedLine.toString().split("(?<!\\\\)" + delimiter);
             }
             // get Array as fixed list and put it into ArrayList
             List<String> row = new ArrayList<>(Arrays.asList(columns));

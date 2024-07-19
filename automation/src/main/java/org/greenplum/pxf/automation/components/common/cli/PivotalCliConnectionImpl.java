@@ -2,6 +2,7 @@ package org.greenplum.pxf.automation.components.common.cli;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import systemobject.terminal.BufferInputStream;
 import systemobject.terminal.Cli;
@@ -57,7 +58,7 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 		p.setPrompt("Password: ");
 		p.setStringToSend(getPassword());
 		prompts.add(p);
-		return prompts.toArray(new Prompt[prompts.size()]);
+		return prompts.toArray(new Prompt[0]);
 	}
 
 	@Override
@@ -172,12 +173,9 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 	}
 
 	private Prompt[] getAllPrompts() {
-		ArrayList<Prompt> allPrompts = new ArrayList<>();
-		allPrompts.addAll(prompts);
+        ArrayList<Prompt> allPrompts = new ArrayList<>(prompts);
 		Prompt[] pr = getPrompts();
-		for (Prompt p : pr) {
-			allPrompts.add(p);
-		}
+        allPrompts.addAll(Arrays.asList(pr));
 		return allPrompts.toArray(new Prompt[0]);
 	}
 }

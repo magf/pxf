@@ -73,7 +73,7 @@ public abstract class ExternalTable extends Table {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append("DROP EXTERNAL TABLE IF EXISTS " + getFullName());
+        sb.append("DROP EXTERNAL TABLE IF EXISTS ").append(getFullName());
         if (cascade) {
             sb.append(" CASCADE");
         }
@@ -171,7 +171,7 @@ public abstract class ExternalTable extends Table {
     protected void appendParameter(StringBuilder sBuilder, String parameter) {
 
         // if not the first parameter, add '&'
-        if (!sBuilder.toString().equals("")) {
+        if (!sBuilder.toString().isEmpty()) {
             sBuilder.append("&");
         }
 

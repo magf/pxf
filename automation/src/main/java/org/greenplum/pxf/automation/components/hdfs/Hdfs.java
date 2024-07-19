@@ -46,6 +46,8 @@ import java.io.PrintStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -402,8 +404,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         Path path = getDatapath(pathToFile);
         OutputStream outStream = fs.create(path, true, bufferSize,
                 replicationSize, blockSize);
-        Schema schema = new Schema.Parser().parse(new FileInputStream(
-                schemaName));
+        Schema schema = new Schema.Parser().parse(Files.newInputStream(Paths.get(schemaName)));
         DatumWriter<GenericRecord> writer = new GenericDatumWriter<>(
                 schema);
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(
@@ -453,7 +454,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         Tool tool = new DataFileReadTool();
         List<String> args = Collections.singletonList(pathToFile);
 
-        try (PrintStream printStream = new PrintStream(new FileOutputStream(new File(pathToJson)))) {
+        try (PrintStream printStream = new PrintStream(Files.newOutputStream(new File(pathToJson).toPath()))) {
             tool.run(null, printStream, System.err, args);
         }
     }
@@ -463,7 +464,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         Tool tool = new DataFileGetMetaTool();
         List<String> args = Collections.singletonList(pathToFile);
 
-        try (PrintStream printStream = new PrintStream(new FileOutputStream(new File(pathToMetadata)))) {
+        try (PrintStream printStream = new PrintStream(Files.newOutputStream(new File(pathToMetadata).toPath()))) {
             tool.run(null, printStream, System.err, args);
         }
     }

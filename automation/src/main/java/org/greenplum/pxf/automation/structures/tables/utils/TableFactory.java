@@ -543,7 +543,7 @@ public abstract class TableFactory {
         if (customParameters != null) {
             userParameters.add(customParameters);
         }
-        exTable.setUserParameters(userParameters.toArray(new String[userParameters.size()]));
+        exTable.setUserParameters(userParameters.toArray(new String[0]));
         exTable.setProfile("jdbc");
         exTable.setFormatter("pxfwritable_import");
 
@@ -579,7 +579,7 @@ public abstract class TableFactory {
         if (customParameters != null) {
             userParameters.add(customParameters);
         }
-        exTable.setUserParameters(userParameters.toArray(new String[userParameters.size()]));
+        exTable.setUserParameters(userParameters.toArray(new String[0]));
         exTable.setProfile("jdbc");
         exTable.setFormatter("pxfwritable_export");
 

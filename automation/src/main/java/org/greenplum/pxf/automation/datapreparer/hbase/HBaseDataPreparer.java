@@ -77,8 +77,8 @@ public class HBaseDataPreparer implements IDataPreparer {
 				addValue(newRow, columnFamily, qualifiers[7], String.format("%d", (i % Short.MAX_VALUE)));
 
 				// Qualifier 9. bigint (long)
-				Long value9 = ((i * i * i * 10000000000L + i) % Long.MAX_VALUE) * (long) Math.pow(-1, i % 2);
-				addValue(newRow, columnFamily, qualifiers[8], value9.toString());
+				long value9 = ((i * i * i * 10000000000L + i) % Long.MAX_VALUE) * (long) Math.pow(-1, i % 2);
+				addValue(newRow, columnFamily, qualifiers[8], Long.toString(value9));
 
 				// Qualifier 10. boolean
 				addValue(newRow, columnFamily, qualifiers[9], Boolean.toString((i % 2) == 0));

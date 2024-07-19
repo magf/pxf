@@ -106,7 +106,7 @@ public class MetricsReporter {
         }
         Tags tags = getTags(context);
         try {
-            Double incrementCount = Long.valueOf(increment).doubleValue();
+            double incrementCount = Long.valueOf(increment).doubleValue();
             Counter counter = Counter.builder(metricName).tags(tags).register(registry);
             counter.increment(incrementCount);
             if (log.isTraceEnabled()) {

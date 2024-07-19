@@ -129,7 +129,7 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 		sb.append(", Time elapsed: ");
 		sb.append(numberFormat.format(suite.getRunTime() / 1000.0));
 		sb.append(" sec");
-		sb.append(" (" + numberFormat.format(suite.getRunTime() / 1000.0 / 60));
+		sb.append(" (").append(numberFormat.format(suite.getRunTime() / 1000.0 / 60));
 		sb.append(" min)");
 		sb.append(System.lineSeparator());
 		sb.append(System.lineSeparator());

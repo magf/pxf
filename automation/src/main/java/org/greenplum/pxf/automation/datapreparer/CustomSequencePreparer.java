@@ -2,6 +2,7 @@ package org.greenplum.pxf.automation.datapreparer;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.greenplum.pxf.automation.fileformats.IDataPreparer;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -61,9 +62,7 @@ public class CustomSequencePreparer implements IDataPreparer {
                 String[] strings = ((String[]) cwArr[i].getClass().getField(
                         "strings").get(cwArr[i]));
 
-                for (String string : strings) {
-                    row.add(string);
-                }
+                row.addAll(Arrays.asList(strings));
 
                 String st1 = ((String) cwArr[i].getClass().getField("st1").get(
                         cwArr[i]));

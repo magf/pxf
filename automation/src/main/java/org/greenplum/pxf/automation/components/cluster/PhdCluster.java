@@ -65,7 +65,7 @@ public abstract class PhdCluster extends ShellSystemObject {
 		// fetch the general configuration files from cluster to tempClusterConfDirectory
 		fetchConfiguration(getTempClusterConfDirectory());
 		// set path to local fetched pxf conf directory
-		setPathToLocalPxfConfDirectory(getTempClusterConfDirectory() + (getPathToPxfConfInGeneralConf().equals("") ? "" : "/") + getPathToPxfConfInGeneralConf());
+		setPathToLocalPxfConfDirectory(getTempClusterConfDirectory() + (getPathToPxfConfInGeneralConf().isEmpty() ? "" : "/") + getPathToPxfConfInGeneralConf());
 		// initialize pxfProfiles with profiles XML
 		setPxfProfiles(new PxfProfileXml(getPathToLocalPxfConfDirectory(), true));
 	}

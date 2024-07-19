@@ -39,7 +39,7 @@ public class PivotalSshRsa extends SSH {
 		}
 
 		/* Authenticate */
-		if (password != null && !password.equals("")) {
+		if (password != null && !password.isEmpty()) {
 			super.connect();
 		} else {
 			// user not supplied password

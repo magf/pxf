@@ -23,7 +23,7 @@ public class ForeignTable extends WritableExternalTable {
     @Override
     public String constructDropStmt(boolean cascade) {
         StringBuilder sb = new StringBuilder();
-        sb.append("DROP FOREIGN TABLE IF EXISTS " + getFullName());
+        sb.append("DROP FOREIGN TABLE IF EXISTS ").append(getFullName());
         if (cascade) {
             sb.append(" CASCADE");
         }
