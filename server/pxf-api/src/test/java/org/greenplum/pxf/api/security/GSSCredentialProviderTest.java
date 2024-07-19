@@ -1,7 +1,6 @@
 package org.greenplum.pxf.api.security;
 
 import com.sun.security.jgss.ExtendedGSSCredential;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.PxfUserGroupInformation;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSException;

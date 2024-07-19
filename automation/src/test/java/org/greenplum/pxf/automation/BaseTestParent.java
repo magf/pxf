@@ -1,9 +1,7 @@
 package org.greenplum.pxf.automation;
 
 import jsystem.framework.report.ListenerstManager;
-import jsystem.framework.sut.SutFactory;
 import jsystem.framework.system.SystemManagerImpl;
-import jsystem.framework.system.SystemObject;
 import jsystem.utils.FileUtils;
 import listeners.CustomAutomationLogger;
 import listeners.FDWSkipTestAnalyzer;

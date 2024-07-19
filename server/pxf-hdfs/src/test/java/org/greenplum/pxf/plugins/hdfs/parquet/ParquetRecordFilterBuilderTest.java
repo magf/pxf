@@ -6,7 +6,6 @@ import org.greenplum.pxf.api.filter.FilterParser;
 import org.greenplum.pxf.api.filter.Node;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalOverflowOption;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
-import org.hamcrest.Matchers;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Test;
 

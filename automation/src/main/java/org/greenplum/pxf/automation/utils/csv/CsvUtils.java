@@ -1,6 +1,5 @@
 package org.greenplum.pxf.automation.utils.csv;
 
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -10,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import au.com.bytecode.opencsv.CSVReader;

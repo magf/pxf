@@ -9,7 +9,6 @@ import org.greenplum.pxf.automation.utils.tables.ComparisonUtils;
 import org.junit.Assert;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

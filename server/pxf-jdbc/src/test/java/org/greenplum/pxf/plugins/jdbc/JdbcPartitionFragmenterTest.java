@@ -19,7 +19,6 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
-import org.apache.hadoop.conf.Configuration;
 import org.greenplum.pxf.api.model.Fragment;
 import org.greenplum.pxf.api.model.Fragmenter;
 import org.greenplum.pxf.api.model.RequestContext;

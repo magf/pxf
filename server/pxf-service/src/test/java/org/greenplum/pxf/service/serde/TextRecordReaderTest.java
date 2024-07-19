@@ -5,7 +5,6 @@ import org.greenplum.pxf.api.model.GreenplumCSV;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.plugins.hdfs.utilities.PgUtilities;
 import org.greenplum.pxf.service.GPDataGenerator;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
