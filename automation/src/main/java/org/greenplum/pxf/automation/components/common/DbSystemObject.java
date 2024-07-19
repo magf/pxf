@@ -288,8 +288,6 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 			if (!ignoreFail) {
 				throw e;
 			}
-		} catch (Exception e) {
-		    throw e;
 		} finally {
 			ReportUtils.stopLevel(report);
 		}
@@ -316,8 +314,6 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 				loadData(table, res);
 			}
 			ReportUtils.reportHtml(report, getClass(), table.getDataHtml());
-		} catch (Exception e) {
-			throw e;
 		} finally {
 			ReportUtils.stopLevel(report);
 		}

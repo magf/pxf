@@ -21,31 +21,23 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class TextRecordReaderTest {
-
-    private List<List<OneField>> rows;
-
     @Mock
     private RequestContext mockRequestContext;
     @Mock
     private GreenplumCSV mockGreenplumCSV;
 
-    @BeforeEach
-    private void before() {
-        rows = new LinkedList<>();
-    }
-
     @Test
-    public void testReadCSVFile() {
+    public void testReadCSVFile() throws Exception {
         runScenario(GPDataGenerator.FORMAT.CSV);
     }
 
     @Test
-    public void testReadTextFile() {
+    public void testReadTextFile() throws Exception {
         runScenario(GPDataGenerator.FORMAT.TEXT);
     }
 
     @Test
-    public void testReadPipeCSVFile() {
+    public void testReadPipeCSVFile() throws Exception {
         runScenario(GPDataGenerator.FORMAT.CSV_PIPE);
     }
 
@@ -54,7 +46,8 @@ public class TextRecordReaderTest {
      * deserialized by the TextRecordReader and then compared with the original data values in Java object format.
      * @param format format of data
      */
-    private void runScenario(GPDataGenerator.FORMAT format) {
+    private void runScenario(GPDataGenerator.FORMAT format) throws Exception {
+        List<List<OneField>> rows = new LinkedList<>();
         when(mockRequestContext.getDatabaseEncoding()).thenReturn(StandardCharsets.UTF_8);
         when(mockRequestContext.getGreenplumCSV()).thenReturn(mockGreenplumCSV);
         when(mockGreenplumCSV.getNewline()).thenReturn("\n");

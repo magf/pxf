@@ -307,14 +307,11 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
              */
             forbidSystemExitCall();
             ImportTsv.main(args);
-        } catch (Exception e) {
-
+        } catch (ExitTrappedException e) {
             /**
              * When this ExitTrappedException thrown , the exit 0 performed.
              */
-            if (e instanceof ExitTrappedException) {
-                System.out.println("Prevent Exit VM 0");
-            }
+            System.out.println("Prevent Exit VM 0");
         }
 
         ReportUtils.stopLevel(report);

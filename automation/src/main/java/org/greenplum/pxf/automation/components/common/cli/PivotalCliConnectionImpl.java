@@ -75,10 +75,7 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 				break;
 			} catch (Exception e) {
 				report.report("Failed connecting  " + getHost() + ". Attempt " + (retriesCounter + 1) + ".  " + e.getMessage());
-				try {
-					disconnect();
-				} catch (Exception t) {
-				}
+				disconnect();
 				if (retriesCounter == connectRetries - 1) {
 					throw e;
 				}
