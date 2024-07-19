@@ -160,7 +160,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
                 // check the char length of the json against the MAXLENGTH parameter
                 long jsonLength = json.length();
                 if (jsonLength > maxObjectLength) {
-                    LOG.warn("Skipped JSON object of size " + json.length());
+                    LOG.warn("Skipped JSON object of size {}", json.length());
                 } else {
                     // the key is set to the length of the json object
                     key.set(jsonLength);

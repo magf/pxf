@@ -96,7 +96,7 @@ public class LineBreakAccessor extends HdfsSplittableDataAccessor {
                 return new ChunkRecordReader(jobConf, (FileSplit) split);
             } catch (IncompatibleInputStreamException e) {
                 // ignore and fallback to using LineRecordReader
-                LOG.debug("Failed to use ChunkRecordReader, falling back to LineRecordReader : " + e.getMessage());
+                LOG.debug("Failed to use ChunkRecordReader, falling back to LineRecordReader : {}", e.getMessage());
             }
         }
         return new LineRecordReader(jobConf, (FileSplit) split,

@@ -233,7 +233,7 @@ public class PartitionedJsonParser {
 			// recalculate the average: (averageObjectSize*(numObjectsRead - 1) + currentObjectSize) / numObjectsRead
 			//                        = averageObjectSize + (currentObjectSize - averageObjectSize) / numObjectsRead
 			averageObjectSize += (currentObjectSize - averageObjectSize)/numObjectsRead;
-			LOG.trace("Average JSON object size is " + averageObjectSize + ".");
+            LOG.trace("Average JSON object size is {}.", averageObjectSize);
 		}
 	}
 }

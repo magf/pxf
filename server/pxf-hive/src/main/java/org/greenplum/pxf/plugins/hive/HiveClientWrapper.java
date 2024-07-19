@@ -284,7 +284,7 @@ public class HiveClientWrapper {
         try {
             databases = client.getDatabases(dbPattern);
             if (databases.isEmpty()) {
-                LOG.warn("No database found for the given pattern: " + dbPattern);
+                LOG.warn("No database found for the given pattern: {}", dbPattern);
                 return null;
             }
             for (String dbName : databases) {
