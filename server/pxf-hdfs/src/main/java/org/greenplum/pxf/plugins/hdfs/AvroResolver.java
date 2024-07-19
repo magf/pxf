@@ -444,10 +444,7 @@ public class AvroResolver extends BasePlugin implements Resolver {
                 } else if (val instanceof String) {
                     oneField.val = val;
                 } else {
-                    /**
-                     * Entry point when the underlying bytearray is from a Fixed
-                     * data
-                     */
+                    // Entry point when the underlying bytearray is from a Fixed data
                     byte[] bytes = ((GenericData.Fixed) val).bytes();
                     oneField.val = gpdbWritableType.isArrayType() ? pgUtilities.encodeAndEscapeByteaHex(ByteBuffer.wrap(bytes)) : bytes;
                 }

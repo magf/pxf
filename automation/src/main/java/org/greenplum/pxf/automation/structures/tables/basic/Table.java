@@ -155,7 +155,7 @@ public class Table {
     /**
      * Add Row to Data List in List format.
      *
-     * @param row
+     * @param row to add
      */
     public void addRow(List<String> row) {
         if (data == null) {
@@ -168,7 +168,7 @@ public class Table {
     /**
      * Add Row to Data List using String[]
      *
-     * @param row
+     * @param row to add
      */
     public void addRow(String[] row) {
 
@@ -178,7 +178,7 @@ public class Table {
     /**
      * Add rows to data list using String[][]
      *
-     * @param rows
+     * @param rows to add
      */
     public void addRows(String[][] rows) {
         if (rows == null) {
@@ -191,7 +191,7 @@ public class Table {
     /**
      * duplicate table's data by factor times
      *
-     * @param factor
+     * @param factor - the scale of duplicate
      * @param pumpAsBulk if true, duplicate all table as bulk by factor times
      */
     public void pumpUpTableData(int factor, boolean pumpAsBulk) {
@@ -229,8 +229,8 @@ public class Table {
     /**
      * Add data cell to specific row in data list
      *
-     * @param rowIndex
-     * @param dataToAdd
+     * @param rowIndex - the index of the row
+     * @param dataToAdd - data to add
      */
     public void addCellToDataRow(int rowIndex, String dataToAdd) {
 
@@ -264,9 +264,7 @@ public class Table {
 
         dataHtml.append("<table border=\"1\">");
 
-        /**
-         * Add headers
-         */
+        // Add headers
         dataHtml.append("<tr bgcolor=\"#c1cdc1\">");
 
         for (int i = 0; i < columnsHeaders.size(); i++) {
@@ -301,7 +299,7 @@ public class Table {
     /**
      * Add data type to colsDataType list
      *
-     * @param dataType
+     * @param dataType - the data type to add
      */
     public void addColDataType(int dataType) {
         if (colsDataType == null) {
@@ -342,7 +340,7 @@ public class Table {
      * @param sortColumnIndex for splitting data on file
      * @param encoding text encoding type (like UTF-8...)
      * @param compressionType required compression type.
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     public void loadDataFromFile(String path, String delimiter, final int sortColumnIndex, String encoding, EnumCompressionTypes compressionType, boolean appendData) throws IOException {
         File file = new File(path);
@@ -440,7 +438,7 @@ public class Table {
      * @param path HDFS file to required file to load
      * @param delimiter for splitting data on file
      * @param sortColumnIndex column to sort by
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     public void loadDataFromFile(String path, String delimiter, final int sortColumnIndex, boolean appendData) throws IOException {
         loadDataFromFile(path, delimiter, sortColumnIndex, "UTF-8", EnumCompressionTypes.None, appendData);
@@ -453,7 +451,7 @@ public class Table {
      * @param path HDFS file to required file to load
      * @param delimiter for splitting data on file
      * @param sortColumnIndex column to sort by
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     public void loadDataFromFile(String path, String delimiter, final int sortColumnIndex) throws IOException {
         loadDataFromFile(path, delimiter, sortColumnIndex, false);
@@ -465,7 +463,7 @@ public class Table {
      * @param path path HDFS file to required file to load
      * @param delimiter for splitting data on file
      * @param appendData if true append to exists data, false create new {@link List}
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     public void loadDataFromFile(String path, String delimiter, boolean appendData) throws IOException {
         loadDataFromFile(path, delimiter, -1, "UTF-8", EnumCompressionTypes.None, appendData);
@@ -474,11 +472,11 @@ public class Table {
     /**
      * Load data from Text file to Table data List according to provided delimiter using UTF-8.
      *
-     * @param path
-     * @param delimiter
+     * @param path - the source file
+     * @param delimiter - the delimiter
      * @param compressionType compression of file to load
      * @param appendData if true append to exists data, false create new {@link List}
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     public void loadDataFromFile(String path, String delimiter, EnumCompressionTypes compressionType, boolean appendData) throws IOException {
         loadDataFromFile(path, delimiter, -1, "UTF-8", compressionType, appendData);

@@ -82,9 +82,9 @@ public class Int32ParquetTypeConverter implements ParquetTypeConverter {
 
     /**
      * Converts a "time" string to a INT32.
-     *
+     * <p>
      * Times with time zone are not supported
-     * https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_timetz
+     * <a href="https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_timetz">...</a>
      *
      * @param timeValue the greenplum string of the timestamp with the time zone
      * @return # of time units provided by logical type annotation since Unix epoch

@@ -71,7 +71,7 @@ public class PxfUserGroupInformation {
      * @param configDirectory the path to the configuration files for the external system
      * @param principal       the principal name to load from the keytab
      * @param keytabFilename  the path to the keytab file
-     * @throws IOException           when an IO error occurs.
+     * @throws IOException    when an IO error occurs.
      * @throws KerberosAuthException if it's a kerberos login exception.
      */
     public synchronized LoginSession loginUserFromKeytab(Configuration configuration, String serverName, String configDirectory, String principal, String keytabFilename) throws IOException {
@@ -129,7 +129,6 @@ public class PxfUserGroupInformation {
      *
      * @param serverName   the name of the server
      * @param loginSession the login session
-     * @throws IOException           when an IO error occurs
      * @throws KerberosAuthException on a failure
      */
     public void reloginFromKeytab(String serverName, LoginSession loginSession) throws KerberosAuthException {

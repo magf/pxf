@@ -329,7 +329,7 @@ public class JsonResolver extends BasePlugin implements Resolver {
      * @param jsonNode the {@link JsonNode} to serialize in Postgres array syntax
      * @param type Greenplum datatype that the value represents
      * @return a {@link String} containing the array elements in Postgre array syntax
-     * @throws JsonProcessingException
+     * @throws JsonProcessingException if error occurs
      */
     private String addAllFromJsonArray(JsonNode jsonNode, DataType type) throws IOException {
         StringJoiner stringJoiner = new StringJoiner(",", "{", "}");

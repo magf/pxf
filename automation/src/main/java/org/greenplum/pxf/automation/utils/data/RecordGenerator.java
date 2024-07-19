@@ -38,7 +38,7 @@ public class RecordGenerator {
 	 * @param columnTypes - a list of column defined by their type name
 	 * @param columnsSeparator - the separator to be used in the record output
 	 * @param random - on each call to nextRecord to use random generator or fixed/incremental generators
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public RecordGenerator(final int columnMaxSize,final  List<String> columnTypes,
 						   final String columnsSeparator,final boolean random) {

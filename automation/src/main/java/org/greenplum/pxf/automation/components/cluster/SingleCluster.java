@@ -143,10 +143,10 @@ public class SingleCluster extends PhdCluster {
      * check if required process are up and appear as defined in the EnumScProcesses enum<br>
      * TODO: use singlecluster script when available
      *
-     * @param proccessesToCheck
+     * @param proccessesToCheck - the component name
      * @return true if component is up
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if an error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     private boolean isComponentUp(EnumScProcesses[] proccessesToCheck) throws IOException, ShellCommandErrorException {
         // use process map to map all process return from jps command:
@@ -176,8 +176,8 @@ public class SingleCluster extends PhdCluster {
 
     /**
      * @return Map of running cluster processes <process-name, amount-of-instances>
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     // TODO: remove method when using singlecluster script
     private HashMap<String, Integer> getProcessMap() throws IOException, ShellCommandErrorException {

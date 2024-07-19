@@ -16,73 +16,73 @@ import java.util.List;
 public interface IFSFunctionality extends SystemObject {
 
     /**
-     * get list of Directories and Files for giver path
+     * get list of Directories and Files for given path
      *
-     * @param path
+     * @param path - the given path
      * @return {@link List} of Strings
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     List<String> list(String path) throws Exception;
 
     /**
      * Copy File or directory from local to remote File System
      *
-     * @param srcPath
-     * @param destPath
-     * @throws Exception
+     * @param srcPath - source path
+     * @param destPath - destination path
+     * @throws Exception if an error occurs
      */
     void copyFromLocal(String srcPath, String destPath) throws Exception;
 
     /**
      * Copy File or directory from remote File System to local.
      *
-     * @param srcPath
-     * @param destPath
-     * @throws Exception
+     * @param srcPath - source path
+     * @param destPath - destination path
+     * @throws Exception if an error occurs
      */
     void copyToLocal(String srcPath, String destPath) throws Exception;
 
     /**
      * Create new Directory
      *
-     * @param path
-     * @throws Exception
+     * @param path - the path to create
+     * @throws Exception if an error occurs
      */
     void createDirectory(String path) throws Exception;
 
     /**
      * Remove exists Directory
      *
-     * @param path
-     * @throws Exception
+     * @param path - the path to remove
+     * @throws Exception if an error occurs
      */
     void removeDirectory(String path) throws Exception;
 
     /**
      * get File content as String
      *
-     * @param path
+     * @param path - the source file
      * @return file content as String
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     String getFileContent(String path) throws Exception;
 
     /**
-     * get Size of Directories and files in giver path
+     * get Size of Directories and files in given path
      *
-     * @param path
+     * @param path - the given path
      * @return Size of Directories and files in giver path
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     int listSize(String path) throws Exception;
 
     /**
      * Write Data Table to file
      *
-     * @param destPath
+     * @param destPath Destination path
      * @param dataTable Table with data to write
      * @param delimiter put delimiter between columns
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     void writeTableToFile(String destPath, Table dataTable,
                           String delimiter) throws Exception;
@@ -94,7 +94,7 @@ public interface IFSFunctionality extends SystemObject {
      * @param dataTable {@link Table} with List of data
      * @param delimiter between fields
      * @param encoding to use to write the file
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     void writeTableToFile(String destPath, Table dataTable,
                           String delimiter, Charset encoding) throws Exception;
@@ -108,7 +108,7 @@ public interface IFSFunctionality extends SystemObject {
      * @param delimiter between fields
      * @param encoding to use to write the file
      * @param codec    to use for compression, or null to disable compression
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     void writeTableToFile(String destPath, Table dataTable, String delimiter,
                           Charset encoding, CompressionCodec codec) throws Exception;
@@ -131,9 +131,9 @@ public interface IFSFunctionality extends SystemObject {
     /**
      * Write Dequence Object to file
      *
-     * @param writableData
-     * @param destPath
-     * @throws IOException
+     * @param writableData - source data
+     * @param destPath - destination path
+     * @throws IOException if I/O error occurs
      */
     void writeSequenceFile(Object[] writableData, String destPath)
             throws IOException;
@@ -143,11 +143,11 @@ public interface IFSFunctionality extends SystemObject {
      * not null, the file will be compressed using the given codecName.
      * Supported types are specified in {@code CodecFactory}.
      *
-     * @param pathToFile
-     * @param schemaName
-     * @param codecName
-     * @param data
-     * @throws Exception
+     * @param pathToFile - path to file in hdfs
+     * @param schemaName - path to local schema file
+     * @param codecName - codec name
+     * @param data - source data
+     * @throws Exception if an error occurs
      */
     void writeAvroFile(String pathToFile, String schemaName,
                        String codecName, IAvroSchema[] data)
@@ -163,7 +163,7 @@ public interface IFSFunctionality extends SystemObject {
      * @param schemaName   path to local schema file
      * @param jsonFileName path to local data file
      * @param codecName    codec name
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     void writeAvroFileFromJson(String pathToFile, String schemaName,
                                String jsonFileName, String codecName)
@@ -173,10 +173,10 @@ public interface IFSFunctionality extends SystemObject {
      * Write {@link IAvroSchema} data class to path according to schemaName to a
      * Sequence file
      *
-     * @param pathToFile
-     * @param schemaName
-     * @param data
-     * @throws Exception
+     * @param pathToFile - path to file in hdfs
+     * @param schemaName - path to local schema file
+     * @param data - source data
+     * @throws Exception if an error occurs
      */
     void writeAvroInSequenceFile(String pathToFile, String schemaName,
                                  IAvroSchema[] data) throws Exception;
@@ -189,7 +189,7 @@ public interface IFSFunctionality extends SystemObject {
     /**
      * Set Replication Size
      *
-     * @param replicationSize
+     * @param replicationSize - the replication size
      */
     void setReplicationSize(short replicationSize);
 
@@ -201,7 +201,7 @@ public interface IFSFunctionality extends SystemObject {
     /**
      * Set Block size
      *
-     * @param blockSize
+     * @param blockSize - the block size
      */
     void setBlockSize(long blockSize);
 
@@ -218,9 +218,9 @@ public interface IFSFunctionality extends SystemObject {
     /**
      * Write Protocol Buffered data stored in {@link GeneratedMessage}
      *
-     * @param filePath
-     * @param generatedMessages
-     * @throws Exception
+     * @param filePath - destination file
+     * @param generatedMessages - source data
+     * @throws Exception if an error occurs
      */
     void writeProtocolBufferFile(String filePath,
                                  com.google.protobuf.GeneratedMessage generatedMessages)

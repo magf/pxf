@@ -53,7 +53,6 @@ public enum EnumHiveToGpdbType {
      *
      * @param hiveType Hive type
      * @return corresponding Gpdb type
-     * @throws Exception
      */
     public static String getGpdbType(String hiveType) {
         if (hiveType == null || hiveType.isEmpty())

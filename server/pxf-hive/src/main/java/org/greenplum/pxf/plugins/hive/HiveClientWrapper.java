@@ -413,7 +413,7 @@ public class HiveClientWrapper {
         /**
          * Returns a Metastore client contained by the holder.
          *
-         * @return
+         * @return a Metastore client contained by the holder
          */
         public IMetaStoreClient getClient() {
             return client;

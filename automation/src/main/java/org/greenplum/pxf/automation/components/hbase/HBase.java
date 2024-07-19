@@ -135,8 +135,8 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
      * Creates Data in HBase table from rowsToGenerate() in the hbaseTable
      * object.
      *
-     * @param hbaseTable
-     * @throws Exception
+     * @param hbaseTable - HBase table
+     * @throws Exception if an error occurs
      */
     public void put(HBaseTable hbaseTable) throws Exception {
 
@@ -214,9 +214,6 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
 
         List<List<String>> data = new ArrayList<>();
 
-        /**
-         * go over rows
-         */
         for (Result result : rs) {
 
             List<String> row = new ArrayList<>();
@@ -267,9 +264,9 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
      * Loads Bulk of data using ImportTsv.
      *
      * @param table to load to
-     * @param inputPath
+     * @param inputPath - the source file with data
      * @param cols to which columns
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     public void loadBulk(Table table,
                          String inputPath, String... cols) throws Exception {
@@ -301,16 +298,12 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
         }
 
         try {
-            /**
-             * ImportTsv.main performing exit 0 when done. In order to prevent
-             * it, I have here a hack that catches the exit and preventing it.
-             */
+            // ImportTsv.main performing exit 0 when done.
+            // In order to prevent it, I have here a hack that catches the exit and preventing it.
             forbidSystemExitCall();
             ImportTsv.main(args);
         } catch (ExitTrappedException e) {
-            /**
-             * When this ExitTrappedException thrown , the exit 0 performed.
-             */
+            // When this ExitTrappedException thrown , the exit 0 performed.
             System.out.println("Prevent Exit VM 0");
         }
 

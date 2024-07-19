@@ -216,7 +216,7 @@ You can read more about TestNG here <http://testng.org/doc/index.md>
          * Before every method determine default hdfs data Path, default data, and default external
          * table structure. Each case change it according to it needs.
          *
-         * @throws Exception
+         * @throws Exception if an error occurs
          */
         @Override
         protected void beforeMethod() throws Exception {
@@ -241,7 +241,7 @@ You can read more about TestNG here <http://testng.org/doc/index.md>
         /**
          * Read delimited text file from HDFS using explicit plugins and TEXT format.
          *
-         * @throws Exception
+         * @throws Exception if an error occurs
          */
         @Test(groups = { "features" })
         public void readDelimitedTextUsingTextFormat() throws Exception {
@@ -261,7 +261,7 @@ You can read more about TestNG here <http://testng.org/doc/index.md>
         /**
          * Verify deprecated "LineReaderAccessor" gives required results.
          *
-         * @throws Exception
+         * @throws Exception if an error occurs
          */
         @Test(groups = "features")
         public void deprecatedLineReaderAccessor() throws Exception {

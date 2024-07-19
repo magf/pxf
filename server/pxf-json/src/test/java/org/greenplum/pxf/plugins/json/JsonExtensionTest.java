@@ -276,7 +276,7 @@ public class JsonExtensionTest {
      *
      * @param input          Input records
      * @param expectedOutput File containing output to check
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     private void assertOutput(Path input, List<String> expectedOutput) throws Exception {
         setup(input);
@@ -299,7 +299,7 @@ public class JsonExtensionTest {
      *
      * @param input          Input records
      * @param expectedOutput File containing output to check
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     private void assertUnorderedOutput(Path input, List<String> expectedOutput) throws Exception {
 

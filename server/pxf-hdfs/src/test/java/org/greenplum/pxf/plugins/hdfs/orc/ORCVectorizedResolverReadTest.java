@@ -518,7 +518,7 @@ class ORCVectorizedResolverReadTest extends ORCVectorizedBaseTest {
      * @param expectedNumberOfBatches expected number of batches that should be returned by this method
      * @param readSchema              description of types in ORC file
      * @return
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     private List<VectorizedRowBatch> readBatchesFromOrcFile(String filename, int rowBatchMaxSize, int expectedNumberOfBatches, TypeDescription readSchema)
             throws IOException {

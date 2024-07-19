@@ -24,7 +24,7 @@ public class DataUtils {
      *
      * @param MetaTableData
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      *
      * @return number of written lines
      */

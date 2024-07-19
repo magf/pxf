@@ -80,7 +80,7 @@ import static org.greenplum.pxf.plugins.hdfs.orc.ORCVectorizedAccessor.MAP_BY_PO
  * |  binary           |  decimal           |  NUMERIC       |  1700         |
  * |  binary           |  timestamp         |  TIMESTAMP     |  1114         |
  * ---------------------------------------------------------------------------
- *
+ * <p>
  * Lists are the only supported compound type and only lists of the following scalar
  * types are supported. The supported compound mapping is as follows:
  * <p>

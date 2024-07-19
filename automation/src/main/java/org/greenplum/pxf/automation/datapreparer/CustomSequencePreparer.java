@@ -40,10 +40,7 @@ public class CustomSequencePreparer implements IDataPreparer {
             cwArr[i] = constructor.newInstance(tms, i, 10 * i, 20 * i);
 
             if (i > 0) {
-                /**
-                 * Read fields and store in data table
-                 */
-
+                // Read fields and store in data table
                 int[] num = ((int[]) cwArr[i].getClass().getField("num").get(
                         cwArr[i]));
 

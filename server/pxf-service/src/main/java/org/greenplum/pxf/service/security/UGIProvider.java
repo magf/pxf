@@ -65,7 +65,7 @@ class UGIProvider {
      * Wrapper for {@link FileSystem}.closeAllForUGI method.
      *
      * @param ugi the {@link UserGroupInformation} whose filesystem resources we want to free.
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     void destroy(UserGroupInformation ugi) throws IOException {
         FileSystem.closeAllForUGI(ugi);

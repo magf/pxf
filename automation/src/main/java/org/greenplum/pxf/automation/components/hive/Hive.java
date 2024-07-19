@@ -54,11 +54,11 @@ public class Hive extends DbSystemObject {
     /**
      * Loads data to Hive Table from file (local or HDFS)
      *
-     * @param table
-     * @param filePath
+     * @param table - to load to
+     * @param filePath - the source file with data
      * @param isLocal true - load data from local filePath, false - load from
      *            HDFS
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     public void loadData(HiveTable table, String filePath, boolean isLocal)
             throws Exception {
@@ -84,8 +84,8 @@ public class Hive extends DbSystemObject {
      * Loads Data to Hive Table from local file
      *
      * @param table hive table
-     * @param filePath
-     * @throws Exception
+     * @param filePath - the source file with data
+     * @throws Exception if an error occurs
      */
     public void loadData(HiveTable table, String filePath) throws Exception {
         loadData(table, filePath, true);
@@ -98,7 +98,7 @@ public class Hive extends DbSystemObject {
      * @param filePath data to load
      * @param isLocal true if data is local
      * @param partitions partition(s) to load to
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     public void loadDataToPartition(HiveTable table, String filePath,
                                     boolean isLocal, String[] partitions)

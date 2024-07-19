@@ -220,7 +220,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
      * Reads the next character in the buffer. It will pull the next line as necessary
      *
      * @return the int value of a character
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     private int readNextChar() throws IOException {
         // if the currentLineBuffer is null, nothing has been read yet, so we need to read the next line
@@ -241,7 +241,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
      * Read through the characters until we hit starting bracket that indicates the start of a JSON object
      *
      * @return true when an open bracket '{' is found, false otherwise
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     private boolean scanToNextJsonBeginObject() throws IOException {
         // assumes each line is a valid json line
@@ -275,7 +275,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
 
     /**
      * Append the given character to the string of characters read
-     *
+     * <p>
      * If the number of characters read equals MAX_CHARS, then
      * set the global pos and reset the string of characters read to empty
      * @param c the character that was read
@@ -293,7 +293,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
      * Closes the current LineRecordReader and opens a new one that starts at the end of the current split
      * The end of the new split is set to Long.MAX
      *
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     private void getNextSplit() throws IOException {
         // close the old lineRecordReader

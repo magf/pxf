@@ -22,7 +22,7 @@ public abstract class XmlBasedComponents {
 
 	/**
 	 * @return {@link XMLConfiguration} for a file
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	protected XMLConfiguration getConf() throws Exception {
 
@@ -35,10 +35,10 @@ public abstract class XmlBasedComponents {
 	/**
 	 * Saves {@link XMLConfiguration} to its file location
 	 * 
-	 * @param conf
-	 * @throws ConfigurationException
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * @param conf - the configuration
+	 * @throws ConfigurationException if an error occurs saving configuration
+	 * @throws IOException if I/O error occurs
+	 * @throws InterruptedException if the thread is interrupted
 	 */
 	protected void save(XMLConfiguration conf) throws ConfigurationException, IOException,
 			InterruptedException {

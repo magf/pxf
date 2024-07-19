@@ -28,12 +28,12 @@ public final class OrcUtilities {
 
     /**
      * Parse a Postgres external format into a given ORC schema
-     *
+     * <p>
      * Re-used from GPHDFS
-     * https://github.com/greenplum-db/gpdb/blob/3b0bfdc169fab7f686276be7eccb024a5e29543c/gpAux/extensions/gphdfs/src/java/1.2/com/emc/greenplum/gpdb/hadoop/formathandler/util/FormatHandlerUtil.java
+     * <a href="https://github.com/greenplum-db/gpdb/blob/3b0bfdc169fab7f686276be7eccb024a5e29543c/gpAux/extensions/gphdfs/src/java/1.2/com/emc/greenplum/gpdb/hadoop/formathandler/util/FormatHandlerUtil.java">...</a>
      * @param val Postgres external format (the output of function named by typoutput in pg_type) or `null` if null value
      * @param underlyingChildCategory Underlying ORC type for ORC list. This functions assumes the ORC list is one-dimensional
-     * @return
+     * @return list of decoded objects
      */
     public List<Object> parsePostgresArray (String val, TypeDescription.Category underlyingChildCategory) {
         LOG.trace("child type={}, value={}", underlyingChildCategory, val);

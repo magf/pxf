@@ -138,7 +138,7 @@ public abstract class BaseTestParent {
     /**
      * will be called after Class run has ended
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     @AfterClass(alwaysRun = true)
     public final void clean() throws Exception {
@@ -167,7 +167,7 @@ public abstract class BaseTestParent {
     /**
      * will be called before each test method start
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     @BeforeMethod(alwaysRun = true)
     public void runBeforeMethod() throws Exception {
@@ -191,7 +191,7 @@ public abstract class BaseTestParent {
     /**
      * will be called after each test method ended
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     @AfterMethod(alwaysRun = true)
     public void runAfterMethod() throws Exception {
@@ -229,7 +229,7 @@ public abstract class BaseTestParent {
     /**
      * clean up after the class finished
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     protected void afterClass() throws Exception {
     }
@@ -237,7 +237,7 @@ public abstract class BaseTestParent {
     /**
      * Preparations needed before the class starting
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     protected void beforeClass() throws Exception {
     }
@@ -245,7 +245,7 @@ public abstract class BaseTestParent {
     /**
      * clean up after the test method had finished
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     protected void afterMethod() throws Exception {
     }
@@ -253,7 +253,7 @@ public abstract class BaseTestParent {
     /**
      * Preparations needed before the test method starting
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     protected void beforeMethod() throws Exception {
     }

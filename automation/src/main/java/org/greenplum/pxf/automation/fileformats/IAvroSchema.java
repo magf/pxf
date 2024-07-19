@@ -20,8 +20,8 @@ public interface IAvroSchema {
 	/**
 	 * For Avro inside sequence file, get the serialized sequence value as stream.
 	 * 
-	 * @param stream
-	 * @throws IOException
+	 * @param stream - output stream
+	 * @throws IOException if I/O error occurs
 	 */
     void serialize(ByteArrayOutputStream stream) throws IOException;
 }

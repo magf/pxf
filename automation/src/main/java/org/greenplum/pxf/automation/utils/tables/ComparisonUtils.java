@@ -110,9 +110,9 @@ public class ComparisonUtils {
     /**
      * Checks specific Column and return if equal
      *
-     * @param colType
-     * @param dataColT1
-     * @param dataColT2
+     * @param colType - the type of the column
+     * @param dataColT1 - the value of the column 1
+     * @param dataColT2 - the value of the column 2
      * @return true if columns are equal
      */
     private static boolean checkColData(int colType, String dataColT1, String dataColT2, Reporter report) {
@@ -238,9 +238,7 @@ public class ComparisonUtils {
                 dataColT2 = row2Data.get(table2Index).trim();
             }
 
-            /**
-             * Go over ignoreChars and replace all required chars with ""
-             */
+            // Go over ignoreChars and replace all required chars with ""
             if (ignoreChars != null && ignoreChars.length > 0) {
 
                 for (String ignoreChar : ignoreChars) {
@@ -308,9 +306,9 @@ public class ComparisonUtils {
     /**
      * Compares t1 data with t2 data, will fail the test if false.
      *
-     * @param t1
-     * @param t2
-     * @throws Exception
+     * @param t1 - table 1
+     * @param t2 - table 2
+     * @throws Exception if an error occurs
      */
     public static void compareTables(Table t1, Table t2, Reporter report, int limit, String... ignoreChars) throws Exception {
         ReportUtils.startLevel(report, ComparisonUtils.class, "Tables Comparison Result");
@@ -329,9 +327,9 @@ public class ComparisonUtils {
     /**
      * Compares CSV file data with Table data.
      *
-     * @param csvFile
-     * @param table
-     * @throws Exception
+     * @param csvFile - the file with data
+     * @param table - the table with data
+     * @throws Exception if an error occurs
      */
     public static void compareCsv(File csvFile, Table table, Reporter report) throws Exception {
         compareTables(table, CsvUtils.getTable(csvFile.getAbsolutePath()), report);

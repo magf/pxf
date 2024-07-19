@@ -25,7 +25,7 @@ public class ParallelShellActions {
 	 * @param targetConnections to which connections list to copy file
 	 * @param fromPath local path to file on fromConnection
 	 * @param toPath remote path on targetConnections list
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public static void copyFile(ShellSystemObject fromConnection, List<? extends ShellSystemObject> targetConnections, String fromPath, String toPath) throws Exception {
 		// prepare callable list
@@ -44,7 +44,7 @@ public class ParallelShellActions {
 	 * 
 	 * @param connections list of {@link ShellSystemObject}
 	 * @param command command to execute over connections list
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public static void runParallelCommand(List<? extends ShellSystemObject> connections, String command) throws Exception {
 		// prepare callable list

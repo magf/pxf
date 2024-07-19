@@ -43,15 +43,11 @@ public class Gpdb extends DbSystemObject {
 
 		ReportUtils.startLevel(report, getClass(), "Init");
 
-		/**
-		 * Determine the port
-		 */
+		// Determine the port
 		initPort();
 
-		/**
-		 * Connect using default "template1" database for creating the required database and
-		 * connecting it.
-		 */
+
+		// Connect using default "template1" database for creating the required database and connecting it.
 		driver = "org.postgresql.Driver";
 		connectToDataBase("template1");
 		version = determineVersion();
@@ -309,7 +305,7 @@ public class Gpdb extends DbSystemObject {
 	 * Opens a psql connection to getDb() The connection should be closed using closePsql()
 	 *
 	 * @return shell connection with open psql session
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public ShellSystemObject openPsql() throws Exception {
 
@@ -349,7 +345,7 @@ public class Gpdb extends DbSystemObject {
 	 * @param sql sql command to run
 	 * @param checkErrors if true assert that there is no ERROR in result
 	 * @return sql command's result
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public String runSqlCmd(ShellSystemObject sso, String sql, boolean checkErrors) throws Exception {
 
@@ -375,7 +371,7 @@ public class Gpdb extends DbSystemObject {
 	 * @param to copy to required table
 	 * @param delim delimiter
 	 * @param csv is csv format - if it is, delimiter is not used.
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void copyFromStdin(Table from, Table to, String delim, boolean csv) throws Exception {
 
@@ -413,7 +409,7 @@ public class Gpdb extends DbSystemObject {
 	 * @param path file to copy
 	 * @param delim delimiter
 	 * @param csv is csv format - if it is, delimiter is not used.
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void copyFromFile(Table to, File path, String delim, boolean csv) throws Exception {
 		String from = "'" + path.getAbsolutePath() + "'";
@@ -456,7 +452,7 @@ public class Gpdb extends DbSystemObject {
      * @param delim delimiter
      * @param nullChar null symbol character
      * @param csv is csv format - if it is, delimiter is not used.
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
 	public void copyFromFile(Table to, File path, String delim, String nullChar, boolean csv) throws Exception {
 		String from = "'" + path.getAbsolutePath() + "'";
@@ -525,10 +521,10 @@ public class Gpdb extends DbSystemObject {
 	/**
 	 * Perform analyze over table
 	 *
-	 * @param table
+	 * @param table - the table to analyze
 	 * @param expectTurnedOffWarning if true expect specific Warning: <b>analyze for PXF tables is
 	 *            turned off by 'pxf_enable_stat_collection'</b>
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void analyze(Table table, boolean expectTurnedOffWarning) throws Exception {
 

@@ -15,8 +15,8 @@ public interface IDbFunctionality {
 	 * Convenient method for creating table - will drop the old table if exists create it and check
 	 * if exists
 	 * 
-	 * @param table
-	 * @throws Exception
+	 * @param table to create
+	 * @throws Exception if an error occurs
 	 */
 	void createTableAndVerify(Table table) throws Exception;
 
@@ -30,7 +30,7 @@ public interface IDbFunctionality {
 	 * 
 	 * @param source table to read the data from
 	 * @param target table to get the required table to insert to
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	void insertData(Table source, Table target) throws Exception;
 
@@ -51,36 +51,36 @@ public interface IDbFunctionality {
 	/**
 	 * Gets tables list for data base
 	 * 
-	 * @param dataBaseName
+	 * @param dataBaseName with a list of tables
 	 * @return List of Table names for data base
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	ArrayList<String> getTableList(String dataBaseName) throws Exception;
 
 	/**
 	 * Queries Data into Table Object.
 	 * 
-	 * @param table
-	 * @param query
-	 * @throws Exception
+	 * @param table - the table to query
+	 * @param query - the query string
+	 * @throws Exception if an error occurs
 	 */
 	void queryResults(Table table, String query) throws Exception;
 
 	/**
 	 * Checks if Table exists in specific Schema.
 	 * 
-	 * @param table
+	 * @param table to check if exists
 	 * @return true if exists.
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	boolean checkTableExists(Table table) throws Exception;
 
 	/**
 	 * Checks if Database exists, if so return true.
 	 * 
-	 * @param dbName
+	 * @param dbName to check if exists
 	 * @return if exists or not
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	boolean checkDataBaseExists(String dbName) throws Exception;
 
@@ -88,23 +88,23 @@ public interface IDbFunctionality {
 	 * Gets list of all existing Data Bases.
 	 * 
 	 * @return list of existing DBs
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	ArrayList<String> getDataBasesList() throws Exception;
 
     /**
      * Grant read permissions on a table
-     * @param table
-     * @param user
-     * @throws Exception
+     * @param table - table
+     * @param user - user
+     * @throws Exception if an error occurs
      */
     void grantReadOnTable(Table table, String user) throws Exception;
 
     /**
      * Grant write permissions on a table
-     * @param table
-     * @param user
-     * @throws Exception
+     * @param table - table
+     * @param user - user
+     * @throws Exception if an error occurs
      */
     void grantWriteOnTable(Table table, String user) throws Exception;
 }

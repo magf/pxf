@@ -95,10 +95,9 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 	@Override
 	public void endTest(Test test) {
 
-		/**
-		 * If for some reason the (Failed in setUp before the test get the chance to run) test is
-		 * not in the testStarts list, put it in.
-		 */
+
+		// If for some reason the (Failed in setUp before the test get the chance to run) test is
+		// not in the testStarts list, put it in.
 		if (!testStarts.containsKey(test)) {
 			startTest(test);
 		}

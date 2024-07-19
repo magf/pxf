@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Custom {@link WebMvcTagsContributor} that adds PXF specific tags to metrics for Spring MVC (REST endpoints)
  *
- * @return the {@link WebMvcTagsContributor} instance
  */
 @Component
 public class PxfWebMvcTagsContributor implements WebMvcTagsContributor {

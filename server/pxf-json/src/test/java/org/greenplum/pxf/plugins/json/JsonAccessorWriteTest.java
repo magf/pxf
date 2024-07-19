@@ -152,7 +152,7 @@ public class JsonAccessorWriteTest {
      * @param values         values for the string field, one value per row
      * @param root           value for the root element, null if no object layout is needed
      * @param useCompression whether to use compression when writing the data
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     private void runScenario(String fileName, String[] values, String root, boolean useCompression) throws IOException {
         String path = temp.getAbsolutePath() + "/json/" + fileName;

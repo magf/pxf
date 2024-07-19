@@ -88,7 +88,7 @@ public class MultiNodeCluster extends PhdCluster {
      *
      * @param operation currently "stop", "start"
      * @param service required cluster service
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     private void handleOperation(String operation, EnumClusterServices service) throws Exception {
         // not supporting null service or all services
@@ -278,7 +278,7 @@ public class MultiNodeCluster extends PhdCluster {
     /**
      * escape spaces in file name, so command line commands will work.
      *
-     * @param file
+     * @param file - the name of the file
      * @return escaped file name
      */
     private String escapeSpaces(String file) {

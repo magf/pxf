@@ -28,7 +28,7 @@ public abstract class CsvUtils {
 	 *
 	 * @param pathToCsvFile to read from to Table
 	 * @return {@link Table} with data list from CSV file
-	 * @throws IOException
+	 * @throws IOException if I/O error occurs
 	 */
 	public static Table getTable(String pathToCsvFile) throws IOException {
 
@@ -58,7 +58,7 @@ public abstract class CsvUtils {
 	 *
 	 * @param originalDelim Original single char delimiter
 	 * @param newDelimiter Desired multi-char delimiter
-	 * @throws IOException
+	 * @throws IOException if I/O error occurs
 	 */
 	public static void updateDelim(String targetCsvFile, char originalDelim, String newDelimiter)
 			throws IOException {
@@ -80,7 +80,7 @@ public abstract class CsvUtils {
 	 * @param quotechar the quote value to use for each col
 	 * @param escapechar the escape value to use
 	 * @param eol the eol value to indicate end of row
-	 * @throws IOException
+	 * @throws IOException if I/O error occurs
 	 */
 	public static void writeTableToCsvFile(Table table, String targetCsvFile, Charset charset,
 										   char delimiter, char quotechar,
@@ -110,7 +110,7 @@ public abstract class CsvUtils {
 	 *
 	 * @param table {@link Table} contains required data list to write to CSV file
 	 * @param targetCsvFile to write the data Table
-	 * @throws IOException
+	 * @throws IOException if I/O error occurs
 	 */
 	public static void writeTableToCsvFile(Table table, String targetCsvFile)
 		throws IOException {

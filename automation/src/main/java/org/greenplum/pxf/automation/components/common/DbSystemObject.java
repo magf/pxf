@@ -53,7 +53,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	/**
 	 * Create JDBC connection to Data Base
 	 *
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void connect() throws Exception {
 		ReportUtils.startLevel(report, getClass(), "Connect");
@@ -108,7 +108,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 *
 	 * @param query analytic query
 	 * @param expectedResult to match the query result
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void runAnalyticQuery(String query, String expectedResult) throws Exception {
 		Table analyticResult = new Table("analyticResult", null);
@@ -196,8 +196,8 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	/**
 	 * Run execute query (Create, Drop, Update)
 	 *
-	 * @param query
-	 * @throws Exception
+	 * @param query - the query
+	 * @throws Exception if an error occurs
 	 */
 	public void runQuery(String query) throws Exception {
 		runQuery(query, false, false);
@@ -206,9 +206,9 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	/**
 	 * Run query and measure elapsed time in ms
 	 *
-	 * @param query
+	 * @param query - the query
 	 * @return elapsed time in ms
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public long runQueryTiming(String query) throws Exception {
 	    long startTimeInMillis = System.currentTimeMillis();
@@ -220,7 +220,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * Run query that inserts data into an external or a foreign table and ignores a warning about not being able to
 	 * analyze a foreign table (if applicable) because PXF FDW does not yet support analyzing foreign tables.
 	 * @param query query to run
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	protected void runQueryInsertIntoExternalTable(String query) throws Exception {
 		runQueryWithExpectedWarning(query, ".* --- cannot analyze this foreign table", true, true);
@@ -233,7 +233,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param expectedWarning to match to returned warning
 	 * @param isRegex if true refer to expectedWarning as regular expression
 	 * @param ignoreNoWarning if no warning returned at all
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void runQueryWithExpectedWarning(String query, String expectedWarning, boolean isRegex, boolean ignoreNoWarning) throws Exception {
 
@@ -248,7 +248,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param query to run
 	 * @param expectedWarning to match to returned warning
 	 * @param isRegex if true refer to expectedWarning as regular expression
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void runQueryWithExpectedWarning(String query, String expectedWarning, boolean isRegex) throws Exception {
 
@@ -261,7 +261,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param query string query
 	 * @param ignoreFail if true will ignore query execution failure.
 	 * @param fetchResultSet fetch the whole result set, iterate over all records.
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void runQuery(String query, boolean ignoreFail, boolean fetchResultSet) throws Exception {
 
@@ -298,7 +298,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 *
 	 * @param table to sore results
 	 * @param query to run
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	@Override
 	public void queryResults(Table table, String query) throws Exception {
@@ -343,7 +343,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param table if null return all tables in DataBase, if specific table give, return only this
 	 *            table if exists
 	 * @return {@link ResultSet}
-	 * @throws SQLException
+	 * @throws SQLException if sql error occurs
 	 */
 	protected ResultSet getTablesForSchema(Table table) throws SQLException {
 		DatabaseMetaData metaData = dbConnection.getMetaData();
@@ -373,11 +373,11 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	/**
 	 * Get warning from SQL statement and verify against expectedWarningMessage
 	 *
-	 * @param expectedWarningMessage
+	 * @param expectedWarningMessage - expected warning message
 	 * @param isRegex if true refer to expectedWarningMessage as regular expression.
 	 * @param ignoreNoWarning if true ignore case of no warning returned
-	 * @throws SQLException
-	 * @throws IOException
+	 * @throws SQLException if sql error occurs
+	 * @throws IOException if I/O error occurs
 	 */
 	public void verifyWarning(String expectedWarningMessage, boolean isRegex, boolean ignoreNoWarning) throws SQLException, IOException {
 		if (stmt.getWarnings() == null) {
@@ -497,7 +497,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 *
 	 * @param table to store meta data into.
 	 * @param result {@link ResultSet} of query
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	private void loadMetadata(Table table, ResultSet result) throws Exception {
 		for (int i = 1; i <= result.getMetaData().getColumnCount(); i++) {
@@ -512,7 +512,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 *
 	 * @param table to store data into.
 	 * @param result {@link ResultSet} of query
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	private void loadData(Table table, ResultSet result) throws Exception {
 		while (result.next()) {

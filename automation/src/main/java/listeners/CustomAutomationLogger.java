@@ -183,7 +183,7 @@ public class CustomAutomationLogger implements ITestListener {
 	 * alert result of test case to the console in the following format:<br>
 	 * <test name prefix>...<event message>
 	 * 
-	 * @param testResult
+	 * @param testResult - result of the test
 	 */
 	private void alertEvent(ITestResult testResult, boolean expectedToFail) {
 		String eventMessage = "";

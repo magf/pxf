@@ -401,7 +401,7 @@ public abstract class ExternalTable extends Table {
     /**
      * Array of user parameters, each param in the format "KEY=VALUE"
      *
-     * @param userParameters
+     * @param userParameters - array of user parameters
      */
     public void setUserParameters(String[] userParameters) {
 

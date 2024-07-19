@@ -159,7 +159,7 @@ public class JsonAccessor extends LineBreakAccessor {
      * Opens the resource for write and writes a header, if applicable.
      *
      * @return true if the resource is successfully opened
-     * @throws Exception if opening the resource failed
+     * @throws IOException if I/O error occurs
      */
     @Override
     public boolean openForWrite() throws IOException {
@@ -188,8 +188,8 @@ public class JsonAccessor extends LineBreakAccessor {
      * Writes the next object.
      *
      * @param onerow the object to be written
-     * @return true if the write succeeded
-     * @throws Exception writing to the resource failed
+     * @return true if write succeeded
+     * @throws IOException if I/O error occurs
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -225,7 +225,7 @@ public class JsonAccessor extends LineBreakAccessor {
     /**
      * Closes the resource for write.
      *
-     * @throws Exception if closing the resource failed
+     * @throws IOException if I/O error occurs
      */
     @Override
     public void closeForWrite() throws IOException {

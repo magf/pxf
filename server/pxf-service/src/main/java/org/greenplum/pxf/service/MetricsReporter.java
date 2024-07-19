@@ -65,10 +65,10 @@ public class MetricsReporter {
      * Reports timer metric with a given name, duration and additional tags to the registry.
      * Applies custom tags before reporting and adds a success outcome tag.
      *
-     * @param metric
-     * @param duration
-     * @param context
-     * @param extraTags
+     * @param metric - metric
+     * @param duration - duration
+     * @param context - request context
+     * @param extraTags - tags
      */
     private void reportTimer(PxfMetric metric, Duration duration, RequestContext context, Tags extraTags) {
         String metricName = metric.getMetricName();
@@ -94,9 +94,9 @@ public class MetricsReporter {
      * Reports counter metric with a given name and the increment to the registry.
      * Reports with any tags given by the context and adds a success outcome tag.
      *
-     * @param metric
-     * @param increment
-     * @param context
+     * @param metric - the metric
+     * @param increment - how much to increment
+     * @param context - the request context
      */
     public void reportCounter(PxfMetric metric, long increment, RequestContext context) {
         String metricName = metric.getMetricName();

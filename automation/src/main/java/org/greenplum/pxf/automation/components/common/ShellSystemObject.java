@@ -99,14 +99,10 @@ public class ShellSystemObject extends BaseSystemObject {
         connection = new PivotalCliConnectionImpl(host, getUserName(),
                 getPassword());
 
-        /**
-         * mention SSH_RSA connection type
-         */
+        // mention SSH_RSA connection type
         connection.setProtocol("ssh-rsa");
 
-        /**
-         * Direct to Private Key instead of Password based connection.
-         */
+        // Direct to Private Key instead of Password based connection.
         String privateKeyFileName = privateKey;
         if (privateKeyFileName == null) {
             privateKeyFileName = System.getProperty("user.home") + "/.ssh/id_rsa";
@@ -120,10 +116,7 @@ public class ShellSystemObject extends BaseSystemObject {
                         + getUserName() + " Public-Key File:"
                         + privateKeyFile.getAbsolutePath() + ")");
 
-        /**
-         * PivotalCliConnectionImpl is setting the prompt to be '#'.Add the
-         * required prompt to the connection.
-         */
+        // PivotalCliConnectionImpl is setting the prompt to be '#'. Add the required prompt to the connection.
         Prompt p = new Prompt();
         p.setCommandEnd(true);
         p.setPrompt("#");
@@ -152,8 +145,8 @@ public class ShellSystemObject extends BaseSystemObject {
      * and store the result in lastCmdResult.
      *
      * @param command command to execute
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     public void runCommand(String command) throws IOException,
             ShellCommandErrorException {
@@ -166,8 +159,8 @@ public class ShellSystemObject extends BaseSystemObject {
      *
      * @param command command to execute
      * @param expectedExitCode to check after command execution
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     public void runCommand(String command, int expectedExitCode)
             throws IOException, ShellCommandErrorException {
@@ -231,8 +224,8 @@ public class ShellSystemObject extends BaseSystemObject {
     /**
      * perform jps command
      *
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     protected void jps() throws IOException, ShellCommandErrorException {
         runCommand("jps");
@@ -366,9 +359,9 @@ public class ShellSystemObject extends BaseSystemObject {
     /**
      * Delete directory recursively
      *
-     * @param directoryToDelete
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @param directoryToDelete - directory to delete
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     public void deleteDirectory(String directoryToDelete) throws IOException,
             ShellCommandErrorException {
@@ -378,7 +371,7 @@ public class ShellSystemObject extends BaseSystemObject {
     /**
      * Returns sshpass command if password is provided.
      *
-     * @param password
+     * @param password - the password
      * @return sshpass command or empty string
      */
     private String getSshPass(String password) {
@@ -397,8 +390,8 @@ public class ShellSystemObject extends BaseSystemObject {
      * @param host host name or IP
      * @param fromPath remote path to copy from
      * @param toPath local destination path
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     public void copyFromRemoteMachine(String user, String password,
                                       String host, String fromPath,
@@ -416,8 +409,8 @@ public class ShellSystemObject extends BaseSystemObject {
      * @param host host name or IP
      * @param fromPath remote path to copy from
      * @param toPath local destination path
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     public void copyToRemoteMachine(String user, String password, String host,
                                     String fromPath, String toPath)
@@ -434,8 +427,8 @@ public class ShellSystemObject extends BaseSystemObject {
      * @param password machines password
      * @param filePath to copy
      * @param target in remote machines
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     public void copyToRemoteMachines(String user, String password,
                                      List<String> machines, String filePath,
@@ -453,8 +446,8 @@ public class ShellSystemObject extends BaseSystemObject {
      * @param password machine's password
      * @param host machine's host
      * @param command command to execute
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     public void runRemoteCommand(String user, String password, String host,
                                  String command) throws IOException,
@@ -470,8 +463,8 @@ public class ShellSystemObject extends BaseSystemObject {
      * @param password machine's password
      * @param host machine's host
      * @param filePath of file to delete
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     public void deleteFileFromRemoteMachine(String user, String password,
                                             String host, String filePath,
@@ -490,8 +483,8 @@ public class ShellSystemObject extends BaseSystemObject {
      * @param path to check if file exists
      * @param fileName to find
      * @return true if file exists in given path
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     public boolean checkFileExists(String path, String fileName)
             throws IOException, ShellCommandErrorException {
@@ -507,8 +500,8 @@ public class ShellSystemObject extends BaseSystemObject {
 
     /**
      * @return which user is logged in at this moment
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     public String getLoggedUser() throws IOException,
             ShellCommandErrorException {
