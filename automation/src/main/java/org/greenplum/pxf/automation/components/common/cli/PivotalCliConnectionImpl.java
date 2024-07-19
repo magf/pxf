@@ -20,7 +20,7 @@ import com.aqua.sysobj.conn.Position;
  */
 public class PivotalCliConnectionImpl extends CliConnectionImpl {
 
-	private final ArrayList<Prompt> prompts = new ArrayList<Prompt>();
+	private final ArrayList<Prompt> prompts = new ArrayList<>();
 
     public PivotalCliConnectionImpl() {
 		setDump(true);
@@ -42,7 +42,7 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 	}
 
 	public Prompt[] getPrompts() {
-		ArrayList<Prompt> prompts = new ArrayList<Prompt>();
+		ArrayList<Prompt> prompts = new ArrayList<>();
 		Prompt p = new Prompt();
 		p.setCommandEnd(true);
 		p.setPrompt("# ");
@@ -144,9 +144,9 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 			terminal.addFilter(new VT100FilterInputStream());
 		}
 		Prompt[] prompts = getAllPrompts();
-		for (int i = 0; i < prompts.length; i++) {
-			cli.addPrompt(prompts[i]);
-		}
+        for (Prompt prompt : prompts) {
+            cli.addPrompt(prompt);
+        }
 		if (isRs232 || leadingEnter) {
 			cli.command("");
 		} else if (isRsa) {
@@ -172,7 +172,7 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 	}
 
 	private Prompt[] getAllPrompts() {
-		ArrayList<Prompt> allPrompts = new ArrayList<Prompt>();
+		ArrayList<Prompt> allPrompts = new ArrayList<>();
 		allPrompts.addAll(prompts);
 		Prompt[] pr = getPrompts();
 		for (Prompt p : pr) {

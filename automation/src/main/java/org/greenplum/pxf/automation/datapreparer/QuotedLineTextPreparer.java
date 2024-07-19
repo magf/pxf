@@ -29,7 +29,7 @@ public class QuotedLineTextPreparer implements IDataPreparer {
 		// run from 0 to rows and generate data into dataTable and data
 		for (int i = 0, num1 = 1; i < rows; i++, num1++) {
 
-			ArrayList<String> row = new ArrayList<String>();
+			ArrayList<String> row = new ArrayList<>();
 
 			// on every even i, add new line in the second field
             row.add(String.valueOf(num1));

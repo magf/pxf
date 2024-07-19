@@ -160,7 +160,7 @@ public class TextRecordReader extends BaseRecordReader {
         return record;
     }
 
-    private Class getJavaClass(DataType dataType) {
+    private Class<?> getJavaClass(DataType dataType) {
         // only very specific numeric types will get their own functions
         // all other data types are considered as Strings
         switch (dataType) {

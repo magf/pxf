@@ -21,7 +21,7 @@ public class HBaseSmokeDataPreparer implements IDataPreparer {
 
 		HBaseTable hbaseTable = (HBaseTable) table;
 		String[] qualifiers = hbaseTable.getQualifiers();
-		ArrayList<Put> generatedRows = new ArrayList<Put>();
+		ArrayList<Put> generatedRows = new ArrayList<>();
 
 		for (int i = 1; i <= rows; i++) {
 

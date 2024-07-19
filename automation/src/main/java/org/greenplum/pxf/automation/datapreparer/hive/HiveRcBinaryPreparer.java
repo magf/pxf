@@ -22,7 +22,7 @@ public class HiveRcBinaryPreparer implements IDataPreparer {
         String binaryData = generateBinaryData();
         // fill the dataTable with data * rows
         for (int i = 0; i < rows; i++) {
-            List<String> row = new ArrayList<String>();
+            List<String> row = new ArrayList<>();
             row.add(("index_" + (i + 1)));
             row.add(String.valueOf(i + 1));
             row.add(binaryData);

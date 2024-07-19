@@ -21,7 +21,7 @@ public class JsonUtils {
 		// Initialize the collection of table/data meta info from JSON format file.
 		MetaTableDataCollection mtdCollection = new ObjectMapper().readValue(new File(filename), MetaTableDataCollection.class);
 
-		List<Table> lst = new ArrayList<Table>();
+		List<Table> lst = new ArrayList<>();
 		for (MetaTableData mtd : mtdCollection.get("tables")) {
 			lst.add(new Table(mtd.getTableName(), mtd.generateTableColumnsFields(), mtd.getDataPattern()));
 		}

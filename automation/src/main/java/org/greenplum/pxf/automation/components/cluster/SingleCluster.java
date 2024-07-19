@@ -154,18 +154,18 @@ public class SingleCluster extends PhdCluster {
         HashMap<String, Integer> processesMap = getProcessMap();
 
         // run over given required process array and check if in map includes required amount
-        for (int i = 0; i < proccessesToCheck.length; i++) {
-            ReportUtils.report(report, getClass(), "Check: " + proccessesToCheck[i].toString());
+        for (EnumScProcesses enumScProcesses : proccessesToCheck) {
+            ReportUtils.report(report, getClass(), "Check: " + enumScProcesses.toString());
             // try to get the process key from map if not in there return false
-            Integer value = processesMap.get(proccessesToCheck[i].toString());
+            Integer value = processesMap.get(enumScProcesses.toString());
             if (value == null) {
                 report.stopLevel();
                 return false;
             }
             // if the process is in the map check amount, if not according to enum, return false
-            int amount = value.intValue();
+            int amount = value;
 
-            if (amount != proccessesToCheck[i].getInstances()) {
+            if (amount != enumScProcesses.getInstances()) {
                 report.stopLevel();
                 return false;
             }
@@ -190,22 +190,22 @@ public class SingleCluster extends PhdCluster {
         // create map to store results
         HashMap<String, Integer> map = new HashMap<>();
         // go over split results from jps command
-        for (int i = 0; i < splitResults.length; i++) {
+        for (String splitResult : splitResults) {
             String currentSplitResult = null;
             try {
                 // get the process name
-                currentSplitResult = splitResults[i].split(" ")[1].trim();
+                currentSplitResult = splitResult.split(" ")[1].trim();
             } catch (Exception e) {
                 continue;
             }
             // if process already in map just increment the count
             int value = 1;
             if (map.get(currentSplitResult) != null) {
-                value = map.get(currentSplitResult).intValue();
+                value = map.get(currentSplitResult);
                 value++;
             }
             // put in the results map
-            map.put(currentSplitResult, Integer.valueOf(value));
+            map.put(currentSplitResult, value);
         }
         return map;
     }

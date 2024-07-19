@@ -47,22 +47,12 @@ public class Text implements Writable {
     private static final int EOF = -1;
 
     private static final byte[] EMPTY_BYTES = new byte[0];
-    private static final ThreadLocal<CharsetEncoder> ENCODER_FACTORY = new ThreadLocal<CharsetEncoder>() {
-        @Override
-        protected CharsetEncoder initialValue() {
-            return StandardCharsets.UTF_8.newEncoder().onMalformedInput(
-                    CodingErrorAction.REPORT).onUnmappableCharacter(
-                    CodingErrorAction.REPORT);
-        }
-    };
-    private static final ThreadLocal<CharsetDecoder> DECODER_FACTORY = new ThreadLocal<CharsetDecoder>() {
-        @Override
-        protected CharsetDecoder initialValue() {
-            return StandardCharsets.UTF_8.newDecoder().onMalformedInput(
-                    CodingErrorAction.REPORT).onUnmappableCharacter(
-                    CodingErrorAction.REPORT);
-        }
-    };
+    private static final ThreadLocal<CharsetEncoder> ENCODER_FACTORY = ThreadLocal.withInitial(
+            () -> StandardCharsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT));
+    private static final ThreadLocal<CharsetDecoder> DECODER_FACTORY = ThreadLocal.withInitial(
+            () -> StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT));
     private byte[] bytes;
     private int length;
 
@@ -137,13 +127,13 @@ public class Text implements Writable {
      * substitution character, which is U+FFFD. Otherwise the method throws a
      * MalformedInputException.
      *
-     * @param utf8 UTF-8 encoded byte array
-     * @param start start point
-     * @param length length of array
+     * @param utf8    UTF-8 encoded byte array
+     * @param start   start point
+     * @param length  length of array
      * @param replace whether to replace malformed input with substitution
-     *            character
+     *                character
      * @return decoded string
-     * @throws MalformedInputException if a malformed input is used
+     * @throws MalformedInputException  if a malformed input is used
      * @throws CharacterCodingException if the conversion failed
      */
     public static String decode(byte[] utf8, int start, int length,
@@ -174,7 +164,7 @@ public class Text implements Writable {
      *
      * @param string string to encode
      * @return ByteBuffer: bytes stores at ByteBuffer.array() and length is
-     *         ByteBuffer.limit()
+     * ByteBuffer.limit()
      * @throws CharacterCodingException if conversion failed
      */
     public static ByteBuffer encode(String string)
@@ -188,12 +178,12 @@ public class Text implements Writable {
      * substitution character, which is U+FFFD. Otherwise the method throws a
      * MalformedInputException.
      *
-     * @param string string to encode
+     * @param string  string to encode
      * @param replace whether to replace malformed input with substitution
-     *            character
+     *                character
      * @return ByteBuffer: bytes stores at ByteBuffer.array() and length is
-     *         ByteBuffer.limit()
-     * @throws MalformedInputException if a malformed input is used
+     * ByteBuffer.limit()
+     * @throws MalformedInputException  if a malformed input is used
      * @throws CharacterCodingException if the conversion failed
      */
     public static ByteBuffer encode(String string, boolean replace)
@@ -266,9 +256,9 @@ public class Text implements Writable {
     /**
      * Sets the Text to range of bytes.
      *
-     * @param utf8 the data to copy from
+     * @param utf8  the data to copy from
      * @param start the first position of the new string
-     * @param len the number of bytes of the new string
+     * @param len   the number of bytes of the new string
      */
     public void set(byte[] utf8, int start, int len) {
         setCapacity(len, false);
@@ -279,9 +269,9 @@ public class Text implements Writable {
     /**
      * Appends a range of bytes to the end of the given text.
      *
-     * @param utf8 the data to copy from
+     * @param utf8  the data to copy from
      * @param start the first position to append from utf8
-     * @param len the number of bytes to append
+     * @param len   the number of bytes to append
      */
     public void append(byte[] utf8, int start, int len) {
         setCapacity(length + len, true);

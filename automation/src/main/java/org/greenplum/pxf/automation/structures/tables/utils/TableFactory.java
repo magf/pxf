@@ -515,7 +515,7 @@ public abstract class TableFactory {
                                                          String server, String customParameters) {
         ExternalTable exTable = getReadableExternalOrForeignTable(name, fields,
                 dataSourcePath, "CUSTOM");
-        List<String> userParameters = new ArrayList<String>();
+        List<String> userParameters = new ArrayList<>();
         if (driver != null) {
             userParameters.add("JDBC_DRIVER=" + driver);
         }
@@ -566,7 +566,7 @@ public abstract class TableFactory {
             String dbUrl, String user, String customParameters) {
 
         ExternalTable exTable = getWritableExternalOrForeignTable(name, fields, dataSourcePath, "CUSTOM");
-        List<String> userParameters = new ArrayList<String>();
+        List<String> userParameters = new ArrayList<>();
         if (driver != null) {
             userParameters.add("JDBC_DRIVER=" + driver);
         }

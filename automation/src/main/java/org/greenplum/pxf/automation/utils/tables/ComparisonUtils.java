@@ -68,8 +68,8 @@ public class ComparisonUtils {
 
             htmlFormat2.append("<tr>");
 
-            for (int i = 0; i < t1Types.size(); i++) {
-                htmlFormat1.append("<td>" + t1Types.get(i) + "</td>");
+            for (Integer t1Type : t1Types) {
+                htmlFormat1.append("<td>" + t1Type + "</td>");
             }
 
             htmlFormat1.append("</tr>");
@@ -79,8 +79,8 @@ public class ComparisonUtils {
 
             htmlFormat2.append("<tr>");
 
-            for (int i = 0; i < t2Types.size(); i++) {
-                htmlFormat2.append("<td>" + t2Types.get(i) + "</td>");
+            for (Integer t2Type : t2Types) {
+                htmlFormat2.append("<td>" + t2Type + "</td>");
             }
 
             htmlFormat2.append("</tr>");
@@ -243,28 +243,28 @@ public class ComparisonUtils {
              */
             if (ignoreChars != null && ignoreChars.length > 0) {
 
-                for (int i = 0; i < ignoreChars.length; i++) {
-                    dataColT1 = dataColT1.replaceAll(ignoreChars[i], "");
-                    dataColT2 = dataColT2.replaceAll(ignoreChars[i], "");
+                for (String ignoreChar : ignoreChars) {
+                    dataColT1 = dataColT1.replaceAll(ignoreChar, "");
+                    dataColT2 = dataColT2.replaceAll(ignoreChar, "");
                 }
             }
 
             boolean isEqual = false;
 
             if (isArray(dataColT1, dataColT2)) {
-                isEqual = checkColData(row1Types.get(table1Index).intValue(), dataColT1.replace(", ", ","), dataColT2, report);
+                isEqual = checkColData(row1Types.get(table1Index), dataColT1.replace(", ", ","), dataColT2, report);
                 result &= isEqual;
             } else if (isStruct(dataColT1, dataColT2)) {
-                isEqual = checkColData(row1Types.get(table1Index).intValue(), dataColT1.replace("[", "{").replace("]", "}").replace(", ", ","), dataColT2.replaceAll("\\p{Alnum}*:", "").replace("[", "{").replace("]", "}"), report);
+                isEqual = checkColData(row1Types.get(table1Index), dataColT1.replace("[", "{").replace("]", "}").replace(", ", ","), dataColT2.replaceAll("\\p{Alnum}*:", "").replace("[", "{").replace("]", "}"), report);
                 result &= isEqual;
             } else if (isMap(dataColT1)) {
-                isEqual = checkColData(row1Types.get(table1Index).intValue(), dataColT1.replace(", ", ",").replace("=", ":"), dataColT2, report);
+                isEqual = checkColData(row1Types.get(table1Index), dataColT1.replace(", ", ",").replace("=", ":"), dataColT2, report);
                 result &= isEqual;
             } else {
                 // check if type exists, else send with OTHER
                 int columnType = Types.OTHER;
                 if (row1Types != null && row1Types.size() >= table1Index && !row1Types.isEmpty()) {
-                    columnType = row1Types.get(table1Index).intValue();
+                    columnType = row1Types.get(table1Index);
                 }
                 isEqual = checkColData(columnType, dataColT1, dataColT2, report);
                 result &= isEqual;
@@ -372,23 +372,21 @@ public class ComparisonUtils {
 
         String[] psqlLines = psqlOutput.split("\\r?\\n");
 
-        Collections.sort(hiveTables, new Comparator<HiveTable>() {
-            public int compare(HiveTable table1, HiveTable table2) {
+        hiveTables.sort((table1, table2) -> {
 
-                int compareSchemas;
+            int compareSchemas;
 
-                // compare schema names
-                compareSchemas = (table1.getSchema() == null ? "default"
-                        : table1.getSchema())
-                        .compareTo(table2.getSchema() == null ? "default"
-                                : table2.getSchema());
+            // compare schema names
+            compareSchemas = (table1.getSchema() == null ? "default"
+                    : table1.getSchema())
+                    .compareTo(table2.getSchema() == null ? "default"
+                            : table2.getSchema());
 
-                if (compareSchemas != 0)
-                    return compareSchemas;
+            if (compareSchemas != 0)
+                return compareSchemas;
 
-                // compare table names
-                return table1.getName().compareTo(table2.getName());
-            }
+            // compare table names
+            return table1.getName().compareTo(table2.getName());
         });
 
         // skip table's and command header

@@ -217,9 +217,9 @@ public class ShellSystemObject extends BaseSystemObject {
         // split result to new line
         String[] splitArray = cmd.getResult().split(System.lineSeparator());
         // go over splitResult and look for Numeric result
-        for (int i = 0; i < splitArray.length; i++) {
+        for (String s : splitArray) {
             try {
-                return Integer.parseInt(splitArray[i].trim());
+                return Integer.parseInt(s.trim());
             } catch (Exception e) {
                 continue;
             }
@@ -312,8 +312,8 @@ public class ShellSystemObject extends BaseSystemObject {
      */
     protected String getExportForRequiredEnvVars() {
         String result = "export";
-        for (int i = 0; i < requiredEnvParams.length; i++) {
-            result += " " + getEnvVarStatement(requiredEnvParams[i]);
+        for (String requiredEnvParam : requiredEnvParams) {
+            result += " " + getEnvVarStatement(requiredEnvParam);
         }
         return result;
     }

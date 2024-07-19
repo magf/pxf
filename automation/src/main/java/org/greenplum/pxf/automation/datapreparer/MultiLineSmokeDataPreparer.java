@@ -18,7 +18,7 @@ public class MultiLineSmokeDataPreparer implements IDataPreparer {
 
 		for (int j = 0, num1 = 1; j < rows; j++, num1++) {
 
-			ArrayList<String> row = new ArrayList<String>();
+			ArrayList<String> row = new ArrayList<>();
 
 			row.add("t" + num1);
 			row.add(String.valueOf(num1));

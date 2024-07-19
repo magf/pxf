@@ -40,7 +40,7 @@ public class PoolDescriptor {
         this.qualifier = qualifier;
 
         // validate pool configuration
-        PROHIBITED_PROPERTIES.forEach(p -> ensurePoolPropertyNotPresent(p));
+        PROHIBITED_PROPERTIES.forEach(this::ensurePoolPropertyNotPresent);
     }
 
     public String getServer() {

@@ -273,10 +273,10 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
         // 1. num, int1, int2
         Schema.Field field = schema.getField("num");
         Schema fieldSchema = field.schema();
-        GenericData.Array<Integer> intArray = new GenericData.Array<Integer>(
+        GenericData.Array<Integer> intArray = new GenericData.Array<>(
                 num.length, fieldSchema);
-        for (int i = 0; i < num.length; i++) {
-            intArray.add(new Integer(num[i]));
+        for (int j : num) {
+            intArray.add(j);
         }
         datum.put("num", intArray);
 
@@ -286,10 +286,10 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
         // 2. st1
         field = schema.getField("strings");
         fieldSchema = field.schema();
-        GenericData.Array<Utf8> stringArray = new GenericData.Array<Utf8>(
+        GenericData.Array<Utf8> stringArray = new GenericData.Array<>(
                 strings.length, fieldSchema);
-        for (int i = 0; i < strings.length; i++) {
-            stringArray.add(new Utf8(strings[i]));
+        for (String string : strings) {
+            stringArray.add(new Utf8(string));
         }
         datum.put("strings", stringArray);
 
@@ -298,10 +298,10 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
         // 3. doubles
         field = schema.getField("dubs");
         fieldSchema = field.schema();
-        GenericData.Array<Double> doubleArray = new GenericData.Array<Double>(
+        GenericData.Array<Double> doubleArray = new GenericData.Array<>(
                 dubs.length, fieldSchema);
-        for (int i = 0; i < dubs.length; i++) {
-            doubleArray.add(new Double(dubs[i]));
+        for (double dub : dubs) {
+            doubleArray.add(dub);
         }
         datum.put("dubs", doubleArray);
         datum.put("db", db);
@@ -309,10 +309,10 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
         // 4. floats
         field = schema.getField("fts");
         fieldSchema = field.schema();
-        GenericData.Array<Float> floatArray = new GenericData.Array<Float>(
+        GenericData.Array<Float> floatArray = new GenericData.Array<>(
                 fts.length, fieldSchema);
-        for (int i = 0; i < fts.length; i++) {
-            floatArray.add(new Float(fts[i]));
+        for (float v : fts) {
+            floatArray.add(v);
         }
         datum.put("fts", floatArray);
         datum.put("ft", ft);
@@ -320,10 +320,10 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
         // 5. longs
         field = schema.getField("lngs");
         fieldSchema = field.schema();
-        GenericData.Array<Long> longArray = new GenericData.Array<Long>(
+        GenericData.Array<Long> longArray = new GenericData.Array<>(
                 lngs.length, fieldSchema);
-        for (int i = 0; i < lngs.length; i++) {
-            longArray.add(lngs[i]);
+        for (long l : lngs) {
+            longArray.add(l);
         }
         datum.put("lngs", longArray);
         datum.put("lng", lng);
@@ -331,10 +331,10 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
         // 6. booleans
         field = schema.getField("bls");
         fieldSchema = field.schema();
-        GenericData.Array<Boolean> booleanArray = new GenericData.Array<Boolean>(
+        GenericData.Array<Boolean> booleanArray = new GenericData.Array<>(
                 bls.length, fieldSchema);
-        for (int i = 0; i < bls.length; i++) {
-            booleanArray.add(bls[i]);
+        for (boolean b : bls) {
+            booleanArray.add(b);
         }
         datum.put("bls", booleanArray);
         datum.put("bl", bl);
@@ -358,11 +358,11 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
         @SuppressWarnings("unchecked")
         GenericData.Array<Integer> intArray = (GenericData.Array<Integer>) record.get("num");
         for (int i = 0; i < intArray.size(); i++) {
-            num[i] = intArray.get(i).intValue();
+            num[i] = intArray.get(i);
         }
 
-        int1 = ((Integer) record.get("int1")).intValue();
-        int2 = ((Integer) record.get("int2")).intValue();
+        int1 = (Integer) record.get("int1");
+        int2 = (Integer) record.get("int2");
 
         // 2. strings
         @SuppressWarnings("unchecked")
@@ -377,28 +377,28 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
         @SuppressWarnings("unchecked")
         GenericData.Array<Double> doubleArray = (GenericData.Array<Double>) record.get("dubs");
         for (int i = 0; i < doubleArray.size(); i++) {
-            dubs[i] = doubleArray.get(i).doubleValue();
+            dubs[i] = doubleArray.get(i);
         }
 
-        db = ((Double) record.get("db")).doubleValue();
+        db = (Double) record.get("db");
 
         // 4. floats
         @SuppressWarnings("unchecked")
         GenericData.Array<Float> floatArray = (GenericData.Array<Float>) record.get("fts");
         for (int i = 0; i < floatArray.size(); i++) {
-            fts[i] = floatArray.get(i).floatValue();
+            fts[i] = floatArray.get(i);
         }
 
-        ft = ((Float) record.get("ft")).floatValue();
+        ft = (Float) record.get("ft");
 
         // 5. longs
         @SuppressWarnings("unchecked")
         GenericData.Array<Long> longArray = (GenericData.Array<Long>) record.get("lngs");
         for (int i = 0; i < longArray.size(); i++) {
-            lngs[i] = longArray.get(i).longValue();
+            lngs[i] = longArray.get(i);
         }
 
-        lng = ((Long) record.get("lng")).longValue();
+        lng = (Long) record.get("lng");
 
         // 6. booleans
         @SuppressWarnings("unchecked")
@@ -414,11 +414,11 @@ public class CustomAvroRecordPreparer implements IAvroSchema {
     }
 
     public void printFieldTypes() {
-        Class myClass = this.getClass();
+        Class<? extends CustomAvroRecordPreparer> myClass = this.getClass();
         Field[] fields = myClass.getDeclaredFields();
 
-        for (int i = 0; i < fields.length; i++) {
-            System.out.println(fields[i].getType().getName());
+        for (Field field : fields) {
+            System.out.println(field.getType().getName());
         }
     }
 }

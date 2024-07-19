@@ -44,7 +44,7 @@ public class ProfileFactory {
      * @param userProfileName profile name provided by user
      * @return name of optimal profile
      */
-    public static String get(InputFormat inputFormat, boolean hasComplexTypes, String userProfileName) {
+    public static String get(InputFormat<?,?> inputFormat, boolean hasComplexTypes, String userProfileName) {
         String profileName;
         if (HIVE_ORC_VECTORIZED_PROFILE_OLD.equalsIgnoreCase(userProfileName))
             // specialized Vectorized ORC profile is deprecated, but still needs to be supported for now
@@ -69,7 +69,7 @@ public class ProfileFactory {
      * @param hasComplexTypes whether record has complex types, see @EnumHiveToGpdbType
      * @return name of optimal profile
      */
-    public static String get(InputFormat inputFormat, boolean hasComplexTypes) {
+    public static String get(InputFormat<?, ?> inputFormat, boolean hasComplexTypes) {
         return get(inputFormat, hasComplexTypes, null);
     }
 

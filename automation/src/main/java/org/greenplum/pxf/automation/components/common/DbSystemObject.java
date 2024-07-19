@@ -328,7 +328,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	@Override
 	public ArrayList<String> getTableList(String schema) throws Exception {
 		ReportUtils.startLevel(report, getClass(), "Get All Tables for schema: " + schema);
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList<String> list = new ArrayList<>();
 		ResultSet res = getTablesForSchema(null);
 		while (res.next()) {
 			list.add(res.getString(3));
@@ -463,7 +463,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	@Override
 	public ArrayList<String> getDataBasesList() throws Exception {
 		ResultSet resultSet = dbConnection.getMetaData().getCatalogs();
-		ArrayList<String> dbList = new ArrayList<String>();
+		ArrayList<String> dbList = new ArrayList<>();
 
 		while (resultSet.next()) {
 
@@ -516,7 +516,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 */
 	private void loadData(Table table, ResultSet result) throws Exception {
 		while (result.next()) {
-			List<String> row = new ArrayList<String>();
+			List<String> row = new ArrayList<>();
 			for (int i = 1; i <= result.getMetaData().getColumnCount(); i++) {
 				row.add(result.getString(i));
 			}

@@ -42,9 +42,9 @@ public abstract class CsvUtils {
 		Table dataTable = new Table(pathToCsvFile, null);
 
 		try {
-			for (Iterator<String[]> iterator = list.iterator(); iterator.hasNext();) {
-				dataTable.addRow(iterator.next());
-			}
+            for (String[] strings : list) {
+                dataTable.addRow(strings);
+            }
 		} finally {
 			csvReader.close();
 		}

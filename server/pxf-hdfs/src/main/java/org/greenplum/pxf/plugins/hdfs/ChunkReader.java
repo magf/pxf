@@ -86,7 +86,7 @@ public class ChunkReader implements Closeable {
      */
     public int readChunk(Writable str, int maxBytesToConsume) throws IOException {
         ChunkWritable cw = (ChunkWritable) str;
-        List<Node> list = new LinkedList<Node>();
+        List<Node> list = new LinkedList<>();
 
         long bytesConsumed = 0;
 

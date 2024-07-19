@@ -392,16 +392,15 @@ public class Gpdb extends DbSystemObject {
 
 		StringBuilder dataStringBuilder = new StringBuilder();
 		List<List<String>> data = from.getData();
-		for (int i = 0; i < data.size(); i++) {
-			List<String> row = data.get(i);
-			for (int j = 0; j < row.size(); j++) {
-				dataStringBuilder.append(row.get(j));
-				if (j != row.size() - 1) {
-					dataStringBuilder.append(delimeter);
-				}
-			}
-			dataStringBuilder.append("\n");
-		}
+        for (List<String> row : data) {
+            for (int j = 0; j < row.size(); j++) {
+                dataStringBuilder.append(row.get(j));
+                if (j != row.size() - 1) {
+                    dataStringBuilder.append(delimeter);
+                }
+            }
+            dataStringBuilder.append("\n");
+        }
 		dataStringBuilder.append("\\.");
 
 		copyWithOptionalCTAS("STDIN", to, dataStringBuilder.toString(), delim, null, csv);
@@ -508,7 +507,7 @@ public class Gpdb extends DbSystemObject {
 		Table dataname = new Table("dataname", null);
 		queryResults(dataname, "SELECT datname FROM pg_catalog.pg_database");
 
-		ArrayList<String> dbList = new ArrayList<String>();
+		ArrayList<String> dbList = new ArrayList<>();
 
 		for (List<String> row : dataname.getData()) {
 
@@ -570,7 +569,7 @@ public class Gpdb extends DbSystemObject {
 		int gpIndex = fullVersion.indexOf(GREENPLUM_DATABASE_PREFIX); // where the version prefix starts
 		int dotIndex = fullVersion.indexOf(".", gpIndex);             // where the first dot of GP version starts
 		String versionStr = fullVersion.substring(gpIndex + GREENPLUM_DATABASE_PREFIX.length(), dotIndex);
-		int versionInt = Integer.valueOf(versionStr);
+		int versionInt = Integer.parseInt(versionStr);
 		ReportUtils.report(report, getClass(), "Determined Greenplum version: " + versionInt);
 		return versionInt;
 	}

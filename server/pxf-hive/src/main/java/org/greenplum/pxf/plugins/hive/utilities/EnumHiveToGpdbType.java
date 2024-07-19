@@ -137,13 +137,8 @@ public enum EnumHiveToGpdbType {
      */
     public static EnumHiveToGpdbType getCompatibleHiveToGpdbType(DataType dataType) {
 
-        SortedSet<EnumHiveToGpdbType> types = new TreeSet<EnumHiveToGpdbType>(
-                new Comparator<EnumHiveToGpdbType>() {
-                    public int compare(EnumHiveToGpdbType a,
-                                       EnumHiveToGpdbType b) {
-                        return Byte.compare(a.getSize(), b.getSize());
-                    }
-                });
+        SortedSet<EnumHiveToGpdbType> types = new TreeSet<>(
+                Comparator.comparingInt(EnumHiveToGpdbType::getSize));
 
         for (EnumHiveToGpdbType t : values()) {
             if (t.getGpdbType().getDataType().equals(dataType)) {

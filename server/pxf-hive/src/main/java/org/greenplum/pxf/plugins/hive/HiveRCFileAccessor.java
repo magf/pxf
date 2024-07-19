@@ -45,14 +45,14 @@ public class HiveRCFileAccessor extends HiveAccessor {
      * Constructs a HiveRCFileAccessor.
      */
     public HiveRCFileAccessor() {
-        super(new RCFileInputFormat(),
+        super(new RCFileInputFormat<>(),
                 SpringContext.getBean(HiveUtilities.class),
                 SpringContext.getBean(SerializationService.class));
     }
 
     @Override
     protected Object getReader(JobConf jobConf, InputSplit split) throws IOException {
-        return new RCFileRecordReader(jobConf, (FileSplit) split);
+        return new RCFileRecordReader<>(jobConf, (FileSplit) split);
     }
 
     @Override

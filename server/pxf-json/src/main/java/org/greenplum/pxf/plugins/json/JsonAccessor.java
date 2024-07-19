@@ -267,7 +267,7 @@ public class JsonAccessor extends LineBreakAccessor {
             identifier = context.getOption(IDENTIFIER_PARAM);
             // If the member identifier is set then check if a record max length is defined as well.
             if (!isEmpty(context.getOption(RECORD_MAX_LENGTH_PARAM))) {
-                maxRecordLength = Integer.valueOf(context.getOption(RECORD_MAX_LENGTH_PARAM));
+                maxRecordLength = Integer.parseInt(context.getOption(RECORD_MAX_LENGTH_PARAM));
             }
         }
     }

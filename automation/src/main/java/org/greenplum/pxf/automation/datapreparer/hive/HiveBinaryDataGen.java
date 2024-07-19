@@ -25,14 +25,11 @@ public class HiveBinaryDataGen {
     public static void main(String[] args) {
         try {
             FileOutputStream outputStream = new FileOutputStream("src/test/resources/data/hive/hiveBinaryData");
-            BufferedOutputStream out = new BufferedOutputStream(outputStream);
-            try {
+            try (BufferedOutputStream out = new BufferedOutputStream(outputStream)) {
                 for (int i = 0; i < 256; i++) {
                     out.write(i);
                 }
                 out.flush();
-            } finally {
-                out.close();
             }
         } catch (IOException ex) {
             System.out.println(ex.getMessage());

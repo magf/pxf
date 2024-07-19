@@ -33,7 +33,7 @@ public class HBaseDataPreparer implements IDataPreparer {
 	public Object[] prepareData(int rows, Table dataTable) throws Exception {
 
 		byte[] columnFamily = Bytes.toBytes(columnFamilyName);
-		List<Put> generatedRows = new ArrayList<Put>();
+		List<Put> generatedRows = new ArrayList<>();
 
 		HBaseTable hbaseTable = (HBaseTable) dataTable;
 		String[] qualifiers = hbaseTable.getQualifiers();

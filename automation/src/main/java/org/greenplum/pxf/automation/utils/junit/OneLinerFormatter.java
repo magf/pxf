@@ -58,11 +58,11 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 	/**
 	 * tests that failed.
 	 */
-	private final Hashtable<Test, Throwable> failedTests = new Hashtable<Test, Throwable>();
+	private final Hashtable<Test, Throwable> failedTests = new Hashtable<>();
 	/**
 	 * Timing helper.
 	 */
-	private final Hashtable<Test, Long> testStarts = new Hashtable<Test, Long>();
+	private final Hashtable<Test, Long> testStarts = new Hashtable<>();
 
 	/**
 	 * Constructor for OneLinerFormatter.
@@ -108,7 +108,7 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 		Long l = testStarts.get(test);
 
 		output.write("Ran [");
-		output.write(((System.currentTimeMillis() - l.longValue()) / 1000.0) + "] ");
+		output.write(((System.currentTimeMillis() - l) / 1000.0) + "] ");
 		output.write(getTestName(test) + " ... " + (failed ? "FAILED" : "OK"));
 		output.write(System.lineSeparator());
 		output.flush();
@@ -116,12 +116,12 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 
 	@Override
 	public void startTest(Test test) {
-		testStarts.put(test, Long.valueOf(System.currentTimeMillis()));
+		testStarts.put(test, System.currentTimeMillis());
 	}
 
 	@Override
 	public void endTestSuite(JUnitTest suite) throws BuildException {
-		StringBuffer sb = new StringBuffer("Tests run: ");
+		StringBuilder sb = new StringBuilder("Tests run: ");
 		sb.append(suite.runCount());
 		sb.append(", Failures: ");
 		sb.append(suite.failureCount());
@@ -170,7 +170,7 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 		if (output == null) {
 			return;
 		}
-		StringBuffer sb = new StringBuffer(System.lineSeparator());
+		StringBuilder sb = new StringBuilder(System.lineSeparator());
 		sb.append("----------------------------------------------------------");
 		sb.append(System.lineSeparator());
 		sb.append("Testsuite: ");

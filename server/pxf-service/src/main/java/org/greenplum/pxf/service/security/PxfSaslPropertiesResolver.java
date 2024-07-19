@@ -56,7 +56,7 @@ public class PxfSaslPropertiesResolver extends SaslPropertiesResolver {
         // return a enhanced map initialized with properties obtained from the parent class and having
         // an extra property "javax.security.sasl.credentials" added with the value of the GSS credential
         // obtained from the credential provider.
-        return new MapWrapper(props);
+        return new MapWrapper<>(props);
     }
 
     /**

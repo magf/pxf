@@ -68,8 +68,8 @@ public class Table {
         sb.append(" (");
 
         String prefix = "";
-        for (int i = 0; i < fields.length; i++) {
-            sb.append(prefix).append(fields[i]);
+        for (String field : fields) {
+            sb.append(prefix).append(field);
             prefix = ", ";
         }
 
@@ -159,7 +159,7 @@ public class Table {
      */
     public void addRow(List<String> row) {
         if (data == null) {
-            data = new ArrayList<List<String>>();
+            data = new ArrayList<>();
         }
 
         data.add(row);
@@ -185,8 +185,7 @@ public class Table {
             return;
         }
 
-        for (int i = 0; i < rows.length; ++i)
-            addRow(rows[i]);
+        for (String[] row : rows) addRow(row);
     }
 
     /**
@@ -201,7 +200,7 @@ public class Table {
             return;
         }
 
-        List<List<String>> pumped = new ArrayList<List<String>>();
+        List<List<String>> pumped = new ArrayList<>();
 
         if (pumpAsBulk) {
 
@@ -284,12 +283,10 @@ public class Table {
 
         dataHtml.append("<tr>");
 
-        for (int i = 0; i < data.size(); i++) {
+        for (List<String> row : data) {
 
-            List<String> row = data.get(i);
-
-            for (int j = 0; j < row.size(); j++) {
-                dataHtml.append("<td> " + row.get(j) + "</td>");
+            for (String s : row) {
+                dataHtml.append("<td> " + s + "</td>");
             }
 
             dataHtml.append("</tr>");
@@ -308,7 +305,7 @@ public class Table {
      */
     public void addColDataType(int dataType) {
         if (colsDataType == null) {
-            colsDataType = new ArrayList<Integer>();
+            colsDataType = new ArrayList<>();
         }
 
         colsDataType.add(dataType);
@@ -316,7 +313,7 @@ public class Table {
 
     public void addColumnHeader(String header) {
         if (columnsHeaders == null) {
-            columnsHeaders = new ArrayList<String>();
+            columnsHeaders = new ArrayList<>();
         }
 
         columnsHeaders.add(header);
@@ -331,9 +328,9 @@ public class Table {
      * resets the data and colsDataType lists.
      */
     public void initDataStructures() {
-        colsDataType = new ArrayList<Integer>();
-        data = new ArrayList<List<String>>();
-        columnsHeaders = new ArrayList<String>();
+        colsDataType = new ArrayList<>();
+        data = new ArrayList<>();
+        columnsHeaders = new ArrayList<>();
     }
 
     /**
@@ -419,12 +416,7 @@ public class Table {
         // if a sort required, use local this local Comparator which compare the required sortIndex
         // and uses Collention.sort to sort
         if (sortColumnIndex >= 0) {
-            Collections.sort(data, new Comparator<List<String>>() {
-                @Override
-                public int compare(List<String> o1, List<String> o2) {
-                    return o1.get(sortColumnIndex).compareTo(o2.get(sortColumnIndex));
-                }
-            });
+            data.sort(Comparator.comparing(o -> o.get(sortColumnIndex)));
         }
     }
 

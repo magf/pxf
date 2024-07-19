@@ -30,7 +30,7 @@ public class RecordGenerator {
 
 	private final Map<String, Generator<?>> mapGenerator = new HashMap<>();
 
-	private final ArrayList<Character> characters = new ArrayList<Character>();
+	private final ArrayList<Character> characters = new ArrayList<>();
 
 	/*
 	 * ConstructorH
@@ -117,7 +117,7 @@ public class RecordGenerator {
 	/*    INTEGER    */
 	private class IncrementalIntegerGenerator extends Generator<Integer>{
 
-		private Integer i = new Integer(0);
+		private Integer i = 0;
 
 		public IncrementalIntegerGenerator(int maxSize) {
 			super(maxSize);
@@ -146,7 +146,7 @@ public class RecordGenerator {
 	/*    BIGINT    */
 	private class IncrementalBigIntegerGenerator extends Generator<Long>{
 
-		private Long l = new Long(0);
+		private Long l = 0L;
 
 		public IncrementalBigIntegerGenerator(int maxSize) {
 			super(maxSize);
@@ -175,7 +175,7 @@ public class RecordGenerator {
 	/*  SMALLINT */
 	private class IncrementalSmallIntegerGenerator extends Generator<Short>{
 
-		private Short s = new Short((short) 0);
+		private Short s = 0;
 
 		public IncrementalSmallIntegerGenerator(int maxSize) {
 			super(maxSize);
@@ -205,7 +205,7 @@ public class RecordGenerator {
 	/*  DOUBLE/REAL */
 	private class IncrementalDoubleGenerator extends Generator<Double>{
 
-		private Double d = new Double( 0);
+		private Double d = 0d;
 
 		public IncrementalDoubleGenerator(int maxSize) {
 			super(maxSize);
@@ -234,7 +234,7 @@ public class RecordGenerator {
 	/*  FLOAT */
 	private class IncrementalFloatGenerator extends Generator<Float>{
 
-		private Float f = new Float(0);
+		private Float f = 0f;
 
 		public IncrementalFloatGenerator(int maxSize) {
 			super(maxSize);

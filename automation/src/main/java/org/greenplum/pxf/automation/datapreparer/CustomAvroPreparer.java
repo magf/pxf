@@ -31,7 +31,7 @@ public class CustomAvroPreparer implements IDataPreparer {
 
 			data[i] = new CustomAvroRecordPreparer(schemaName, num1, 10 * num1, 20 * num1);
 
-			ArrayList<String> row = new ArrayList<String>();
+			ArrayList<String> row = new ArrayList<>();
 
 			for (int j = 0; j < data[i].num.length; j++) {
 				row.add(String.valueOf(data[i].num[j]));

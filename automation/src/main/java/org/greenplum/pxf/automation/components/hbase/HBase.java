@@ -116,11 +116,11 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
 
         HTableDescriptor[] tables = admin.listTables();
 
-        ArrayList<String> tablesNames = new ArrayList<String>();
+        ArrayList<String> tablesNames = new ArrayList<>();
 
-        for (int i = 0; i < tables.length; i++) {
+        for (HTableDescriptor table : tables) {
 
-            tablesNames.add(tables[i].getNameAsString());
+            tablesNames.add(table.getNameAsString());
 
         }
 
@@ -151,13 +151,13 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
 
     public void removeRow(HBaseTable table, String[] rowIds) throws Exception {
 
-        List<Delete> deleteList = new ArrayList<Delete>();
+        List<Delete> deleteList = new ArrayList<>();
         StringBuilder sBuilder = new StringBuilder();
 
-        for (int i = 0; i < rowIds.length; i++) {
-            Delete delete = new Delete(rowIds[i].getBytes());
+        for (String rowId : rowIds) {
+            Delete delete = new Delete(rowId.getBytes());
             deleteList.add(delete);
-            sBuilder.append(rowIds[i]);
+            sBuilder.append(rowId);
             sBuilder.append(" ");
         }
 
@@ -212,14 +212,14 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
 
         ResultScanner rs = tbl.getScanner(scan);
 
-        List<List<String>> data = new ArrayList<List<String>>();
+        List<List<String>> data = new ArrayList<>();
 
         /**
          * go over rows
          */
         for (Result result : rs) {
 
-            List<String> row = new ArrayList<String>();
+            List<String> row = new ArrayList<>();
             row.add(new String(result.getRow()));
 
             if (hTable.getQualifiers() != null) {
@@ -277,7 +277,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
         ReportUtils.startLevel(report, getClass(), "Load Bulk from "
                 + inputPath + " to Table: " + table.getName());
 
-        ArrayList<String> argsList = new ArrayList<String>();
+        ArrayList<String> argsList = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder();
 
@@ -407,9 +407,9 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
 
         disableTable(table);
 
-        for (int i = 0; i < columns.length; i++) {
+        for (String column : columns) {
             admin.deleteColumn(TableName.valueOf(table.getName()),
-                    Bytes.toBytes(columns[i]));
+                    Bytes.toBytes(column));
         }
 
         enableTable(table);
@@ -424,9 +424,9 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
 
         disableTable(table);
 
-        for (int i = 0; i < columns.length; i++) {
+        for (String s : columns) {
             HColumnDescriptor column = new HColumnDescriptor(
-                    Bytes.toBytes(columns[i]));
+                    Bytes.toBytes(s));
             admin.addColumn(TableName.valueOf(table.getName()), column);
         }
 
@@ -576,8 +576,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
             return;
         }
 
-        org.apache.hadoop.hbase.client.Table acl = connection.getTable(AccessControlLists.ACL_TABLE_NAME);
-        try {
+        try (org.apache.hadoop.hbase.client.Table acl = connection.getTable(AccessControlLists.ACL_TABLE_NAME)) {
             BlockingRpcChannel service = acl.coprocessorService(HConstants.EMPTY_START_ROW);
             AccessControlProtos.AccessControlService.BlockingInterface protocol = AccessControlProtos.AccessControlService.newBlockingStub(service);
             PayloadCarryingRpcController controller = ((ClusterConnection) connection).getRpcControllerFactory().newController();
@@ -586,8 +585,6 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
             } else {
                 ProtobufUtil.grant(controller, protocol, user, TableName.valueOf(table.getName()), null, null, actions);
             }
-        } finally {
-            acl.close();
         }
     }
 

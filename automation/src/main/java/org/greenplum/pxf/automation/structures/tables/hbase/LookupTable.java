@@ -13,7 +13,7 @@ public class LookupTable extends HBaseTable {
 	public void addMapping(String hbaseTable, String pxfAlias, String toQualifier) {
 
 		if (rowsToGenerate == null) {
-			rowsToGenerate = new ArrayList<Put>();
+			rowsToGenerate = new ArrayList<>();
 		}
 
 		Put hbasePut = new Put(hbaseTable.getBytes());

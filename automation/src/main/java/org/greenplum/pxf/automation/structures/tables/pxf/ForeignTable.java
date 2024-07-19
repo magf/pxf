@@ -136,22 +136,29 @@ public class ForeignTable extends WritableExternalTable {
             format = profileParts[0].toLowerCase();
             if (format.equals("hive") || format.equals("hbase") || format.equals("jdbc") ) {
                 return null;
-            } else if (format.startsWith("hdfs") || format.startsWith("hive")) {
+            } else // special case of old 1 word profiles that are basically formats (Parquet, Json, etc)
+                // just leave it as parsed for json / avro / parquet that are left
+                if (format.startsWith("hdfs") || format.startsWith("hive")) {
                 format = format.substring(4);
             } else {
-                // special case of old 1 word profiles that are basically formats (Parquet, Json, etc)
-                if (format.equals("textsimple")) {
-                    format = "text";
-                } else if (format.equals("textmulti")) {
-                    format = "text:multi";
-                } else if (format.equals("hivevectorizedorc")) {
-                    //TODO: vectorized becomes a separate option, how to handle this ?
-                    format = "orc";
-                } else if (format.equals("sequencewritable")) {
-                    format = "sequencefile";
+                    switch (format) {
+                            case "textsimple":
+                                format = "text";
+                                break;
+                            case "textmulti":
+                                format = "text:multi";
+                                break;
+                            case "hivevectorizedorc":
+                                //TODO: vectorized becomes a separate option, how to handle this ?
+                                format = "orc";
+                                break;
+                            case "sequencewritable":
+                                format = "sequencefile";
+                                break;
+                        default:
+                            throw new IllegalStateException("Unexpected format value: " + format);
+                    }
                 }
-                // just leave it as parsed for json / avro / parquet that are left
-            }
         } else {
             format = profileParts[1];
             if (profileParts.length == 3) {

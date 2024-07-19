@@ -186,6 +186,6 @@ public class PxfProfileXml extends XmlBasedComponents {
 
 	/** Creates a new empty {@link List} */
 	public void initProfilesList() {
-		this.profilesList = new ArrayList<Profile>();
+		this.profilesList = new ArrayList<>();
 	}
 }
