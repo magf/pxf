@@ -2302,7 +2302,7 @@ public class ParquetWriteTest {
 
         columnDescriptors.add(new ColumnDescriptor("unsupported_map", DataType.UNSUPPORTED_TYPE.getOID(), 0, "unsupported_map", null));
 
-        String filepath = this.getClass().getClassLoader().getResource("parquet/unsupported_map_type.schema").getPath();
+        String filepath = Objects.requireNonNull(this.getClass().getClassLoader().getResource("parquet/unsupported_map_type.schema")).getPath();
         context.addOption("SCHEMA", filepath);
         context.setDataSource(path);
         context.setTransactionId("XID-XYZ-123486");
@@ -2344,7 +2344,7 @@ public class ParquetWriteTest {
 
         columnDescriptors.add(new ColumnDescriptor("list_of_lists", DataType.INT4ARRAY.getOID(), 0, "list_of_lists", null));
 
-        String filepath = this.getClass().getClassLoader().getResource("parquet/unsupported_list_of_lists_type.schema").getPath();
+        String filepath = Objects.requireNonNull(this.getClass().getClassLoader().getResource("parquet/unsupported_list_of_lists_type.schema")).getPath();
         context.addOption("SCHEMA", filepath);
 
         context.setDataSource(path);
@@ -2366,7 +2366,7 @@ public class ParquetWriteTest {
 
         columnDescriptors.add(new ColumnDescriptor("invalid_list_schema_without_repeated_group", DataType.BOOLARRAY.getOID(), 0, "invalid_list_schema_without_repeated_group", null));
 
-        String filepath = this.getClass().getClassLoader().getResource("parquet/invalid_list_schema_without_repeated_group.schema").getPath();
+        String filepath = Objects.requireNonNull(this.getClass().getClassLoader().getResource("parquet/invalid_list_schema_without_repeated_group.schema")).getPath();
         context.addOption("SCHEMA", filepath);
 
         context.setDataSource(path);
@@ -2389,7 +2389,7 @@ public class ParquetWriteTest {
 
         columnDescriptors.add(new ColumnDescriptor("invalid_list_schema_with_invalid_repeated_group", DataType.BOOLARRAY.getOID(), 0, "invalid_list_schema_with_invalid_repeated_group", null));
 
-        String filepath = this.getClass().getClassLoader().getResource("parquet/invalid_list_schema_with_invalid_repeated_group.schema").getPath();
+        String filepath = Objects.requireNonNull(this.getClass().getClassLoader().getResource("parquet/invalid_list_schema_with_invalid_repeated_group.schema")).getPath();
         context.addOption("SCHEMA", filepath);
 
         context.setDataSource(path);
@@ -2412,7 +2412,7 @@ public class ParquetWriteTest {
 
         columnDescriptors.add(new ColumnDescriptor("invalid_list_schema_without_element_group", DataType.BOOLARRAY.getOID(), 0, "invalid_list_schemawithout_element_group", null));
 
-        String filepath = this.getClass().getClassLoader().getResource("parquet/invalid_list_schema_without_element_group.schema").getPath();
+        String filepath = Objects.requireNonNull(this.getClass().getClassLoader().getResource("parquet/invalid_list_schema_without_element_group.schema")).getPath();
         context.addOption("SCHEMA", filepath);
 
         context.setDataSource(path);
@@ -2839,7 +2839,7 @@ public class ParquetWriteTest {
             switch (elementTypeName) {
                 case INT32:
                     if (logicalTypeAnnotation != null &&
-                            logicalTypeAnnotation == LogicalTypeAnnotation.IntLogicalTypeAnnotation.intType(16, true)) {
+                            logicalTypeAnnotation.equals(IntLogicalTypeAnnotation.intType(16, true))) {
                         assertEquals(Short.parseShort(expectedValues[j]), (short) elementGroup.getInteger(0, 0));
                     } else if (logicalTypeAnnotation != null && logicalTypeAnnotation == LogicalTypeAnnotation.dateType()) {
                         assertEquals(ParquetTimestampUtilities.getDaysFromEpochFromDateString(expectedValues[j]), elementGroup.getInteger(0, 0));

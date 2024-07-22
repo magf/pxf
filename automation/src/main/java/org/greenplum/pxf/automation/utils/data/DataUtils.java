@@ -32,7 +32,7 @@ public class DataUtils {
             throws Exception {
 
         DataPattern dataPattern = table.getDataPattern();
-        long numberOfLines = 0;
+        long numberOfLines;
 
         // Create local file and fill it with the generated data
         String textFilePath = hdfs.getWorkingDirectory() + "/"
@@ -67,7 +67,7 @@ public class DataUtils {
                     dataPattern.isRandomValues());
 
             long totalByteSize = dataPattern.getDataSizeInMegaBytes() * MB_UNIT;
-            long writtenBytes = 0;
+            long writtenBytes;
             numberOfLines = 0;
             for (long l = 0; l < totalByteSize; l += writtenBytes) {
                 String recordValues = recordGenerator.nextRecord();

@@ -29,8 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +44,9 @@ public class JsonLexerTest {
     public void testSimple() throws IOException {
         File testsDir = new File("src/test/resources/lexer-tests");
         File[] jsonFiles = testsDir.listFiles((file, s) -> s.endsWith(".json"));
-
+        if (Objects.isNull(jsonFiles)) {
+            throw new IllegalStateException("Json files cannot be null");
+        }
         for (File jsonFile : jsonFiles) {
             File stateFile = new File(jsonFile.getAbsolutePath() + ".state");
             if (stateFile.exists()) {

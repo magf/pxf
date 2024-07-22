@@ -1,10 +1,7 @@
 package org.greenplum.pxf.automation.performance;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.automation.structures.data.DataPattern;
@@ -228,7 +225,7 @@ public class PerformanceTest extends BaseFeature {
     public void testSelect50PercentRowsAllColumns() throws Exception {
 
         runAndReportQueries("SELECT * FROM %s WHERE str0 < '"
-                + FILTER_50_PERCENT_RANGE + "'", SELECT_50_PERCENT_ALL_COLUMNS,
+                        + FILTER_50_PERCENT_RANGE + "'", SELECT_50_PERCENT_ALL_COLUMNS,
                 allTables);
     }
 
@@ -236,7 +233,7 @@ public class PerformanceTest extends BaseFeature {
     public void testSelect10PercentRowsAllColumns() throws Exception {
 
         runAndReportQueries("SELECT * FROM %s WHERE str0 < '"
-                + FILTER_10_PERCENT_RANGE + "'", SELECT_10_PERCENT_ALL_COLUMNS,
+                        + FILTER_10_PERCENT_RANGE + "'", SELECT_10_PERCENT_ALL_COLUMNS,
                 allTables);
     }
 
@@ -244,7 +241,7 @@ public class PerformanceTest extends BaseFeature {
     public void testSelect2PercentRowsAllColumns() throws Exception {
 
         runAndReportQueries("SELECT * FROM %s WHERE str0 < '"
-                + FILTER_2_PERCENT_RANGE + "'", SELECT_2_PERCENT_ALL_COLUMNS,
+                        + FILTER_2_PERCENT_RANGE + "'", SELECT_2_PERCENT_ALL_COLUMNS,
                 allTables);
     }
 
@@ -259,7 +256,7 @@ public class PerformanceTest extends BaseFeature {
     public void testSelect50PercentRowsOneColumn() throws Exception {
 
         runAndReportQueries("SELECT str0 FROM %s WHERE str0 < '"
-                + FILTER_50_PERCENT_RANGE + "'", SELECT_50_PERCENT_ONE_COLUMN,
+                        + FILTER_50_PERCENT_RANGE + "'", SELECT_50_PERCENT_ONE_COLUMN,
                 allTables);
     }
 
@@ -267,7 +264,7 @@ public class PerformanceTest extends BaseFeature {
     public void testSelect10PercentRowsOneColumn() throws Exception {
 
         runAndReportQueries("SELECT str0 FROM %s WHERE str0 < '"
-                + FILTER_10_PERCENT_RANGE + "'", SELECT_10_PERCENT_ONE_COLUMN,
+                        + FILTER_10_PERCENT_RANGE + "'", SELECT_10_PERCENT_ONE_COLUMN,
                 allTables);
     }
 
@@ -275,12 +272,12 @@ public class PerformanceTest extends BaseFeature {
     public void testSelect2PercentRowsOneColumn() throws Exception {
 
         runAndReportQueries("SELECT str0 FROM %s WHERE str0 < '"
-                + FILTER_2_PERCENT_RANGE + "'", SELECT_2_PERCENT_ONE_COLUMN,
+                        + FILTER_2_PERCENT_RANGE + "'", SELECT_2_PERCENT_ONE_COLUMN,
                 allTables);
     }
 
     private void runAndReportQueries(String queryTemplate, String queryType,
-            List<Table> tables) throws Exception {
+                                     List<Table> tables) throws Exception {
 
         SortedMap<Long, Table> results = new TreeMap<Long, Table>();
 
@@ -341,32 +338,31 @@ public class PerformanceTest extends BaseFeature {
     }
 
     private DbSystemObject getDbForTable(Table table) throws Exception {
-        if (table instanceof HiveTable)
+        if (Objects.isNull(table)) {
+            throw new Exception("Unable to get db engine for table");
+        }
+        if (table instanceof HiveTable) {
             return hive;
-        else if (table instanceof ReadableExternalTable
-                || table instanceof Table)
-            return gpdb;
-        else
-            throw new Exception("Unable to get db engine for table: "
-                    + table.getClass());
+        }
+        return gpdb;
     }
 
     private String getTableInfo(Table table) throws Exception {
-        if (table instanceof HiveTable)
+        if (Objects.isNull(table)) {
+            throw new Exception("Unable to print table details, unknown table");
+        }
+        if (table instanceof HiveTable) {
             return "Hive table stored as " + ((HiveTable) table).getStoredAs();
-        else if (table instanceof ReadableExternalTable)
+        } else if (table instanceof ReadableExternalTable) {
             return "External Gpdb table, using PXF with profile "
                     + ((ReadableExternalTable) table).getProfile();
-        else if (table instanceof Table)
+        } else {
             return "Native Gpdb table";
-        else
-            throw new Exception(
-                    "Unable to print table details, unknown table: "
-                            + table.getClass());
+        }
     }
 
     private void printPerformanceReportPerTable(String queryType, String query,
-            Table table, long avgTime) throws Exception {
+                                                Table table, long avgTime) throws Exception {
 
         DbSystemObject db = getDbForTable(table);
 

@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -194,7 +195,7 @@ public class JsonAccessorWriteTest {
         String writtenExtension = extension + (useCompression ? ".gz" : "");
         File writtenFile = new File(path + "/XID-XYZ-123456_4" + writtenExtension);
         assertTrue(writtenFile.exists());
-        File expectedFile = new File(getClass().getClassLoader().getResource(fileName + extension).getPath());
+        File expectedFile = new File(Objects.requireNonNull(getClass().getClassLoader().getResource(fileName + extension)).getPath());
         if (useCompression) {
             // file contents are not equal as written, but should be equal once the written file is uncompressed
             assertFalse(FileUtils.contentEqualsIgnoreEOL(expectedFile, writtenFile, "UTF-8"));

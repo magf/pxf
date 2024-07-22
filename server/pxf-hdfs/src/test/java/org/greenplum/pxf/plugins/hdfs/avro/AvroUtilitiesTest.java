@@ -11,12 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,7 +31,7 @@ public class AvroUtilitiesTest {
 
     @BeforeEach
     public void setup() {
-        avroDirectory = this.getClass().getClassLoader().getResource("avro/").getPath();
+        avroDirectory = Objects.requireNonNull(this.getClass().getClassLoader().getResource("avro/")).getPath();
         context = new RequestContext();
         Configuration configuration = new Configuration();
         configuration.set("pxf.fs.basePath", "/");
@@ -482,6 +477,7 @@ public class AvroUtilitiesTest {
 
         @SuppressWarnings("unchecked")
         List<ByteBuffer> result = (List<ByteBuffer>) avroUtilities.decodeString(schema, value, true, false);
+        assertNotNull(result);
         assertEquals(2, result.size());
 
         ByteBuffer buffer1 = result.get(0);
@@ -497,6 +493,7 @@ public class AvroUtilitiesTest {
 
         @SuppressWarnings("unchecked")
         List<ByteBuffer> result = (List<ByteBuffer>) avroUtilities.decodeString(schema, value, true, false);
+        assertNotNull(result);
         assertEquals(1, result.size());
 
         ByteBuffer buffer1 = result.get(0);
@@ -510,6 +507,7 @@ public class AvroUtilitiesTest {
 
         @SuppressWarnings("unchecked")
         List<ByteBuffer> result = (List<ByteBuffer>) avroUtilities.decodeString(schema, value, true, false);
+        assertNotNull(result);
         assertEquals(2, result.size());
 
         ByteBuffer buffer1 = result.get(0);

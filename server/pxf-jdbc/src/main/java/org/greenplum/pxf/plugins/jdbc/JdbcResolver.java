@@ -230,7 +230,6 @@ public class JdbcResolver extends JdbcBasePlugin implements Resolver {
                 switch (columnType) {
                     case VARCHAR:
                     case BPCHAR:
-                    case TEXT:
                     case BYTEA:
                     case JSON:
                     case JSONB:

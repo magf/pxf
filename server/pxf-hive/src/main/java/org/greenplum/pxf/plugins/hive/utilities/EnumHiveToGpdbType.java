@@ -160,7 +160,6 @@ public enum EnumHiveToGpdbType {
      * such as varchar, char, decimal, etc.
      */
     public static String getFullHiveTypeName(EnumHiveToGpdbType hiveToGpdbType, Integer[] modifiers) {
-        hiveToGpdbType.getTypeName();
         if (modifiers != null && modifiers.length > 0) {
             String modExpression = hiveToGpdbType.getSplitExpression();
             StringBuilder fullType = new StringBuilder(hiveToGpdbType.typeName);

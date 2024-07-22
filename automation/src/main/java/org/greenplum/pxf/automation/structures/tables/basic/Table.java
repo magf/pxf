@@ -365,7 +365,7 @@ public class Table {
             break;
         }
 
-        List<String> lines = null;
+        List<String> lines;
         if (in == null) {
             // get lines from file
             lines = FileUtils.readLines(file, encoding);
@@ -390,7 +390,7 @@ public class Table {
                 StringBuilder shapedLine = new StringBuilder();
                 // if so shape it to be without quotes, add back slash to delimiter in the quoted
                 // value.
-                if (csvSplit != null) {
+                if (csvSplit.length > 0) {
                     for (int i = 0; i < csvSplit.length; i++) {
                         if (csvSplit[i].endsWith("\"")) {
                             csvSplit[i] = csvSplit[i].replaceAll("\"", "").replaceAll(delimiter, "\\\\" + delimiter);

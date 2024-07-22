@@ -4,6 +4,8 @@ import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
 
+import java.util.Objects;
+
 /**
  * Functional Test for reading fixedwidth data format text files in HCFS
  * The dataset is based on a set of tests available in Greenplum
@@ -56,7 +58,7 @@ public class HcfsFixedwidthReadTest extends BaseFeature {
         hdfsPath = hdfs.getWorkingDirectory() + "/readableFixedwidth/";
 
         // location of the data files
-        String absolutePath = getClass().getClassLoader().getResource("data").getPath();
+        String absolutePath = Objects.requireNonNull(getClass().getClassLoader().getResource("data")).getPath();
         String resourcePath = absolutePath + "/fixedwidth/";
         hdfs.copyFromLocal(resourcePath + fixedwidthSmallCorrectFileName, hdfsPath + "lines/nocomp/" + fixedwidthSmallCorrectFileName);
         hdfs.copyFromLocal(resourcePath + fixedwidthSmallCorrectGzipFileName, hdfsPath + "lines/gzip/" + fixedwidthSmallCorrectGzipFileName);

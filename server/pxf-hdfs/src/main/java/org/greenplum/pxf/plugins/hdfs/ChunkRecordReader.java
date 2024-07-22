@@ -197,7 +197,7 @@ public class ChunkRecordReader implements
         float factor = 1.5f;
         int limit = (int) (factor * CHUNK_SIZE);
         long curPos = getFilePosition();
-        int newSize = 0;
+        int newSize;
 
         if (curPos <= end) {
             key.set(pos);

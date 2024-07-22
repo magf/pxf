@@ -7,6 +7,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import jsystem.framework.report.Reporter;
 
@@ -212,7 +214,7 @@ public class ComparisonUtils {
             }
 
         } catch (Exception e) {
-            ReportUtils.report(report, ComparisonUtils.class.getClass(), e.getMessage());
+            ReportUtils.report(report, ComparisonUtils.class, e.getMessage());
         }
         return false;
     }
@@ -235,7 +237,7 @@ public class ComparisonUtils {
             String dataColT1 = "null";
             String dataColT2 = "null";
 
-            if (row1Data.size() > table1Index && row1Data.get(table1Index) != null) {
+            if (row1Data.get(table1Index) != null) {
                 dataColT1 = row1Data.get(table1Index).trim();
             }
 
@@ -244,15 +246,18 @@ public class ComparisonUtils {
             }
 
             // Go over ignoreChars and replace all required chars with ""
-            if (ignoreChars != null && ignoreChars.length > 0) {
-
+            if (ignoreChars != null) {
                 for (String ignoreChar : ignoreChars) {
                     dataColT1 = dataColT1.replaceAll(ignoreChar, "");
                     dataColT2 = dataColT2.replaceAll(ignoreChar, "");
                 }
             }
 
-            boolean isEqual = false;
+            boolean isEqual;
+
+            if (Objects.isNull(row1Types)) {
+                throw new IllegalStateException("Row types cannot be null");
+            }
 
             if (isArray(dataColT1, dataColT2)) {
                 isEqual = checkColData(row1Types.get(table1Index), dataColT1.replace(", ", ","), dataColT2, report);
@@ -266,7 +271,7 @@ public class ComparisonUtils {
             } else {
                 // check if type exists, else send with OTHER
                 int columnType = Types.OTHER;
-                if (row1Types != null && row1Types.size() >= table1Index && !row1Types.isEmpty()) {
+                if (row1Types.size() >= table1Index && !row1Types.isEmpty()) {
                     columnType = row1Types.get(table1Index);
                 }
                 isEqual = checkColData(columnType, dataColT1, dataColT2, report);
@@ -286,10 +291,6 @@ public class ComparisonUtils {
                     .append(dataColT2)
                     .append((isEqual) ? "" : "</font>")
                     .append("</td>");
-
-            if (result) {
-                result = isEqual;
-            }
         }
 
         row1HtmlReport.append("</tr>");

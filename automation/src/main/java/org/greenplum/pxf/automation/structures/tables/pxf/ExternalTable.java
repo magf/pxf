@@ -18,7 +18,7 @@ public abstract class ExternalTable extends Table {
 
     private String port = "5888";
 
-    private String path = "somepath/gpdb_regression_data";
+    private String path;
 
     private String fragmenter;
 

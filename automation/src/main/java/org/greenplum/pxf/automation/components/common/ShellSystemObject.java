@@ -336,7 +336,7 @@ public class ShellSystemObject extends BaseSystemObject {
      * @return environment variable var value
      */
     private String getEnvVar(String var) {
-        String result = null;
+        String result;
 
         try {
             result = sut.getValue("/sut/shellsystemobject/" + var);

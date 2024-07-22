@@ -36,7 +36,7 @@ public class ParquetIntervalUtilities {
     }
 
     public static Binary write(String str) {
-        PGInterval iv = null;
+        PGInterval iv;
         try {
             iv = new PGInterval(str);
         } catch (SQLException e) {

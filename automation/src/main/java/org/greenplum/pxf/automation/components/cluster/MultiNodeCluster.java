@@ -232,7 +232,7 @@ public class MultiNodeCluster extends PhdCluster {
         List<Node> resultList = new ArrayList<>();
         for (Node node : nodes) {
             ReportUtils.report(report, getClass(), node.toString());
-            if (serviceType == null || node.getServicesList().contains(serviceType.toString())) {
+            if (node.getServicesList().contains(serviceType.toString())) {
                 if (nodeType == null || node.getClass().isAssignableFrom(nodeType)) {
                     resultList.add(node);
                 }

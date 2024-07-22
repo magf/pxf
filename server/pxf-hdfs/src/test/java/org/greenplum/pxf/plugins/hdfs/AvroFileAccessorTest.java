@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -29,7 +30,7 @@ public class AvroFileAccessorTest {
         context.setTransactionId("testID");
         context.setProfileScheme("localfile");
         context.setRequestType(RequestContext.RequestType.READ_BRIDGE);
-        context.setDataSource(this.getClass().getClassLoader().getResource("avro/").getPath() + "test.avro");
+        context.setDataSource(Objects.requireNonNull(this.getClass().getClassLoader().getResource("avro/")).getPath() + "test.avro");
         context.setConfiguration(new Configuration());
     }
 

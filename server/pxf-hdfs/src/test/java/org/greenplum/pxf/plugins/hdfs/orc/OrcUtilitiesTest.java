@@ -10,10 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class OrcUtilitiesTest {
     private OrcUtilities orcUtilities;
@@ -58,6 +55,7 @@ public class OrcUtilitiesTest {
         String value = "{\"\\\\001\",\"\\\\001#\"}";
 
         List<Object> result = orcUtilities.parsePostgresArray(value, TypeDescription.Category.BINARY);
+        assertNotNull(result);
         assertEquals(2, result.size());
 
         ByteBuffer buffer1 = (ByteBuffer) result.get(0);
@@ -71,6 +69,7 @@ public class OrcUtilitiesTest {
         String value = "{\"\\\"#$\"}";
 
         List<Object> result = orcUtilities.parsePostgresArray(value, TypeDescription.Category.BINARY);
+        assertNotNull(result);
         assertEquals(1, result.size());
 
         ByteBuffer buffer1 = (ByteBuffer) result.get(0);
@@ -82,6 +81,7 @@ public class OrcUtilitiesTest {
         String value = "{\"\\\\x01\",\"\\\\x0123\"}";
 
         List<Object> result = orcUtilities.parsePostgresArray(value, TypeDescription.Category.BINARY);
+        assertNotNull(result);
         assertEquals(2, result.size());
 
         ByteBuffer buffer1 = (ByteBuffer) result.get(0);
@@ -165,6 +165,7 @@ public class OrcUtilitiesTest {
 
         // nothing is thrown here because we don't decode strings and check for multi-dimensional-ness. This check is done later
         List<Object> result = orcUtilities.parsePostgresArray(value, TypeDescription.Category.DATE);
+        assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals(Arrays.asList("{\"1985-01-01\", \"1990-04-30\"}", "{\"1995-08-14\", \"2020-12-05\"}"), result);
     }

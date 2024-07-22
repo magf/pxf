@@ -262,9 +262,9 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
             }
         }
         if (list == null) {
-            ReportUtils.report(report, getClass(),
-                    String.format("Directory %s does not exist, max attempts exceeded, throwing exception", path));
-            throw savedException;
+            String message = String.format("Directory %s does not exist, max attempts exceeded, throwing exception", path);
+            ReportUtils.report(report, getClass(), message);
+            throw savedException != null ? savedException : new FileNotFoundException(message);
 
         }
         ArrayList<String> filesList = new ArrayList<>();

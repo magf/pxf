@@ -36,11 +36,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 
 /**
@@ -486,7 +482,7 @@ class ORCVectorizedMappingFunctions {
         } else if (columnTypeCategory.equals(TypeDescription.Category.LIST)) {
             // pass along the underlying category of the list
             TypeDescription childTypeDescription = typeDescription.getChildren().get(0);
-            if (childTypeDescription.equals(TypeDescription.Category.TIMESTAMP) && !timestampsInUTC) {
+            if (childTypeDescription.getCategory().equals(TypeDescription.Category.TIMESTAMP) && !timestampsInUTC) {
                 writeFunction = timestampInLocalWriteListFunction;
             } else {
                 writeFunction = writeListFunctionsMap.get(childTypeDescription.getCategory());
@@ -644,6 +640,9 @@ class ORCVectorizedMappingFunctions {
 
             List<Object> data = orcUtilities.parsePostgresArray(val.toString(), underlyingChildCategory);
 
+            if (Objects.isNull(data)) {
+                throw new PxfRuntimeException("Data cannot be null");
+            }
             int length = data.size();
             // the childCount refers to "the number of children slots used"
             int offset = listColumnVector.childCount;

@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import static java.lang.Thread.sleep;
 
@@ -572,7 +573,7 @@ public class MultibyteDelimiterTest extends BaseFeature {
         // prepare data and write to HDFS
         gpdb.createTableAndVerify(exTable);
         // location of schema and data files
-        String absolutePath = getClass().getClassLoader().getResource("data").getPath();
+        String absolutePath = Objects.requireNonNull(getClass().getClassLoader().getResource("data")).getPath();
         String resourcePath = absolutePath + "/avro/";
         hdfs.writeAvroFileFromJson(hdfsFilePath + "simple.avro",
                 "file://" + resourcePath + "simple.avsc",

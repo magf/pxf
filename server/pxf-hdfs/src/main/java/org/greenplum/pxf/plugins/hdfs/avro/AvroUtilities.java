@@ -120,7 +120,7 @@ public final class AvroUtilities {
                 try {
                     list.add(decodeString(elementType, split, false, hasUserProvidedSchema));
                 } catch (NumberFormatException | PxfRuntimeException e) {
-                    String hint = "";
+                    String hint;
                     if (StringUtils.startsWith(split, "{")) {
                         hint = hasUserProvidedSchema ?
                                 "Value is a multi-dimensional array, please check that the provided AVRO schema has the correct dimensions." :

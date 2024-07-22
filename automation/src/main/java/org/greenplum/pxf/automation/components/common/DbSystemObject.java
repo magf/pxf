@@ -312,8 +312,8 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 				table.initDataStructures();
 				loadMetadata(table, res);
 				loadData(table, res);
+				ReportUtils.reportHtml(report, getClass(), table.getDataHtml());
 			}
-			ReportUtils.reportHtml(report, getClass(), table.getDataHtml());
 		} finally {
 			ReportUtils.stopLevel(report);
 		}

@@ -467,7 +467,6 @@ class ORCVectorizedResolverReadTest extends ORCVectorizedBaseTest {
                         case 12:
                         case 14:
                         case 15:
-                            expectedValue = null;
                             break;
                     }
                     assertEquals(expectedValue, value, "Row " + rowNum + ", COL" + (colNum + 1));

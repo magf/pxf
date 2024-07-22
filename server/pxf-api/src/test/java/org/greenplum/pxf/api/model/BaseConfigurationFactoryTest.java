@@ -11,6 +11,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.greenplum.pxf.api.model.ConfigurationFactory.PXF_CONFIG_RESOURCE_PATH_PROPERTY;
 import static org.greenplum.pxf.api.model.ConfigurationFactory.PXF_CONFIG_SERVER_DIRECTORY_PROPERTY;
@@ -33,7 +34,7 @@ public class BaseConfigurationFactoryTest {
     public void setup() throws URISyntaxException {
         mockServersDirectory = mock(File.class);
         additionalProperties = new HashMap<>();
-        serversDirectory = new File(this.getClass().getClassLoader().getResource("servers").toURI());
+        serversDirectory = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("servers")).toURI());
         factory = new BaseConfigurationFactory(serversDirectory);
     }
 
@@ -102,7 +103,7 @@ public class BaseConfigurationFactoryTest {
 
     @Test
     public void testConfigurationsLoadedFromMultipleFilesForDefaultServerWithAbsolutePath() {
-        String config = this.getClass().getClassLoader().getResource("servers/default").getPath();
+        String config = Objects.requireNonNull(this.getClass().getClassLoader().getResource("servers/default")).getPath();
         Configuration configuration = factory.initConfiguration(config, "default", "dummy", null);
 
         assertEquals("blue", configuration.get("test.blue"));

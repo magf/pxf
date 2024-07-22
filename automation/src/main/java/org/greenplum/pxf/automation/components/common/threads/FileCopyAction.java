@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.components.common.threads;
 
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import org.greenplum.pxf.automation.components.common.ShellSystemObject;
@@ -34,7 +35,9 @@ public class FileCopyAction implements Callable<Integer> {
 		} catch (Exception e) {
 			return 0;
 		} finally {
-			connection.close();
+			if (Objects.nonNull(connection)) {
+				connection.close();
+			}
 		}
 	}
 }

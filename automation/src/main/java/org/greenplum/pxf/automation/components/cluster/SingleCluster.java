@@ -115,7 +115,7 @@ public class SingleCluster extends PhdCluster {
     @Override
     public boolean isUp(EnumClusterServices component) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Check " + component.toString() + " is Up");
-        boolean result = false;
+        boolean result;
 
         // check service is up according to its required processes
         switch (component) {
@@ -191,7 +191,7 @@ public class SingleCluster extends PhdCluster {
         HashMap<String, Integer> map = new HashMap<>();
         // go over split results from jps command
         for (String splitResult : splitResults) {
-            String currentSplitResult = null;
+            String currentSplitResult;
             try {
                 // get the process name
                 currentSplitResult = splitResult.split(" ")[1].trim();

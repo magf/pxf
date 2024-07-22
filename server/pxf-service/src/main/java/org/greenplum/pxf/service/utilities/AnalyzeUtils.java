@@ -81,7 +81,7 @@ public class AnalyzeUtils {
      */
     static public BitSet generateSamplingBitSet(int poolSize, int sampleSize) {
 
-        int skip = 0, chosen = 0, curIndex = 0;
+        int chosen = 0, curIndex = 0;
         BitSet bitSet = new BitSet();
 
         if (poolSize <= 0 || sampleSize <= 0) {
@@ -94,7 +94,7 @@ public class AnalyzeUtils {
             return bitSet;
         }
 
-        skip = (poolSize / sampleSize) + 1;
+        int skip = (poolSize / sampleSize) + 1;
 
         while (chosen < sampleSize) {
 

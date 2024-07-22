@@ -1,9 +1,11 @@
 package org.greenplum.pxf.automation.structures.profiles;
 
+import java.util.Objects;
+
 /** Represents PXF Profile with all it's components. */
 public class Profile {
 
-	private String name = "";
+	private String name;
 	private String description = "";
 	private String fragmenter = "";
 	private String accessor = "";
@@ -60,30 +62,19 @@ public class Profile {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Profile profile = (Profile) o;
+		return Objects.equals(name, profile.name) &&
+				Objects.equals(description, profile.description)
+				&& Objects.equals(fragmenter, profile.fragmenter)
+				&& Objects.equals(accessor, profile.accessor)
+				&& Objects.equals(resolver, profile.resolver);
+	}
 
-		Profile p = (Profile) obj;
-
-		if (!p.getName().equals(getName())) {
-			return false;
-		}
-
-		if (!p.getAccessor().equals(getAccessor())) {
-			return false;
-		}
-
-		if (!p.getDescription().equals(getDescription())) {
-			return false;
-		}
-
-		if (!p.getFragmenter().equals(getFragmenter())) {
-			return false;
-		}
-
-		if (!p.getResolver().equals(getResolver())) {
-			return false;
-		}
-
-		return true;
+	@Override
+	public int hashCode() {
+		return Objects.hash(name, description, fragmenter, accessor, resolver);
 	}
 }

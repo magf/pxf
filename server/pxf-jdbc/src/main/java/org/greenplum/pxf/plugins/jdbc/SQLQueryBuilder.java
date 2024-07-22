@@ -217,7 +217,7 @@ public class SQLQueryBuilder {
         for (ColumnDescriptor column : columns) {
             // Define whether column name is mixed-case
             // GPDB uses lower-case names if column name was not quoted
-            if (column.columnName().toLowerCase() != column.columnName()) {
+            if (!column.columnName().toLowerCase().equals(column.columnName())) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Column {} '{}' is mixed-case", column.columnIndex(), column.columnName());
                 }

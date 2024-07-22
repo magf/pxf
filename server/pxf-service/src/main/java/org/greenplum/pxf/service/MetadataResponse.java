@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import lombok.NonNull;
 import org.greenplum.pxf.api.model.Metadata;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -57,7 +58,7 @@ public class MetadataResponse implements StreamingResponseBody {
      * Serializes the metadata list in JSON, To be used as the result string for GPDB.
      */
     @Override
-    public void writeTo(OutputStream output) throws IOException {
+    public void writeTo(@NonNull OutputStream output) throws IOException {
         DataOutputStream dos = new DataOutputStream(output);
         ObjectMapper mapper = JsonMapper.builder()
                 .configure(MapperFeature.USE_ANNOTATIONS, true) // enable annotations for serialization
