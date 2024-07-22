@@ -131,7 +131,7 @@ public class PxfUserGroupInformation {
      * @param loginSession the login session
      * @throws KerberosAuthException on a failure
      */
-    public void reloginFromKeytab(String serverName, LoginSession loginSession) throws KerberosAuthException {
+    public synchronized void reloginFromKeytab(String serverName, LoginSession loginSession) throws KerberosAuthException {
 
         UserGroupInformation ugi = loginSession.getLoginUser();
 
@@ -141,58 +141,56 @@ public class PxfUserGroupInformation {
             return;
         }
 
-        synchronized (loginSession) {
-            long now = Time.now();
-            if (!hasSufficientTimeElapsed(now, loginSession)) {
-                return;
-            }
-
-            Subject subject = loginSession.getSubject();
-            KerberosTicket tgt = getTGT(subject);
-            //Return if TGT is valid and is not going to expire soon.
-            if (tgt != null && now < getRefreshTime(tgt, loginSession.getKerberosTicketRenewWindow())) {
-                return;
-            }
-
-            User user = loginSession.getUser();
-            LoginContext login = user.getLogin();
-            String keytabFile = loginSession.getKeytabPath();
-            String keytabPrincipal = loginSession.getPrincipalName();
-
-            if (login == null || keytabFile == null) {
-                throw new KerberosAuthException(MUST_FIRST_LOGIN_FROM_KEYTAB);
-            }
-
-            // register most recent relogin attempt
-            user.setLastLogin(now);
-            try {
-                LOG.debug("Initiating logout for {}", user.getName());
-                synchronized (UserGroupInformation.class) {
-                    // clear up the kerberos state. But the tokens are not cleared! As per
-                    // the Java kerberos login module code, only the kerberos credentials
-                    // are cleared
-                    login.logout();
-                    // login and also update the subject field of this instance to
-                    // have the new credentials (pass it to the LoginContext constructor)
-                    login = loginContextProvider.newLoginContext(
-                            HadoopConfiguration.KEYTAB_KERBEROS_CONFIG_NAME, subject,
-                            new HadoopConfiguration(keytabPrincipal, keytabFile));
-                    LOG.info("Initiating re-login for {} for server {}", keytabPrincipal, serverName);
-                    login.login();
-                    fixKerberosTicketOrder(subject);
-                    user.setLogin(login);
-                }
-            } catch (LoginException le) {
-                KerberosAuthException kae = new KerberosAuthException(LOGIN_FAILURE, le);
-                kae.setPrincipal(keytabPrincipal);
-                kae.setKeytabFile(keytabFile);
-                throw kae;
-            }
-
-            // Keep track of the number of relogins per server to make sure
-            // we are not re-logging in too often
-            trackEventPerServer(serverName, reloginCountMap);
+        long now = Time.now();
+        if (!hasSufficientTimeElapsed(now, loginSession)) {
+            return;
         }
+
+        Subject subject = loginSession.getSubject();
+        KerberosTicket tgt = getTGT(subject);
+        //Return if TGT is valid and is not going to expire soon.
+        if (tgt != null && now < getRefreshTime(tgt, loginSession.getKerberosTicketRenewWindow())) {
+            return;
+        }
+
+        User user = loginSession.getUser();
+        LoginContext login = user.getLogin();
+        String keytabFile = loginSession.getKeytabPath();
+        String keytabPrincipal = loginSession.getPrincipalName();
+
+        if (login == null || keytabFile == null) {
+            throw new KerberosAuthException(MUST_FIRST_LOGIN_FROM_KEYTAB);
+        }
+
+        // register most recent relogin attempt
+        user.setLastLogin(now);
+        try {
+            LOG.debug("Initiating logout for {}", user.getName());
+            synchronized (UserGroupInformation.class) {
+                // clear up the kerberos state. But the tokens are not cleared! As per
+                // the Java kerberos login module code, only the kerberos credentials
+                // are cleared
+                login.logout();
+                // login and also update the subject field of this instance to
+                // have the new credentials (pass it to the LoginContext constructor)
+                login = loginContextProvider.newLoginContext(
+                        HadoopConfiguration.KEYTAB_KERBEROS_CONFIG_NAME, subject,
+                        new HadoopConfiguration(keytabPrincipal, keytabFile));
+                LOG.info("Initiating re-login for {} for server {}", keytabPrincipal, serverName);
+                login.login();
+                fixKerberosTicketOrder(subject);
+                user.setLogin(login);
+            }
+        } catch (LoginException le) {
+            KerberosAuthException kae = new KerberosAuthException(LOGIN_FAILURE, le);
+            kae.setPrincipal(keytabPrincipal);
+            kae.setKeytabFile(keytabFile);
+            throw kae;
+        }
+
+        // Keep track of the number of relogins per server to make sure
+        // we are not re-logging in too often
+        trackEventPerServer(serverName, reloginCountMap);
 
         logStatistics(serverName);
     }
