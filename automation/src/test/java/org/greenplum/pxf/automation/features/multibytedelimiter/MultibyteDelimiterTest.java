@@ -59,7 +59,7 @@ public class MultibyteDelimiterTest extends BaseFeature {
             "10001",
             "10001"};
 
-    private class CsvSpec  {
+    private static class CsvSpec  {
         String delimiter;
         char quote;
         char escape;

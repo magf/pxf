@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class HdfsSplittableDataAccessorTest {
 
-    class TestAccessor extends HdfsSplittableDataAccessor {
+    static class TestAccessor extends HdfsSplittableDataAccessor {
 
         TestAccessor() {
             super(null);
