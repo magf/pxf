@@ -1,5 +1,6 @@
 package org.greenplum.pxf.plugins.hdfs.filter;
 
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.common.type.HiveChar;
@@ -51,6 +52,7 @@ public class SearchArgumentBuilder implements TreeVisitor {
 
     private static final Logger LOG = LoggerFactory.getLogger(SearchArgumentBuilder.class);
 
+    @Getter
     private final SearchArgument.Builder filterBuilder;
     private final List<ColumnDescriptor> columnDescriptors;
 
@@ -110,10 +112,6 @@ public class SearchArgumentBuilder implements TreeVisitor {
             }
         }
         return node;
-    }
-
-    public SearchArgument.Builder getFilterBuilder() {
-        return filterBuilder;
     }
 
     /**
@@ -333,5 +331,4 @@ public class SearchArgumentBuilder implements TreeVisitor {
             throw new IllegalStateException(String.format("failed to parse number data %s for type %s", value, dataType), nfe);
         }
     }
-
 }

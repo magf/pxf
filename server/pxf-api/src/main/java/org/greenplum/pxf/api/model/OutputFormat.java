@@ -20,11 +20,13 @@ package org.greenplum.pxf.api.model;
  */
 
 
+import lombok.Getter;
 import org.greenplum.pxf.api.error.UnsupportedTypeException;
 
 /**
  * PXF supported output formats, enum which contains serializations classes
  */
+@Getter
 public enum OutputFormat {
     TEXT("org.greenplum.pxf.api.io.Text"),
     GPDBWritable("org.greenplum.pxf.api.io.GPDBWritable");
@@ -33,15 +35,6 @@ public enum OutputFormat {
 
     OutputFormat(String className) {
         this.className = className;
-    }
-
-    /**
-     * Returns a formats's implementation class name
-     *
-     * @return a formats's implementation class name
-     */
-    public String getClassName() {
-        return className;
     }
 
     /**

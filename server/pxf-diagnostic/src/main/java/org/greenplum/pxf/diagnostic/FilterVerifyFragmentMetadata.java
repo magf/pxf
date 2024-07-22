@@ -5,10 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.greenplum.pxf.api.utilities.FragmentMetadata;
 
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class FilterVerifyFragmentMetadata implements FragmentMetadata {
-
-    @Getter
     private String filter;
 }

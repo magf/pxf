@@ -20,6 +20,8 @@ package org.greenplum.pxf.plugins.hdfs.utilities;
  */
 
 
+import lombok.Getter;
+
 /**
  * Thrown when there is a data schema problem detected by any plugin that
  * requires a schema.
@@ -27,6 +29,7 @@ package org.greenplum.pxf.plugins.hdfs.utilities;
  * {@link DataSchemaException.MessageFmt#SCHEMA_NOT_INDICATED} when a schema was required but was not specified in the pxf uri.
  */
 public class DataSchemaException extends RuntimeException {
+    @Getter
     public enum MessageFmt {
 		SCHEMA_NOT_INDICATED("%s requires a data schema to be specified in the "+
 							 "pxf uri, but none was found. Please supply it" +
@@ -38,10 +41,6 @@ public class DataSchemaException extends RuntimeException {
 
         MessageFmt(String format) {
             this.format = format;
-        }
-
-        public String getFormat() {
-            return format;
         }
     }
 

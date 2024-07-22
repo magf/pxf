@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.hive;
  * under the License.
  */
 
+import lombok.Getter;
 import org.apache.commons.lang.CharUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -102,6 +103,7 @@ public class HiveResolver extends BasePlugin implements Resolver {
     protected HiveMetadata metadata;
     protected final HiveUtilities hiveUtilities;
 
+    @Getter
     private int numberOfPartitions;
     private Map<String, OneField> partitionColumnNames;
     private String hiveDefaultPartName;
@@ -151,10 +153,6 @@ public class HiveResolver extends BasePlugin implements Resolver {
     @Override
     public OneRow setFields(List<OneField> record) {
         throw new UnsupportedOperationException("Hive resolver does not support write operation.");
-    }
-
-    public int getNumberOfPartitions() {
-        return numberOfPartitions;
     }
 
     /* Parses user data string (received from fragmenter). */

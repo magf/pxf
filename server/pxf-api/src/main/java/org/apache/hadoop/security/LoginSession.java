@@ -1,5 +1,6 @@
 package org.apache.hadoop.security;
 
+import lombok.Getter;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
@@ -14,6 +15,7 @@ import java.util.Objects;
  * This class has to be a member of <code>org.apache.hadoop.security</code> package as it needs access
  * to package-private <code>User</code> class.
  */
+@Getter
 public class LoginSession {
 
     // fields establishing session identity from configuration
@@ -22,8 +24,6 @@ public class LoginSession {
     private final String keytabPath;
     private final long kerberosMinMillisBeforeRelogin;
     private final float kerberosTicketRenewWindow;
-
-    // derived fields stored to be re-used for subsequent requests
     private final UserGroupInformation loginUser;
     private final Subject subject;
     private User user;
@@ -82,64 +82,6 @@ public class LoginSession {
         }
         this.kerberosMinMillisBeforeRelogin = kerberosMinMillisBeforeRelogin;
         this.kerberosTicketRenewWindow = kerberosTicketRenewWindow;
-    }
-
-    /**
-     * Get the login UGI for this session.
-     *
-     * @return the UGI for this session
-     */
-    public UserGroupInformation getLoginUser() {
-        return loginUser;
-    }
-
-    /**
-     * Get the minimal number of milliseconds before re-login.
-     *
-     * @return the minimal number of milliseconds before re-login.
-     */
-    public long getKerberosMinMillisBeforeRelogin() {
-        return kerberosMinMillisBeforeRelogin;
-    }
-
-    /**
-     * Get the Subject used for this session.
-     *
-     * @return the Subject for this session
-     */
-    public Subject getSubject() {
-        return subject;
-    }
-
-    /**
-     * Get the User for this session.
-     *
-     * @return the User for this session.
-     */
-    public User getUser() {
-        return user;
-    }
-
-    /**
-     * Get the path of the keytab file used to login.
-     *
-     * @return the path of the keytab file used to login
-     */
-    public String getKeytabPath() {
-        return keytabPath;
-    }
-
-    /**
-     * Get the name of the Kerberos principal used to login.
-     *
-     * @return the name of the Kerberos principal used to login
-     */
-    public String getPrincipalName() {
-        return principalName;
-    }
-
-    public float getKerberosTicketRenewWindow() {
-        return kerberosTicketRenewWindow;
     }
 
     @Override

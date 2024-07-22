@@ -20,6 +20,7 @@ package org.greenplum.pxf.api.io;
  */
 
 
+import lombok.Getter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -65,6 +66,7 @@ public class GPDBWritable implements Writable {
         TEXT(4, -1);
 
         private final int typelength; // -1 means var length
+        @Getter
         private final int alignment;
 
         DBType(int align, int len) {
@@ -80,10 +82,6 @@ public class GPDBWritable implements Writable {
             return typelength == -1;
         }
 
-        // return the alignment requirement of the type
-        public int getAlignment() {
-            return alignment;
-        }
     }
 
     /*
@@ -92,19 +90,13 @@ public class GPDBWritable implements Writable {
     private static final int PREV_VERSION = 1;
     private static final int VERSION = 2; /* for backward compatibility */
 
-    /*
-     * Local variables
-     */
+    @Getter
     private int[] colType;
     private Object[] colValue;
     private int alignmentOfEightBytes = 8;
     private byte errorFlag = 0;
     private int pktlen = EOF;
     private final Charset databaseEncoding;
-
-    public int[] getColType() {
-        return colType;
-    }
 
     /**
      * An exception class for column type definition and

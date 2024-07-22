@@ -1,5 +1,6 @@
 package org.greenplum.pxf.plugins.jdbc;
 
+import lombok.Setter;
 import org.greenplum.pxf.api.filter.*;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.RequestContext;
@@ -88,6 +89,7 @@ public class SQLQueryBuilder {
     protected final List<ColumnDescriptor> columns;
     private final String source;
     private String quoteString;
+    @Setter
     private boolean wrapDateWithTime = false;
     private boolean subQueryUsed = false;
 
@@ -132,10 +134,6 @@ public class SQLQueryBuilder {
         }
 
         quoteString = "";
-    }
-
-    public void setWrapDateWithTime(boolean wrapDateWithTime) {
-        this.wrapDateWithTime = wrapDateWithTime;
     }
 
     /**

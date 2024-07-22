@@ -1,11 +1,13 @@
 package org.greenplum.pxf.plugins.jdbc.utils;
 
 import com.google.common.collect.Sets;
+import lombok.Getter;
 
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
+@Getter
 public class PoolDescriptor {
 
     private static final String USER_PROPERTY_NAME = "user";
@@ -42,31 +44,6 @@ public class PoolDescriptor {
         // validate pool configuration
         PROHIBITED_PROPERTIES.forEach(this::ensurePoolPropertyNotPresent);
     }
-
-    public String getServer() {
-        return server;
-    }
-
-    public String getJdbcUrl() {
-        return jdbcUrl;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public Properties getConnectionConfig() {
-        return connectionConfig;
-    }
-
-    public Properties getPoolConfig() {
-        return poolConfig;
-    }
-
 
     @Override
     public boolean equals(Object o) {

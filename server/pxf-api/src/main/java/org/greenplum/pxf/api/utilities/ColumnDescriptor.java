@@ -20,6 +20,7 @@ package org.greenplum.pxf.api.utilities;
  */
 
 
+import lombok.Getter;
 import org.apache.commons.lang.ArrayUtils;
 import org.greenplum.pxf.api.io.DataType;
 
@@ -31,6 +32,7 @@ import java.util.Arrays;
  */
 public class ColumnDescriptor {
 
+    @Getter
     private final DataType dataType;
     private final int dbColumnTypeCode;
     private final String dbColumnName;
@@ -150,15 +152,6 @@ public class ColumnDescriptor {
      */
     public Integer[] columnTypeModifiers() {
         return dbColumnTypeModifiers;
-    }
-
-    /**
-     * Returns the {@link DataType} for the column
-     *
-     * @return the {@link DataType} for the column
-     */
-    public DataType getDataType() {
-        return dataType;
     }
 
     /**

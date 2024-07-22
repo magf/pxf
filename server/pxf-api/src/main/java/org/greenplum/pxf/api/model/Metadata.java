@@ -20,6 +20,8 @@ package org.greenplum.pxf.api.model;
  */
 
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.utilities.EnumGpdbType;
 
@@ -32,31 +34,22 @@ import java.util.Set;
  * Metadata holds an item's metadata information.
  * {@link MetadataFetcher#getMetadata} returns the item's metadata.
  */
+@Getter
 public class Metadata {
-
     /**
      * Class representing item name - db/schema/path name and table/file name.
      */
+    @Getter
     public static class Item {
         private final String path;
         private final String name;
 
         public Item(String path, String itemName) {
-
             if (StringUtils.isBlank(path) || StringUtils.isBlank(itemName)) {
                 throw new IllegalArgumentException("Item or path name cannot be empty");
             }
-
             this.path = path;
             this.name = itemName;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public String getName() {
-            return name;
         }
 
         /**
@@ -76,6 +69,7 @@ public class Metadata {
      * Is complex type - whether source type is complex type
      * Modifiers - additional attributes which describe type or field
      */
+    @Getter
     public static class Field {
         private final String name;
         private final EnumGpdbType type; // field type which PXF exposes
@@ -106,22 +100,6 @@ public class Metadata {
             this.isComplexType = isComplexType;
         }
 
-        public String getName() {
-            return name;
-        }
-
-        public EnumGpdbType getType() {
-            return type;
-        }
-
-        public String getSourceType() {
-            return sourceType;
-        }
-
-        public String[] getModifiers() {
-            return modifiers;
-        }
-
         public boolean isComplexType() {
             return isComplexType;
         }
@@ -140,34 +118,18 @@ public class Metadata {
      * Item's fields
      */
     private List<Metadata.Field> fields;
+    /**
+     * -- GETTER --
+     *  Returns an item's output formats, @see OutputFormat.
+     */
+    @Setter
     private Set<OutputFormat> outputFormats;
+    /**
+     * -- GETTER --
+     *  Returns an item's output parameters, for example - delimiters etc.
+     */
+    @Setter
     private Map<String, String> outputParameters;
-
-    /**
-     * Returns an item's output formats, @see OutputFormat.
-     *
-     * @return item's output formats
-     */
-    public Set<OutputFormat> getOutputFormats() {
-        return outputFormats;
-    }
-
-    public void setOutputFormats(Set<OutputFormat> outputFormats) {
-        this.outputFormats = outputFormats;
-    }
-
-    /**
-     * Returns an item's output parameters, for example - delimiters etc.
-     *
-     * @return item's output parameters
-     */
-    public Map<String, String> getOutputParameters() {
-        return outputParameters;
-    }
-
-    public void setOutputParameters(Map<String, String> outputParameters) {
-        this.outputParameters = outputParameters;
-    }
 
     /**
      * Constructs an item's Metadata.
@@ -183,14 +145,6 @@ public class Metadata {
 
     public Metadata(Item itemName) {
         this(itemName, new ArrayList<>());
-    }
-
-    public Item getItem() {
-        return item;
-    }
-
-    public List<Metadata.Field> getFields() {
-        return fields;
     }
 
     /**

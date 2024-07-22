@@ -19,6 +19,7 @@ package org.greenplum.pxf.api.io;
  * under the License.
  */
 
+import lombok.Getter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -53,7 +54,10 @@ public class Text implements Writable {
     private static final ThreadLocal<CharsetDecoder> DECODER_FACTORY = ThreadLocal.withInitial(
             () -> StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
                     .onUnmappableCharacter(CodingErrorAction.REPORT));
+
+    @Getter
     private byte[] bytes;
+    @Getter
     private int length;
 
     public Text() {
@@ -199,25 +203,6 @@ public class Text implements Writable {
             encoder.onUnmappableCharacter(CodingErrorAction.REPORT);
         }
         return bytes;
-    }
-
-    /**
-     * Returns the raw bytes; however, only data up to {@link #getLength()} is
-     * valid.
-     *
-     * @return raw bytes of byte array
-     */
-    public byte[] getBytes() {
-        return bytes;
-    }
-
-    /**
-     * Returns the number of bytes in the byte array
-     *
-     * @return number of bytes in byte array
-     */
-    public int getLength() {
-        return length;
     }
 
     /**

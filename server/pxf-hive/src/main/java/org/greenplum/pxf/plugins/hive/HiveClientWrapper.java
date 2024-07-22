@@ -1,5 +1,6 @@
 package org.greenplum.pxf.plugins.hive;
 
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -398,6 +399,7 @@ public class HiveClientWrapper {
      * The class just wraps the real client, it does not delegate any methods to the real client as there would be
      * too many methods to override.
      */
+    @Getter
     public static class MetaStoreClientHolder implements AutoCloseable {
         private final IMetaStoreClient client;
 
@@ -408,15 +410,6 @@ public class HiveClientWrapper {
          */
         MetaStoreClientHolder(IMetaStoreClient client) {
             this.client = client;
-        }
-
-        /**
-         * Returns a Metastore client contained by the holder.
-         *
-         * @return a Metastore client contained by the holder
-         */
-        public IMetaStoreClient getClient() {
-            return client;
         }
 
         @Override

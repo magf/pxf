@@ -135,7 +135,7 @@ public class PartitionedJsonParser {
 			} else if (inStringStates.contains(lexer.getState())) {
 				// we're still inside a string, so keep appending to our buffer
 				currentStringLiteral.append(c);
-			} else if (lexer.getState() == JsonLexerState.END_STRING && memberName.equals(currentStringLiteral.toString())) {
+			} else if (lexer.getState() == JsonLexerState.END_STRING && memberName.contentEquals(currentStringLiteral)) {
 
 				if (!objectStack.isEmpty()) {
 					// we hit the end of the string and it matched the member name (yay)

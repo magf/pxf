@@ -80,10 +80,9 @@ public class MetadataResponse implements StreamingResponseBody {
             if ((metadata.getFields() == null) || metadata.getFields().isEmpty()) {
                 throw new IllegalArgumentException("metadata for " + metadata.getItem() + " contains no fields - cannot serialize");
             }
-            StringBuilder result = new StringBuilder();
-            result.append(prefix).append(mapper.writeValueAsString(metadata));
+            String result = prefix + mapper.writeValueAsString(metadata);
             prefix = ",";
-            dos.write(result.toString().getBytes());
+            dos.write(result.getBytes());
         }
 
         dos.write("]}".getBytes());

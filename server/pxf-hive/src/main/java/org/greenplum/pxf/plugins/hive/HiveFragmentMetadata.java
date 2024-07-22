@@ -10,13 +10,12 @@ import java.util.Properties;
 /**
  * Fragment Metadata for Hive
  */
+@Getter
 @NoArgsConstructor
 public class HiveFragmentMetadata extends HcfsFragmentMetadata {
-
     /**
      * Properties needed for SerDe initialization
      */
-    @Getter
     private Properties properties;
 
     /**

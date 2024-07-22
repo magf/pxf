@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.model.RequestContext;
@@ -147,6 +148,7 @@ public class MetricsReporter {
     /**
      * Enum that has information about all custom metrics for PXF.
      */
+    @Getter
     public enum PxfMetric {
         FRAGMENTS_SENT("pxf.fragments.sent", "pxf.metrics.fragments.enabled"),
         RECORDS_SENT("pxf.records.sent", "pxf.metrics.records.enabled"),
@@ -168,12 +170,5 @@ public class MetricsReporter {
             this.enabledPropertyName = enabledPropertyName;
         }
 
-        public String getMetricName() {
-            return metricName;
-        }
-
-        public String getEnabledPropertyName() {
-            return enabledPropertyName;
-        }
     }
 }

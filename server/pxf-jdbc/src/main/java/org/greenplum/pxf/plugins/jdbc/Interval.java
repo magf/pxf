@@ -1,23 +1,18 @@
 package org.greenplum.pxf.plugins.jdbc;
 
+import lombok.Getter;
+
 import java.util.EnumSet;
 
 import static org.greenplum.pxf.plugins.jdbc.IntervalType.DAY;
 import static org.greenplum.pxf.plugins.jdbc.IntervalType.MONTH;
 import static org.greenplum.pxf.plugins.jdbc.IntervalType.YEAR;
 
+@Getter
 public class Interval {
 
     IntervalType type;
     protected long value;
-
-    public IntervalType getType() {
-        return type;
-    }
-
-    public long getValue() {
-        return value;
-    }
 
     public static class LongInterval extends Interval {
         public LongInterval(String interval) {

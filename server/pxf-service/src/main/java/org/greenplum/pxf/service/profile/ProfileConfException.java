@@ -19,12 +19,15 @@ package org.greenplum.pxf.service.profile;
  * under the License.
  */
 
+import lombok.Getter;
+
 /**
  * Thrown when there is a configuration problem with pxf profiles definitions.
  * {@link ProfileConfException.MessageFormat#PROFILES_FILE_NOT_FOUND} when pxf-profiles.xml is missing from the CLASSPATH.
  * {@link ProfileConfException.MessageFormat#PROFILES_FILE_LOAD_ERR} when pxf-profiles.xml is not valid.
  * {@link ProfileConfException.MessageFormat#NO_PROFILE_DEF} when a profile entry or attribute is missing.
  */
+@Getter
 public class ProfileConfException extends RuntimeException {
     private final MessageFormat msgFormat;
 
@@ -39,10 +42,7 @@ public class ProfileConfException extends RuntimeException {
         this.msgFormat = msgFormat;
     }
 
-    public MessageFormat getMsgFormat() {
-        return msgFormat;
-    }
-
+    @Getter
     public enum MessageFormat {
         PROFILES_FILE_NOT_FOUND("%s was not found in the CLASSPATH"),
         PROFILES_FILE_LOAD_ERR("Profiles configuration %s could not be loaded: %s"),
@@ -55,8 +55,5 @@ public class ProfileConfException extends RuntimeException {
             this.format = format;
         }
 
-        public String getFormat() {
-            return format;
-        }
     }
 }
