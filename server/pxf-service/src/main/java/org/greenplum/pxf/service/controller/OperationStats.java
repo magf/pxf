@@ -22,7 +22,7 @@ public class OperationStats {
     private long lastReportedRecordCount = 0;
     private long lastReportedByteCount = 0;
 
-    enum Operation {
+    public enum Operation {
         READ(MetricsReporter.PxfMetric.RECORDS_SENT, MetricsReporter.PxfMetric.BYTES_SENT),
         WRITE(MetricsReporter.PxfMetric.RECORDS_RECEIVED, MetricsReporter.PxfMetric.BYTES_RECEIVED);
 

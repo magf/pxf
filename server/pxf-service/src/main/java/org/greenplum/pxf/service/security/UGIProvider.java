@@ -31,7 +31,7 @@ import java.io.IOException;
  * creating/destroying real UGI instances.
  */
 @Component
-class UGIProvider {
+public class UGIProvider {
 
     /**
      * Wrapper for {@link UserGroupInformation} creation
