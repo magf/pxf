@@ -62,16 +62,10 @@ public class TextRecordReader extends BaseRecordReader {
         csvFormat.setQuoteEscape(greenplumCSV.getEscape());
 
         // adjust parser setting to be appropriate for our on-the-wire format of CSV / TSV serialization
-        CsvParserSettings parserSettings = new CsvParserSettings();
-        parserSettings.setFormat(csvFormat);
-        parserSettings.setCommentProcessingEnabled(false);  // there should be no comments, do not waste time analyzing
-        parserSettings.setIgnoreLeadingWhitespaces(false);  // do not remove any whitespaces
-        parserSettings.setIgnoreTrailingWhitespaces(false); // do not remove any whitespaces
-        parserSettings.setMaxColumns(MAX_COLUMNS);          // align max columns with Greenplum spec
+        CsvParserSettings parserSettings = getCsvParserSettings(csvFormat);
         // we should've set maxCharsPerColumn value to 1GB (max size in GP) or larger (for multibyte UTF8 chars)
         // but Univocity tries to allocate the buffer of this size ahead of time, which is very inefficient
         // parserSettings.setMaxCharsPerColumn(Integer.MAX_VALUE);
-
         // create the CSV parser with desired settings
         parser = new CsvParser(parserSettings);
 
@@ -79,6 +73,16 @@ public class TextRecordReader extends BaseRecordReader {
             // replace new line and tab characters so that the log message takes only 1 line
             LOG.debug("Configured CSV Parser : {}", csvFormat.toString().replaceAll("\n\t+", " | "));
         }
+    }
+
+    private CsvParserSettings getCsvParserSettings(CsvFormat csvFormat) {
+        CsvParserSettings parserSettings = new CsvParserSettings();
+        parserSettings.setFormat(csvFormat);
+        parserSettings.setCommentProcessingEnabled(false);  // there should be no comments, do not waste time analyzing
+        parserSettings.setIgnoreLeadingWhitespaces(false);  // do not remove any whitespaces
+        parserSettings.setIgnoreTrailingWhitespaces(false); // do not remove any whitespaces
+        parserSettings.setMaxColumns(MAX_COLUMNS);          // align max columns with Greenplum spec
+        return parserSettings;
     }
 
     private void initialize() {
