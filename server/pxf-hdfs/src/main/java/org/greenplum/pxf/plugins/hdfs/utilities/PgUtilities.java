@@ -230,7 +230,6 @@ public class PgUtilities {
      * Converts a Postgres boolean from text format ("t" or "f") to Java boolean
      * @param value string containing a valid Postgres boolean in text format
      * @return Java boolean
-     * @throws {@link PxfRuntimeException} if the input is not a valid text format Postgres boolean
      */
     public boolean parseBoolLiteral(final String value) {
         if (StringUtils.equals(value, "t")) {
@@ -259,7 +258,6 @@ public class PgUtilities {
      * Parses a hex output text format element of bytea
      * @param value string to be parsed
      * @return byte buffer containing the sequence of bytes represented by the input
-     * @throws {@link PxfRuntimeException} if input is invalid/malformed
      */
     ByteBuffer parseHexFormat(String value) {
         try {
