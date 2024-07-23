@@ -93,6 +93,7 @@ public class FilterParser {
             DataType.BOOLEAN,
             DataType.DATE,
             DataType.TIMESTAMP,
+            DataType.TIMESTAMP_WITH_TIME_ZONE,
             DataType.TIME,
             DataType.BYTEA,
             DataType.INTERVAL,
