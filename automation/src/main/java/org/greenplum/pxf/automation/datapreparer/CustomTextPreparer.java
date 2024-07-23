@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.stream.IntStream;
 
@@ -47,7 +48,7 @@ public class CustomTextPreparer implements IDataPreparer {
             // get timestamp value from SimpleDateFormat
             String timeStampValue = dateFormat.format(calendar.getTime());
 
-            ArrayList<String> row = fillData(num1, timeStampValue);
+            List<String> row = fillData(num1, timeStampValue);
 
             dataTable.addRow(row);
             data[i] = row;
@@ -56,8 +57,8 @@ public class CustomTextPreparer implements IDataPreparer {
         return data;
     }
 
-    private ArrayList<String> fillData(final int num1, final String timeStampValue) {
-        ArrayList<String> rows = new ArrayList<>();
+    private List<String> fillData(final int num1, final String timeStampValue) {
+        List<String> rows = new ArrayList<>();
         IntStream.rangeClosed(0, 1).forEach(i -> {
             rows.add("s_" + num1);
             rows.add("s_" + num1 * 10);
