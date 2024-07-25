@@ -20,8 +20,6 @@ package org.greenplum.pxf.plugins.hive;
  */
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.hive.common.type.HiveDecimal;
-import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
@@ -48,8 +46,6 @@ import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.api.utilities.Utilities;
 
-import java.sql.Date;
-import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -205,55 +201,7 @@ public class HiveColumnarSerdeResolver extends HiveResolver {
         if (!firstColumn) {
             builder.append(delimiter);
         }
-
-        if (isDefaultPartition(type, val)) {
-            builder.append(nullChar);
-        } else {
-            // ignore the type's parameters
-            String typeName = type.replaceAll("\\(.*\\)", "");
-            switch (typeName) {
-                case serdeConstants.STRING_TYPE_NAME:
-                case serdeConstants.VARCHAR_TYPE_NAME:
-                case serdeConstants.CHAR_TYPE_NAME:
-                    builder.append(val);
-                    break;
-                case serdeConstants.BOOLEAN_TYPE_NAME:
-                    builder.append(Boolean.parseBoolean(val));
-                    break;
-                case serdeConstants.TINYINT_TYPE_NAME:
-                case serdeConstants.SMALLINT_TYPE_NAME:
-                    builder.append(Short.parseShort(val));
-                    break;
-                case serdeConstants.INT_TYPE_NAME:
-                    builder.append(Integer.parseInt(val));
-                    break;
-                case serdeConstants.BIGINT_TYPE_NAME:
-                    builder.append(Long.parseLong(val));
-                    break;
-                case serdeConstants.FLOAT_TYPE_NAME:
-                    builder.append(Float.parseFloat(val));
-                    break;
-                case serdeConstants.DOUBLE_TYPE_NAME:
-                    builder.append(Double.parseDouble(val));
-                    break;
-                case serdeConstants.TIMESTAMP_TYPE_NAME:
-                    builder.append(Timestamp.valueOf(val));
-                    break;
-                case serdeConstants.DATE_TYPE_NAME:
-                    builder.append(Date.valueOf(val));
-                    break;
-                case serdeConstants.DECIMAL_TYPE_NAME:
-                    builder.append(HiveDecimal.create(val).bigDecimalValue());
-                    break;
-                case serdeConstants.BINARY_TYPE_NAME:
-                    Utilities.byteArrayToOctalString(val.getBytes(), builder);
-                    break;
-                default:
-                    throw new UnsupportedTypeException(
-                            "Unsupported partition type: " + type);
-            }
-        }
-
+        appendPartition(builder, type, val);
         firstColumn = false;
     }
 

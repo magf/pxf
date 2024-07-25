@@ -425,7 +425,6 @@ class ORCVectorizedMappingFunctions {
     }
 
     // DateWritable is no longer deprecated in newer versions of storage api ¯\_(ツ)_/¯
-    @SuppressWarnings("deprecation")
     public static OneField[] dateReader(VectorizedRowBatch batch, ColumnVector columnVector, Integer oid) {
         LongColumnVector lcv = (LongColumnVector) columnVector;
         if (lcv == null)
