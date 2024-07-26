@@ -25,7 +25,7 @@ public class HBaseDataPreparer implements IDataPreparer {
 	private String rowKeyPrefix = "";
 	private String columnFamilyName = "cf1";
 	private boolean useNull = false;
-	private final static int UNSUPPORTED_CHAR = 92;
+	private static final int UNSUPPORTED_CHAR = 92;
 	private final static int FIRST_PRINTABLE_CHAR = 32;
 	private final static int LAST_PRINTABLE_CHAR = 126;
 

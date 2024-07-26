@@ -417,9 +417,9 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
 
         disableTable(table);
 
-        for (String s : columns) {
+        for (String columnName : columns) {
             HColumnDescriptor column = new HColumnDescriptor(
-                    Bytes.toBytes(s));
+                    Bytes.toBytes(columnName));
             admin.addColumn(TableName.valueOf(table.getName()), column);
         }
 

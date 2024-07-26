@@ -4,74 +4,70 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Field;
+
+import jsystem.framework.report.ListenerstManager;
+import jsystem.framework.report.Reporter;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
+import org.greenplum.pxf.automation.utils.jsystem.report.ReportUtils;
 
-public class CustomWritableWithCircle
-  implements Writable
-{
-  public int int1;
-  public String circle;
+public class CustomWritableWithCircle implements Writable {
+    private static final Reporter report = ListenerstManager.getInstance();
+    public int int1;
+    public String circle;
 
-  public CustomWritableWithCircle()
-  {
-    this.int1 = 0;
+    public CustomWritableWithCircle() {
+        this.int1 = 0;
 
-    this.circle = new String();
-  }
+        this.circle = new String();
+    }
 
-  public CustomWritableWithCircle(int paramInt1, int paramInt2, int paramInt3)
-  {
-    this.int1 = paramInt1;
-    this.circle = ("< ( " + paramInt2 + " , " + paramInt3 + " ) , " + paramInt1 * paramInt2 * paramInt3 + " >");
-  }
+    public CustomWritableWithCircle(int paramInt1, int paramInt2, int paramInt3) {
+        this.int1 = paramInt1;
+        this.circle = ("< ( " + paramInt2 + " , " + paramInt3 + " ) , " + paramInt1 * paramInt2 * paramInt3 + " >");
+    }
 
-  int GetInt1()
-  {
-    return this.int1;
-  }
+    int GetInt1() {
+        return this.int1;
+    }
 
-  String GetCircle()
-  {
-    return this.circle;
-  }
+    String GetCircle() {
+        return this.circle;
+    }
 
-  @Override
-public void write(DataOutput paramDataOutput)
-    throws IOException
-  {
-    IntWritable localIntWritable = new IntWritable();
+    @Override
+    public void write(DataOutput paramDataOutput)
+            throws IOException {
+        IntWritable localIntWritable = new IntWritable();
 
-    localIntWritable.set(this.int1);
-    localIntWritable.write(paramDataOutput);
+        localIntWritable.set(this.int1);
+        localIntWritable.write(paramDataOutput);
 
-    Text localText = new Text();
-    localText.set(this.circle);
-    localText.write(paramDataOutput);
-  }
+        Text localText = new Text();
+        localText.set(this.circle);
+        localText.write(paramDataOutput);
+    }
 
-  @Override
-public void readFields(DataInput paramDataInput)
-    throws IOException
-  {
-    IntWritable localIntWritable = new IntWritable();
+    @Override
+    public void readFields(DataInput paramDataInput)
+            throws IOException {
+        IntWritable localIntWritable = new IntWritable();
 
-    localIntWritable.readFields(paramDataInput);
-    this.int1 = localIntWritable.get();
+        localIntWritable.readFields(paramDataInput);
+        this.int1 = localIntWritable.get();
 
-    Text localText = new Text();
-    localText.readFields(paramDataInput);
-    this.circle = localText.toString();
-  }
+        Text localText = new Text();
+        localText.readFields(paramDataInput);
+        this.circle = localText.toString();
+    }
 
-  public void printFieldTypes()
-  {
-    Class<?> localClass = getClass();
-    Field[] arrayOfField = localClass.getDeclaredFields();
+    public void printFieldTypes() {
+        Class<?> localClass = getClass();
+        Field[] arrayOfField = localClass.getDeclaredFields();
 
-      for (Field field : arrayOfField) {
-          System.out.println(field.getType().getName());
-      }
-  }
+        for (Field field : arrayOfField) {
+            ReportUtils.report(report, getClass(), field.getType().getName());
+        }
+    }
 }

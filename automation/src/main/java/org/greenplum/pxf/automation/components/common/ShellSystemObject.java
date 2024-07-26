@@ -210,9 +210,9 @@ public class ShellSystemObject extends BaseSystemObject {
         // split result to new line
         String[] splitArray = cmd.getResult().split(System.lineSeparator());
         // go over splitResult and look for Numeric result
-        for (String s : splitArray) {
+        for (String line : splitArray) {
             try {
-                return Integer.parseInt(s.trim());
+                return Integer.parseInt(line.trim());
             } catch (Exception e) {
                 continue;
             }
