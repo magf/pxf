@@ -173,7 +173,7 @@ dbop_pxfop_map pxf_supported_opr_op_expr[] =
 	{1121 /* float48ne */ , PXFOP_NE},
 
 	/* float84 */
-	{Float84EqualOperator /* float84eq */ , PXFOP_EQ},
+	{1130 /* float84eq */ , PXFOP_EQ},
 	{1132 /* float84lt */ , PXFOP_LT},
 	{1133 /* float84gt */ , PXFOP_GT},
 	{1134 /* float84le */ , PXFOP_LE},
@@ -253,7 +253,7 @@ dbop_pxfop_map pxf_supported_opr_op_expr[] =
 	{1331 /* interval_ne */ , PXFOP_NE},
 
 	/* uuid */
-	{UuidEqualOperator /* uuid_eq */ , PXFOP_EQ},
+	{2972 /* uuid_eq */ , PXFOP_EQ},
 	{2974 /* uuid_lt */ , PXFOP_LT},
 	{2975 /* uuid_gt */ , PXFOP_GT},
 	{2976 /* uuid_le */ , PXFOP_LE},
@@ -336,7 +336,7 @@ dbop_pxfop_array_map pxf_supported_opr_scalar_array_op_expr[] =
 	{1121 /* float48ne */ , PXFOP_NOTIN, false},
 
 	/* float84 */
-	{Float84EqualOperator /* float84eq */ , PXFOP_IN, true},
+	{1130 /* float84eq */ , PXFOP_IN, true},
 	{1131 /* float84ne */ , PXFOP_NOTIN, false},
 
 	/* float4 */
@@ -366,7 +366,7 @@ dbop_pxfop_array_map pxf_supported_opr_scalar_array_op_expr[] =
 	{NumericEqualOperator /* numericeq */ , PXFOP_IN, true},
 	{1753 /* numericne */ , PXFOP_NOTIN, false},
 
-	{UuidEqualOperator /* uuid_eq */ , PXFOP_IN, true},
+	{2972 /* uuid_eq */ , PXFOP_IN, true},
 	{2973 /* uuid_ne */ , PXFOP_NOTIN, false},
 
 	{3240 /* jsonb_eq */ , PXFOP_IN, true},
