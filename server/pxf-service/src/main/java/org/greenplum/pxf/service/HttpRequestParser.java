@@ -84,7 +84,7 @@ public class HttpRequestParser implements RequestParser<MultiValueMap<String, St
 
         if (LOG.isDebugEnabled()) {
             // Logging only keys to prevent sensitive data to be logged
-            LOG.debug("Parsing request parameters: " + params.keySet());
+            LOG.debug("Parsing request parameters: {}", params.keySet());
         }
 
         RequestContext context = new RequestContext();

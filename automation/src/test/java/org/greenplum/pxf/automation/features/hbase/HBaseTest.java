@@ -32,12 +32,12 @@ public class HBaseTest extends BaseFeature {
     // used to verify no filter string returned from GPDB side
     private final String NO_FILTER = "No filter";
     // Data preparer to create data matching to the HBase tables
-    private HBaseDataPreparer dataPreparer = new HBaseDataPreparer();
+    private final HBaseDataPreparer dataPreparer = new HBaseDataPreparer();
     // qualifiers for HBase tables
-    private String[] hbaseTableQualifiers =
+    private final String[] hbaseTableQualifiers =
             new String[] { "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12" };
     // External table columns matching to HBase qualifiers
-    private String[] exTableFields = new String[] {
+    private final String[] exTableFields = new String[] {
             "recordkey TEXT",
             "\"cf1:q1\" VARCHAR",
             "\"cf1:q2\" TEXT",
@@ -55,7 +55,7 @@ public class HBaseTest extends BaseFeature {
 
     // External table columns matching to HBase qualifiers with q2 and q3 appearing as mapped in the
     // lookup table
-    private String[] exTableDifferentFieldsNames = new String[] {
+    private final String[] exTableDifferentFieldsNames = new String[] {
             "recordkey TEXT",
             "\"cf1:q1\" VARCHAR",
             "\"q2\" TEXT",
@@ -71,7 +71,7 @@ public class HBaseTest extends BaseFeature {
             "\"cf1:q12\" TIMESTAMP"
     };
 
-    private String testPackage = "org.greenplum.pxf.automation.testplugin.";
+    private final String testPackage = "org.greenplum.pxf.automation.testplugin.";
 
     /**
      * Prepare all components and all data flow (HBase to GPDB)

@@ -14,7 +14,6 @@ import org.apache.tools.ant.taskdefs.optional.junit.JUnitResultFormatter;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitVersionHelper;
 import org.apache.tools.ant.util.FileUtils;
-import org.apache.tools.ant.util.StringUtils;
 
 /**
  * JUnit Ant Formatter for PXF regression run.
@@ -34,17 +33,17 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 	/**
 	 * Used as part of formatting the results.
 	 */
-	private StringWriter results;
+	private final StringWriter results;
 
 	/**
 	 * Used for writing formatted results to.
 	 */
-	private PrintWriter resultWriter;
+	private final PrintWriter resultWriter;
 
 	/**
 	 * Formatter for timings.
 	 */
-	private NumberFormat numberFormat = NumberFormat.getInstance();
+	private final NumberFormat numberFormat = NumberFormat.getInstance();
 
 	/**
 	 * Output suite is written to System.out
@@ -59,11 +58,11 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 	/**
 	 * tests that failed.
 	 */
-	private Hashtable<Test, Throwable> failedTests = new Hashtable<Test, Throwable>();
+	private final Hashtable<Test, Throwable> failedTests = new Hashtable<>();
 	/**
 	 * Timing helper.
 	 */
-	private Hashtable<Test, Long> testStarts = new Hashtable<Test, Long>();
+	private final Hashtable<Test, Long> testStarts = new Hashtable<>();
 
 	/**
 	 * Constructor for OneLinerFormatter.
@@ -96,10 +95,9 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 	@Override
 	public void endTest(Test test) {
 
-		/**
-		 * If for some reason the (Failed in setUp before the test get the chance to run) test is
-		 * not in the testStarts list, put it in.
-		 */
+
+		// If for some reason the (Failed in setUp before the test get the chance to run) test is
+		// not in the testStarts list, put it in.
 		if (!testStarts.containsKey(test)) {
 			startTest(test);
 		}
@@ -109,20 +107,20 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 		Long l = testStarts.get(test);
 
 		output.write("Ran [");
-		output.write(((System.currentTimeMillis() - l.longValue()) / 1000.0) + "] ");
+		output.write(((System.currentTimeMillis() - l) / 1000.0) + "] ");
 		output.write(getTestName(test) + " ... " + (failed ? "FAILED" : "OK"));
-		output.write(StringUtils.LINE_SEP);
+		output.write(System.lineSeparator());
 		output.flush();
 	}
 
 	@Override
 	public void startTest(Test test) {
-		testStarts.put(test, Long.valueOf(System.currentTimeMillis()));
+		testStarts.put(test, System.currentTimeMillis());
 	}
 
 	@Override
 	public void endTestSuite(JUnitTest suite) throws BuildException {
-		StringBuffer sb = new StringBuffer("Tests run: ");
+		StringBuilder sb = new StringBuilder("Tests run: ");
 		sb.append(suite.runCount());
 		sb.append(", Failures: ");
 		sb.append(suite.failureCount());
@@ -131,10 +129,10 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 		sb.append(", Time elapsed: ");
 		sb.append(numberFormat.format(suite.getRunTime() / 1000.0));
 		sb.append(" sec");
-		sb.append(" (" + numberFormat.format(suite.getRunTime() / 1000.0 / 60));
+		sb.append(" (").append(numberFormat.format(suite.getRunTime() / 1000.0 / 60));
 		sb.append(" min)");
-		sb.append(StringUtils.LINE_SEP);
-		sb.append(StringUtils.LINE_SEP);
+		sb.append(System.lineSeparator());
+		sb.append(System.lineSeparator());
 
 		if (output != null) {
 			try {
@@ -171,14 +169,14 @@ public class OneLinerFormatter implements JUnitResultFormatter {
 		if (output == null) {
 			return;
 		}
-		StringBuffer sb = new StringBuffer(StringUtils.LINE_SEP);
+		StringBuilder sb = new StringBuilder(System.lineSeparator());
 		sb.append("----------------------------------------------------------");
-		sb.append(StringUtils.LINE_SEP);
+		sb.append(System.lineSeparator());
 		sb.append("Testsuite: ");
 		sb.append(suite.getName());
-		sb.append(StringUtils.LINE_SEP);
+		sb.append(System.lineSeparator());
 		sb.append("----------------------------------------------------------");
-		sb.append(StringUtils.LINE_SEP);
+		sb.append(System.lineSeparator());
 		output.write(sb.toString());
 		output.flush();
 	}

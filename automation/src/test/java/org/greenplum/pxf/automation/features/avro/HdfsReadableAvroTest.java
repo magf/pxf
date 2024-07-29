@@ -12,6 +12,7 @@ import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
  * Collection of Test cases for PXF ability to read AvroFile or Avro serialized
@@ -113,7 +114,7 @@ public class HdfsReadableAvroTest extends BaseFeature {
         hdfsPath = hdfs.getWorkingDirectory() + "/readableAvro/";
 
         // location of schema and data files
-        String absolutePath = getClass().getClassLoader().getResource("data").getPath();
+        String absolutePath = Objects.requireNonNull(getClass().getClassLoader().getResource("data")).getPath();
         resourcePath = absolutePath + "/avro/";
 
         // create and copy data to hdfs

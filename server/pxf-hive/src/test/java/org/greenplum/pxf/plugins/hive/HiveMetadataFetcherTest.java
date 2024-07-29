@@ -55,7 +55,6 @@ public class HiveMetadataFetcherTest {
     private List<Metadata> metadataList;
     private HiveClientWrapper fakeHiveClientWrapper;
     private HiveClientWrapper.HiveClientFactory mockClientFactory;
-    private HiveClientWrapper.MetaStoreClientHolder holder;
     private Map<String, String> mockParameters;
     private final HiveUtilities hiveUtilities = new HiveUtilities();
 
@@ -89,7 +88,7 @@ public class HiveMetadataFetcherTest {
         fakeHiveClientWrapper.setHiveClientFactory(mockClientFactory);
         fakeHiveClientWrapper.setHiveUtilities(hiveUtilities);
 
-        holder = new HiveClientWrapper.MetaStoreClientHolder(mockHiveClient);
+        HiveClientWrapper.MetaStoreClientHolder holder = new HiveClientWrapper.MetaStoreClientHolder(mockHiveClient);
         when(mockClientFactory.initHiveClient(any())).thenReturn(holder);
     }
 

@@ -59,12 +59,12 @@ public class MultiNodeCluster extends PhdCluster {
     }
 
     @Override
-    public void startHiveServer() throws Exception {
+    public void startHiveServer() {
         throw new UnsupportedOperationException("Start Hive Server is not supported yet");
     }
 
     @Override
-    public void stopHiveServer() throws Exception {
+    public void stopHiveServer() {
         throw new UnsupportedOperationException("Stop Hive Server is not supported yet");
     }
 
@@ -88,7 +88,7 @@ public class MultiNodeCluster extends PhdCluster {
      *
      * @param operation currently "stop", "start"
      * @param service required cluster service
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     private void handleOperation(String operation, EnumClusterServices service) throws Exception {
         // not supporting null service or all services
@@ -108,7 +108,7 @@ public class MultiNodeCluster extends PhdCluster {
             command = "sudo -s /etc/init.d/" + service.getServiceName() + " " + operation;
         }
         // run on relevant nodes
-        ReportUtils.startLevel(report, getClass(), operation + " " + service.toString());
+        ReportUtils.startLevel(report, getClass(), operation + " " + service);
         // get List of Nodes to run operation on according to service
         List<Node> nodesListByService;
         switch (service) {
@@ -130,7 +130,7 @@ public class MultiNodeCluster extends PhdCluster {
     }
 
     @Override
-    public boolean isUp(EnumClusterServices service) throws Exception {
+    public boolean isUp(EnumClusterServices service) {
         // TODO: need to implement, for now return true;
         return true;
     }
@@ -232,7 +232,7 @@ public class MultiNodeCluster extends PhdCluster {
         List<Node> resultList = new ArrayList<>();
         for (Node node : nodes) {
             ReportUtils.report(report, getClass(), node.toString());
-            if (serviceType == null || node.getServicesList().contains(serviceType.toString())) {
+            if (node.getServicesList().contains(serviceType.toString())) {
                 if (nodeType == null || node.getClass().isAssignableFrom(nodeType)) {
                     resultList.add(node);
                 }
@@ -278,7 +278,7 @@ public class MultiNodeCluster extends PhdCluster {
     /**
      * escape spaces in file name, so command line commands will work.
      *
-     * @param file
+     * @param file - the name of the file
      * @return escaped file name
      */
     private String escapeSpaces(String file) {

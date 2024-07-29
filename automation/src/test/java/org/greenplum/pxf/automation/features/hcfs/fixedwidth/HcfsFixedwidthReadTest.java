@@ -4,6 +4,8 @@ import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
 
+import java.util.Objects;
+
 /**
  * Functional Test for reading fixedwidth data format text files in HCFS
  * The dataset is based on a set of tests available in Greenplum
@@ -46,7 +48,6 @@ public class HcfsFixedwidthReadTest extends BaseFeature {
     private static final String fixedwidthSmallCorrectCRLFDelimFileName = "fixedwidth_small_correct_crlf_delim.txt";
 
     private String hdfsPath;
-    private String resourcePath;
 
     /**
      * Prepare all components and all data flow (Hdfs to GPDB)
@@ -57,8 +58,8 @@ public class HcfsFixedwidthReadTest extends BaseFeature {
         hdfsPath = hdfs.getWorkingDirectory() + "/readableFixedwidth/";
 
         // location of the data files
-        String absolutePath = getClass().getClassLoader().getResource("data").getPath();
-        resourcePath = absolutePath + "/fixedwidth/";
+        String absolutePath = Objects.requireNonNull(getClass().getClassLoader().getResource("data")).getPath();
+        String resourcePath = absolutePath + "/fixedwidth/";
         hdfs.copyFromLocal(resourcePath + fixedwidthSmallCorrectFileName, hdfsPath + "lines/nocomp/" + fixedwidthSmallCorrectFileName);
         hdfs.copyFromLocal(resourcePath + fixedwidthSmallCorrectGzipFileName, hdfsPath + "lines/gzip/" + fixedwidthSmallCorrectGzipFileName);
         hdfs.copyFromLocal(resourcePath + fixedwidthSmallCorrectCustomDelimFileName, hdfsPath + fixedwidthSmallCorrectCustomDelimFileName);

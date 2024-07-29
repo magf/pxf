@@ -119,7 +119,7 @@ public class HiveMetadataFetcher extends BasePlugin implements MetadataFetcher {
                     formats.add(outputFormat);
                 }
                 //If table has no partitions - get single format of table
-                if (tablePartitions.size() == 0) {
+                if (tablePartitions.isEmpty()) {
                     String inputFormat = tbl.getSd().getInputFormat();
                     OutputFormat outputFormat = getOutputFormat(inputFormat, hasComplexTypes);
                     formats.add(outputFormat);

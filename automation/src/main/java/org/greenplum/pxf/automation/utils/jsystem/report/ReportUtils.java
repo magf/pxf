@@ -21,7 +21,7 @@ public abstract class ReportUtils {
 	 * Getting JSystem reporter and use it to report to the various reports it hooked to (HTML, XML
 	 * ...) If the reporter is null, or in silent mode, the reports will directed to System.out.
 	 * 
-	 * @param jsystemReport
+	 * @param jsystemReport - the JSystem reporter
 	 * @param contextClass from which class reported
 	 * @param message to report
 	 * @param status use {@link Reporter} Reporter.FAIL or Reporter.PASS
@@ -47,10 +47,10 @@ public abstract class ReportUtils {
 	/**
 	 * Starts Report parent level. All reports from this point will be his Children.
 	 * 
-	 * @param jsystemReport
+	 * @param jsystemReport - the JSystem reporter
 	 * @param contextClass from which class reported
-	 * @param message
-	 * @throws IOException
+	 * @param message - logging message
+	 * @throws IOException if I/O error occurs
 	 */
 	public static void startLevel(Reporter jsystemReport, Class<?> contextClass, String message) throws IOException {
 		startLevel(jsystemReport, contextClass, "", message);
@@ -59,11 +59,11 @@ public abstract class ReportUtils {
 	/**
 	 * Starts Report parent level. All reports from this point will be his Children.
 	 * 
-	 * @param jsystemReport
-	 * @param contextClass
+	 * @param jsystemReport - the JSystem reporter
+	 * @param contextClass from which class reported
 	 * @param additionalText additional text to add to class name
-	 * @param message
-	 * @throws IOException
+	 * @param message - logging message
+	 * @throws IOException if I/O error occurs
 	 */
 	public static void startLevel(Reporter jsystemReport, Class<?> contextClass, String additionalText, String message) throws IOException {
 		String reportMessage = contextClass.getSimpleName() + " " + additionalText + " -> " + message;
@@ -78,8 +78,8 @@ public abstract class ReportUtils {
 	/**
 	 * Closes the report level.
 	 * 
-	 * @param jsystemReport
-	 * @throws IOException
+	 * @param jsystemReport - the JSystem reporter
+	 * @throws IOException if I/O error occurs
 	 */
 	public static void stopLevel(Reporter jsystemReport) throws IOException {
 
@@ -101,9 +101,9 @@ public abstract class ReportUtils {
 	/**
 	 * Reports HTML code
 	 * 
-	 * @param jsystemReport
-	 * @param contextClass
-	 * @param data
+	 * @param jsystemReport - the JSystem reporter
+	 * @param contextClass from which class reported
+	 * @param data - logging message
 	 */
 	public static void reportHtml(Reporter jsystemReport, Class<?> contextClass, String data) {
 		if (jsystemReport != null && !jsystemReport.isSilent()) {
@@ -118,10 +118,10 @@ public abstract class ReportUtils {
 	/**
 	 * Reports href in HTML report, status id PASS
 	 * 
-	 * @param jsystemReport
-	 * @param title
-	 * @param contextClass
-	 * @param data
+	 * @param jsystemReport - the JSystem reporter
+	 * @param title - additional information as a header
+	 * @param contextClass from which class reported
+	 * @param data - logging message
 	 */
 	public static void reportHtmlLink(Reporter jsystemReport, String title, Class<?> contextClass, String data) {
 		reportHtmlLink(jsystemReport, contextClass, title, data, Reporter.PASS);
@@ -130,10 +130,10 @@ public abstract class ReportUtils {
 	/**
 	 * Reports href in HTML report
 	 * 
-	 * @param jsystemReport
-	 * @param contextClass
-	 * @param title
-	 * @param data
+	 * @param jsystemReport - the JSystem reporter
+	 * @param contextClass from which class reported
+	 * @param title - additional information as a header
+	 * @param data - logging message
 	 * @param status use {@link Reporter} Reporter.FAIL or Reporter.PASS
 	 */
 	public static void reportHtmlLink(Reporter jsystemReport, Class<?> contextClass, String title, String data, int status) {
@@ -152,9 +152,9 @@ public abstract class ReportUtils {
 	/**
 	 * reports title between stars headlines
 	 * 
-	 * @param jsystemReport
-	 * @param contextClass
-	 * @param message
+	 * @param jsystemReport - the JSystem reporter
+	 * @param contextClass - the class from where the message comes
+	 * @param message - logging message
 	 */
 	public static void reportTitle(Reporter jsystemReport, Class<?> contextClass, String message) {
 		String titleHeadline = getTitleHeadlineForMessage((contextClass.getSimpleName() + " -> " + message));
@@ -166,7 +166,7 @@ public abstract class ReportUtils {
 	/**
 	 * Gets stars headline according to the message length
 	 * 
-	 * @param message
+	 * @param message - logging message
 	 * @return string of stars matching the length of the message
 	 */
 	private static String getTitleHeadlineForMessage(String message) {
@@ -182,7 +182,7 @@ public abstract class ReportUtils {
 	 * 
 	 * @param contextClass reporter class
 	 * @param message to add to report
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public static void throwUnsupportedFunctionality(Class<?> contextClass, String message) throws Exception {
 		throw new Exception(contextClass.getSimpleName() + " -> " + message + " is currently not supported");

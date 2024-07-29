@@ -18,9 +18,22 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
 public class HiveRcBinaryPreparer implements IDataPreparer {
 
     @Override
-    public Object[] prepareData(int rows, Table dataTable) throws Exception {
-        StringBuilder sb = new StringBuilder();
+    public Object[] prepareData(int rows, Table dataTable) {
+        String binaryData = generateBinaryData();
+        // fill the dataTable with data * rows
+        for (int i = 0; i < rows; i++) {
+            List<String> row = new ArrayList<>();
+            row.add(("index_" + (i + 1)));
+            row.add(String.valueOf(i + 1));
+            row.add(binaryData);
+            row.add(binaryData);
+            dataTable.addRow(row);
+        }
+        return null;
+    }
 
+    private String generateBinaryData() {
+        StringBuilder sb = new StringBuilder();
         // define the binary data for the binary fields. 0-33 are empty values
         // according to the ASCII table
         for (int i = 33; i < 127; i++) {
@@ -36,16 +49,6 @@ public class HiveRcBinaryPreparer implements IDataPreparer {
             byte b = (byte) i;
             sb.append(String.format("\\%03o", b & 0xff));
         }
-        String binaryData = sb.toString();
-        // fill the dataTable with data * rows
-        for (int i = 0; i < rows; i++) {
-            List<String> row = new ArrayList<String>();
-            row.add(("index_" + String.valueOf(i + 1)));
-            row.add(String.valueOf(i + 1));
-            row.add(binaryData);
-            row.add(binaryData);
-            dataTable.addRow(row);
-        }
-        return null;
+        return sb.toString();
     }
 }

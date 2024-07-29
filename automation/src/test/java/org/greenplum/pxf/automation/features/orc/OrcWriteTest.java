@@ -125,16 +125,13 @@ public class OrcWriteTest extends BaseFeature {
     private String gpdbTableNamePrefix;
     private String hdfsPath;
     private String fullTestPath;
-    private ProtocolEnum protocol;
     private Hive hive;
-    private HiveTable hiveTable;
 
 
     @Override
-    public void beforeClass() throws Exception {
+    public void beforeClass() {
         // path for storing data on HDFS (for processing by PXF)
         hdfsPath = hdfs.getWorkingDirectory() + "/writableOrc/";
-        protocol = ProtocolUtils.getProtocol();
     }
 
     @Override
@@ -178,7 +175,7 @@ public class OrcWriteTest extends BaseFeature {
         attemptInsert(() -> insertDataWithoutNulls(gpdbTableNamePrefix, 33), fullTestPath, NUM_RETRIES);
 
         // load the data into hive to check that PXF-written ORC files can be read by other data
-        hiveTable = new HiveExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS_HIVE, "hdfs:/" + fullTestPath);
+        HiveTable hiveTable = new HiveExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS_HIVE, "hdfs:/" + fullTestPath);
         hiveTable.setStoredAs("ORC");
         hive.createTableAndVerify(hiveTable);
 
@@ -388,7 +385,7 @@ public class OrcWriteTest extends BaseFeature {
     }
 
     private void insertDataWithTimestamps(String exTable, int numRows, int nullModulo) throws Exception {
-        String insertStatement = "INSERT INTO " + exTable + "_writable VALUES ";
+        StringBuilder insertStatement = new StringBuilder("INSERT INTO " + exTable + "_writable VALUES ");
         for (int i = 0; i < numRows; i++) {
             StringJoiner statementBuilder = new StringJoiner(",", "(", ")")
                 .add(String.valueOf(i))
@@ -397,13 +394,13 @@ public class OrcWriteTest extends BaseFeature {
                 .add((i % nullModulo == 2) ? "NULL" : String.format("'2013-07-13 21:00:05.%03d456'", i % 1000))     // DataType.TIMESTAMP
                 .add((i % nullModulo == 3) ? "NULL" : String.format("'2013-07-13 21:00:05.987%03d-07'", i % 1000))  // DataType.TIMESTAMP_WITH_TIME_ZONE
             ;
-            insertStatement += statementBuilder.toString().concat((i < (numRows - 1)) ? "," : ";");
+            insertStatement.append(statementBuilder.toString().concat((i < (numRows - 1)) ? "," : ";"));
         }
-        gpdb.runQuery(insertStatement);
+        gpdb.runQuery(insertStatement.toString());
     }
 
     private void insertArrayDataWithNulls(String exTable, int numRows, int nullModulo) throws Exception {
-        String insertStatement = "INSERT INTO " + exTable + "_writable VALUES ";
+        StringBuilder insertStatement = new StringBuilder("INSERT INTO " + exTable + "_writable VALUES ");
         for (int i = 0; i < numRows; i++) {
             StringJoiner statementBuilder = new StringJoiner(",", "(", ")")
                 .add(String.valueOf(i))    // always not-null row index, column index starts with 0 after it
@@ -425,13 +422,13 @@ public class OrcWriteTest extends BaseFeature {
                 .add((i % nullModulo == 15) ? "NULL" : String.format("'{12345678900000.00000%s}'", i))                           // DataType.NUMERICARRAY
                 .add((i % nullModulo == 16) ? "NULL" : String.format("'{\"476f35e4-da1a-43cf-8f7c-950a%08d\"}'", i % 100000000)) // DataType.UUIDARRAY
                 ;
-            insertStatement += statementBuilder.toString().concat((i < (numRows - 1)) ? "," : ";");
+            insertStatement.append(statementBuilder.toString().concat((i < (numRows - 1)) ? "," : ";"));
         }
-        gpdb.runQuery(insertStatement);
+        gpdb.runQuery(insertStatement.toString());
     }
 
     private void insertArrayDataWithNullElements(String exTable, int numRows, int nullModulo) throws Exception {
-        String insertStatement = "INSERT INTO " + exTable + "_writable VALUES ";
+        StringBuilder insertStatement = new StringBuilder("INSERT INTO " + exTable + "_writable VALUES ");
         for (int i = 0; i < numRows; i++) {
             StringJoiner statementBuilder = new StringJoiner(",", "(", ")")
                 .add(String.valueOf(i))    // always not-null row index, column index starts with 0 after it
@@ -453,13 +450,13 @@ public class OrcWriteTest extends BaseFeature {
                 .add((i % nullModulo == 15) ? "'{NULL}'" : (i % nullModulo == 6) ? "'{}'" : String.format("'{NULL, 12345678900000.00000%s, 12345678900000.00000%s}'", i, i + 1))                                                       // DataType.NUMERICARRAY
                 .add((i % nullModulo == 16) ? "'{NULL}'" : (i % nullModulo == 7) ? "'{}'" : String.format("'{\"476f35e4-da1a-43cf-8f7c-950a%08d\", NULL, \"476f35e4-da1a-43cf-8f7c-950a%08d\"}'", i % 100000000,  (i+2) % 100000000))  // DataType.UUIDARRAY
                 ;
-            insertStatement += statementBuilder.toString().concat((i < (numRows - 1)) ? "," : ";");
+            insertStatement.append(statementBuilder.toString().concat((i < (numRows - 1)) ? "," : ";"));
         }
-        gpdb.runQuery(insertStatement);
+        gpdb.runQuery(insertStatement.toString());
     }
 
     private void insertMultidimensionalArrayData(String exTable, int numRows, int nullModulo) throws Exception {
-        String insertStatement = "INSERT INTO " + exTable + " VALUES ";
+        StringBuilder insertStatement = new StringBuilder("INSERT INTO " + exTable + " VALUES ");
         for (int i = 0; i < numRows; i++) {
             StringJoiner statementBuilder = new StringJoiner(",", "(", ")")
                 .add(String.valueOf(i))    // always not-null row index, column index starts with 0 after it
@@ -481,9 +478,9 @@ public class OrcWriteTest extends BaseFeature {
                 .add((i % nullModulo == 15) ? "'{NULL}'" : (i % nullModulo == 6) ? "'{}'" : String.format("'{{NULL, 12345678900000.00000%s}, {12345678900000.00000%s, NULL}}'", i, i + 1))                                                   // DataType.NUMERICARRAY
                 .add((i % nullModulo == 16) ? "'{NULL}'" : (i % nullModulo == 7) ? "'{}'" : String.format("'{{\"476f35e4-da1a-43cf-8f7c-950a%08d\"}, {NULL}, {\"476f35e4-da1a-43cf-8f7c-950a%08d\"}}'", i % 100000000,  (i+2) % 100000000))  // DataType.UUIDARRAY
                 ;
-            insertStatement += statementBuilder.toString().concat((i < (numRows - 1)) ? "," : ";");
+            insertStatement.append(statementBuilder.toString().concat((i < (numRows - 1)) ? "," : ";"));
         }
-        gpdb.runQuery(insertStatement);
+        gpdb.runQuery(insertStatement.toString());
     }
 
     private String getRecordCSV(int row, boolean[] isNull) {

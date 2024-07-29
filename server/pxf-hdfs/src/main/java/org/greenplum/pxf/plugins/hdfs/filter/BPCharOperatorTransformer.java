@@ -84,7 +84,7 @@ public class BPCharOperatorTransformer implements TreeVisitor {
         }
 
         /* Determine whether the string has whitespace at the end */
-        if (value.length() > 0 && value.charAt(value.length() - 1) == ' ') {
+        if (!value.isEmpty() && value.charAt(value.length() - 1) == ' ') {
             // Supports the case where the the BPChar has been
             // right trimmed during the store operation. The
             // predicate has to account for the trimmed case

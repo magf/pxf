@@ -19,6 +19,7 @@ package org.greenplum.pxf.service;
  * under the License.
  */
 
+import lombok.Getter;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.ObjectUtils;
@@ -68,6 +69,7 @@ public class BridgeOutputBuilder {
     private final byte[] newLineBytes;
     private Writable output = null;
     private final LinkedList<Writable> outputList;
+    @Getter
     private Writable partialLine = null;
     private GPDBWritable errorRecord = null;
     private int[] schema;
@@ -172,15 +174,6 @@ public class BridgeOutputBuilder {
             }
         }
         return outputList;
-    }
-
-    /**
-     * Returns whether or not this is a partial line.
-     *
-     * @return true for a partial line
-     */
-    public Writable getPartialLine() {
-        return partialLine;
     }
 
     /**
@@ -293,7 +286,7 @@ public class BridgeOutputBuilder {
      *                            field
      */
     void fillText(List<OneField> recFields) throws BadRecordException {
-        if (recFields.size() < 1)
+        if (recFields.isEmpty())
             throw new BadRecordException(
                     "BridgeOutputBuilder must receive one field when handling the TEXT format");
 

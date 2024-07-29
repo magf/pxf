@@ -32,11 +32,11 @@ import org.apache.hadoop.hive.metastore.api.FieldSchema;
  * and for an unpartitioned table, the HiveTableUnit will be the whole table
  */
 public class HiveTablePartition {
-    public StorageDescriptor storageDesc;
-    public Properties properties;
-    public Partition partition;
-    public List<FieldSchema> partitionKeys;
-    public String tableName;
+    public final StorageDescriptor storageDesc;
+    public final Properties properties;
+    public final Partition partition;
+    public final List<FieldSchema> partitionKeys;
+    public final String tableName;
 
     HiveTablePartition(StorageDescriptor storageDesc,
                        Properties properties, Partition partition,

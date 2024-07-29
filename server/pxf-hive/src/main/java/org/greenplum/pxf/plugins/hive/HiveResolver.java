@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.hive;
  * under the License.
  */
 
+import lombok.Getter;
 import org.apache.commons.lang.CharUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -100,8 +101,9 @@ public class HiveResolver extends BasePlugin implements Resolver {
     protected String serdeClassName;
     protected List<Integer> hiveIndexes;
     protected HiveMetadata metadata;
-    protected HiveUtilities hiveUtilities;
+    protected final HiveUtilities hiveUtilities;
 
+    @Getter
     private int numberOfPartitions;
     private Map<String, OneField> partitionColumnNames;
     private String hiveDefaultPartName;
@@ -153,10 +155,6 @@ public class HiveResolver extends BasePlugin implements Resolver {
         throw new UnsupportedOperationException("Hive resolver does not support write operation.");
     }
 
-    public int getNumberOfPartitions() {
-        return numberOfPartitions;
-    }
-
     /* Parses user data string (received from fragmenter). */
     void parseUserData(RequestContext context) {
         // HiveMetadata is passed from accessor
@@ -192,7 +190,7 @@ public class HiveResolver extends BasePlugin implements Resolver {
         partitionColumnNames = new HashMap<>();
 
         List<HivePartition> hivePartitionList = metadata.getPartitions();
-        if (hivePartitionList == null || hivePartitionList.size() == 0) {
+        if (hivePartitionList == null || hivePartitionList.isEmpty()) {
             // no partition column information
             return;
         }
@@ -292,7 +290,7 @@ public class HiveResolver extends BasePlugin implements Resolver {
      */
     void initTextPartitionFields(StringBuilder parts) {
         List<HivePartition> hivePartitionList = metadata.getPartitions();
-        if (hivePartitionList == null || hivePartitionList.size() == 0) {
+        if (hivePartitionList == null || hivePartitionList.isEmpty()) {
             return;
         }
         for (HivePartition partition : hivePartitionList) {

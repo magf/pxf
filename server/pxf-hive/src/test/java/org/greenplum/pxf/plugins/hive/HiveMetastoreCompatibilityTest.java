@@ -40,7 +40,7 @@ public class HiveMetastoreCompatibilityTest {
     private Map<String, String> hiveTableParameters;
 
     @BeforeEach
-    public void setup() throws MetaException {
+    public void setup() {
         mockThriftClient = mock(ThriftHiveMetastore.Client.class);
         hiveClientFactory = new HiveClientWrapper.HiveClientFactory();
         hiveClientWrapper = new HiveClientWrapper();
@@ -232,8 +232,7 @@ public class HiveMetastoreCompatibilityTest {
                      // second run through (retry 1 = success)
                      invocation ->  {
                          if (invocation.getMethod().getName().equals("get_table_req")) {
-                             GetTableResult tempRes = new GetTableResult(hiveTable);
-                             return tempRes;
+                             return new GetTableResult(hiveTable);
                          }
                          return null;
                      }

@@ -40,10 +40,10 @@ import java.io.IOException;
  * valid for the actual InputFormats, since all of them we use inherit
  * FileInputFormat but do not override getSplits.
  */
-public class PxfInputFormat extends FileInputFormat {
+public class PxfInputFormat<K, V> extends FileInputFormat<K, V> {
 
     @Override
-    public RecordReader getRecordReader(InputSplit split,
+    public RecordReader<K, V> getRecordReader(InputSplit split,
                                         JobConf conf,
                                         Reporter reporter) {
         throw new UnsupportedOperationException("PxfInputFormat should not be used for reading data, but only for obtaining the splits of a file");

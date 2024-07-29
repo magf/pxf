@@ -19,6 +19,7 @@ package org.greenplum.pxf.api.io;
  * under the License.
  */
 
+import lombok.Getter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -28,12 +29,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.MalformedInputException;
+import java.nio.charset.*;
 import java.util.Arrays;
 
 /**
@@ -52,23 +48,16 @@ public class Text implements Writable {
     private static final int EOF = -1;
 
     private static final byte[] EMPTY_BYTES = new byte[0];
-    private static ThreadLocal<CharsetEncoder> ENCODER_FACTORY = new ThreadLocal<CharsetEncoder>() {
-        @Override
-        protected CharsetEncoder initialValue() {
-            return Charset.forName("UTF-8").newEncoder().onMalformedInput(
-                    CodingErrorAction.REPORT).onUnmappableCharacter(
-                    CodingErrorAction.REPORT);
-        }
-    };
-    private static ThreadLocal<CharsetDecoder> DECODER_FACTORY = new ThreadLocal<CharsetDecoder>() {
-        @Override
-        protected CharsetDecoder initialValue() {
-            return Charset.forName("UTF-8").newDecoder().onMalformedInput(
-                    CodingErrorAction.REPORT).onUnmappableCharacter(
-                    CodingErrorAction.REPORT);
-        }
-    };
+    private static final ThreadLocal<CharsetEncoder> ENCODER_FACTORY = ThreadLocal.withInitial(
+            () -> StandardCharsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT));
+    private static final ThreadLocal<CharsetDecoder> DECODER_FACTORY = ThreadLocal.withInitial(
+            () -> StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT));
+
+    @Getter
     private byte[] bytes;
+    @Getter
     private int length;
 
     public Text() {
@@ -119,7 +108,7 @@ public class Text implements Writable {
             i = i << 8;
             i = i | (b & 0xFF);
         }
-        return (isNegativeVInt(firstByte) ? (i ^ -1L) : i);
+        return (isNegativeVInt(firstByte) ? ~i : i);
     }
 
     public static int decodeVIntSize(byte value) {
@@ -142,13 +131,13 @@ public class Text implements Writable {
      * substitution character, which is U+FFFD. Otherwise the method throws a
      * MalformedInputException.
      *
-     * @param utf8 UTF-8 encoded byte array
-     * @param start start point
-     * @param length length of array
+     * @param utf8    UTF-8 encoded byte array
+     * @param start   start point
+     * @param length  length of array
      * @param replace whether to replace malformed input with substitution
-     *            character
+     *                character
      * @return decoded string
-     * @throws MalformedInputException if a malformed input is used
+     * @throws MalformedInputException  if a malformed input is used
      * @throws CharacterCodingException if the conversion failed
      */
     public static String decode(byte[] utf8, int start, int length,
@@ -179,7 +168,7 @@ public class Text implements Writable {
      *
      * @param string string to encode
      * @return ByteBuffer: bytes stores at ByteBuffer.array() and length is
-     *         ByteBuffer.limit()
+     * ByteBuffer.limit()
      * @throws CharacterCodingException if conversion failed
      */
     public static ByteBuffer encode(String string)
@@ -193,12 +182,12 @@ public class Text implements Writable {
      * substitution character, which is U+FFFD. Otherwise the method throws a
      * MalformedInputException.
      *
-     * @param string string to encode
+     * @param string  string to encode
      * @param replace whether to replace malformed input with substitution
-     *            character
+     *                character
      * @return ByteBuffer: bytes stores at ByteBuffer.array() and length is
-     *         ByteBuffer.limit()
-     * @throws MalformedInputException if a malformed input is used
+     * ByteBuffer.limit()
+     * @throws MalformedInputException  if a malformed input is used
      * @throws CharacterCodingException if the conversion failed
      */
     public static ByteBuffer encode(String string, boolean replace)
@@ -217,25 +206,6 @@ public class Text implements Writable {
     }
 
     /**
-     * Returns the raw bytes; however, only data up to {@link #getLength()} is
-     * valid.
-     *
-     * @return raw bytes of byte array
-     */
-    public byte[] getBytes() {
-        return bytes;
-    }
-
-    /**
-     * Returns the number of bytes in the byte array
-     *
-     * @return number of bytes in byte array
-     */
-    public int getLength() {
-        return length;
-    }
-
-    /**
      * Sets to contain the contents of a string.
      *
      * @param string input string
@@ -246,8 +216,7 @@ public class Text implements Writable {
             bytes = bb.array();
             length = bb.limit();
         } catch (CharacterCodingException e) {
-            throw new RuntimeException("Should not have happened "
-                    + e.toString());
+            throw new RuntimeException("Should not have happened " + e.getMessage());
         }
     }
 
@@ -272,9 +241,9 @@ public class Text implements Writable {
     /**
      * Sets the Text to range of bytes.
      *
-     * @param utf8 the data to copy from
+     * @param utf8  the data to copy from
      * @param start the first position of the new string
-     * @param len the number of bytes of the new string
+     * @param len   the number of bytes of the new string
      */
     public void set(byte[] utf8, int start, int len) {
         setCapacity(len, false);
@@ -285,9 +254,9 @@ public class Text implements Writable {
     /**
      * Appends a range of bytes to the end of the given text.
      *
-     * @param utf8 the data to copy from
+     * @param utf8  the data to copy from
      * @param start the first position to append from utf8
-     * @param len the number of bytes to append
+     * @param len   the number of bytes to append
      */
     public void append(byte[] utf8, int start, int len) {
         setCapacity(length + len, true);
@@ -333,8 +302,7 @@ public class Text implements Writable {
         try {
             return decode(bytes, 0, length);
         } catch (CharacterCodingException e) {
-            throw new RuntimeException("Should not have happened "
-                    + e.toString());
+            throw new RuntimeException("Should not have happened " + e.getMessage());
         }
     }
 

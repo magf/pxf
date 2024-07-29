@@ -1,7 +1,5 @@
 package org.greenplum.pxf.automation.utils.json;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.greenplum.pxf.automation.structures.data.MetaTableData;
 import org.greenplum.pxf.automation.structures.data.MetaTableDataCollection;
@@ -18,13 +16,12 @@ import java.util.List;
  */
 public class JsonUtils {
 
-	public static List<Table> getTablesDataFromFile(String filename)
-			throws JsonParseException, JsonMappingException, IOException {
+	public static List<Table> getTablesDataFromFile(String filename) throws IOException {
 
 		// Initialize the collection of table/data meta info from JSON format file.
 		MetaTableDataCollection mtdCollection = new ObjectMapper().readValue(new File(filename), MetaTableDataCollection.class);
 
-		List<Table> lst = new ArrayList<Table>();
+		List<Table> lst = new ArrayList<>();
 		for (MetaTableData mtd : mtdCollection.get("tables")) {
 			lst.add(new Table(mtd.getTableName(), mtd.generateTableColumnsFields(), mtd.getDataPattern()));
 		}

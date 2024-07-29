@@ -15,7 +15,7 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
 public class WritableDataPreparer implements IDataPreparer {
 
 	@Override
-	public Object[] prepareData(int rows, Table dataTable) throws Exception {
+	public Object[] prepareData(int rows, Table dataTable) {
 		int timeZoneOffset = TimeZone.getDefault().getRawOffset();
 		for (int i = 0; i < rows; i++) {
 			dataTable.addRow(new String[] {

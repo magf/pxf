@@ -64,12 +64,11 @@ public void readFields(DataInput paramDataInput)
 
   public void printFieldTypes()
   {
-    Class localClass = getClass();
+    Class<?> localClass = getClass();
     Field[] arrayOfField = localClass.getDeclaredFields();
 
-    for (int i = 0; i < arrayOfField.length; i++)
-    {
-      System.out.println(arrayOfField[i].getType().getName());
-    }
+      for (Field field : arrayOfField) {
+          System.out.println(field.getType().getName());
+      }
   }
 }

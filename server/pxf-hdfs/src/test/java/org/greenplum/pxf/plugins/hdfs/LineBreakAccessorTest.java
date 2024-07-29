@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -273,8 +274,8 @@ public class LineBreakAccessorTest {
     }
 
     private void prepareTest(String resourceName) throws IOException, URISyntaxException {
-        String filepath = this.getClass().getClassLoader()
-                .getResource(resourceName).toURI().toString();
+        String filepath = Objects.requireNonNull(this.getClass().getClassLoader()
+                .getResource(resourceName)).toURI().toString();
         Path path = new Path(filepath);
         long length = path.getFileSystem(new Configuration()).getContentSummary(path).getLength();
 

@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 public class BufferWritableTest {
 
     @Test
-    public void append() throws Exception {
+    public void append() {
         String data1 = "פרק ראשון ובו יסופר יסופר";
         String data2 = "פרק שני ובו יסופר יסופר";
 

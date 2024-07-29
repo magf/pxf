@@ -12,11 +12,11 @@ public abstract class SutUtils {
 	/**
 	 * Gets value from SUT file
 	 * 
-	 * @param sut
-	 * @param xpath
+	 * @param sut - the tag with cluster description
+	 * @param xpath - the xpath
 	 * @return value from given xpath in given sut file 
-	 * @throws DOMException
-	 * @throws Exception
+	 * @throws DOMException if an error occurs
+	 * @throws Exception if an error occurs
 	 */
 	public static String getValue(Sut sut, String xpath) throws DOMException,
 			Exception {

@@ -31,7 +31,7 @@ public class HdfsFileFragmenter extends HdfsDataFragmenter {
         String fileName = hcfsType.getDataUri(context);
         Path path = new Path(fileName);
 
-        PxfInputFormat pxfInputFormat = new PxfInputFormat();
+        PxfInputFormat<?, ?> pxfInputFormat = new PxfInputFormat<>();
         PxfInputFormat.setInputPaths(jobConf, path);
 
         FileStatus[] fileStatusArray;

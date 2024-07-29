@@ -14,12 +14,12 @@ import org.greenplum.pxf.api.model.BasePlugin;
  */
 public class FilterPrinterAccessor extends BasePlugin implements Accessor
 {
-    static private Log Log = LogFactory.getLog(FilterPrinterAccessor.class);
+    static private final Log Log = LogFactory.getLog(FilterPrinterAccessor.class);
 
     /*
      * exception for exposing the filter to the world
      */
-    class FilterPrinterException extends Exception {
+    static class FilterPrinterException extends Exception {
         FilterPrinterException(String filter) {
             super("Filter string: '" + filter + "'");
         }

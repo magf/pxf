@@ -46,7 +46,7 @@ public class ColumnDescriptorTest {
         //Cloned instance should have reference to different array
         assertFalse(clonned.columnTypeModifiers() == cd.columnTypeModifiers());
 
-        cd = new ColumnDescriptor(null, 0, 0, null, null);
+        new ColumnDescriptor(null, 0, 0, null, null);
     }
 
 }

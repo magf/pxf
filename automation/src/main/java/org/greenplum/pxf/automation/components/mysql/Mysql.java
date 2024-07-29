@@ -43,7 +43,7 @@ public class Mysql extends DbSystemObject {
     }
 
     @Override
-    public void createDataBase(String schemaName, boolean ignoreFail, String encoding, String localeCollate, String localeCollateType) throws Exception {
+    public void createDataBase(String schemaName, boolean ignoreFail, String encoding, String localeCollate, String localeCollateType) {
     }
 
     public Object getValueFromQuery(String query, int index, Class<?> clazz) throws Exception {

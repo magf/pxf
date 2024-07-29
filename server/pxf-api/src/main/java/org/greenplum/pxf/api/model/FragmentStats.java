@@ -19,35 +19,24 @@ package org.greenplum.pxf.api.model;
  * under the License.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 
 import java.io.IOException;
 
 /**
  * FragmentStats holds statistics for a given path.
  */
+@Getter
 public class FragmentStats {
-
     /**
      * Default fragment size. Assuming a fragment is equivalent to a block in
      * HDFS, we guess a full fragment size is 64MB.
      */
     public static final long DEFAULT_FRAGMENT_SIZE = 67108864L;
-
-    private static final Log LOG = LogFactory.getLog(FragmentStats.class);
-
-    // number of fragments
     private long fragmentsNumber;
-    // first fragment size
     private SizeAndUnit firstFragmentSize;
-    // total fragments size
     private SizeAndUnit totalSize;
-
-    /**
-     * Enum to represent unit (Bytes/KB/MB/GB/TB)
-     */
     public enum SizeUnit {
         /**
          * Byte
@@ -68,13 +57,14 @@ public class FragmentStats {
         /**
          * TB
          */
-        TB;
-    };
+        TB
+    }
 
     /**
      * Container for size and unit
      */
-    public class SizeAndUnit {
+    @Getter
+    public static class SizeAndUnit {
         long size;
         SizeUnit unit;
 
@@ -84,24 +74,6 @@ public class FragmentStats {
         public SizeAndUnit() {
             this.size = 0;
             this.unit = SizeUnit.B;
-        }
-
-        /**
-         * Returns size.
-         *
-         * @return size
-         */
-        public long getSize() {
-            return this.size;
-        }
-
-        /**
-         * Returns unit (Byte/KB/MB/etc.).
-         *
-         * @return unit
-         */
-        public SizeUnit getUnit() {
-            return this.unit;
         }
 
         @Override
@@ -156,40 +128,12 @@ public class FragmentStats {
                 + ", total size: " + stats.totalSize;
     }
 
-    /**
-     * Returns number of fragments for a given data source.
-     *
-     * @return number of fragments
-     */
-    public long getFragmentsNumber() {
-        return fragmentsNumber;
-    }
-
     private void setFragmentsNumber(long fragmentsNumber) {
         this.fragmentsNumber = fragmentsNumber;
     }
 
-    /**
-     * Returns the size in bytes of the first fragment.
-     *
-     * @return first fragment size (in byte)
-     */
-    public SizeAndUnit getFirstFragmentSize() {
-        return firstFragmentSize;
-    }
-
     private void setFirstFragmentSize(long firstFragmentSize) {
         this.firstFragmentSize = setSizeAndUnit(firstFragmentSize);
-    }
-
-    /**
-     * Returns the total size of a given source. Usually it means the
-     * aggregation of all its fragments size.
-     *
-     * @return total size
-     */
-    public SizeAndUnit getTotalSize() {
-        return totalSize;
     }
 
     private void setTotalSize(long totalSize) {

@@ -56,8 +56,7 @@ public class WriteServiceImplTest {
         when(mockConfigurationFactory.initConfiguration(any(), any(), any(), any())).thenReturn(mockConfiguration);
         when(mockSecurityService.doAs(same(mockContext), any())).thenAnswer(invocation -> {
             PrivilegedAction<OperationResult> action = invocation.getArgument(1);
-            OperationResult result = action.run();
-            return result;
+            return action.run();
         });
         when(mockBridgeFactory.getBridge(mockContext)).thenReturn(mockBridge);
 

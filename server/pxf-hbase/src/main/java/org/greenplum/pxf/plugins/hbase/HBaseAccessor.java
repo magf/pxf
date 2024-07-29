@@ -35,7 +35,6 @@ import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.filter.FilterParser;
 import org.greenplum.pxf.api.filter.Node;
 import org.greenplum.pxf.api.filter.Operator;
-import org.greenplum.pxf.api.filter.SupportedOperatorPruner;
 import org.greenplum.pxf.api.filter.TreeTraverser;
 import org.greenplum.pxf.api.filter.TreeVisitor;
 import org.greenplum.pxf.api.io.DataType;
@@ -46,7 +45,6 @@ import org.greenplum.pxf.plugins.hbase.utilities.HBaseColumnDescriptor;
 import org.greenplum.pxf.plugins.hbase.utilities.HBaseTupleDescription;
 import org.greenplum.pxf.plugins.hbase.utilities.HBaseUtilities;
 
-import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.util.EnumSet;
 
@@ -105,8 +103,8 @@ public class HBaseAccessor extends BasePlugin implements Accessor {
      * i.e. a start key and an end key
      */
     private static class SplitBoundary {
-        protected byte[] startKey;
-        protected byte[] endKey;
+        protected final byte[] startKey;
+        protected final byte[] endKey;
 
         SplitBoundary(byte[] first, byte[] second) {
             startKey = first;

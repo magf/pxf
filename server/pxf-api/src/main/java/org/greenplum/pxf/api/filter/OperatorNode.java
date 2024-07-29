@@ -1,10 +1,12 @@
 package org.greenplum.pxf.api.filter;
 
+import lombok.Getter;
+
 /**
  * OperatorNode node (i.e. AND, OR, =, etc.)
  */
+@Getter
 public class OperatorNode extends Node {
-
     private final Operator operator;
 
     /**
@@ -27,15 +29,6 @@ public class OperatorNode extends Node {
     public OperatorNode(Operator operator, Node leftOperand, Node rightOperand) {
         super(leftOperand, rightOperand);
         this.operator = operator;
-    }
-
-    /**
-     * Returns the operator
-     *
-     * @return the operator
-     */
-    public Operator getOperator() {
-        return operator;
     }
 
     /**

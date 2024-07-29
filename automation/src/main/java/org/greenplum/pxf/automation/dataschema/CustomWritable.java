@@ -130,8 +130,8 @@ public class CustomWritable implements Writable {
         // 5. Init longs
         initLongsArray();
         for (int i = 0; i < lngs.length; i++)
-            lngs[i] = i1 * 10 * (i + 3);
-        lng = i1 * 10 + 5;
+            lngs[i] = i1 * 10L * (i + 3);
+        lng = i1 * 10L + 5;
 
         // 6. Init booleans
         initBoolsArray();
@@ -254,8 +254,8 @@ public class CustomWritable implements Writable {
         // 1. num, int1, int2
         IntWritable intw = new IntWritable();
 
-        for (int i = 0; i < num.length; i++) {
-            intw.set(num[i]);
+        for (int j : num) {
+            intw.set(j);
             intw.write(out);
         }
 
@@ -268,8 +268,8 @@ public class CustomWritable implements Writable {
         // 2. st1
         Text txt = new Text();
 
-        for (int i = 0; i < strings.length; i++) {
-            txt.set(strings[i]);
+        for (String string : strings) {
+            txt.set(string);
             txt.write(out);
         }
 
@@ -278,8 +278,8 @@ public class CustomWritable implements Writable {
 
         // 3. doubles
         DoubleWritable dw = new DoubleWritable();
-        for (int i = 0; i < dubs.length; i++) {
-            dw.set(dubs[i]);
+        for (double dub : dubs) {
+            dw.set(dub);
             dw.write(out);
         }
 
@@ -288,8 +288,8 @@ public class CustomWritable implements Writable {
 
         // 4. floats
         FloatWritable fw = new FloatWritable();
-        for (int i = 0; i < fts.length; i++) {
-            fw.set(fts[i]);
+        for (float v : fts) {
+            fw.set(v);
             fw.write(out);
         }
 
@@ -298,8 +298,8 @@ public class CustomWritable implements Writable {
 
         // 5. longs
         LongWritable lw = new LongWritable();
-        for (int i = 0; i < lngs.length; i++) {
-            lw.set(lngs[i]);
+        for (long l : lngs) {
+            lw.set(l);
             lw.write(out);
         }
         lw.set(lng);
@@ -307,8 +307,8 @@ public class CustomWritable implements Writable {
 
         // 6. booleans
         BooleanWritable bw = new BooleanWritable();
-        for (int i = 0; i < bools.length; ++i) {
-            bw.set(bools[i]);
+        for (boolean b : bools) {
+            bw.set(b);
             bw.write(out);
         }
         bw.set(bool);
@@ -316,16 +316,14 @@ public class CustomWritable implements Writable {
 
         // 7. shorts
         ShortWritable sw = new ShortWritable();
-        for (int i = 0; i < shrts.length; ++i) {
-            sw.set(shrts[i]);
+        for (short value : shrts) {
+            sw.set(value);
             sw.write(out);
         }
         sw.set(shrt);
         sw.write(out);
 
         // 8. bytes
-        // BytesWritable btsw = new BytesWritable(bts);
-        // btsw.write(out);
         BytesWritable btsw = new BytesWritable();
         btsw.setCapacity(bts.length);
         btsw.setSize(bts.length);
@@ -419,17 +417,15 @@ public class CustomWritable implements Writable {
         btsw.readFields(in);
         byte[] buffer = btsw.getBytes();
         bts = new byte[btsw.getLength()];
-        for (int i = 0; i < btsw.getLength(); i++) {
-            bts[i] = buffer[i];
-        }
+        if (btsw.getLength() >= 0) System.arraycopy(buffer, 0, bts, 0, btsw.getLength());
     }
 
     public void printFieldTypes() {
-        Class myClass = this.getClass();
+        Class<? extends CustomWritable> myClass = this.getClass();
         Field[] fields = myClass.getDeclaredFields();
 
-        for (int i = 0; i < fields.length; i++) {
-            System.out.println(fields[i].getType().getName());
+        for (Field field : fields) {
+            System.out.println(field.getType().getName());
         }
     }
 }

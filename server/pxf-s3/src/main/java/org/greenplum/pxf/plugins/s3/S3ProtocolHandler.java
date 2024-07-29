@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static org.greenplum.pxf.plugins.s3.S3SelectAccessor.FILE_HEADER_INFO_IGNORE;
 import static org.greenplum.pxf.plugins.s3.S3SelectAccessor.FILE_HEADER_INFO_USE;
 

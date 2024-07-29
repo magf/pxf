@@ -38,11 +38,6 @@ public class GSSFailureHandlerTest {
         configuration = new Configuration(); // using real configuration instead of mock
     }
 
-//    @Test
-//    public void testGetInstance() {
-//        assertSame(handler, GSSFailureHandler.getInstance());
-//    }
-
     // ---------- NON-SECURE TESTS ----------
     @Test
     public void testNonSecureSuccess() throws Exception {
@@ -109,7 +104,7 @@ public class GSSFailureHandlerTest {
     }
 
     @Test
-    public void testSecureGSSExceptionFailureNegativeCustomRetries() throws Exception {
+    public void testSecureGSSExceptionFailureNegativeCustomRetries() {
         expectSecure();
         configuration.set("pxf.sasl.connection.retries", "-1");
 

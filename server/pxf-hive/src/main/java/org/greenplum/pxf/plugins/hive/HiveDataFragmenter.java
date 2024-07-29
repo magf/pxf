@@ -308,7 +308,7 @@ public class HiveDataFragmenter extends HdfsDataFragmenter {
         try {
             splits = fformat.getSplits(jobConf, 1);
         } catch (org.apache.hadoop.mapred.InvalidInputException e) {
-            LOG.debug("getSplits failed on " + e.getMessage());
+            LOG.debug("getSplits failed on {}", e.getMessage());
             return;
         }
 

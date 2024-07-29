@@ -20,6 +20,7 @@ package org.greenplum.pxf.plugins.hdfs;
  */
 
 
+import lombok.Getter;
 import org.apache.hadoop.fs.CreateFlag;
 import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.FileSystem;
@@ -48,7 +49,9 @@ public class SequenceFileAccessor extends HdfsSplittableDataAccessor {
 
     private FileContext fc;
     private Path file;
+    @Getter
     private CompressionCodec codec;
+    @Getter
     private CompressionType compressionType;
     private SequenceFile.Writer writer;
     private LongWritable defaultKey; // used when recordkey is not defined
@@ -199,13 +202,5 @@ public class SequenceFileAccessor extends HdfsSplittableDataAccessor {
             writer.hsync();
             writer.close();
         }
-    }
-
-    public CompressionType getCompressionType() {
-        return compressionType;
-    }
-
-    public CompressionCodec getCodec() {
-        return codec;
     }
 }

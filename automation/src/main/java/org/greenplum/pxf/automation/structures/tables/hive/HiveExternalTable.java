@@ -5,7 +5,7 @@ package org.greenplum.pxf.automation.structures.tables.hive;
  */
 public class HiveExternalTable extends HiveTable {
 
-	private String location;
+	private final String location;
 
 	public HiveExternalTable(String name, String[] fields) {
 		this(name, fields, null);

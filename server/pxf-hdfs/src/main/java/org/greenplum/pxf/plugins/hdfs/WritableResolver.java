@@ -50,7 +50,7 @@ import java.util.List;
 public class WritableResolver extends BasePlugin implements Resolver {
     private static final int RECORDKEY_UNDEFINED = -1;
     private static final Log LOG = LogFactory.getLog(WritableResolver.class);
-    private RecordkeyAdapter recordkeyAdapter = new RecordkeyAdapter();
+    private final RecordkeyAdapter recordkeyAdapter = new RecordkeyAdapter();
     private int recordkeyIndex;
     // reflection fields
     private Object userObject;

@@ -22,6 +22,7 @@ package org.greenplum.pxf.plugins.json;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import lombok.Getter;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 
@@ -30,16 +31,17 @@ import org.greenplum.pxf.api.utilities.ColumnDescriptor;
  */
 public class ColumnDescriptorCache {
 
-	private static Pattern ARRAY_PROJECTION_PATTERN = Pattern.compile("(.+)\\[([0-9]+)\\]");
-	private static int ARRAY_NAME_GROUPID = 1;
-	private static int ARRAY_INDEX_GROUPID = 2;
-
-	private final DataType columnType;
+	private static final Pattern ARRAY_PROJECTION_PATTERN = Pattern.compile("(.+)\\[([0-9]+)\\]");
+	private static final int ARRAY_NAME_GROUPID = 1;
+	private static final int ARRAY_INDEX_GROUPID = 2;
+    @Getter
+    private final DataType columnType;
 	private final String[] normalizedProjection;
-	private final String arrayNodeName;
-	private final int arrayNodeIndex;
+    @Getter
+    private final int arrayNodeIndex;
 	private final boolean isArray;
-	private String columnName;
+    @Getter
+    private final String columnName;
 
 	public ColumnDescriptorCache(ColumnDescriptor columnDescriptor) {
 
@@ -61,36 +63,21 @@ public class ColumnDescriptorCache {
 		if (matcher.matches()) {
 			this.isArray = true;
 			// extracts the array node name from the projection path
-			this.arrayNodeName = matcher.group(ARRAY_NAME_GROUPID);
+			String arrayNodeName = matcher.group(ARRAY_NAME_GROUPID);
 			// extracts the array index from the projection path
 			this.arrayNodeIndex = Integer.parseInt(matcher.group(ARRAY_INDEX_GROUPID));
 
 			System.arraycopy(projection, 0, normalizedProjection, 0, projection.length - 1);
-			normalizedProjection[projection.length - 1] = this.arrayNodeName;
+			normalizedProjection[projection.length - 1] = arrayNodeName;
 		} else {
 			this.isArray = false;
-			this.arrayNodeName = null;
 			this.arrayNodeIndex = -1;
 
 			System.arraycopy(projection, 0, normalizedProjection, 0, projection.length);
 		}
 	}
 
-	/**
-	 * @return Column's type
-	 */
-	public DataType getColumnType() {
-		return columnType;
-	}
-
-	/**
-	 * @return Returns the column name as defined in the GPDB table.
-	 */
-	public String getColumnName() {
-		return columnName;
-	}
-
-	/**
+    /**
 	 * If the column name contains dots (.) then this name is interpreted as path into the target json document pointing
 	 * to nested json member. The leftmost path element stands for the root in the json document.
 	 * 
@@ -101,16 +88,7 @@ public class ColumnDescriptorCache {
 		return normalizedProjection;
 	}
 
-	/**
-	 * The 'jsonName[index]' column name conventions is used to point to a particular json array element.
-	 * 
-	 * @return Returns the json index of the referred array element.
-	 */
-	public int getArrayNodeIndex() {
-		return arrayNodeIndex;
-	}
-
-	/**
+    /**
 	 * @return Returns true if the column name is a path to json array element and false otherwise.
 	 */
 	public boolean isArray() {
