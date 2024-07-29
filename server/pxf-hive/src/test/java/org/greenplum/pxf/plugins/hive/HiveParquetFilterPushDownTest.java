@@ -578,47 +578,7 @@ public class HiveParquetFilterPushDownTest {
         assertRowsReturned(ALL);
     }
 
-    @Test
-    @Ignore
-    public void testByteAFilter() throws Exception {
-        // bin = '1'
-        int[] expectedRows = {1, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
-        context.setFilterString("a8c25s1d1o5");
-        assertRowsReturned(expectedRows);
 
-        // bin < '1'
-        expectedRows = new int[]{10};
-        context.setFilterString("a8c25s1d1o1");
-        assertRowsReturned(expectedRows);
-
-        // bin > '1'
-        expectedRows = new int[]{2, 3, 4, 5, 6, 7, 8, 9};
-        context.setFilterString("a8c25s1d1o2");
-        assertRowsReturned(expectedRows);
-
-        // bin <= '1'
-        expectedRows = new int[]{1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
-        context.setFilterString("a8c25s1d1o3");
-        assertRowsReturned(expectedRows);
-
-        // bin >= '1'
-        expectedRows = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
-        context.setFilterString("a8c25s1d1o4");
-        assertRowsReturned(expectedRows);
-
-        // bin <> '1'
-        expectedRows = new int[]{2, 3, 4, 5, 6, 7, 8, 9, 10, 25};
-        context.setFilterString("a8c25s1d1o6");
-        assertRowsReturned(expectedRows);
-
-        // bin IS NULL -- not supported in HIVE Parquet PPD
-        context.setFilterString("a8o8");
-        assertRowsReturned(ALL);
-
-        // bin IS NOT NULL -- not supported in HIVE Parquet PPD
-        context.setFilterString("a8o9");
-        assertRowsReturned(ALL);
-    }
 
     @Test
     public void testUnsupportedDateAndAmtFilter() throws Exception {
