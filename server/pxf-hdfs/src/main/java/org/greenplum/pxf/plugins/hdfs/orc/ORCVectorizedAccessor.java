@@ -53,8 +53,8 @@ public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
                     DataType.BOOLEAN,
                     DataType.DATE,
                     DataType.TIMESTAMP,
-                    DataType.TIME,
-                    DataType.BYTEA
+                    DataType.TIME
+                    //DataType.BYTEA
             );
 
     public static final EnumSet<Operator> SUPPORTED_OPERATORS =
