@@ -269,6 +269,8 @@ public class SearchArgumentBuilder implements TreeVisitor {
             // to avoid change in precision when upcasting float to double
             // we convert the literal to string and parse it as double. (HIVE-8460)
             return Double.parseDouble(literal.toString());
+        } else if (literal instanceof byte[]) {
+            return new String((byte[]) literal);
         } else {
             throw new IllegalArgumentException("Unknown type for literal " +
                     literal);

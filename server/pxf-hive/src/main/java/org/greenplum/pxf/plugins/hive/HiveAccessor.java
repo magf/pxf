@@ -176,8 +176,8 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
                     DataType.BOOLEAN,
                     DataType.DATE,
                     DataType.TIMESTAMP,
-                    DataType.TIME,
-                    DataType.BYTEA
+                    DataType.TIME
+                    //DataType.BYTEA
             );
 
     private static final TreeTraverser TRAVERSER = new TreeTraverser();

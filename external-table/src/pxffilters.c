@@ -30,6 +30,7 @@
 #include "utils/builtins.h"
 #include "utils/guc.h"
 #include "utils/lsyscache.h"
+#include "utils/typcache.h"
 
 static List *pxf_make_expression_items_list(List *quals, Node *parent);
 static void pxf_free_filter(PxfFilterDesc * filter);
@@ -41,10 +42,11 @@ static bool supported_filter_type(Oid type);
 static bool supported_operator_type_op_expr(Oid type, PxfFilterDesc * filter);
 static bool supported_operator_type_scalar_array_op_expr(Oid type, PxfFilterDesc * filter, bool useOr);
 static void scalar_const_to_str(Const *constval, StringInfo buf);
-static void list_const_to_str(Const *constval, StringInfo buf);
+static void list_const_to_str(Const *constval, StringInfo buf, bool with_nulls);
 static List *append_attr_from_var(Var *var, List *attrs);
 static void add_extra_and_expression_items(List *expressionItems, int extraAndOperatorsNum);
 static List *get_attrs_from_expr(Expr *expr, bool *expressionIsSupported);
+static bool supported_array_type(Oid type);
 
 /*
  * All supported operators and their PXF operator codes.
@@ -86,6 +88,7 @@ dbop_pxfop_map pxf_supported_opr_op_expr[] =
 	{667 /* text_ge */ , PXFOP_GE},
 	{531 /* textlt	*/ , PXFOP_NE},
 	{1209 /* textlike  */ , PXFOP_LIKE},
+	{1210 /* textnlike  */ , PXFOP_NOTLIKE},
 
 	/* int2 to int4 */
 	{Int24EqualOperator /* int24eq */ , PXFOP_EQ},
@@ -167,6 +170,22 @@ dbop_pxfop_map pxf_supported_opr_op_expr[] =
 	{1125 /* float48ge */ , PXFOP_GE},
 	{1121 /* float48ne */ , PXFOP_NE},
 
+	/* float84 */
+	{1130 /* float84eq */ , PXFOP_EQ},
+	{1132 /* float84lt */ , PXFOP_LT},
+	{1133 /* float84gt */ , PXFOP_GT},
+	{1134 /* float84le */ , PXFOP_LE},
+	{1135 /* float84ge */ , PXFOP_GE},
+	{1131 /* float84ne */ , PXFOP_NE},
+
+	/* float4 */
+	{Float4EqualOperator /* float4eq */ , PXFOP_EQ},
+	{622 /* float4lt */ , PXFOP_LT},
+	{623 /* float4gt */ , PXFOP_GT},
+	{624 /* float4le */ , PXFOP_LE},
+	{625 /* float4ge */ , PXFOP_GE},
+	{621 /* float4ne */ , PXFOP_NE},
+
 	/* boolean */
 	{BooleanEqualOperator /* booleq */ , PXFOP_EQ},
 	{58 /* boollt */ , PXFOP_LT},
@@ -182,6 +201,8 @@ dbop_pxfop_map pxf_supported_opr_op_expr[] =
 	{1059 /* bpcharle */ , PXFOP_LE},
 	{1061 /* bpcharge */ , PXFOP_GE},
 	{1057 /* bpcharne */ , PXFOP_NE},
+	{1211 /* bpcharlike */ , PXFOP_LIKE},
+	{1212 /* bpcharnlike */ , PXFOP_NOTLIKE},
 
 	/* numeric */
 	{NumericEqualOperator /* numericeq */ , PXFOP_EQ},
@@ -190,6 +211,60 @@ dbop_pxfop_map pxf_supported_opr_op_expr[] =
 	{1755 /* numericle */ , PXFOP_LE},
 	{1757 /* numericge */ , PXFOP_GE},
 	{1753 /* numericne */ , PXFOP_NE},
+
+	/* generic array comparison operators */
+	{ARRAY_EQ_OP /* array_eq */, PXFOP_EQ},
+	{1071 /*array_ne */, PXFOP_NE},
+
+	/* bytea */
+	{ByteaEqualOperator /* byteaeq */ , PXFOP_EQ},
+	{1957 /* bytealt */ , PXFOP_LT},
+	{1959 /* byteagt */ , PXFOP_GT},
+	{1958 /* byteale */ , PXFOP_LE},
+	{1960 /* byteage */ , PXFOP_GE},
+	{1956 /* byteane */ , PXFOP_NE},
+	{2016 /* bytealike */ , PXFOP_LIKE},
+	{2017 /* byteanlike */ , PXFOP_NOTLIKE},
+
+	/* time */
+	{TimeEqualOperator /* time_eq */ , PXFOP_EQ},
+	{1110 /* time_lt */ , PXFOP_LT},
+	{1112 /* time_gt */ , PXFOP_GT},
+	{1111 /* time_le */ , PXFOP_LE},
+	{1113 /* time_ge */ , PXFOP_GE},
+	{1109 /* time_ne */ , PXFOP_NE},
+
+	/* timestamp with time zone */
+	{TimestampTZEqualOperator /* timestamptz_eq */ , PXFOP_EQ},
+	{1322 /* timestamptz_lt */ , PXFOP_LT},
+	{1324 /* timestamptz_gt */ , PXFOP_GT},
+	{1323 /* timestamptz_le */ , PXFOP_LE},
+	{1325 /* timestamptz_ge */ , PXFOP_GE},
+	{1321 /* timestamptz_ne */ , PXFOP_NE},
+
+	/* interval */
+	{IntervalEqualOperator /* interval_eq */ , PXFOP_EQ},
+	{1332 /* interval_lt */ , PXFOP_LT},
+	{1334 /* interval_gt */ , PXFOP_GT},
+	{1333 /* interval_le */ , PXFOP_LE},
+	{1335 /* interval_ge */ , PXFOP_GE},
+	{1331 /* interval_ne */ , PXFOP_NE},
+
+	/* uuid */
+	{2972 /* uuid_eq */ , PXFOP_EQ},
+	{2974 /* uuid_lt */ , PXFOP_LT},
+	{2975 /* uuid_gt */ , PXFOP_GT},
+	{2976 /* uuid_le */ , PXFOP_LE},
+	{2977 /* uuid_ge */ , PXFOP_GE},
+	{2973 /* uuid_ne */ , PXFOP_NE},
+
+	/* jsonb */
+	{3240 /* jsonb_eq */ , PXFOP_EQ},
+	{3242 /* jsonb_lt */ , PXFOP_LT},
+	{3243 /* jsonb_gt */ , PXFOP_GT},
+	{3244 /* jsonb_le */ , PXFOP_LE},
+	{3245 /* jsonb_ge */ , PXFOP_GE},
+	{3241 /* jsonb_ne */ , PXFOP_NE},
 };
 
 
@@ -197,50 +272,151 @@ dbop_pxfop_array_map pxf_supported_opr_scalar_array_op_expr[] =
 {
 	/* int2 */
 	{Int2EqualOperator /* int2eq */ , PXFOP_IN, true},
+	{519 /* int2ne */ , PXFOP_NOTIN, false},
 
 	/* int4 */
 	{Int4EqualOperator /* int4eq */ , PXFOP_IN, true},
+	{518 /* int4ne */ , PXFOP_NOTIN, false},
 
 	/* int8 */
 	{Int8EqualOperator /* int8eq */ , PXFOP_IN, true},
+	{411 /* int8ne */ , PXFOP_NOTIN, false},
 
 	/* text */
 	{TextEqualOperator /* texteq  */ , PXFOP_IN, true},
+	{531 /* textne */ , PXFOP_NOTIN, false},
 
 	/* int2 to int4 */
 	{Int24EqualOperator /* int24eq */ , PXFOP_IN, true},
+	{538 /* int24ne */ , PXFOP_NOTIN, false},
 
 	/* int4 to int2 */
 	{Int42EqualOperator /* int42eq */ , PXFOP_IN, true},
+	{539 /* int42ne */ , PXFOP_NOTIN, false},
 
 	/* int8 to int4 */
 	{Int84EqualOperator /* int84eq */ , PXFOP_IN, true},
+	{417 /* int84ne */ , PXFOP_NOTIN, false},
 
 	/* int4 to int8 */
 	{Int48EqualOperator /* int48eq */ , PXFOP_IN, true},
+	{36 /* int48ne */ , PXFOP_NOTIN, false},
 
 	/* int2 to int8 */
 	{Int28EqualOperator /* int28eq */ , PXFOP_IN, true},
+	{1863 /* int28ne */ , PXFOP_NOTIN, false},
 
 	/* int8 to int2 */
 	{Int82EqualOperator /* int82eq */ , PXFOP_IN, true},
+	{1869 /* int82ne */ , PXFOP_NOTIN, false},
 
 	/* date */
 	{DateEqualOperator /* date_eq */ , PXFOP_IN, true},
+	{1094 /* date_ne */ , PXFOP_NOTIN, false},
 
 	/* timestamp */
 	{TimestampEqualOperator /* timestamp_eq */ , PXFOP_IN, true},
+	{2061 /* date_ne */ , PXFOP_NOTIN, false},
 
 	/* float8 */
 	{Float8EqualOperator /* float8eq */ , PXFOP_IN, true},
+	{671 /* float8ne */ , PXFOP_NOTIN, false},
 
 	/* float48 */
 	{1120 /* float48eq */ , PXFOP_IN, true},
+	{1121 /* float48ne */ , PXFOP_NOTIN, false},
+
+	/* float84 */
+	{1130 /* float84eq */ , PXFOP_IN, true},
+	{1131 /* float84ne */ , PXFOP_NOTIN, false},
+
+	/* float4 */
+	{Float4EqualOperator /* float4eq */ , PXFOP_IN, true},
+	{621 /* float4ne */ , PXFOP_NOTIN, false},
 
 	/* bpchar */
 	{BPCharEqualOperator /* bpchareq */ , PXFOP_IN, true},
+	{1057 /* bpcharne */ , PXFOP_NOTIN, false},
+
+	{BooleanEqualOperator /* booleq */ , PXFOP_IN, true},
+	{85 /* boolne */ , PXFOP_NOTIN, false},
+
+	{ByteaEqualOperator /* byteaeq */ , PXFOP_IN, true},
+	{1956 /* byteane */ , PXFOP_NOTIN, false},
+
+	{TimeEqualOperator /* time_eq */ , PXFOP_IN, true},
+	{1109 /* time_ne */ , PXFOP_NOTIN, false},
+
+	{TimestampTZEqualOperator /* time_eq */ , PXFOP_IN, true},
+	{1321 /* timestamptz_ne */ , PXFOP_NOTIN, false},
+
+	{IntervalEqualOperator /* interval_eq */ , PXFOP_IN, true},
+	{1331 /* interval_ne */ , PXFOP_NOTIN, false},
+
+	{NumericEqualOperator /* numericeq */ , PXFOP_IN, true},
+	{1753 /* numericne */ , PXFOP_NOTIN, false},
+
+	{2972 /* uuid_eq */ , PXFOP_IN, true},
+	{2973 /* uuid_ne */ , PXFOP_NOTIN, false},
+
+	{3240 /* jsonb_eq */ , PXFOP_IN, true},
+	{3241 /* jsonb_ne */ , PXFOP_NOTIN, false},
 };
 
+/*
+ * In GPDB 6 the following array macros are not defined.
+ */
+#ifndef BOOLARRAYOID
+#define BOOLARRAYOID 1000
+#endif
+
+#ifndef BYTEAARRAYOID
+#define BYTEAARRAYOID 1001
+#endif
+
+#ifndef BPCHARARRAYOID
+#define BPCHARARRAYOID 1014
+#endif
+
+#ifndef VARCHARARRAYOID
+#define VARCHARARRAYOID 1015
+#endif
+
+#ifndef DATEARRAYOID
+#define DATEARRAYOID 1182
+#endif
+
+#ifndef TIMEARRAYOID
+#define TIMEARRAYOID 1183
+#endif
+
+#ifndef TIMESTAMPARRAYOID
+#define TIMESTAMPARRAYOID 1115
+#endif
+
+#ifndef TIMESTAMPTZARRAYOID
+#define TIMESTAMPTZARRAYOID 1185
+#endif
+
+#ifndef INTERVALARRAYOID
+#define INTERVALARRAYOID 1187
+#endif
+
+#ifndef NUMERICARRAYOID
+#define NUMERICARRAYOID 1231
+#endif
+
+#ifndef UUIDARRAYOID
+#define UUIDARRAYOID 2951
+#endif
+
+#ifndef JSONBARRAYOID
+#define JSONBARRAYOID 3807
+#endif
+
+#ifndef JSONARRAYOID
+#define JSONARRAYOID 199
+#endif
 
 Oid			pxf_supported_types[] =
 {
@@ -257,11 +433,56 @@ Oid			pxf_supported_types[] =
 	CHAROID,
 	DATEOID,
 	TIMESTAMPOID,
+	BYTEAOID,
+	TIMEOID,
+	TIMESTAMPTZOID,
+	INTERVALOID,
+	UUIDOID,
+	JSONBOID,
+	JSONOID,
 	/* complex datatypes */
 	INT2ARRAYOID,
 	INT4ARRAYOID,
 	INT8ARRAYOID,
-	TEXTARRAYOID
+	TEXTARRAYOID,
+	BOOLARRAYOID,
+	BYTEAARRAYOID,
+	FLOAT4ARRAYOID,
+	FLOAT8ARRAYOID,
+	BPCHARARRAYOID,
+	VARCHARARRAYOID,
+	DATEARRAYOID,
+	TIMEARRAYOID,
+	TIMESTAMPARRAYOID,
+	TIMESTAMPTZARRAYOID,
+	INTERVALARRAYOID,
+	NUMERICARRAYOID,
+	UUIDARRAYOID,
+	JSONBARRAYOID,
+	JSONARRAYOID,
+};
+
+static Oid		pxf_supported_array_types[] =
+{
+	INT2ARRAYOID,
+	INT4ARRAYOID,
+	INT8ARRAYOID,
+	TEXTARRAYOID,
+	BOOLARRAYOID,
+	BYTEAARRAYOID,
+	FLOAT4ARRAYOID,
+	FLOAT8ARRAYOID,
+	BPCHARARRAYOID,
+	VARCHARARRAYOID,
+	DATEARRAYOID,
+	TIMEARRAYOID,
+	TIMESTAMPARRAYOID,
+	TIMESTAMPTZARRAYOID,
+	INTERVALARRAYOID,
+	NUMERICARRAYOID,
+	UUIDARRAYOID,
+	JSONBARRAYOID,
+	JSONARRAYOID,
 };
 
 static void
@@ -563,6 +784,22 @@ pxf_serialize_filter_list(List *expressionItems)
 											 PXF_ATTR_CODE, r.attnum - 1);	/* Java attrs are
 																			 * 0-based */
 						}
+						else if (pxfoperand_is_attr(l) && pxfoperand_is_list_const(r))
+						{
+							appendStringInfo(resbuf, "%c%d%c%d%s",
+											 PXF_ATTR_CODE, l.attnum - 1,	/* Java attrs are
+																			 * 0-based */
+											 PXF_LIST_CONST_CODE, r.consttype,
+											 r.conststr->data);
+						}
+						else if (pxfoperand_is_list_const(l) && pxfoperand_is_attr(r))
+						{
+							appendStringInfo(resbuf, "%c%d%s%c%d",
+											 PXF_LIST_CONST_CODE, l.consttype,
+											 l.conststr->data,
+											 PXF_ATTR_CODE, r.attnum - 1);	/* Java attrs are
+																			 * 0-based */
+						}
 						else
 						{
 							/*
@@ -572,7 +809,16 @@ pxf_serialize_filter_list(List *expressionItems)
 							elog(ERROR, "internal error in pxffilters.c:pxf_serialize_"
 								 "filter_list. Found a non const+attr filter");
 						}
-						appendStringInfo(resbuf, "%c%d", PXF_OPERATOR_CODE, o);
+						/*
+						 * For NOT LIKE case the negation is applied to PXFOP_LIKE.
+						 */
+						if (o == PXFOP_NOTLIKE)
+						{
+							appendStringInfo(resbuf, "%c%d", PXF_OPERATOR_CODE, PXFOP_LIKE);
+							appendStringInfo(resbuf, "%c%d", PXF_LOGICAL_OPERATOR_CODE, NOT_EXPR);
+						}
+						else
+							appendStringInfo(resbuf, "%c%d", PXF_OPERATOR_CODE, o);
 						pxf_free_filter(filter);
 					}
 					else
@@ -611,7 +857,7 @@ pxf_serialize_filter_list(List *expressionItems)
 						else if (pxfoperand_is_list_const(l) && pxfoperand_is_attr(r))
 						{
 							appendStringInfo(resbuf, "%c%d%s%c%d",
-											 PXF_SCALAR_CONST_CODE, l.consttype,
+											 PXF_LIST_CONST_CODE, l.consttype,
 											 l.conststr->data,
 											 PXF_ATTR_CODE, r.attnum - 1);	/* Java attrs are
 																			 * 0-based */
@@ -625,7 +871,16 @@ pxf_serialize_filter_list(List *expressionItems)
 							elog(ERROR, "internal error in pxffilters.c:pxf_serialize_"
 								 "filter_list. Found a non const+attr filter");
 						}
-						appendStringInfo(resbuf, "%c%d", PXF_OPERATOR_CODE, o);
+						/*
+						 * For NOT IN case the negation is applied to PXFOP_IN.
+						 */
+						if (o == PXFOP_NOTIN)
+						{
+							appendStringInfo(resbuf, "%c%d", PXF_OPERATOR_CODE, PXFOP_IN);
+							appendStringInfo(resbuf, "%c%d", PXF_LOGICAL_OPERATOR_CODE, NOT_EXPR);
+						}
+						else
+							appendStringInfo(resbuf, "%c%d", PXF_OPERATOR_CODE, o);
 						pxf_free_filter(filter);
 					}
 					else
@@ -712,6 +967,8 @@ opexpr_to_pxffilter(OpExpr *expr, PxfFilterDesc * filter)
 	Node	   *rightop = NULL;
 	Oid			rightop_type = InvalidOid;
 	Oid			leftop_type = InvalidOid;
+	TypeCacheEntry *typentry = NULL;
+	ArrayType	   *arr = NULL;
 
 	if ((!expr) || (!filter))
 		return false;
@@ -734,18 +991,6 @@ opexpr_to_pxffilter(OpExpr *expr, PxfFilterDesc * filter)
 		 leftop_type, nodeTag(leftop),
 		 rightop_type, nodeTag(rightop),
 		 expr->opno);
-
-	/*
-	 * check if supported type -
-	 */
-	if (!supported_filter_type(rightop_type) || !supported_filter_type(leftop_type))
-		return false;
-
-	/*
-	 * check if supported operator -
-	 */
-	if (!supported_operator_type_op_expr(expr->opno, filter))
-		return false;
 
 	if (IsA(leftop, RelabelType))
 	{
@@ -775,6 +1020,60 @@ opexpr_to_pxffilter(OpExpr *expr, PxfFilterDesc * filter)
 		}
 	}
 
+	/*
+	 * check if GPDB supports scalar operators for the arrays elements before
+	 * sending the read request. Otherwise GPDB will reject the query during
+	 * ExecQual execution anyway after data is returned from pxf, because the
+	 * filter operator is not supported (for arrays comparison this validation
+	 * is not held during parsing stage and we have to prevent unnecessary
+	 * manipulations). Checking the existence of equality operator for array
+	 * element type is enough to validate other scalar operators as well.
+	 */
+	if (IsA(leftop, Var) && IsA(rightop, Const) &&
+		supported_array_type(rightop_type))
+	{
+		Const	*right = (Const *) rightop;
+
+		if (right->constisnull)
+			return false;
+
+		arr = DatumGetArrayTypeP(right->constvalue);
+	}
+	else if (IsA(leftop, Const) && IsA(rightop, Var) &&
+			supported_array_type(leftop_type))
+	{
+		Const	*left = (Const *) leftop;
+
+		if (left->constisnull)
+			return false;
+
+		arr = DatumGetArrayTypeP(left->constvalue);
+	}
+
+	if (arr != NULL)
+	{
+		typentry = lookup_type_cache(ARR_ELEMTYPE(arr),
+									 TYPECACHE_EQ_OPR_FINFO);
+
+		if (!OidIsValid(typentry->eq_opr_finfo.fn_oid))
+			ereport(ERROR,
+					(errcode(ERRCODE_UNDEFINED_FUNCTION),
+			errmsg("could not identify a comparison operator for type %s",
+				   format_type_be(ARR_ELEMTYPE(arr)))));
+	}
+
+	/*
+	 * check if supported type -
+	 */
+	if (!supported_filter_type(rightop_type) || !supported_filter_type(leftop_type))
+		return false;
+
+	/*
+	 * check if supported operator -
+	 */
+	if (!supported_operator_type_op_expr(expr->opno, filter))
+		return false;
+
 	/* arguments must be VAR and CONST */
 	if (IsA(leftop, Var) && IsA(rightop, Const))
 	{
@@ -784,19 +1083,41 @@ opexpr_to_pxffilter(OpExpr *expr, PxfFilterDesc * filter)
 		if (filter->l.attnum <= InvalidAttrNumber)
 			return false;		/* system attr not supported */
 
-		filter->r.opcode = PXF_SCALAR_CONST_CODE;
 		filter->r.attnum = InvalidAttrNumber;
 		filter->r.conststr = makeStringInfo();
-		scalar_const_to_str((Const *) rightop, filter->r.conststr);
 		filter->r.consttype = ((Const *) rightop)->consttype;
+
+		/*
+		 * If we faced the generic array comparison operator, represent
+		 * the array through list const.
+		 */
+		if (supported_array_type(rightop_type))
+		{
+			filter->r.opcode = PXF_LIST_CONST_CODE;
+			list_const_to_str((Const *) rightop, filter->r.conststr, true);
+		}
+		else
+		{
+			filter->r.opcode = PXF_SCALAR_CONST_CODE;
+			scalar_const_to_str((Const *) rightop, filter->r.conststr);
+		}
 	}
 	else if (IsA(leftop, Const) && IsA(rightop, Var))
 	{
-		filter->l.opcode = PXF_SCALAR_CONST_CODE;
 		filter->l.attnum = InvalidAttrNumber;
 		filter->l.conststr = makeStringInfo();
-		scalar_const_to_str((Const *) leftop, filter->l.conststr);
 		filter->l.consttype = ((Const *) leftop)->consttype;
+
+		if (supported_array_type(leftop_type))
+		{
+			filter->l.opcode = PXF_LIST_CONST_CODE;
+			list_const_to_str((Const *) leftop, filter->l.conststr, true);
+		}
+		else
+		{
+			filter->l.opcode = PXF_SCALAR_CONST_CODE;
+			scalar_const_to_str((Const *) leftop, filter->l.conststr);
+		}
 
 		filter->r.opcode = PXF_ATTR_CODE;
 		filter->r.attnum = ((Var *) rightop)->varattno;
@@ -837,6 +1158,34 @@ scalar_array_op_expr_to_pxffilter(ScalarArrayOpExpr *expr, PxfFilterDesc * filte
 	if (!supported_operator_type_scalar_array_op_expr(expr->opno, filter, expr->useOr))
 		return false;
 
+	if (IsA(leftop, RelabelType))
+	{
+		/*
+		 * Checks if the arg is of type Var, and if it is uses the Var as the left operator
+		 */
+		RelabelType *relabelType = (RelabelType *) leftop;
+		Expr *exprNode = relabelType->arg;
+
+		if (IsA(exprNode, Var))
+		{
+			leftop = (Node *)exprNode;
+		}
+	}
+
+	if (IsA(rightop, RelabelType))
+	{
+		/*
+		 * Checks if the arg is of type Var, and if it is uses the Var as the right operator
+		 */
+		RelabelType *relabelType = (RelabelType *) rightop;
+		Expr *exprNode = relabelType->arg;
+
+		if (IsA(exprNode, Var))
+		{
+			rightop = (Node *)exprNode;
+		}
+	}
+
 	if (IsA(leftop, Var) &&IsA(rightop, Const))
 	{
 		filter->l.opcode = PXF_ATTR_CODE;
@@ -848,7 +1197,7 @@ scalar_array_op_expr_to_pxffilter(ScalarArrayOpExpr *expr, PxfFilterDesc * filte
 		filter->r.opcode = PXF_LIST_CONST_CODE;
 		filter->r.attnum = InvalidAttrNumber;
 		filter->r.conststr = makeStringInfo();
-		list_const_to_str((Const *) rightop, filter->r.conststr);
+		list_const_to_str((Const *) rightop, filter->r.conststr, false);
 		filter->r.consttype = ((Const *) rightop)->consttype;
 	}
 	else if (IsA(leftop, Const) &&IsA(rightop, Var))
@@ -856,7 +1205,7 @@ scalar_array_op_expr_to_pxffilter(ScalarArrayOpExpr *expr, PxfFilterDesc * filte
 		filter->l.opcode = PXF_LIST_CONST_CODE;
 		filter->l.attnum = InvalidAttrNumber;
 		filter->l.conststr = makeStringInfo();
-		list_const_to_str((Const *) leftop, filter->l.conststr);
+		list_const_to_str((Const *) leftop, filter->l.conststr, false);
 		filter->l.consttype = ((Const *) leftop)->consttype;
 
 		filter->r.opcode = PXF_ATTR_CODE;
@@ -1083,6 +1432,28 @@ supported_filter_type(Oid type)
 	return false;
 }
 
+/*
+ * supported_array_type
+ *
+ * Return true if the array type is supported by pxffilters.
+ * Supported defines are defined in pxf_supported_array_types.
+ */
+static bool
+supported_array_type(Oid type)
+{
+	int			nargs = sizeof(pxf_supported_array_types) / sizeof(Oid);
+	int			i;
+
+	/* is type supported? */
+	for (i = 0; i < nargs; i++)
+	{
+		if (type == pxf_supported_array_types[i])
+			return true;
+	}
+
+	return false;
+}
+
 static bool
 supported_operator_type_op_expr(Oid type, PxfFilterDesc * filter)
 {
@@ -1171,7 +1542,18 @@ scalar_const_to_str(Const *constval, StringInfo buf)
 		case BYTEAOID:
 		case DATEOID:
 		case TIMESTAMPOID:
+		case TIMEOID:
+		case TIMESTAMPTZOID:
+		case INTERVALOID:
+		case UUIDOID:
+		case JSONBOID:
 			appendStringInfo(buf, "%s", extval);
+			break;
+		case BOOLOID:
+			if (*extval == 't')
+				appendStringInfo(buf, "%s", TrueConstValue);
+			else
+				appendStringInfo(buf, "%s", FalseConstValue);
 			break;
 		default:
 			/* should never happen. we filter on types earlier */
@@ -1187,14 +1569,13 @@ scalar_const_to_str(Const *constval, StringInfo buf)
  * list_const_to_str
  *
  * Extracts the value stored in a list constant to a string.
- * Currently supported data types: int2[], int4[], int8[], text[]
  * Example:
  * Input: ['abc', 'xyz']
  * Output: s3dabcs3dxyz
  *
  */
 static void
-list_const_to_str(Const *constval, StringInfo buf)
+list_const_to_str(Const *constval, StringInfo buf, bool with_nulls)
 {
 	if (constval->constisnull)
 	{
@@ -1214,6 +1595,20 @@ list_const_to_str(Const *constval, StringInfo buf)
 		case INT4ARRAYOID:
 		case INT8ARRAYOID:
 		case TEXTARRAYOID:
+		case BOOLARRAYOID:
+		case BYTEAARRAYOID:
+		case FLOAT4ARRAYOID:
+		case FLOAT8ARRAYOID:
+		case BPCHARARRAYOID:
+		case VARCHARARRAYOID:
+		case DATEARRAYOID:
+		case TIMEARRAYOID:
+		case TIMESTAMPARRAYOID:
+		case TIMESTAMPTZARRAYOID:
+		case INTERVALARRAYOID:
+		case NUMERICARRAYOID:
+		case UUIDARRAYOID:
+		case JSONBARRAYOID:
 			{
 				StringInfo	interm_buf;
 				Datum	   *dats;
@@ -1224,6 +1619,7 @@ list_const_to_str(Const *constval, StringInfo buf)
 				int16		elmlen;
 				bool		elmbyval;
 				char		elmalign;
+				bool	   *elem_nulls = NULL;
 
 				arr = DatumGetArrayTypeP(constval->constvalue);
 
@@ -1239,22 +1635,37 @@ list_const_to_str(Const *constval, StringInfo buf)
 								  elmbyval,
 								  elmalign,
 								  &dats,
-								  NULL,
+								  with_nulls ? &elem_nulls : NULL,
 								  &len);
 
 				getTypeOutputInfo(ARR_ELEMTYPE(arr), &typoutput, &typIsVarlena);
 
 				for (int i = 0; i < len; i++)
 				{
-					char *extval = OidOutputFunctionCall(typoutput, dats[i]);
+					char *extval = NullConstValue;
 
-					appendStringInfo(interm_buf, "%s", extval);
+					if (!with_nulls || !elem_nulls[i])
+						extval = OidOutputFunctionCall(typoutput, dats[i]);
+
+					if (ARR_ELEMTYPE(arr) != BOOLOID)
+						appendStringInfo(interm_buf, "%s", extval);
+					else
+					{
+						if (*extval == 't')
+							appendStringInfo(interm_buf, "%s", TrueConstValue);
+						else if (*extval == 'f')
+							appendStringInfo(interm_buf, "%s", FalseConstValue);
+						else
+							appendStringInfo(interm_buf, "%s", NullConstValue);
+					}
 
 					appendStringInfo(buf, "%c%d%c%s",
 									 PXF_SIZE_BYTES, interm_buf->len,
 									 PXF_CONST_DATA, interm_buf->data);
 					resetStringInfo(interm_buf);
-					pfree(extval);
+
+					if (!with_nulls || !elem_nulls[i])
+						pfree(extval);
 				}
 				pfree(interm_buf->data);
 				break;

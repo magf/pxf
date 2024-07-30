@@ -31,7 +31,7 @@
 
 
 /*
- * each supported operator has a code that will describe the operator
+ * each supported operator has a code. Some codes will describe the operator
  * type in the final serialized string that gets pushed down.
  *
  * NOTE: the codes could be forced into a single byte, but list will
@@ -48,7 +48,15 @@ typedef enum PxfOperatorCode
 	PXFOP_LIKE,
 	PXFOP_IS_NULL,
 	PXFOP_IS_NOTNULL,
-	PXFOP_IN
+	PXFOP_IN,
+
+	/*
+	 * Not serialized operators. They're used
+	 * to indicate negation before corresponding
+	 * serialized operators. NOT LIKE -> NOT (LIKE)
+	 */
+	PXFOP_NOTIN,
+	PXFOP_NOTLIKE
 
 } PxfOperatorCode;
 
