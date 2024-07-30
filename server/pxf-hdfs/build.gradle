@@ -37,7 +37,7 @@ dependencies {
     implementation("org.apache.htrace:htrace-core4")                 { transitive = false }
     implementation("org.apache.hadoop:hadoop-hdfs")                  { transitive = false }
     implementation("org.apache.hadoop:hadoop-hdfs-client")           { transitive = false }
-    implementation("org.apache.parquet:parquet-format")              { transitive = false }
+    implementation("org.apache.parquet:parquet-format-structures")   { transitive = false }
     implementation("org.apache.parquet:parquet-column")              { transitive = false }
     implementation("org.apache.parquet:parquet-common")              { transitive = false }
     implementation("org.apache.parquet:parquet-encoding")            { transitive = false }
@@ -45,7 +45,8 @@ dependencies {
     implementation("org.apache.parquet:parquet-hadoop")              { transitive = false }
     implementation("org.apache.parquet:parquet-jackson")             { transitive = false }
     implementation("org.apache.hive:hive-storage-api")               { transitive = false } // for parquet writing
-
+    implementation("org.postgresql:postgresql")                      { transitive = false } // for Interval support
+    implementation("org.mongodb:bson")                               { transitive = false } // for bson support
     implementation("org.codehaus.jackson:jackson-core-asl")          { transitive = false }
     implementation("org.codehaus.jackson:jackson-mapper-asl")        { transitive = false }
 

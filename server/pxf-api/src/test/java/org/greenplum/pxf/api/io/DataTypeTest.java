@@ -71,7 +71,8 @@ public class DataTypeTest {
         return oid == DataType.BYTEAARRAY.getOID() || oid == DataType.TEXTARRAY.getOID() ||
                 oid == DataType.BPCHARARRAY.getOID() || oid == DataType.VARCHARARRAY.getOID() ||
                 oid == DataType.TIMEARRAY.getOID() || oid == DataType.TIMESTAMPARRAY.getOID() ||
-                oid == DataType.TIMESTAMP_WITH_TIMEZONE_ARRAY.getOID();
+                oid == DataType.TIMESTAMP_WITH_TIMEZONE_ARRAY.getOID() || oid == DataType.JSONARRAY.getOID() ||
+                oid == DataType.JSONBARRAY.getOID();
     }
 
 }

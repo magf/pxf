@@ -18,7 +18,9 @@ public class ParquetBaseTest {
     protected static final TreeTraverser TRAVERSER = new TreeTraverser();
 
     protected Map<String, Type> originalFieldsMap;
+    protected Map<String, Type> extendedOriginalFieldsMap;
     protected List<ColumnDescriptor> columnDescriptors;
+    protected List<ColumnDescriptor> extendedColumnDescriptors;
 
     @BeforeEach
     public void setup() throws Exception {
@@ -62,6 +64,28 @@ public class ParquetBaseTest {
                 "}");
 
         originalFieldsMap = getOriginalFieldsMap(schema);
+
+        extendedColumnDescriptors = new ArrayList<>();
+        // (id int, tm1 time, intrv1 interval, uuid1 uuid, json1 json, bson1 jsonb)
+        extendedColumnDescriptors.add(new ColumnDescriptor("id", DataType.INTEGER.getOID(), 0, "int4", null));
+        extendedColumnDescriptors.add(new ColumnDescriptor("tm1", DataType.TIME.getOID(), 1, "time", null));
+        extendedColumnDescriptors.add(new ColumnDescriptor("intrv1", DataType.INTERVAL.getOID(), 2, "interval", null));
+        extendedColumnDescriptors.add(new ColumnDescriptor("uuid1", DataType.UUID.getOID(), 3, "uuid", null));
+        extendedColumnDescriptors.add(new ColumnDescriptor("json1", DataType.JSON.getOID(), 4, "json", null));
+        extendedColumnDescriptors.add(new ColumnDescriptor("bson1", DataType.JSONB.getOID(), 4, "jsonb", null));
+        extendedColumnDescriptors.add(new ColumnDescriptor("dec1", DataType.NUMERIC.getOID(), 4, "numeric", new Integer[]{12, 2}));
+
+        MessageType extendedSchema = MessageTypeParser.parseMessageType("message hive_schema {\n" +
+                "  optional int32 id;\n" +
+                "  optional int64 tm1 (TIME(MICROS, true));\n" +
+                "  optional fixed_len_byte_array(12) intrv1 (INTERVAL);\n" +
+                "  optional fixed_len_byte_array(16) uuid1 (UUID);\n" +
+                "  optional binary json1 (JSON);\n" +
+                "  optional binary bson1 (BSON);\n" +
+                "  optional fixed_len_byte_array(16) dec1 (DECIMAL(12, 2));\n" +
+                "}");
+
+        extendedOriginalFieldsMap = getOriginalFieldsMap(extendedSchema);
     }
 
     private Map<String, Type> getOriginalFieldsMap(MessageType originalSchema) {

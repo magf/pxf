@@ -1,8 +1,10 @@
 package org.greenplum.pxf.plugins.s3;
 
 import org.greenplum.pxf.api.filter.Operator;
+import org.greenplum.pxf.api.filter.SupportedDataTypePruner;
 import org.greenplum.pxf.api.filter.SupportedOperatorPruner;
 import org.greenplum.pxf.api.filter.TreeVisitor;
+import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.plugins.jdbc.JdbcPredicateBuilder;
@@ -39,9 +41,23 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
                     Operator.NOT,
                     Operator.OR
             );
-    static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS);
 
-    private List<ColumnDescriptor> columns;
+    static final EnumSet<DataType> SUPPORTED_DATA_TYPES =
+            EnumSet.of(
+                    DataType.SMALLINT,
+                    DataType.INTEGER,
+                    DataType.BIGINT,
+                    DataType.FLOAT8,
+                    DataType.REAL,
+                    DataType.NUMERIC,
+                    DataType.BOOLEAN,
+                    DataType.TEXT,
+                    DataType.VARCHAR,
+                    DataType.BPCHAR,
+                    DataType.DATE,
+                    DataType.TIMESTAMP
+            );
+    private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS);
     private boolean usePositionToIdentifyColumn;
 
     /**
@@ -56,7 +72,6 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
                                 boolean usePositionToIdentifyColumn) throws SQLException {
         super(context, new S3SelectDatabaseMetaData());
         this.usePositionToIdentifyColumn = usePositionToIdentifyColumn;
-        this.columns = context.getTupleDescription();
     }
 
     @Override
@@ -75,12 +90,17 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
     protected JdbcPredicateBuilder getPredicateBuilder() {
         return new S3SelectPredicateBuilder(
                 usePositionToIdentifyColumn,
-                context.getTupleDescription());
+                columns);
     }
 
     @Override
     protected TreeVisitor getPruner() {
         return PRUNER;
+    }
+
+    @Override
+    protected SupportedDataTypePruner getDataTypePruner() {
+        return new SupportedDataTypePruner(columns, SUPPORTED_DATA_TYPES);
     }
 
     @Override

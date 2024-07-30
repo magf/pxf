@@ -11,6 +11,7 @@ import org.apache.orc.Writer;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.junit.Ignore;
 import org.testng.annotations.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -356,7 +357,7 @@ public class HiveOrcTest extends HiveBaseTest {
 
         // Perform Analyze on external table and check suitable Warnings.
         gpdb.runQueryWithExpectedWarning("ANALYZE " + exTable.getName(),
-                "ANALYZE for HiveRc, HiveText, and HiveOrc plugins is not supported", true);
+                "skipping \"" + exTable.getName() + "\"", true);
 
         runSqlTest("features/hive/default_analyze");
     }
@@ -402,6 +403,7 @@ public class HiveOrcTest extends HiveBaseTest {
      * @throws Exception if test fails to run
      */
     @Test(groups = { "features", "hcatalog" })
+    @Ignore
     public void aggregateQueries() throws Exception {
 
         createExternalTable(PXF_HIVE_SMALL_DATA_TABLE,

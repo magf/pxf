@@ -5,7 +5,7 @@ SET gp_external_enable_filter_pushdown = true;
 SET
 SET optimizer = off;
 SET
-SELECT * FROM test_filter WHERE t0 = 'C' AND a1 = 2 ORDER BY t0, a1;
+SELECT t0, a1, b2, c3, d4, e5, filterValue FROM test_filter WHERE t0 = 'C' AND a1 = 2 ORDER BY t0, a1;
  t0 | a1 | b2 |  c3  | d4  | e5 |       filtervalue
 ----+----+----+------+-----+----+--------------------------
  C  |  2 |    | 2.21 | CC  | CC | a0c25s1dCo5a1c23s1d2o5l0
@@ -13,7 +13,7 @@ SELECT * FROM test_filter WHERE t0 = 'C' AND a1 = 2 ORDER BY t0, a1;
 
 SET optimizer = on;
 SET
-SELECT * FROM test_filter WHERE t0 = 'C' AND a1 = 2 ORDER BY t0, a1;
+SELECT t0, a1, b2, c3, d4, e5, filterValue FROM test_filter WHERE t0 = 'C' AND a1 = 2 ORDER BY t0, a1;
  t0 | a1 | b2 |  c3  | d4  | e5 |       filtervalue
 ----+----+----+------+-----+----+--------------------------
  C  |  2 |    | 2.21 | CC  | CC | a0c25s1dCo5a1c23s1d2o5l0

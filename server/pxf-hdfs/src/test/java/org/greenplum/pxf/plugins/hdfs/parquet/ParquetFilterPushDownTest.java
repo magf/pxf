@@ -769,7 +769,7 @@ public class ParquetFilterPushDownTest extends ParquetBaseTest {
             assertEquals(DataType.TEXT.getOID(), fieldList.get(11).type);
         }
         if (columnDescriptors.get(12).isProjected()) {
-            assertEquals(DataType.TEXT.getOID(), fieldList.get(12).type);
+            assertEquals(DataType.BPCHAR.getOID(), fieldList.get(12).type);
         }
         if (columnDescriptors.get(13).isProjected()) {
             assertEquals(DataType.NUMERIC.getOID(), fieldList.get(13).type);

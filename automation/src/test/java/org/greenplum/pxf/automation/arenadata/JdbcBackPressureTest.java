@@ -65,6 +65,7 @@ public class JdbcBackPressureTest extends BaseFeature {
     private String pxfLogFile;
     private List<Node> pxfNodes;
     private Oracle oracle;
+    private String restartCommand;
 
     @Override
     public void beforeClass() throws Exception {
@@ -76,6 +77,7 @@ public class JdbcBackPressureTest extends BaseFeature {
         if (cluster instanceof MultiNodeCluster) {
             pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
         }
+        restartCommand = pxfHome + "/bin/pxf restart";
         oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
         prepareData();
         changeLogLevel("trace");
@@ -187,8 +189,7 @@ public class JdbcBackPressureTest extends BaseFeature {
     }
 
     private void changeLogLevel(String level) throws Exception {
-        cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_LOG_LEVEL=%s", level));
-        cluster.restart(PhdCluster.EnumClusterServices.pxf);
+        cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_LOG_LEVEL=%s;%s", level, restartCommand));
     }
 
     private void cleanPxfLog() throws Exception {

@@ -784,17 +784,17 @@ public class ParquetResolverTest {
 
     @Test
     @SuppressWarnings("deprecation")
-    public void testGetFields_Unsupported_List_List() {
+    public void testGetFields_List_List() {
         List<ColumnDescriptor> columnDescriptors = new ArrayList<>();
-        ColumnDescriptor listColumnDescriptor = new ColumnDescriptor("unsupported_list", -1, 1, "", new Integer[]{});
+        ColumnDescriptor listColumnDescriptor = new ColumnDescriptor("supported_list", -1, 1, "", new Integer[]{});
         columnDescriptors.add(listColumnDescriptor);
 
         // LIST of LIST
-        schema = getParquetSchemaForUnsupportedListType()[2];
+        schema = getListOfList();
         // schema has changed, set metadata again
         context.setMetadata(schema);
         columnDescriptors = new ArrayList<>();
-        listColumnDescriptor = new ColumnDescriptor("unsupported_list", -1, 1, "", new Integer[]{});
+        listColumnDescriptor = new ColumnDescriptor("supported_list", DataType.INTEGER.getOID(), 1, "", new Integer[]{});
         columnDescriptors.add(listColumnDescriptor);
         context.setTupleDescription(columnDescriptors);
         resolver.setRequestContext(context);
@@ -805,6 +805,7 @@ public class ParquetResolverTest {
 
         GroupType innerListElementGroupType = new GroupType(Type.Repetition.OPTIONAL, "element", innerListElementFields);
         Group innerListElementGroup = new SimpleGroup(innerListElementGroupType);
+        innerListElementGroup.add("id", 666);
 
         GroupType innerListRepeatedGroupType = new GroupType(Type.Repetition.REPEATED, "inner_repeated_list", innerListElementGroupType);
         Group innerRepeatedGroup = new SimpleGroup(innerListRepeatedGroupType);
@@ -824,10 +825,10 @@ public class ParquetResolverTest {
 
         List<Group> groups = new ArrayList<>();
         groups.add(listGroup);
-
-        Exception e = assertThrows(UnsupportedTypeException.class,
-                () -> assertRow(groups, 0, 1));
-        assertEquals("Parquet LIST of LIST is not supported.", e.getMessage());
+        List<OneField> fields = assertRow(groups, 0, 1);
+        assertEquals(fields.size(), 1);
+        assertEquals("{{666}}", fields.get(0).val);
+        assertEquals(DataType.INT4ARRAY.getOID(), fields.get(0).type);
     }
 
     @Test
@@ -837,7 +838,7 @@ public class ParquetResolverTest {
         context.setMetadata(schema);
         Exception e = assertThrows(UnsupportedTypeException.class,
                 () -> context.setTupleDescription(getColumnDescriptorsFromSchema(schema)));
-        assertEquals("Parquet complex type MAP is not supported, error: java.lang.IllegalArgumentException: No enum constant org.greenplum.pxf.plugins.hdfs.parquet.PxfParquetType.MAP", e.getMessage());
+        assertEquals("Parquet complex type converter [MAP] is not supported", e.getMessage());
     }
 
     @Test
@@ -978,7 +979,7 @@ public class ParquetResolverTest {
 
     @SuppressWarnings("deprecation")
     private MessageType[] getParquetSchemaForUnsupportedListType() {
-        MessageType[] messageTypes = new MessageType[3];
+        MessageType[] messageTypes = new MessageType[2];
 
         // List of customized Struct
         List<Type> structFields = new ArrayList<>();
@@ -1009,6 +1010,14 @@ public class ParquetResolverTest {
         fields.add(listGroupType);
         messageTypes[1] = new MessageType("spark_schema", fields);
 
+        return messageTypes;
+    }
+
+    @SuppressWarnings("deprecation")
+    private static MessageType getListOfList() {
+        GroupType listGroupType;
+        GroupType listRepeatedGroupType;
+        List<Type> fields;
         // List of List
         List<Type> innerListElementFields = new ArrayList<>();
 
@@ -1021,8 +1030,7 @@ public class ParquetResolverTest {
         fields = new ArrayList<>();
 
         fields.add(listGroupType);
-        messageTypes[2] = new MessageType("spark_schema", fields);
-        return messageTypes;
+        return new MessageType("spark_schema", fields);
     }
 
     @SuppressWarnings("deprecation")
@@ -1067,8 +1075,8 @@ public class ParquetResolverTest {
                 .map(f -> {
                     Type type = f.isPrimitive() ? f.asPrimitiveType() : f.asGroupType();
                     ParquetConfig parquetConfig = ParquetConfig.builder().build();
-                    ParquetTypeConverter converter = new ParquetTypeConverterFactory(parquetConfig).create(type);
-                    return new ColumnDescriptor(f.getName(), converter.getDataType(f).getOID(), 1, "", new Integer[]{});
+                    ParquetTypeConverter converter = new ParquetTypeConverterFactory(parquetConfig).create(type, DataType.UNSUPPORTED_TYPE);
+                    return new ColumnDescriptor(f.getName(), converter.getDataType().getOID(), 1, "", new Integer[]{});
                 })
                 .collect(Collectors.toList());
     }

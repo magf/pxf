@@ -93,8 +93,13 @@ public class FilterParser {
             DataType.BOOLEAN,
             DataType.DATE,
             DataType.TIMESTAMP,
+            DataType.TIMESTAMP_WITH_TIME_ZONE,
             DataType.TIME,
-            DataType.BYTEA
+            DataType.BYTEA,
+            DataType.INTERVAL,
+            DataType.UUID,
+            DataType.JSON,
+            DataType.JSONB
     );
 
     private static final Operator[] OPERATOR_ARRAY = new Operator[]{

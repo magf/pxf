@@ -2,11 +2,7 @@ package org.greenplum.pxf.plugins.hdfs.parquet;
 
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
-import org.greenplum.pxf.api.filter.ColumnIndexOperandNode;
-import org.greenplum.pxf.api.filter.Node;
-import org.greenplum.pxf.api.filter.Operator;
-import org.greenplum.pxf.api.filter.OperatorNode;
-import org.greenplum.pxf.api.filter.SupportedOperatorPruner;
+import org.greenplum.pxf.api.filter.*;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 
 import java.util.EnumSet;
@@ -19,7 +15,7 @@ import java.util.Map;
  * expression tree.
  */
 public class ParquetOperatorPruner extends SupportedOperatorPruner {
-    // INT96 and FIXED_LEN_BYTE_ARRAY cannot be pushed down
+    // INT96 cannot be pushed down
     // for more details look at
     // org.apache.parquet.filter2.dictionarylevel.DictionaryFilter#expandDictionary
     // where INT96 are not dictionary values
@@ -79,6 +75,10 @@ public class ParquetOperatorPruner extends SupportedOperatorPruner {
         ColumnDescriptor columnDescriptor = columnDescriptors.get(columnIndexOperand.index());
         String filterColumnName = columnDescriptor.columnName();
         Type type = fields.get(filterColumnName);
-        return type.asPrimitiveType().getPrimitiveTypeName();
+        if (type.isPrimitive()) {
+            return type.asPrimitiveType().getPrimitiveTypeName();
+        } else {
+            return null;
+        }
     }
 }

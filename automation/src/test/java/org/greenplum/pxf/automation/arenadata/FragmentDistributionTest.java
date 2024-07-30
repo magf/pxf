@@ -41,12 +41,14 @@ public class FragmentDistributionTest extends BaseFeature {
     private String pxfHome;
     private String pxfLogFile;
     private String hdfsPath;
-    Table dataTable;
+    private Table dataTable;
     private Table postgresSourceTable;
+    private String restartCommand;
 
     @Override
     protected void beforeClass() throws Exception {
         pxfHome = cluster.getPxfHome();
+        restartCommand = pxfHome + "/bin/pxf restart";
         if (cluster instanceof MultiNodeCluster) {
             pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
         }
@@ -223,8 +225,7 @@ public class FragmentDistributionTest extends BaseFeature {
     }
 
     private void changeLogLevel(String level) throws Exception {
-        cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_LOG_LEVEL=%s", level));
-        cluster.restart(PhdCluster.EnumClusterServices.pxf);
+        cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_LOG_LEVEL=%s;%s", level, restartCommand));
     }
 
     private void cleanLogs() throws Exception {

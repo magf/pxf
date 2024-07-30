@@ -12,5 +12,6 @@ public enum PxfParquetType {
     FLOAT,
     FIXED_LEN_BYTE_ARRAY,
     BOOLEAN,
-    LIST
+    LIST,
+    CUSTOM
 }

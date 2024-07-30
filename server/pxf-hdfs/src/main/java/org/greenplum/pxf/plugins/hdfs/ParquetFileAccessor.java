@@ -61,10 +61,9 @@ import org.greenplum.pxf.api.model.Accessor;
 import org.greenplum.pxf.api.model.BasePlugin;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.plugins.hdfs.filter.BPCharOperatorTransformer;
-import org.greenplum.pxf.plugins.hdfs.parquet.ParquetOperatorPruner;
-import org.greenplum.pxf.plugins.hdfs.parquet.ParquetRecordFilterBuilder;
-import org.greenplum.pxf.plugins.hdfs.parquet.ParquetUtilities;
+import org.greenplum.pxf.plugins.hdfs.parquet.*;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalOverflowOption;
+import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
 import org.greenplum.pxf.plugins.hdfs.utilities.HdfsUtilities;
 
 import java.io.IOException;
@@ -91,6 +90,7 @@ import static org.apache.parquet.hadoop.api.ReadSupport.PARQUET_READ_SCHEMA;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import static org.greenplum.pxf.plugins.hdfs.ParquetResolver.DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ;
 import static org.greenplum.pxf.plugins.hdfs.ParquetResolver.USE_LOCAL_PXF_TIMEZONE_READ_NAME;
+import static org.greenplum.pxf.plugins.hdfs.parquet.ParquetIntervalUtilities.INTERVAL_TYPE_LENGTH;
 
 /**
  * Parquet file accessor.
@@ -102,8 +102,12 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     private static final CompressionCodecName DEFAULT_COMPRESSION = CompressionCodecName.SNAPPY;
     public static final String USE_INT64_TIMESTAMPS_NAME = "USE_INT64_TIMESTAMPS";
     public static final String USE_LOCAL_PXF_TIMEZONE_WRITE_NAME = "USE_LOCAL_PXF_TIMEZONE_WRITE";
+    public static final String USE_LOGICAL_TYPE_INTERVAL = "USE_LOGICAL_TYPE_INTERVAL";
+    public static final String USE_LOGICAL_TYPE_TIME = "USE_LOGICAL_TYPE_TIME";
+    public static final String USE_LOGICAL_TYPE_UUID = "USE_LOGICAL_TYPE_UUID";
     public static final boolean DEFAULT_USE_INT64_TIMESTAMPS = false;
     public static final boolean DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE = true;
+    public static final boolean DEFAULT_USE_NEW_ANNOTATIONS = false;
 
     // From org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe
     public static final int[] PRECISION_TO_BYTE_COUNT = new int[38];
@@ -148,6 +152,9 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     private long totalReadTimeInNanos;
     private boolean useInt64Timestamps;
     private boolean useLocalPxfTimezoneWrite;
+    private boolean useLogicalTypeInterval;
+    private boolean useLogicalTypeTime;
+    private boolean useLogicalTypeUUID;
 
     /**
      * Opens the resource for read.
@@ -244,6 +251,9 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         parquetVersion = parquetVerStr != null ? WriterVersion.fromString(parquetVerStr.toLowerCase()) : DEFAULT_WRITER_VERSION;
         useInt64Timestamps = context.getOption(USE_INT64_TIMESTAMPS_NAME, DEFAULT_USE_INT64_TIMESTAMPS);
         useLocalPxfTimezoneWrite = context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
+        useLogicalTypeInterval = context.getOption(USE_LOGICAL_TYPE_INTERVAL, DEFAULT_USE_NEW_ANNOTATIONS);
+        useLogicalTypeTime = context.getOption(USE_LOGICAL_TYPE_TIME, DEFAULT_USE_NEW_ANNOTATIONS);
+        useLogicalTypeUUID = context.getOption(USE_LOGICAL_TYPE_UUID, DEFAULT_USE_NEW_ANNOTATIONS);
         LOG.debug("{}-{}: Parquet options: PAGE_SIZE = {}, ROWGROUP_SIZE = {}, DICTIONARY_PAGE_SIZE = {}, " +
                         "PARQUET_VERSION = {}, ENABLE_DICTIONARY = {}, USE_INT64_TIMESTAMPS = {}, USE_LOCAL_PXF_TIMEZONE_WRITE = {}",
                 context.getTransactionId(), context.getSegmentId(), pageSize, rowGroupSize, dictionarySize,
@@ -321,8 +331,14 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         List<ColumnDescriptor> tupleDescription = context.getTupleDescription();
         DecimalOverflowOption decimalOverflowOption = DecimalOverflowOption.valueOf(configuration.get(ParquetResolver.PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME, DecimalOverflowOption.ROUND.name()).toUpperCase());
         boolean useLocalPxfTimezoneRead = context.getOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
+        ParquetConfig parquetConfig = ParquetConfig.builder()
+                .useLocalPxfTimezoneWrite(useLocalPxfTimezoneRead)
+                .useLocalPxfTimezoneRead(useLocalPxfTimezoneRead)
+                .decimalUtilities(new DecimalUtilities(decimalOverflowOption, true))
+                .build();
+        ParquetTypeConverterFactory parquetTypeConverterFactory = new ParquetTypeConverterFactory(parquetConfig);
         ParquetRecordFilterBuilder filterBuilder = new ParquetRecordFilterBuilder(
-                tupleDescription, originalFieldsMap, decimalOverflowOption, useLocalPxfTimezoneRead);
+                tupleDescription, originalFieldsMap, parquetTypeConverterFactory);
         TreeVisitor pruner = new ParquetOperatorPruner(
                 tupleDescription, originalFieldsMap, SUPPORTED_OPERATORS);
         TreeVisitor bpCharTransformer = new BPCharOperatorTransformer(tupleDescription);
@@ -578,6 +594,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                     throw new UnsupportedTypeException(String.format("Column %s is defined as NUMERIC with precision %d " +
                             "which exceeds the maximum supported precision %d.", columnName, precision, HiveDecimal.MAX_PRECISION));
                 }
+                //todo look at precision to determine type correctly
 
                 primitiveTypeName = PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY;
                 logicalTypeAnnotation = DecimalLogicalTypeAnnotation.decimalType(scale, precision);
@@ -609,6 +626,37 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 logicalTypeAnnotation = LogicalTypeAnnotation.dateType();
                 break;
             case TIME:
+                primitiveTypeName = PrimitiveTypeName.INT64;
+                // latest spark doesn't support time
+                if (useLogicalTypeTime) {
+                    // postgres supports only microsecond precision out of the box
+                    logicalTypeAnnotation = LogicalTypeAnnotation.timeType(true, LogicalTypeAnnotation.TimeUnit.MICROS);
+                }
+                break;
+            case JSON:
+                primitiveTypeName = PrimitiveTypeName.BINARY;
+                logicalTypeAnnotation = LogicalTypeAnnotation.jsonType();
+                break;
+            case JSONB:
+                primitiveTypeName = PrimitiveTypeName.BINARY;
+                logicalTypeAnnotation = LogicalTypeAnnotation.bsonType();
+                break;
+            case INTERVAL:
+                primitiveTypeName = PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY;
+                // latest spark doesn't support time
+                if (useLogicalTypeInterval) {
+                    logicalTypeAnnotation = LogicalTypeAnnotation.IntervalLogicalTypeAnnotation.getInstance();
+                }
+                length = INTERVAL_TYPE_LENGTH;
+                break;
+            case UUID:
+                primitiveTypeName = PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY;
+                // latest spark doesn't support uuid
+                if (useLogicalTypeUUID) {
+                    logicalTypeAnnotation = LogicalTypeAnnotation.uuidType();
+                }
+                length = LogicalTypeAnnotation.UUIDLogicalTypeAnnotation.BYTES;
+                break;
             case VARCHAR:
             case BPCHAR:
             case TEXT:
@@ -617,7 +665,8 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 break;
             default:
                 throw new UnsupportedTypeException(
-                        String.format("Type %d for column %s is not supported for writing Parquet.", columnTypeCode, columnName));
+                        String.format("Type %s(%d) for column %s is not supported for writing Parquet.",
+                                elementType.name(), columnTypeCode, columnName));
         }
 
         Types.BasePrimitiveBuilder<? extends Type, ?> builder;

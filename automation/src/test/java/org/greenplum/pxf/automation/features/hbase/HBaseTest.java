@@ -260,7 +260,7 @@ public class HBaseTest extends BaseFeature {
     public void partialFilterPushdown() throws Exception {
 
         String whereClause = " WHERE \"cf1:q3\" > 6  AND \"cf1:q7\" = '42'";
-        String partialfilterString = "No filter";
+        String partialfilterString = "a3c23s1d6o2a7c17s2d42o5l0";
         verifyFilterResults(hbaseTable, exTable, whereClause, partialfilterString,
                 "partialFilterPushdown", false);
     }

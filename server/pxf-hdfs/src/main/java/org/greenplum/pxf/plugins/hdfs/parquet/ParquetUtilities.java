@@ -79,7 +79,9 @@ public class ParquetUtilities {
         }
         switch (primitiveTypeName) {
             case BINARY:
-                if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.StringLogicalTypeAnnotation) {
+                if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.StringLogicalTypeAnnotation
+                    || logicalTypeAnnotation instanceof LogicalTypeAnnotation.JsonLogicalTypeAnnotation
+                    || logicalTypeAnnotation instanceof LogicalTypeAnnotation.BsonLogicalTypeAnnotation) {
                     return val;
                 } else {
                     return pgUtilities.parseByteaLiteral(val);
@@ -98,7 +100,9 @@ public class ParquetUtilities {
                     return Integer.parseInt(val);
                 }
             case INT64:
-                if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation) {
+                // ":" here is only for purpose of supporting libraries that don't support new parquet annotations (spark for example)
+                if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation
+                    || logicalTypeAnnotation instanceof LogicalTypeAnnotation.TimeLogicalTypeAnnotation || val.contains(":")) {
                     return val;
                 } else {
                     return Long.parseLong(val);

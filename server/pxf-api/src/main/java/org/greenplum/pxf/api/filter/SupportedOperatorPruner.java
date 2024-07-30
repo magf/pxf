@@ -1,5 +1,7 @@
 package org.greenplum.pxf.api.filter;
 
+import org.greenplum.pxf.api.io.DataType;
+
 import java.util.EnumSet;
 
 /**
