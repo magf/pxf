@@ -5,10 +5,6 @@
         <value>hadoop</value>
     </property>
     <property>
-        <name>hbase.client.zookeeper.quorum</name>
-        <value>hadoop</value>
-    </property>
-    <property>
         <name>hbase.rootdir</name>
         <value>hdfs://hadoop:8020/hbase</value>
     </property>

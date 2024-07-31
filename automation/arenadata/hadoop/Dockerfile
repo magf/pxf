@@ -3,15 +3,17 @@ FROM openjdk:8
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       net-tools curl wget netcat procps gnupg libsnappy-dev && rm -rf /var/lib/apt/lists/*
 
-ENV HADOOP_VERSION=${HADOOP_VERSION:-3.1.3}
-ENV HIVE_VERSION=${HIVE_VERSION:-3.1.3}
-ENV HBASE_VERSION=${HBASE_VERSION:-2.0.4}
-ENV TEZ_VERSION=${TEZ_VERSION:-0.10.0}
+ENV HADOOP_VERSION=${HADOOP_VERSION:-3.3.6}
+ENV HIVE_VERSION=${HIVE_VERSION:-4.0.0}
+ENV HBASE_VERSION=${HBASE_VERSION:-2.5.10}
+ENV TEZ_VERSION=${TEZ_VERSION:-0.10.3}
+ENV ZOOKEEPER_VERSION=${ZOOKEEPER_VERSION:-3.9.2}
 
 ENV HADOOP_URL  https://archive.apache.org/dist/hadoop/core/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz
 ENV HIVE_URL https://archive.apache.org/dist/hive/hive-$HIVE_VERSION/apache-hive-$HIVE_VERSION-bin.tar.gz
-ENV HBASE_URL https://archive.apache.org/dist/hbase/$HBASE_VERSION/hbase-$HBASE_VERSION-bin.tar.gz
+ENV HBASE_URL https://archive.apache.org/dist/hbase/$HBASE_VERSION/hbase-$HBASE_VERSION-hadoop3-bin.tar.gz
 ENV TEZ_URL https://archive.apache.org/dist/tez/$TEZ_VERSION/apache-tez-$TEZ_VERSION-bin.tar.gz
+ENV ZOOKEEPER_URL https://dlcdn.apache.org/zookeeper/zookeeper-$ZOOKEEPER_VERSION/apache-zookeeper-$ZOOKEEPER_VERSION-bin.tar.gz
 
 # Download Hadoop
 RUN set -x \
@@ -31,6 +33,7 @@ RUN set -x \
 RUN set -x \
     && curl -fSL "$HBASE_URL" -o /tmp/hbase.tar.gz \
     && tar -xvf /tmp/hbase.tar.gz -C /opt/ \
+    && mv /opt/hbase-$HBASE_VERSION-hadoop3 /opt/hbase \
     && rm /tmp/hbase.tar.gz*
 
 # Download Tez
@@ -38,6 +41,12 @@ RUN set -x \
     && curl -fSL "$TEZ_URL" -o /tmp/apache-tez-"$TEZ_VERSION"-bin.tar.gz \
     && tar -xvf /tmp/apache-tez-"$TEZ_VERSION"-bin.tar.gz -C /opt/ \
     && mv /opt/apache-tez-"$TEZ_VERSION-bin" /opt/tez
+
+# Download Zookeeper
+RUN mkdir -p /usr/zookeeper \
+    && curl -fSL $ZOOKEEPER_URL -o /tmp/apache-zookeeper.tar.gz && tar -xvf /tmp/apache-zookeeper.tar.gz -C /opt/ \
+    && mv /opt/apache-zookeeper-$ZOOKEEPER_VERSION-bin /opt/zookeeper
+
 
 # Configure HDFS
 RUN ln -s /opt/hadoop-$HADOOP_VERSION/etc/hadoop /etc/hadoop
@@ -63,12 +72,14 @@ ENV HIVE_HOME /opt/hive
 ENV PATH $HIVE_HOME/bin:$PATH
 ADD hive-site.xml ${HIVE_HOME}/conf/hive-site.xml
 
+# Configure Zookeeper
+ENV ZOOKEEPER_HOME=/opt/zookeeper
+ADD zoo.cfg $ZOOKEEPER_HOME/conf/zoo.cfg
+
 # Configure HBase
-ENV HBASE_HOME=/opt/hbase-$HBASE_VERSION
-ENV HBASE_CONF_DIR=/etc/hbase
-ENV PATH $HBASE_HOME/bin/:$PATH
-RUN ln -s ${HBASE_HOME}/conf /etc/hbase
-RUN mkdir ${HBASE_HOME}/logs
+ENV HBASE_HOME_DIR=/opt/hbase
+ENV PATH=$HBASE_HOME_DIR/bin/:$PATH
+RUN mkdir ${HBASE_HOME_DIR}/logs
 
 # Configure Tez
 ENV TEZ_HOME=/opt/tez

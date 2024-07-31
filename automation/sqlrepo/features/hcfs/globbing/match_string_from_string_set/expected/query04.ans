@@ -229,12 +229,6 @@ select * from hcfs_glob_match_string_from_string_set_10 order by name, num;
 --
 -- # create a match/subs
 --
--- m/Illegal file pattern: Unclosed group near index.*/
--- s/Illegal file pattern: Unclosed group near index.*/Unclosed group near index xxx/
---
--- m/java.util.regex.PatternSyntaxException: Unclosed group near index.*/
--- s/java.util.regex.PatternSyntaxException: Unclosed group near index.*/Unclosed group near index xxx/
---
 -- m/DETAIL/
 -- s/DETAIL/CONTEXT/
 --
@@ -249,7 +243,7 @@ select * from hcfs_glob_match_string_from_string_set_10 order by name, num;
 --
 -- end_matchsubs
 select * from hcfs_glob_match_string_from_string_set_11 order by name, num;
-ERROR:  PXF server error : Illegal file pattern: Unclosed group near index xxx
+ERROR:  PXF server error : Illegal file pattern: error parsing regexp: Unclosed group at pos 4: `}{bc`
 -- start_ignore
 HINT:  Check the PXF logs located in the 'logs-dir' directory on host 'mdw' or 'set client_min_messages=LOG' for additional details.
 -- end_ignore

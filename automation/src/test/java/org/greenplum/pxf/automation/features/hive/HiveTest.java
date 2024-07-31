@@ -108,6 +108,7 @@ public class HiveTest extends HiveBaseTest {
         hive.runQuery("SET hive.exec.dynamic.partition = true");
         hive.runQuery("SET hive.exec.dynamic.partition.mode = nonstrict");
         hive.runQuery("SET hive.stats.autogather = false");
+        hive.runQuery("SET hive.vectorized.execution.enabled = false");
         // Insert into table using dynamic partitioning.
         // Some of the fields are NULL so they will be inserted into the default partition.
         hive.insertDataToPartition(hiveTypesTable, hiveManyPartitionsTable,
