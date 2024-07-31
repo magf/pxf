@@ -15,6 +15,7 @@ import com.amazonaws.services.s3.model.SelectObjectContentRequest;
 import com.amazonaws.services.s3.model.SelectObjectContentResult;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.s3a.DefaultS3ClientFactory;
+import org.apache.hadoop.fs.s3a.S3ClientFactory;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.model.Accessor;
 import org.greenplum.pxf.api.model.BasePlugin;
@@ -306,11 +307,12 @@ public class S3SelectAccessor extends BasePlugin implements Accessor {
      * Returns a new AmazonS3 client with credentials from
      * the configuration file
      */
+    @SuppressWarnings("deprecation")
     private AmazonS3 initS3Client() {
         try {
             DefaultS3ClientFactory factory = new DefaultS3ClientFactory();
             factory.setConf(configuration);
-            return factory.createS3Client(name);
+            return factory.createS3Client(name, new S3ClientFactory.S3ClientCreationParameters());
         } catch (IOException e) {
             throw new RuntimeException("Unable to create S3 Client connection", e);
         }
