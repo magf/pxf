@@ -3,17 +3,12 @@ package org.greenplum.pxf.automation.dataschema;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.lang.reflect.Field;
 
-import jsystem.framework.report.ListenerstManager;
-import jsystem.framework.report.Reporter;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
-import org.greenplum.pxf.automation.utils.jsystem.report.ReportUtils;
 
 public class CustomWritableWithCircle implements Writable {
-    private static final Reporter report = ListenerstManager.getInstance();
     public int int1;
     public String circle;
 
@@ -60,14 +55,5 @@ public class CustomWritableWithCircle implements Writable {
         Text localText = new Text();
         localText.readFields(paramDataInput);
         this.circle = localText.toString();
-    }
-
-    public void printFieldTypes() {
-        Class<?> localClass = getClass();
-        Field[] arrayOfField = localClass.getDeclaredFields();
-
-        for (Field field : arrayOfField) {
-            ReportUtils.report(report, getClass(), field.getType().getName());
-        }
     }
 }

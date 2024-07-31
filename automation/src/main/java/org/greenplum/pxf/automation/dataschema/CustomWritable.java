@@ -13,7 +13,6 @@ import org.apache.hadoop.io.Writable;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.lang.reflect.Field;
 
 /**
  * CustomWritable class used to serialize and deserialize data with the below
@@ -418,14 +417,5 @@ public class CustomWritable implements Writable {
         byte[] buffer = btsw.getBytes();
         bts = new byte[btsw.getLength()];
         if (btsw.getLength() >= 0) System.arraycopy(buffer, 0, bts, 0, btsw.getLength());
-    }
-
-    public void printFieldTypes() {
-        Class<? extends CustomWritable> myClass = this.getClass();
-        Field[] fields = myClass.getDeclaredFields();
-
-        for (Field field : fields) {
-            System.out.println(field.getType().getName());
-        }
     }
 }
