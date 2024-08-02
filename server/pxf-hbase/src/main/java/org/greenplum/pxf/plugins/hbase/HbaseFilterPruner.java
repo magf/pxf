@@ -7,7 +7,6 @@ import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.plugins.hbase.utilities.HBaseTupleDescription;
 
 import java.util.EnumSet;
-import java.util.List;
 
 @Slf4j
 public class HbaseFilterPruner extends SupportedOperatorPruner {

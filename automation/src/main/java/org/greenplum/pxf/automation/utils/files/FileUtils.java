@@ -23,7 +23,7 @@ public class FileUtils {
 	 * @param table {@link Table}
 	 * @param pathToFile target text file
 	 * @param delimiter to use between columns
-	 * @throws IOException
+	 * @throws IOException if I/O error occurs
 	 */
 	public static void writeTableDataToFile(Table table, String pathToFile, String delimiter)
 			throws IOException {
@@ -66,7 +66,7 @@ public class FileUtils {
 	 * 
 	 * @param file {@link File} object
 	 * @param permissions required {@link PosixFilePermission}
-	 * @throws IOException
+	 * @throws IOException if I/O error occurs
 	 */
 	public static void setFilePermission(File file, Set<PosixFilePermission> permissions)
 			throws IOException {

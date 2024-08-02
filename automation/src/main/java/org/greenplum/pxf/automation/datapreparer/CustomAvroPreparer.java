@@ -1,6 +1,7 @@
 package org.greenplum.pxf.automation.datapreparer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.greenplum.pxf.automation.fileformats.IDataPreparer;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -14,7 +15,7 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
  */
 public class CustomAvroPreparer implements IDataPreparer {
 
-	private String schemaName;
+	private final String schemaName;
 
 	public CustomAvroPreparer(String schemaName) {
 		this.schemaName = schemaName;
@@ -31,7 +32,7 @@ public class CustomAvroPreparer implements IDataPreparer {
 
 			data[i] = new CustomAvroRecordPreparer(schemaName, num1, 10 * num1, 20 * num1);
 
-			ArrayList<String> row = new ArrayList<String>();
+			ArrayList<String> row = new ArrayList<>();
 
 			for (int j = 0; j < data[i].num.length; j++) {
 				row.add(String.valueOf(data[i].num[j]));
@@ -40,9 +41,7 @@ public class CustomAvroPreparer implements IDataPreparer {
 			row.add(String.valueOf(data[i].int1));
 			row.add(String.valueOf(data[i].int2));
 
-			for (int j = 0; j < data[i].strings.length; j++) {
-				row.add(data[i].strings[j]);
-			}
+            row.addAll(Arrays.asList(data[i].strings));
 
 			row.add(data[i].st1);
 

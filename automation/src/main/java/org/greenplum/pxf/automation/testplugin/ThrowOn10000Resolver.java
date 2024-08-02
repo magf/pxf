@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class ThrowOn10000Resolver extends StringPassResolver {
 
-	private static Log Log = LogFactory.getLog(ThrowOn10000Resolver.class);
+	private static final Log Log = LogFactory.getLog(ThrowOn10000Resolver.class);
 	private int rowCount;
 
     /**

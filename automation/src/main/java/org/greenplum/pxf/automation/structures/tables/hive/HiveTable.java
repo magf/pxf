@@ -60,61 +60,61 @@ public class HiveTable extends Table {
 		sb.append(super.constructCreateStmt());
 
 		if (partitionedBy != null) {
-			sb.append(" PARTITIONED BY (" + StringUtils.join(partitionedBy, ", ") + ")");
+			sb.append(" PARTITIONED BY (").append(StringUtils.join(partitionedBy, ", ")).append(")");
 		}
 
 		if (clusteredBy != null && clusterBucketCount > 0) {
-			sb.append(" CLUSTERED BY (" + StringUtils.join(clusteredBy, ", ") + ")");
+			sb.append(" CLUSTERED BY (").append(StringUtils.join(clusteredBy, ", ")).append(")");
 			if (sortedBy != null){
-				sb.append(" SORTED BY (" + StringUtils.join(sortedBy, ", ") + ")");
+				sb.append(" SORTED BY (").append(StringUtils.join(sortedBy, ", ")).append(")");
 			}
-			sb.append(" INTO " + clusterBucketCount + " BUCKETS");
+			sb.append(" INTO ").append(clusterBucketCount).append(" BUCKETS");
 		}
 
 		if (skewedBy != null && skewedOn != null) {
-			sb.append(" SKEWED BY (" + StringUtils.join(skewedBy, ", ") + ") ON (" + StringUtils.join(skewedOn, ", ") + ")");
+			sb.append(" SKEWED BY (").append(StringUtils.join(skewedBy, ", ")).append(") ON (").append(StringUtils.join(skewedOn, ", ")).append(")");
 			if (storeAsDirectories) {
 				sb.append(" STORED AS DIRECTORIES");
 			}
 		}
 
 		if (format != null) {
-			sb.append(" " + format + " FORMAT");
+			sb.append(" ").append(format).append(" FORMAT");
 		}
 
 		if (getSerde() != null) {
-			sb.append(" SERDE '" + getSerde() + "'");
+			sb.append(" SERDE '").append(getSerde()).append("'");
 		}
 
 		if (delimiterFieldsBy != null) {
 
-			sb.append(" DELIMITED FIELDS TERMINATED BY '" + delimiterFieldsBy + "'");
+			sb.append(" DELIMITED FIELDS TERMINATED BY '").append(delimiterFieldsBy).append("'");
 		}
 
 		if (delimiterCollectionItemsBy != null) {
 
-			sb.append(" COLLECTION ITEMS TERMINATED BY '" + delimiterCollectionItemsBy + "'");
+			sb.append(" COLLECTION ITEMS TERMINATED BY '").append(delimiterCollectionItemsBy).append("'");
 		}
 
 		if (delimiterMapKeysBy != null) {
 
-			sb.append(" MAP KEYS TERMINATED BY '" + delimiterMapKeysBy + "'");
+			sb.append(" MAP KEYS TERMINATED BY '").append(delimiterMapKeysBy).append("'");
 		}
 
 		if (delimiterLinesBy != null) {
 
-			sb.append(" LINES TERMINATED BY '" + delimiterLinesBy + "'");
+			sb.append(" LINES TERMINATED BY '").append(delimiterLinesBy).append("'");
 		}
 
 		if (storedAs != null) {
-			sb.append(" STORED AS " + storedAs);
+			sb.append(" STORED AS ").append(storedAs);
 		}
 
 		if (getLocation() != null) {
 			sb.append(" LOCATION '").append(getLocation()).append("'");
 		}
 
-		if (tableProperties != null && tableProperties.size() > 0) {
+		if (tableProperties != null && !tableProperties.isEmpty()) {
 			addTablePropertiesToString(sb);
 		}
 
@@ -206,7 +206,7 @@ public class HiveTable extends Table {
 				continue;
 			if (hasProperty)
 				sb.append(",");
-			sb.append("'" + list.get(0) + "'='" + list.get(1) + "'");
+			sb.append("'").append(list.get(0)).append("'='").append(list.get(1)).append("'");
 			hasProperty = true;
 		}
 		sb.append(")");
@@ -214,5 +214,5 @@ public class HiveTable extends Table {
 
 	protected String getLocation() {
 		return null;
-	};
+	}
 }

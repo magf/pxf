@@ -19,7 +19,6 @@ package org.greenplum.pxf.plugins.jdbc;
  * under the License.
  */
 
-import org.apache.hadoop.conf.Configuration;
 import org.greenplum.pxf.api.model.Fragment;
 import org.greenplum.pxf.api.model.Fragmenter;
 import org.greenplum.pxf.api.model.RequestContext;
@@ -33,12 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class JdbcPartitionFragmenterTest {
 
-    private Configuration configuration;
     private RequestContext context;
 
     @BeforeEach
     public void setUp() {
-        configuration = new Configuration();
         context = new RequestContext();
         context.setConfig("default");
         context.setDataSource("table");

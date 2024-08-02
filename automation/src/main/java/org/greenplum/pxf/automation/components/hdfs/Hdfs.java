@@ -36,9 +36,7 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -46,6 +44,8 @@ import java.io.PrintStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,6 +65,7 @@ import static org.testng.Assert.assertEquals;
 public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     public static final int K_BYTE = 1024;
     public static final int M_BYTE = K_BYTE * K_BYTE;
+    private static final int ROW_BUFFER = 10000;
     private FileSystem fs;
     private Configuration config;
     // NN host
@@ -75,7 +76,6 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     private short replicationSize;
     private long blockSize;
     private int bufferSize;
-    private final int ROW_BUFFER = 10000;
     private String workingDirectory;
     private String haNameservice;
     private String sshUserName;
@@ -88,8 +88,6 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
 
     // for SSH connection to the namenode and performing HA failover operations
     private ShellSystemObject namenodeSso;
-    private String namenodePrincipal;
-    private String namenodeKeytab;
     private String relativeWorkingDirectory;
 
     public Hdfs() {
@@ -165,7 +163,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         }
 
         // for Hadoop clusters provisioned in the cloud when running from local workstation
-        if (useDatanodeHostname != null && Boolean.parseBoolean(useDatanodeHostname)) {
+        if (Boolean.parseBoolean(useDatanodeHostname)) {
             config.set("dfs.client.use.datanode.hostname", "true");
         }
 
@@ -196,8 +194,8 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
 
             // source environment file
             namenodeSso.runCommand("source ~/.bash_profile");
-            namenodePrincipal = config.get("dfs.namenode.kerberos.principal");
-            namenodeKeytab = config.get("dfs.namenode.keytab.file");
+            String namenodePrincipal = config.get("dfs.namenode.kerberos.principal");
+            String namenodeKeytab = config.get("dfs.namenode.keytab.file");
             if (namenodePrincipal != null) {
                 // substitute _HOST portion of the principal with the namenode FQDN, need to get it from the
                 // configuration, since namenodeHost might contain a short hostname
@@ -264,9 +262,9 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
             }
         }
         if (list == null) {
-            ReportUtils.report(report, getClass(),
-                    String.format("Directory %s does not exist, max attempts exceeded, throwing exception", path));
-            throw savedException;
+            String message = String.format("Directory %s does not exist, max attempts exceeded, throwing exception", path);
+            ReportUtils.report(report, getClass(), message);
+            throw savedException != null ? savedException : new FileNotFoundException(message);
 
         }
         ArrayList<String> filesList = new ArrayList<>();
@@ -363,8 +361,10 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
 
         // Even though this method is deprecated we need to pass the correct
         // fs for multi hadoop tests
-        SequenceFile.Writer writer = SequenceFile.createWriter(fs, config,
-                path, key.getClass(), writableData[0].getClass());
+        SequenceFile.Writer writer = SequenceFile.createWriter(config,
+                SequenceFile.Writer.file(path),
+                SequenceFile.Writer.keyClass(key.getClass()),
+                SequenceFile.Writer.valueClass(writableData[0].getClass()));
         for (int i = 1; i < writableData.length; i++) {
             writer.append(key, writableData[i]);
         }
@@ -381,8 +381,10 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
 
         // Even though this method is deprecated we need to pass the correct
         // fs for multi hadoop tests
-        SequenceFile.Writer writer = SequenceFile.createWriter(fs, config, path,
-                key.getClass(), val.getClass());
+        SequenceFile.Writer writer = SequenceFile.createWriter(config,
+                SequenceFile.Writer.file(path),
+                SequenceFile.Writer.keyClass(key.getClass()),
+                SequenceFile.Writer.valueClass(val.getClass()));
 
         for (IAvroSchema datum : data) {
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -400,8 +402,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         Path path = getDatapath(pathToFile);
         OutputStream outStream = fs.create(path, true, bufferSize,
                 replicationSize, blockSize);
-        Schema schema = new Schema.Parser().parse(new FileInputStream(
-                schemaName));
+        Schema schema = new Schema.Parser().parse(Files.newInputStream(Paths.get(schemaName)));
         DatumWriter<GenericRecord> writer = new GenericDatumWriter<>(
                 schema);
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(
@@ -451,7 +452,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         Tool tool = new DataFileReadTool();
         List<String> args = Collections.singletonList(pathToFile);
 
-        try (PrintStream printStream = new PrintStream(new FileOutputStream(new File(pathToJson)))) {
+        try (PrintStream printStream = new PrintStream(Files.newOutputStream(new File(pathToJson).toPath()))) {
             tool.run(null, printStream, System.err, args);
         }
     }
@@ -461,7 +462,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         Tool tool = new DataFileGetMetaTool();
         List<String> args = Collections.singletonList(pathToFile);
 
-        try (PrintStream printStream = new PrintStream(new FileOutputStream(new File(pathToMetadata)))) {
+        try (PrintStream printStream = new PrintStream(Files.newOutputStream(new File(pathToMetadata).toPath()))) {
             tool.run(null, printStream, System.err, args);
         }
     }
@@ -619,6 +620,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         assertEquals("active", getNamenodeStatus(to));
         assertEquals("standby", getNamenodeStatus(from));
     }
+
     /**
      * @return the hadoop configuration
      */

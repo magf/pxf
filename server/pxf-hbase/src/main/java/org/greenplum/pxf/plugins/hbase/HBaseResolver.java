@@ -40,11 +40,11 @@ import java.util.List;
 
 /**
  * Record resolver for HBase.
- *
+ * <p>
  * The class is responsible to convert rows from HBase scans (returned as {@link Result} objects)
  * into a List of {@link OneField} objects.
  * That also includes the conversion process of each HBase column's value into its GPDB assigned type.
- *
+ * <p>
  * Currently, the class assumes all HBase values are stored as String object Bytes encoded.
  */
 public class HBaseResolver extends BasePlugin implements Resolver {
@@ -92,7 +92,6 @@ public class HBaseResolver extends BasePlugin implements Resolver {
      *
      * @param record list of {@link OneField}
      * @return the constructed {@link OneRow}
-     * @throws Exception if constructing a row from the fields failed
      */
     @Override
     public OneRow setFields(List<OneField> record) {

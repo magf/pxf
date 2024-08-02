@@ -4,8 +4,6 @@ import annotations.WorksWithFDW;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
-import org.greenplum.pxf.automation.utils.system.ProtocolEnum;
-import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
 import org.testng.annotations.Test;
 import java.io.File;
 
@@ -108,13 +106,11 @@ public class ParquetReadTest extends BaseFeature {
             "tm_arr        TIMESTAMP[]",
     };
     private String hdfsPath;
-    private ProtocolEnum protocol;
 
     @Override
     public void beforeClass() throws Exception {
         // path for storing data on HDFS (for processing by PXF)
         hdfsPath = hdfs.getWorkingDirectory() + "/parquet/";
-        protocol = ProtocolUtils.getProtocol();
 
         String resourcePath = localDataResourcesFolder + "/parquet/";
         hdfs.copyFromLocal(resourcePath + PARQUET_PRIMITIVE_TYPES, hdfsPath + PARQUET_PRIMITIVE_TYPES);

@@ -1,7 +1,6 @@
 package org.greenplum.pxf.api.security;
 
 import com.sun.security.jgss.ExtendedGSSCredential;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.PxfUserGroupInformation;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSException;
@@ -30,7 +29,6 @@ import static org.mockito.Mockito.when;
 public class GSSCredentialProviderTest {
 
     private GSSCredentialProvider provider;
-    private Configuration configuration;
 
     @Mock
     private GSSManager mockGSSManager;
@@ -57,7 +55,6 @@ public class GSSCredentialProviderTest {
 
     @BeforeEach
     public void setup() {
-        configuration = new Configuration();
         provider = new GSSCredentialProvider(mockPxfUgi, Duration.ofHours(1L));
         provider.setGssManager(mockGSSManager);
     }

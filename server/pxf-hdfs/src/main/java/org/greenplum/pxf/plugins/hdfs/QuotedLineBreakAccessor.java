@@ -73,6 +73,21 @@ public class QuotedLineBreakAccessor extends HdfsAtomicDataAccessor {
 
     /**
      * Fetches one record (maybe partial) from the file. The record is returned as a Java object.
+     * <p>
+     * When SKIP_HEADER_COUNT is set, this will skip the physical lines in a file based on the
+     * count provided. For eg. For a file with the following data:
+     * <p>
+     *   Address-Month-Year
+     *   "4627 Star Rd.
+     *   San Francisco, CA  94107":Sept:2017
+     *   "113 Moon St.
+     *   San Diego, CA  92093":Jan:2018
+     * <p>
+     * In the above example, if the skipHeaderCount = 3, it will skip the first 3 lines
+     * and read the following remaining lines
+     * <p>
+     *   "113 Moon St.
+     *   San Diego, CA  92093":Jan:2018
      */
     @Override
     public OneRow readNextObject() throws IOException {
@@ -81,22 +96,6 @@ public class QuotedLineBreakAccessor extends HdfsAtomicDataAccessor {
             return null;
         }
 
-        /**
-         * When SKIP_HEADER_COUNT is set, this will skip the physical lines in a file based on the
-         * count provided. For eg. For a file with the following data:
-         *
-         *   Address-Month-Year
-         *   "4627 Star Rd.
-         *   San Francisco, CA  94107":Sept:2017
-         *   "113 Moon St.
-         *   San Diego, CA  92093":Jan:2018
-         *
-         * In the above example, if the skipHeaderCount = 3, it will skip the first 3 lines
-         * and read the following remaining lines
-         *
-         *   "113 Moon St.
-         *   San Diego, CA  92093":Jan:2018
-         */
         while (skipHeaderCount > 0) {
             if (reader.readLine() == null) {
                 return null;

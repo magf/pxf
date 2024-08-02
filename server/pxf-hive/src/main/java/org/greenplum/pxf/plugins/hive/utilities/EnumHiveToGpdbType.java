@@ -19,6 +19,7 @@
 
 package org.greenplum.pxf.plugins.hive.utilities;
 
+import lombok.Getter;
 import org.greenplum.pxf.api.error.UnsupportedTypeException;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.utilities.EnumGpdbType;
@@ -53,9 +54,13 @@ public enum EnumHiveToGpdbType {
     StructType("struct", EnumGpdbType.TextType, "[<,>]", true),
     UnionType("uniontype", EnumGpdbType.TextType, "[<,>]", true);
 
-    private String typeName;
-    private EnumGpdbType gpdbType;
+    @Getter
+    private final String typeName;
+    @Getter
+    private final EnumGpdbType gpdbType;
+    @Getter
     private String splitExpression;
+    @Getter
     private byte size;
     private boolean isComplexType;
 
@@ -85,27 +90,6 @@ public enum EnumHiveToGpdbType {
     }
 
     /**
-     * @return name of type
-     */
-    public String getTypeName() {
-        return this.typeName;
-    }
-
-    /**
-     * @return corresponding GPDB type
-     */
-    public EnumGpdbType getGpdbType() {
-        return this.gpdbType;
-    }
-
-    /**
-     * @return split by expression
-     */
-    public String getSplitExpression() {
-        return this.splitExpression;
-    }
-
-    /**
      * Returns Hive to GPDB type mapping entry for given Hive type
      *
      * @param hiveType full Hive type with modifiers, for example - decimal(10, 0), char(5), binary, array&lt;string&gt;, map&lt;string,float&gt; etc
@@ -121,7 +105,7 @@ public enum EnumHiveToGpdbType {
                 hiveTypeName = tokens[0];
             }
 
-            if (t.getTypeName().toLowerCase().equals(hiveTypeName.toLowerCase())) {
+            if (t.getTypeName().equalsIgnoreCase(hiveTypeName)) {
                 return t;
             }
         }
@@ -137,13 +121,8 @@ public enum EnumHiveToGpdbType {
      */
     public static EnumHiveToGpdbType getCompatibleHiveToGpdbType(DataType dataType) {
 
-        SortedSet<EnumHiveToGpdbType> types = new TreeSet<EnumHiveToGpdbType>(
-                new Comparator<EnumHiveToGpdbType>() {
-                    public int compare(EnumHiveToGpdbType a,
-                                       EnumHiveToGpdbType b) {
-                        return Byte.compare(a.getSize(), b.getSize());
-                    }
-                });
+        SortedSet<EnumHiveToGpdbType> types = new TreeSet<>(
+                Comparator.comparingInt(EnumHiveToGpdbType::getSize));
 
         for (EnumHiveToGpdbType t : values()) {
             if (t.getGpdbType().getDataType().equals(dataType)) {
@@ -151,7 +130,7 @@ public enum EnumHiveToGpdbType {
             }
         }
 
-        if (types.size() == 0)
+        if (types.isEmpty())
             throw new UnsupportedTypeException("Unable to find compatible Hive type for given GPDB's type: " + dataType);
 
         return types.last();
@@ -165,7 +144,6 @@ public enum EnumHiveToGpdbType {
      * such as varchar, char, decimal, etc.
      */
     public static String getFullHiveTypeName(EnumHiveToGpdbType hiveToGpdbType, Integer[] modifiers) {
-        hiveToGpdbType.getTypeName();
         if (modifiers != null && modifiers.length > 0) {
             String modExpression = hiveToGpdbType.getSplitExpression();
             StringBuilder fullType = new StringBuilder(hiveToGpdbType.typeName);
@@ -204,22 +182,12 @@ public enum EnumHiveToGpdbType {
                 for (int i = 0; i < tokens.length - 1; i++)
                     result[i] = Integer.parseInt(tokens[i + 1]);
             }
-            if (t.getTypeName().toLowerCase()
-                    .equals(hiveTypeName.toLowerCase())) {
+            if (t.getTypeName().equalsIgnoreCase(hiveTypeName)) {
                 return result;
             }
         }
         throw new UnsupportedTypeException("Unable to map Hive's type: "
                 + hiveType + " to GPDB's type");
-    }
-
-    /**
-     * This field is needed to find compatible Hive type when more than one Hive type mapped to GPDB type
-     *
-     * @return size of this type in bytes or 0
-     */
-    public byte getSize() {
-        return size;
     }
 
     public boolean isComplexType() {

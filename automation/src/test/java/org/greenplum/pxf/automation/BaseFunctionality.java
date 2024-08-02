@@ -20,7 +20,7 @@ public abstract class BaseFunctionality extends BaseTestParent {
      * following fields: int, String, double, long and boolean
      *
      * @return Table
-     * @throws IOException
+     * @throws IOException  if an error occurs
      */
     protected Table getSmallData(String uniqueName, int numRows) {
         List<List<String>> data = new ArrayList<>();
@@ -41,7 +41,7 @@ public abstract class BaseFunctionality extends BaseTestParent {
         return dataTable;
     }
 
-    protected Table getSmallData() throws IOException {
+    protected Table getSmallData() {
         return getSmallData("");
     }
 

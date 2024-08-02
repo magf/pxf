@@ -18,14 +18,12 @@ import java.util.List;
 public class ListParquetTypeConverter implements ParquetTypeConverter {
     private final Type type;
     private final Type elementType;
-    private final DataType dataType;
     private final ParquetTypeConverter elementConverter;
     private final PgUtilities pgUtilities;
     private final ParquetUtilities parquetUtilities;
 
     public ListParquetTypeConverter(Type type, DataType dataType, ParquetTypeConverterFactory parquetTypeConverterFactory) {
         this.type = type;
-        this.dataType = dataType;
         this.elementType = getElementType(type.asGroupType());
         validateElementTypeInListType(elementType);
         this.elementConverter = parquetTypeConverterFactory.create(elementType, dataType.isArrayType() ? dataType.getTypeElem() : dataType);

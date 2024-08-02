@@ -154,10 +154,10 @@ public class JdbcBasePlugin extends BasePlugin implements Reloader {
     protected Boolean quoteColumns = null;
 
     // Environment variables to SET before query execution
-    protected Map<String, String> sessionConfiguration = new HashMap<>();
+    protected final Map<String, String> sessionConfiguration = new HashMap<>();
 
     // Properties object to pass to JDBC Driver when connection is created
-    protected Properties connectionConfiguration = new Properties();
+    protected final Properties connectionConfiguration = new Properties();
 
     // Transaction isolation level that a user can configure
     private TransactionIsolation transactionIsolation = TransactionIsolation.NOT_PROVIDED;

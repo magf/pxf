@@ -19,10 +19,8 @@ import java.io.File;
 @WorksWithFDW
 public class HdfsReadableSequenceTest extends BaseFeature {
 
+    private static final String SUFFIX_CLASS = ".class";
     private String hdfsPath;
-    private String resourcePath;
-
-    private final String SUFFIX_CLASS = ".class";
 
     String schemaPackageLocation = "/org/greenplum/pxf/automation/dataschema/";
     String schemaPackage = "org.greenplum.pxf.automation.dataschema.";
@@ -72,7 +70,7 @@ public class HdfsReadableSequenceTest extends BaseFeature {
         hdfsPath = hdfs.getWorkingDirectory() + "/sequence/";
 
         // location of schema and data files
-        resourcePath = "target/classes" + schemaPackageLocation;
+        String resourcePath = "target/classes" + schemaPackageLocation;
 
         // copy schema file to all nodes
         String newPath = "/tmp/publicstage/pxf";

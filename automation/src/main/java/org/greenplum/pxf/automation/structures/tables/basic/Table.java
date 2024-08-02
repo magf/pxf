@@ -1,13 +1,14 @@
 package org.greenplum.pxf.automation.structures.tables.basic;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -68,8 +69,8 @@ public class Table {
         sb.append(" (");
 
         String prefix = "";
-        for (int i = 0; i < fields.length; i++) {
-            sb.append(prefix).append(fields[i]);
+        for (String field : fields) {
+            sb.append(prefix).append(field);
             prefix = ", ";
         }
 
@@ -128,7 +129,7 @@ public class Table {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append("DROP TABLE IF EXISTS " + getFullName());
+        sb.append("DROP TABLE IF EXISTS ").append(getFullName());
         if (cascade) {
             sb.append(" CASCADE");
         }
@@ -155,11 +156,11 @@ public class Table {
     /**
      * Add Row to Data List in List format.
      *
-     * @param row
+     * @param row to add
      */
     public void addRow(List<String> row) {
         if (data == null) {
-            data = new ArrayList<List<String>>();
+            data = new ArrayList<>();
         }
 
         data.add(row);
@@ -168,7 +169,7 @@ public class Table {
     /**
      * Add Row to Data List using String[]
      *
-     * @param row
+     * @param row to add
      */
     public void addRow(String[] row) {
 
@@ -178,21 +179,20 @@ public class Table {
     /**
      * Add rows to data list using String[][]
      *
-     * @param rows
+     * @param rows to add
      */
     public void addRows(String[][] rows) {
         if (rows == null) {
             return;
         }
 
-        for (int i = 0; i < rows.length; ++i)
-            addRow(rows[i]);
+        for (String[] row : rows) addRow(row);
     }
 
     /**
      * duplicate table's data by factor times
      *
-     * @param factor
+     * @param factor - the scale of duplicate
      * @param pumpAsBulk if true, duplicate all table as bulk by factor times
      */
     public void pumpUpTableData(int factor, boolean pumpAsBulk) {
@@ -201,7 +201,7 @@ public class Table {
             return;
         }
 
-        List<List<String>> pumped = new ArrayList<List<String>>();
+        List<List<String>> pumped = new ArrayList<>();
 
         if (pumpAsBulk) {
 
@@ -230,8 +230,8 @@ public class Table {
     /**
      * Add data cell to specific row in data list
      *
-     * @param rowIndex
-     * @param dataToAdd
+     * @param rowIndex - the index of the row
+     * @param dataToAdd - data to add
      */
     public void addCellToDataRow(int rowIndex, String dataToAdd) {
 
@@ -243,7 +243,7 @@ public class Table {
     }
 
     /**
-     * Appends all rows from from table to this table
+     * Appends all rows from table to this table
      *
      * @param from from table
      */
@@ -265,16 +265,14 @@ public class Table {
 
         dataHtml.append("<table border=\"1\">");
 
-        /**
-         * Add headers
-         */
+        // Add headers
         dataHtml.append("<tr bgcolor=\"#c1cdc1\">");
 
         for (int i = 0; i < columnsHeaders.size(); i++) {
-            dataHtml.append("<td> " + columnsHeaders.get(i));
+            dataHtml.append("<td> ").append(columnsHeaders.get(i));
 
             if (colsDataType != null && colsDataType.size() == columnsHeaders.size()) {
-                dataHtml.append(" (" + JdbcTypesUtils.getSqlTypeName(colsDataType.get(i)) + ")");
+                dataHtml.append(" (").append(JdbcTypesUtils.getSqlTypeName(colsDataType.get(i))).append(")");
             }
 
             dataHtml.append("</td>");
@@ -284,12 +282,10 @@ public class Table {
 
         dataHtml.append("<tr>");
 
-        for (int i = 0; i < data.size(); i++) {
+        for (List<String> row : data) {
 
-            List<String> row = data.get(i);
-
-            for (int j = 0; j < row.size(); j++) {
-                dataHtml.append("<td> " + row.get(j) + "</td>");
+            for (String s : row) {
+                dataHtml.append("<td> ").append(s).append("</td>");
             }
 
             dataHtml.append("</tr>");
@@ -304,11 +300,11 @@ public class Table {
     /**
      * Add data type to colsDataType list
      *
-     * @param dataType
+     * @param dataType - the data type to add
      */
     public void addColDataType(int dataType) {
         if (colsDataType == null) {
-            colsDataType = new ArrayList<Integer>();
+            colsDataType = new ArrayList<>();
         }
 
         colsDataType.add(dataType);
@@ -316,7 +312,7 @@ public class Table {
 
     public void addColumnHeader(String header) {
         if (columnsHeaders == null) {
-            columnsHeaders = new ArrayList<String>();
+            columnsHeaders = new ArrayList<>();
         }
 
         columnsHeaders.add(header);
@@ -331,36 +327,37 @@ public class Table {
      * resets the data and colsDataType lists.
      */
     public void initDataStructures() {
-        colsDataType = new ArrayList<Integer>();
-        data = new ArrayList<List<String>>();
-        columnsHeaders = new ArrayList<String>();
+        colsDataType = new ArrayList<>();
+        data = new ArrayList<>();
+        columnsHeaders = new ArrayList<>();
     }
 
     /**
      * Load data from Text file to Table data List according to provided delimiter. The data is
      * being read as UTF-8. If the file is compressed the compression type should be mentioned.
      *
-     * @param path file to required file to load
+     * @param pathStr file to required file to load
      * @param delimiter for splitting data on file
      * @param sortColumnIndex for splitting data on file
      * @param encoding text encoding type (like UTF-8...)
      * @param compressionType required compression type.
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
-    public void loadDataFromFile(String path, String delimiter, final int sortColumnIndex, String encoding, EnumCompressionTypes compressionType, boolean appendData) throws IOException {
-        File file = new File(path);
+    public void loadDataFromFile(String pathStr, String delimiter, final int sortColumnIndex, String encoding, EnumCompressionTypes compressionType, boolean appendData) throws IOException {
+        File file = new File(pathStr);
 
         if (!file.exists()) {
-            throw new FileNotFoundException("Error Loading data from File:" + path + " File Not Found");
+            throw new FileNotFoundException("Error Loading data from File:" + pathStr + " File Not Found");
         }
 
         InputStream in = null;
+        Path path = Paths.get(pathStr);
         switch (compressionType) {
         case GZip:
-            in = new GZIPInputStream(new FileInputStream(path));
+            in = new GZIPInputStream(Files.newInputStream(path));
             break;
         case BZip2:
-            in = new BZip2CompressorInputStream(new FileInputStream(path));
+            in = new BZip2CompressorInputStream(Files.newInputStream(path));
             break;
         case None:
             break;
@@ -368,7 +365,7 @@ public class Table {
             break;
         }
 
-        List<String> lines = null;
+        List<String> lines;
         if (in == null) {
             // get lines from file
             lines = FileUtils.readLines(file, encoding);
@@ -390,27 +387,27 @@ public class Table {
             if (delimiter != null) {
                 // find out if quoted values exist in line
                 String[] csvSplit = line.split(delimiter + "\"|\"" + delimiter);
-                String shapedLine = "";
+                StringBuilder shapedLine = new StringBuilder();
                 // if so shape it to be without quotes, add back slash to delimiter in the quoted
                 // value.
-                if (csvSplit != null) {
+                if (csvSplit.length > 0) {
                     for (int i = 0; i < csvSplit.length; i++) {
                         if (csvSplit[i].endsWith("\"")) {
                             csvSplit[i] = csvSplit[i].replaceAll("\"", "").replaceAll(delimiter, "\\\\" + delimiter);
                         }
                         // add delimiter if not first split
                         if (i > 0) {
-                            shapedLine += delimiter;
+                            shapedLine.append(delimiter);
                         }
                         // collect all shaped splits to shapedLine
-                        shapedLine += csvSplit[i];
+                        shapedLine.append(csvSplit[i]);
                     }
                 } else {
                     // if no quoted cells get the line as is
-                    shapedLine = line;
+                    shapedLine = new StringBuilder(line);
                 }
                 // split according to delimiter without backslash before it.
-                columns = shapedLine.split("(?<!\\\\)" + delimiter);
+                columns = shapedLine.toString().split("(?<!\\\\)" + delimiter);
             }
             // get Array as fixed list and put it into ArrayList
             List<String> row = new ArrayList<>(Arrays.asList(columns));
@@ -419,12 +416,7 @@ public class Table {
         // if a sort required, use local this local Comparator which compare the required sortIndex
         // and uses Collention.sort to sort
         if (sortColumnIndex >= 0) {
-            Collections.sort(data, new Comparator<List<String>>() {
-                @Override
-                public int compare(List<String> o1, List<String> o2) {
-                    return o1.get(sortColumnIndex).compareTo(o2.get(sortColumnIndex));
-                }
-            });
+            data.sort(Comparator.comparing(o -> o.get(sortColumnIndex)));
         }
     }
 
@@ -448,7 +440,7 @@ public class Table {
      * @param path HDFS file to required file to load
      * @param delimiter for splitting data on file
      * @param sortColumnIndex column to sort by
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     public void loadDataFromFile(String path, String delimiter, final int sortColumnIndex, boolean appendData) throws IOException {
         loadDataFromFile(path, delimiter, sortColumnIndex, "UTF-8", EnumCompressionTypes.None, appendData);
@@ -461,7 +453,7 @@ public class Table {
      * @param path HDFS file to required file to load
      * @param delimiter for splitting data on file
      * @param sortColumnIndex column to sort by
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     public void loadDataFromFile(String path, String delimiter, final int sortColumnIndex) throws IOException {
         loadDataFromFile(path, delimiter, sortColumnIndex, false);
@@ -473,7 +465,7 @@ public class Table {
      * @param path path HDFS file to required file to load
      * @param delimiter for splitting data on file
      * @param appendData if true append to exists data, false create new {@link List}
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     public void loadDataFromFile(String path, String delimiter, boolean appendData) throws IOException {
         loadDataFromFile(path, delimiter, -1, "UTF-8", EnumCompressionTypes.None, appendData);
@@ -482,11 +474,11 @@ public class Table {
     /**
      * Load data from Text file to Table data List according to provided delimiter using UTF-8.
      *
-     * @param path
-     * @param delimiter
+     * @param path - the source file
+     * @param delimiter - the delimiter
      * @param compressionType compression of file to load
      * @param appendData if true append to exists data, false create new {@link List}
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     public void loadDataFromFile(String path, String delimiter, EnumCompressionTypes compressionType, boolean appendData) throws IOException {
         loadDataFromFile(path, delimiter, -1, "UTF-8", compressionType, appendData);
@@ -571,7 +563,7 @@ public class Table {
         sb.append(System.lineSeparator()).append(getClass().getSimpleName()).append(": ").append(" Name: ").append(getName()).append(System.lineSeparator());
         sb.append("Data:").append(System.lineSeparator());
         if (columnsHeaders != null) {
-            sb.append(columnsHeaders.toString()).append(System.lineSeparator());
+            sb.append(columnsHeaders).append(System.lineSeparator());
         }
         if (data != null) {
             for (List<String> line : data) {

@@ -38,15 +38,9 @@ public class GSSFailureHandlerTest {
         configuration = new Configuration(); // using real configuration instead of mock
     }
 
-//    @Test
-//    public void testGetInstance() {
-//        assertSame(handler, GSSFailureHandler.getInstance());
-//    }
-
     // ---------- NON-SECURE TESTS ----------
     @Test
     public void testNonSecureSuccess() throws Exception {
-        expectNonSecure();
         expectOperationSuccess();
         Object operationResult = execute();
         assertSame(result, operationResult);
@@ -54,19 +48,16 @@ public class GSSFailureHandlerTest {
 
     @Test
     public void testNonSecureExceptionFailure() throws Exception {
-        expectNonSecure();
         expectOperationExceptionReported();
     }
 
     @Test
     public void testNonSecureIOExceptionFailure() throws Exception {
-        expectNonSecure();
         expectOperationIOExceptionReported();
     }
 
     @Test
     public void testNonSecureGSSExceptionFailure() throws Exception {
-        expectNonSecure();
         expectOperationGSSExceptionReported();
     }
 
@@ -113,7 +104,7 @@ public class GSSFailureHandlerTest {
     }
 
     @Test
-    public void testSecureGSSExceptionFailureNegativeCustomRetries() throws Exception {
+    public void testSecureGSSExceptionFailureNegativeCustomRetries() {
         expectSecure();
         configuration.set("pxf.sasl.connection.retries", "-1");
 
@@ -218,10 +209,6 @@ public class GSSFailureHandlerTest {
             verify(mockCallable, times(expectedNumberOfCalls)).call();
             verify(mockRunnable, times(expectedNumberOfCallbacks)).run();
         }
-    }
-
-    private void expectNonSecure() {
-        //when(mockConfiguration.get("hadoop.security.authentication","simple")).thenReturn("simple");
     }
 
     private void expectSecure() {

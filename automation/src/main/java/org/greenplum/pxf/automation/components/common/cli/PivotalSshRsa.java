@@ -22,7 +22,6 @@ public class PivotalSshRsa extends SSH {
 
 	@Override
 	public void connect() throws IOException {
-		boolean isAuthenticated = false;
 		/* Create a connection instance */
 		System.out.println("Connet to Host with SSH and RSA private key");
 		conn = new Connection(hostname);
@@ -39,7 +38,7 @@ public class PivotalSshRsa extends SSH {
 		}
 
 		/* Authenticate */
-		if (password != null && !password.equals("")) {
+		if (password != null && !password.isEmpty()) {
 			super.connect();
 		} else {
 			// user not supplied password
@@ -48,13 +47,12 @@ public class PivotalSshRsa extends SSH {
 					System.out.println("Connecting using Private Key");
 
 					// connect using private key
-					isAuthenticated = conn.authenticateWithPublicKey(username, privateKeyFile, "");
+					conn.authenticateWithPublicKey(username, privateKeyFile, "");
 				} else {
 					System.out.println("Auth Error - The privateKeyFile should be init from the SUT with a valid path to ppk/pem RSA private key");
 				}
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
-				isAuthenticated = false;
 			}
 		}
 
@@ -76,16 +74,6 @@ public class PivotalSshRsa extends SSH {
 
 		in = sess.getStdout();
 		out = sess.getStdin();
-	}
-
-	@Override
-	public void disconnect() {
-		super.disconnect();
-	}
-
-	@Override
-	public boolean isConnected() {
-		return super.isConnected();
 	}
 
 	@Override

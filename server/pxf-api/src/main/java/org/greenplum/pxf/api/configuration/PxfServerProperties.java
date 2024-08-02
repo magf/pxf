@@ -10,6 +10,7 @@ import java.time.Duration;
 /**
  * Configuration properties for PXF.
  */
+@Getter
 @ConfigurationProperties(prefix = PxfServerProperties.PROPERTY_PREFIX)
 public class PxfServerProperties {
 
@@ -24,20 +25,17 @@ public class PxfServerProperties {
      * The path for the server configuration. If the configuration has not
      * been initialized, it will be set to NOT_INITIALIZED.
      */
-    @Getter
     private String base;
 
     /**
      * Customizable settings for tomcat through PXF
      */
-    @Getter
     @Setter
     private Tomcat tomcat = new Tomcat();
 
     /**
      * Configurable task execution properties for async tasks (i.e Bridge Read)
      */
-    @Getter
     @Setter
     private TaskExecutionProperties task = new TaskExecutionProperties();
 

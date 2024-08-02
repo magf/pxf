@@ -22,11 +22,11 @@ public class SpringContext implements ApplicationContextAware {
      * @param requiredType type the bean must match; can be an interface or superclass
      * @return an instance of the single bean matching the required type
      */
-    public static <T extends Object> T getBean(Class<T> requiredType) {
+    public static <T> T getBean(Class<T> requiredType) {
         return context.getBean(requiredType);
     }
 
-    public static <T extends Object> T getNullableBean(Class<T> requiredType) {
+    public static <T> T getNullableBean(Class<T> requiredType) {
         try {
             return context.getBean(requiredType);
         } catch (Exception e) {

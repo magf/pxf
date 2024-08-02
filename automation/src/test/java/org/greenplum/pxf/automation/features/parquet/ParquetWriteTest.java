@@ -94,7 +94,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
     };
 
     // CDH (Hive 1.1) does not support date, so we will add the date_arr column as needed in the test case
-    private static List<String> PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE = Lists.newArrayList(
+    private static final List<String> PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE = Lists.newArrayList(
             "id                   int"                  ,
             "bool_arr             array<boolean>"       ,           // DataType.BOOLARRAY
             "smallint_arr         array<smallint>"      ,           // DataType.INT2ARRAY
@@ -136,8 +136,6 @@ public class ParquetWriteTest extends BaseWritableFeature {
             "bigint_arr", "real_arr", "double_arr", "text_arr", "bytea_arr", "char_arr", "varchar_arr", "numeric_arr", "date_arr"};
     private String hdfsPath;
     private ProtocolEnum protocol;
-    private Hive hive;
-    private HiveTable hiveTable;
     private String resourcePath;
 
     @Override
@@ -313,7 +311,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
     @Test(groups = {"features", "gpdb"})
     public void parquetWriteListsReadWithHive() throws Exception {
         // init only here, not in beforeClass() method as other tests run in environments without Hive
-        hive = (Hive) SystemManagerImpl.getInstance().getSystemObject("hive");
+        Hive hive = (Hive) SystemManagerImpl.getInstance().getSystemObject("hive");
 
         String writeTableName = "pxf_parquet_write_list_read_with_hive_writable";
         String readTableName = "pxf_parquet_write_list_read_with_hive_readable";
@@ -329,10 +327,10 @@ public class ParquetWriteTest extends BaseWritableFeature {
         if (includeDateCol) {
             PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.add("date_arr array<date>");
         }
-        String[] parquetArrayTableCols = PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.toArray(new String[PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.size()]);
+        String[] parquetArrayTableCols = PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.toArray(new String[0]);
         PARQUET_PRIMITIVE_ARRAYS_TABLE_COLUMNS_HIVE.toArray(parquetArrayTableCols);
 
-        hiveTable = new HiveExternalTable(hiveExternalTableName, parquetArrayTableCols, "hdfs:/" + fullTestPath);
+        HiveTable hiveTable = new HiveExternalTable(hiveExternalTableName, parquetArrayTableCols, "hdfs:/" + fullTestPath);
         hiveTable.setStoredAs("PARQUET");
         hive.createTableAndVerify(hiveTable);
 
@@ -555,10 +553,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
             int minorVersion = Integer.parseInt(versions[1]);
 
             // we do not need to check the patch version since it went in 1.2.0
-            if (majorVersion == 1 && minorVersion < 2) {
-                return false;
-            }
-            return true;
+            return majorVersion != 1 || minorVersion >= 2;
         } catch (Exception e) {
             // Hive 1.2.1 fails to find the version as `select version()` was not introduced until Hive 2.1
             // We fail here due to this UDF not existing, so if we get this err, catch it and return true

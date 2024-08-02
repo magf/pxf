@@ -3,9 +3,9 @@ package org.greenplum.pxf.api.error;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
+@Getter
 public class PxfRuntimeException extends RuntimeException {
 
-    @Getter
     private final String hint;
 
     public PxfRuntimeException() {
@@ -32,5 +32,4 @@ public class PxfRuntimeException extends RuntimeException {
         super(message, cause);
         this.hint = hint;
     }
-
 }

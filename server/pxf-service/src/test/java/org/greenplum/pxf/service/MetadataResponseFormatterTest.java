@@ -126,7 +126,7 @@ public class MetadataResponseFormatterTest {
     }
 
     @Test
-    public void formatResponseStringNoFields() throws Exception {
+    public void formatResponseStringNoFields() {
         List<Metadata> metadataList = new ArrayList<>();
         Metadata.Item itemName = new Metadata.Item("default", "table1");
         Metadata metadata = new Metadata(itemName, null);
@@ -149,7 +149,7 @@ public class MetadataResponseFormatterTest {
     }
 
     @Test
-    public void formatResponseStringPartialNull() throws Exception {
+    public void formatResponseStringPartialNull() {
         List<Metadata> metadataList = new ArrayList<>();
         List<Metadata.Field> fields = new ArrayList<>();
         Metadata.Item itemName = new Metadata.Item("default", "table1");

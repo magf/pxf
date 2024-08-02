@@ -71,7 +71,7 @@ public class PxfUserGroupInformation {
      * @param configDirectory the path to the configuration files for the external system
      * @param principal       the principal name to load from the keytab
      * @param keytabFilename  the path to the keytab file
-     * @throws IOException           when an IO error occurs.
+     * @throws IOException    when an IO error occurs.
      * @throws KerberosAuthException if it's a kerberos login exception.
      */
     public synchronized LoginSession loginUserFromKeytab(Configuration configuration, String serverName, String configDirectory, String principal, String keytabFilename) throws IOException {
@@ -129,10 +129,9 @@ public class PxfUserGroupInformation {
      *
      * @param serverName   the name of the server
      * @param loginSession the login session
-     * @throws IOException           when an IO error occurs
      * @throws KerberosAuthException on a failure
      */
-    public void reloginFromKeytab(String serverName, LoginSession loginSession) throws KerberosAuthException {
+    public synchronized void reloginFromKeytab(String serverName, LoginSession loginSession) throws KerberosAuthException {
 
         UserGroupInformation ugi = loginSession.getLoginUser();
 
@@ -142,58 +141,56 @@ public class PxfUserGroupInformation {
             return;
         }
 
-        synchronized (loginSession) {
-            long now = Time.now();
-            if (!hasSufficientTimeElapsed(now, loginSession)) {
-                return;
-            }
-
-            Subject subject = loginSession.getSubject();
-            KerberosTicket tgt = getTGT(subject);
-            //Return if TGT is valid and is not going to expire soon.
-            if (tgt != null && now < getRefreshTime(tgt, loginSession.getKerberosTicketRenewWindow())) {
-                return;
-            }
-
-            User user = loginSession.getUser();
-            LoginContext login = user.getLogin();
-            String keytabFile = loginSession.getKeytabPath();
-            String keytabPrincipal = loginSession.getPrincipalName();
-
-            if (login == null || keytabFile == null) {
-                throw new KerberosAuthException(MUST_FIRST_LOGIN_FROM_KEYTAB);
-            }
-
-            // register most recent relogin attempt
-            user.setLastLogin(now);
-            try {
-                LOG.debug("Initiating logout for {}", user.getName());
-                synchronized (UserGroupInformation.class) {
-                    // clear up the kerberos state. But the tokens are not cleared! As per
-                    // the Java kerberos login module code, only the kerberos credentials
-                    // are cleared
-                    login.logout();
-                    // login and also update the subject field of this instance to
-                    // have the new credentials (pass it to the LoginContext constructor)
-                    login = loginContextProvider.newLoginContext(
-                            HadoopConfiguration.KEYTAB_KERBEROS_CONFIG_NAME, subject,
-                            new HadoopConfiguration(keytabPrincipal, keytabFile));
-                    LOG.info("Initiating re-login for {} for server {}", keytabPrincipal, serverName);
-                    login.login();
-                    fixKerberosTicketOrder(subject);
-                    user.setLogin(login);
-                }
-            } catch (LoginException le) {
-                KerberosAuthException kae = new KerberosAuthException(LOGIN_FAILURE, le);
-                kae.setPrincipal(keytabPrincipal);
-                kae.setKeytabFile(keytabFile);
-                throw kae;
-            }
-
-            // Keep track of the number of relogins per server to make sure
-            // we are not re-logging in too often
-            trackEventPerServer(serverName, reloginCountMap);
+        long now = Time.now();
+        if (!hasSufficientTimeElapsed(now, loginSession)) {
+            return;
         }
+
+        Subject subject = loginSession.getSubject();
+        KerberosTicket tgt = getTGT(subject);
+        //Return if TGT is valid and is not going to expire soon.
+        if (tgt != null && now < getRefreshTime(tgt, loginSession.getKerberosTicketRenewWindow())) {
+            return;
+        }
+
+        User user = loginSession.getUser();
+        LoginContext login = user.getLogin();
+        String keytabFile = loginSession.getKeytabPath();
+        String keytabPrincipal = loginSession.getPrincipalName();
+
+        if (login == null || keytabFile == null) {
+            throw new KerberosAuthException(MUST_FIRST_LOGIN_FROM_KEYTAB);
+        }
+
+        // register most recent relogin attempt
+        user.setLastLogin(now);
+        try {
+            LOG.debug("Initiating logout for {}", user.getName());
+            synchronized (UserGroupInformation.class) {
+                // clear up the kerberos state. But the tokens are not cleared! As per
+                // the Java kerberos login module code, only the kerberos credentials
+                // are cleared
+                login.logout();
+                // login and also update the subject field of this instance to
+                // have the new credentials (pass it to the LoginContext constructor)
+                login = loginContextProvider.newLoginContext(
+                        HadoopConfiguration.KEYTAB_KERBEROS_CONFIG_NAME, subject,
+                        new HadoopConfiguration(keytabPrincipal, keytabFile));
+                LOG.info("Initiating re-login for {} for server {}", keytabPrincipal, serverName);
+                login.login();
+                fixKerberosTicketOrder(subject);
+                user.setLogin(login);
+            }
+        } catch (LoginException le) {
+            KerberosAuthException kae = new KerberosAuthException(LOGIN_FAILURE, le);
+            kae.setPrincipal(keytabPrincipal);
+            kae.setKeytabFile(keytabFile);
+            throw kae;
+        }
+
+        // Keep track of the number of relogins per server to make sure
+        // we are not re-logging in too often
+        trackEventPerServer(serverName, reloginCountMap);
 
         logStatistics(serverName);
     }
@@ -356,16 +353,10 @@ public class PxfUserGroupInformation {
      */
     class HadoopConfiguration extends javax.security.auth.login.Configuration {
         private static final String KEYTAB_KERBEROS_CONFIG_NAME = "hadoop-keytab-kerberos";
-        private final Map<String, String> BASIC_JAAS_OPTIONS = new HashMap<>();
-        private final AppConfigurationEntry OS_SPECIFIC_LOGIN;
-        private final AppConfigurationEntry HADOOP_LOGIN;
-        private final Map<String, String> USER_KERBEROS_OPTIONS;
-        private final AppConfigurationEntry USER_KERBEROS_LOGIN;
-        private final Map<String, String> KEYTAB_KERBEROS_OPTIONS;
-        private final AppConfigurationEntry KEYTAB_KERBEROS_LOGIN;
-        private final AppConfigurationEntry[] SIMPLE_CONF;
-        private final AppConfigurationEntry[] USER_KERBEROS_CONF;
-        private final AppConfigurationEntry[] KEYTAB_KERBEROS_CONF;
+        private final Map<String, String> keytabKerberosOptions;
+        private final AppConfigurationEntry[] simpleConf;
+        private final AppConfigurationEntry[] userKerberosConf;
+        private final AppConfigurationEntry[] keytabKerberosConf;
 
         private final String keytabPrincipal;
         private final String keytabFile;
@@ -375,18 +366,19 @@ public class PxfUserGroupInformation {
             this.keytabPrincipal = keytabPrincipal;
 
             String ticketCache = System.getenv("HADOOP_JAAS_DEBUG");
+            Map<String, String> basicJaasOptions = new HashMap<>();
             if ("true".equalsIgnoreCase(ticketCache)) {
-                BASIC_JAAS_OPTIONS.put("debug", "true");
+                basicJaasOptions.put("debug", "true");
             }
 
-            OS_SPECIFIC_LOGIN = new AppConfigurationEntry(OS_LOGIN_MODULE_NAME, AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, BASIC_JAAS_OPTIONS);
-            HADOOP_LOGIN = new AppConfigurationEntry(UserGroupInformation.HadoopLoginModule.class.getName(), AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, BASIC_JAAS_OPTIONS);
-            USER_KERBEROS_OPTIONS = new HashMap<>();
+            AppConfigurationEntry osSpecificLogin = new AppConfigurationEntry(OS_LOGIN_MODULE_NAME, AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, basicJaasOptions);
+            AppConfigurationEntry hadoopLogin = new AppConfigurationEntry(UserGroupInformation.HadoopLoginModule.class.getName(), AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, basicJaasOptions);
+            Map<String, String> userKerberosOptions = new HashMap<>();
             if (PlatformName.IBM_JAVA) {
-                USER_KERBEROS_OPTIONS.put("useDefaultCcache", "true");
+                userKerberosOptions.put("useDefaultCcache", "true");
             } else {
-                USER_KERBEROS_OPTIONS.put("doNotPrompt", "true");
-                USER_KERBEROS_OPTIONS.put("useTicketCache", "true");
+                userKerberosOptions.put("doNotPrompt", "true");
+                userKerberosOptions.put("useTicketCache", "true");
             }
 
             ticketCache = System.getenv("KRB5CCNAME");
@@ -394,44 +386,44 @@ public class PxfUserGroupInformation {
                 if (PlatformName.IBM_JAVA) {
                     System.setProperty("KRB5CCNAME", ticketCache);
                 } else {
-                    USER_KERBEROS_OPTIONS.put("ticketCache", ticketCache);
+                    userKerberosOptions.put("ticketCache", ticketCache);
                 }
             }
 
-            USER_KERBEROS_OPTIONS.put("renewTGT", "true");
-            USER_KERBEROS_OPTIONS.putAll(BASIC_JAAS_OPTIONS);
-            USER_KERBEROS_LOGIN = new AppConfigurationEntry(KerberosUtil.getKrb5LoginModuleName(), AppConfigurationEntry.LoginModuleControlFlag.OPTIONAL, USER_KERBEROS_OPTIONS);
-            KEYTAB_KERBEROS_OPTIONS = new HashMap<>();
+            userKerberosOptions.put("renewTGT", "true");
+            userKerberosOptions.putAll(basicJaasOptions);
+            AppConfigurationEntry USER_KERBEROS_LOGIN = new AppConfigurationEntry(KerberosUtil.getKrb5LoginModuleName(), AppConfigurationEntry.LoginModuleControlFlag.OPTIONAL, userKerberosOptions);
+            keytabKerberosOptions = new HashMap<>();
             if (PlatformName.IBM_JAVA) {
-                KEYTAB_KERBEROS_OPTIONS.put("credsType", "both");
+                keytabKerberosOptions.put("credsType", "both");
             } else {
-                KEYTAB_KERBEROS_OPTIONS.put("doNotPrompt", "true");
-                KEYTAB_KERBEROS_OPTIONS.put("useKeyTab", "true");
-                KEYTAB_KERBEROS_OPTIONS.put("storeKey", "true");
+                keytabKerberosOptions.put("doNotPrompt", "true");
+                keytabKerberosOptions.put("useKeyTab", "true");
+                keytabKerberosOptions.put("storeKey", "true");
             }
 
-            KEYTAB_KERBEROS_OPTIONS.put("refreshKrb5Config", "true");
-            KEYTAB_KERBEROS_OPTIONS.putAll(BASIC_JAAS_OPTIONS);
-            KEYTAB_KERBEROS_LOGIN = new AppConfigurationEntry(KerberosUtil.getKrb5LoginModuleName(), AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, KEYTAB_KERBEROS_OPTIONS);
-            SIMPLE_CONF = new AppConfigurationEntry[]{OS_SPECIFIC_LOGIN, HADOOP_LOGIN};
-            USER_KERBEROS_CONF = new AppConfigurationEntry[]{OS_SPECIFIC_LOGIN, USER_KERBEROS_LOGIN, HADOOP_LOGIN};
-            KEYTAB_KERBEROS_CONF = new AppConfigurationEntry[]{KEYTAB_KERBEROS_LOGIN, HADOOP_LOGIN};
+            keytabKerberosOptions.put("refreshKrb5Config", "true");
+            keytabKerberosOptions.putAll(basicJaasOptions);
+            AppConfigurationEntry keytabKerberosLogin = new AppConfigurationEntry(KerberosUtil.getKrb5LoginModuleName(),
+                    AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, keytabKerberosOptions);
+            simpleConf = new AppConfigurationEntry[]{osSpecificLogin, hadoopLogin};
+            userKerberosConf = new AppConfigurationEntry[]{osSpecificLogin, USER_KERBEROS_LOGIN, hadoopLogin};
+            keytabKerberosConf = new AppConfigurationEntry[]{keytabKerberosLogin, hadoopLogin};
         }
 
         public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
             if ("hadoop-simple".equals(appName)) {
-                return SIMPLE_CONF;
+                return simpleConf;
             } else if ("hadoop-user-kerberos".equals(appName)) {
-                return USER_KERBEROS_CONF;
+                return userKerberosConf;
             } else if ("hadoop-keytab-kerberos".equals(appName)) {
                 if (PlatformName.IBM_JAVA) {
-                    KEYTAB_KERBEROS_OPTIONS.put("useKeytab", prependFileAuthority(keytabFile));
+                    keytabKerberosOptions.put("useKeytab", prependFileAuthority(keytabFile));
                 } else {
-                    KEYTAB_KERBEROS_OPTIONS.put("keyTab", keytabFile);
+                    keytabKerberosOptions.put("keyTab", keytabFile);
                 }
-
-                KEYTAB_KERBEROS_OPTIONS.put("principal", keytabPrincipal);
-                return KEYTAB_KERBEROS_CONF;
+                keytabKerberosOptions.put("principal", keytabPrincipal);
+                return keytabKerberosConf;
             } else {
                 return null;
             }

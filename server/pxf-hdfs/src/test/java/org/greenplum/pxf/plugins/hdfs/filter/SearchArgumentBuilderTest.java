@@ -202,7 +202,7 @@ public class SearchArgumentBuilderTest {
     }
 
     @Test
-    public void testNumericFilterScaleOverflow() throws Exception {
+    public void testNumericFilterScaleOverflow() {
         String filterString = "a7c1700s60d12345678901234567890123456789.012345678901234567890123456789o5";
 
         Exception e = assertThrows(IllegalStateException.class,

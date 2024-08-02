@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class PxfInputFormatTest {
 
     @Test
-    public void testGetRecordReader() throws IOException {
+    public void testGetRecordReader() {
         Exception e = assertThrows(UnsupportedOperationException.class,
                 () -> new PxfInputFormat().getRecordReader(null, null, null));
         assertEquals("PxfInputFormat should not be used for reading data, but only for obtaining the splits of a file", e.getMessage());

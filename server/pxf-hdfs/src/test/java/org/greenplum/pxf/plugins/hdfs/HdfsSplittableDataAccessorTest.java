@@ -12,35 +12,33 @@ import org.greenplum.pxf.api.model.RequestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class HdfsSplittableDataAccessorTest {
 
-    class TestAccessor extends HdfsSplittableDataAccessor {
+    static class TestAccessor extends HdfsSplittableDataAccessor {
 
         TestAccessor() {
             super(null);
         }
 
         @Override
-        public boolean openForWrite() throws Exception {
+        public boolean openForWrite() {
             return false;
         }
 
         @Override
-        public boolean writeNextObject(OneRow onerow) throws Exception {
+        public boolean writeNextObject(OneRow onerow) {
             return false;
         }
 
         @Override
-        public void closeForWrite() throws Exception {
+        public void closeForWrite() {
 
         }
 
         @Override
-        protected Object getReader(JobConf jobConf, InputSplit split) throws IOException {
+        protected Object getReader(JobConf jobConf, InputSplit split) {
             return null;
         }
 

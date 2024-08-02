@@ -3,22 +3,20 @@ package org.greenplum.pxf.plugins.jdbc;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
 public class FakeJdbcDriver implements Driver {
 
-    public Connection connect(String url, Properties info) throws SQLException {
+    public Connection connect(String url, Properties info) {
         return null;
     }
 
-    public boolean acceptsURL(String url) throws SQLException {
+    public boolean acceptsURL(String url) {
         return false;
     }
 
-    public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
+    public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) {
         return new DriverPropertyInfo[0];
     }
 
@@ -34,7 +32,7 @@ public class FakeJdbcDriver implements Driver {
         return false;
     }
 
-    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+    public Logger getParentLogger() {
         return null;
     }
 }

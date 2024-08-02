@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -32,7 +33,7 @@ public class HdfsFileFragmenterTest {
     @Test
     public void testFragmenterErrorsWhenPathDoesNotExist() {
 
-        String path = this.getClass().getClassLoader().getResource("csv/").getPath();
+        String path = Objects.requireNonNull(this.getClass().getClassLoader().getResource("csv/")).getPath();
 
         context.setConfig("default");
         context.setUser("test-user");
@@ -45,7 +46,7 @@ public class HdfsFileFragmenterTest {
 
     @Test
     public void testFragmenterReturnsListOfFiles() throws Exception {
-        String path = this.getClass().getClassLoader().getResource("csv/").getPath();
+        String path = Objects.requireNonNull(this.getClass().getClassLoader().getResource("csv/")).getPath();
 
         context.setConfig("default");
         context.setUser("test-user");
@@ -60,7 +61,7 @@ public class HdfsFileFragmenterTest {
 
     @Test
     public void testFragmenterWilcardPath() throws Exception {
-        String path = this.getClass().getClassLoader().getResource("csv/").getPath();
+        String path = Objects.requireNonNull(this.getClass().getClassLoader().getResource("csv/")).getPath();
 
         context.setConfig("default");
         context.setUser("test-user");

@@ -36,11 +36,11 @@ public class ParquetIntervalUtilities {
     }
 
     public static Binary write(String str) {
-        PGInterval iv = null;
+        PGInterval iv;
         try {
             iv = new PGInterval(str);
         } catch (SQLException e) {
-            log.error("Couldn't create postgres interval: " + e.getMessage(), e);
+            log.error("Couldn't create postgres interval: {}", e.getMessage(), e);
             return null;
         }
 

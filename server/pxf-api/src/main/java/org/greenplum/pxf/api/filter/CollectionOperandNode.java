@@ -1,5 +1,6 @@
 package org.greenplum.pxf.api.filter;
 
+import lombok.Getter;
 import org.greenplum.pxf.api.io.DataType;
 
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.List;
 /**
  * Represents a collection of values
  */
+@Getter
 public class CollectionOperandNode extends OperandNode {
 
     private final List<String> data;
@@ -21,15 +23,6 @@ public class CollectionOperandNode extends OperandNode {
     public CollectionOperandNode(DataType dataType, List<String> data) {
         super(dataType);
         this.data = data;
-    }
-
-    /**
-     * Returns the collection of values
-     *
-     * @return the collection of values
-     */
-    public List<String> getData() {
-        return data;
     }
 
     @Override

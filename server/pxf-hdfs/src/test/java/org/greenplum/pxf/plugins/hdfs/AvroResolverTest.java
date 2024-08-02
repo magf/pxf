@@ -36,13 +36,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AvroResolverTest {
 
-    List<DataType> primitiveDataTypes = Arrays.asList(DataType.BOOLEAN, DataType.BYTEA, DataType.BIGINT, DataType.INTEGER, DataType.REAL, DataType.FLOAT8, DataType.TEXT);
+    private final List<DataType> primitiveDataTypes = Arrays.asList(DataType.BOOLEAN, DataType.BYTEA, DataType.BIGINT, DataType.INTEGER, DataType.REAL, DataType.FLOAT8, DataType.TEXT);
     // complex datatypes order is: union of nulls and bytea, record, string array, enum, fixed length bytes, map of string to long
-    List<DataType> complexDataTypes = Arrays.asList(DataType.BYTEA, DataType.TEXT, DataType.TEXTARRAY, DataType.INTEGER, DataType.BYTEA, DataType.TEXT);
+    private final List<DataType> complexDataTypes = Arrays.asList(DataType.BYTEA, DataType.TEXT, DataType.TEXTARRAY, DataType.INTEGER, DataType.BYTEA, DataType.TEXT);
     // These are the underlying datatypes that AVRO uses for the logical types
-    List<DataType> logicalDataTypes = Arrays.asList(DataType.TEXT, DataType.NUMERIC, DataType.DATE, DataType.TIME, DataType.TIME, DataType.TIMESTAMP_WITH_TIME_ZONE, DataType.TIMESTAMP_WITH_TIME_ZONE, DataType.TIMESTAMP, DataType.TIMESTAMP);
-    List<DataType> logicalDecimalDataType = Arrays.asList(DataType.NUMERIC, DataType.NUMERIC, DataType.NUMERIC, DataType.NUMERIC, DataType.NUMERIC, DataType.NUMERIC);
-    List<DataType> logicalTimeStampsDataType = Arrays.asList(DataType.TIMESTAMP_WITH_TIME_ZONE, DataType.TIMESTAMP_WITH_TIME_ZONE, DataType.TIMESTAMP, DataType.TIMESTAMP);
+    private final List<DataType> logicalDataTypes = Arrays.asList(DataType.TEXT, DataType.NUMERIC, DataType.DATE, DataType.TIME, DataType.TIME, DataType.TIMESTAMP_WITH_TIME_ZONE, DataType.TIMESTAMP_WITH_TIME_ZONE, DataType.TIMESTAMP, DataType.TIMESTAMP);
+    private final List<DataType> logicalDecimalDataType = Arrays.asList(DataType.NUMERIC, DataType.NUMERIC, DataType.NUMERIC, DataType.NUMERIC, DataType.NUMERIC, DataType.NUMERIC);
+    private final List<DataType> logicalTimeStampsDataType = Arrays.asList(DataType.TIMESTAMP_WITH_TIME_ZONE, DataType.TIMESTAMP_WITH_TIME_ZONE, DataType.TIMESTAMP, DataType.TIMESTAMP);
     private AvroResolver resolver;
     private RequestContext context;
     private Schema schema;
@@ -142,7 +142,7 @@ public class AvroResolverTest {
     }
 
     @Test
-    public void testSetFields_PrimitiveNulls() throws Exception {
+    public void testSetFields_PrimitiveNulls() {
         schema = getAvroSchemaForPrimitiveTypes();
         context.setMetadata(schema);
         resolver.setRequestContext(context);
@@ -227,7 +227,7 @@ public class AvroResolverTest {
         GenericRecord genericRecord = (GenericRecord) data;
 
         // assert column values
-        assertEquals(Arrays.asList(1,2,3), genericRecord.get(0));
+        assertEquals(Arrays.asList(1, 2, 3), genericRecord.get(0));
     }
 
     /**
@@ -252,7 +252,7 @@ public class AvroResolverTest {
         GenericRecord genericRecord = (GenericRecord) data;
 
         // assert column values
-        assertEquals(Arrays.asList(1,2,3), genericRecord.get(0));
+        assertEquals(Arrays.asList(1, 2, 3), genericRecord.get(0));
     }
 
     @Test
@@ -478,23 +478,22 @@ public class AvroResolverTest {
         genericRecord.put(1, ByteBuffer.wrap(new byte[]{50, -6}));
         genericRecord.put(2, 12345);
         genericRecord.put(3, 14540334);
-        genericRecord.put(4, 14540334343l);
-        genericRecord.put(5, 1634068100402l);
-        genericRecord.put(6, 1634242418614345l);
-        genericRecord.put(7, 1634242418614345l);
-        genericRecord.put(8, 1634068100402l);
+        genericRecord.put(4, 14540334343L);
+        genericRecord.put(5, 1634068100402L);
+        genericRecord.put(6, 1634242418614345L);
+        genericRecord.put(7, 1634242418614345L);
+        genericRecord.put(8, 1634068100402L);
 
         List<OneField> fields = resolver.getFields(new OneRow(null, genericRecord));
 
         String date = avroTypeConverter.dateFromInt(12345, getFieldSchema(schema, 2), getFieldSchema(schema, 2).getLogicalType());
 
-        List<Schema.Field> schemaFields = schema.getFields();
         String timeMillis = avroTypeConverter.timeMillis(14540334, getFieldSchema(schema, 3), getFieldSchema(schema, 3).getLogicalType());
-        String timeMicros = avroTypeConverter.timeMicros(14540334343l, getFieldSchema(schema, 4), getFieldSchema(schema, 4).getLogicalType());
-        String timeStampMillis = avroTypeConverter.timestampMillis(1634068100402l, getFieldSchema(schema, 5), getFieldSchema(schema, 5).getLogicalType());
-        String timeStampMicros = avroTypeConverter.timestampMicros(1634242418614345l, getFieldSchema(schema, 6), getFieldSchema(schema, 6).getLogicalType());
-        String localTimeStampMillis = avroTypeConverter.localTimestampMillis(1634068100402l, getFieldSchema(schema, 7), getFieldSchema(schema, 7).getLogicalType());
-        String localTimeStampMicros = avroTypeConverter.localTimestampMicros(1634242418614345l, getFieldSchema(schema, 8), getFieldSchema(schema, 8).getLogicalType());
+        String timeMicros = avroTypeConverter.timeMicros(14540334343L, getFieldSchema(schema, 4), getFieldSchema(schema, 4).getLogicalType());
+        String timeStampMillis = avroTypeConverter.timestampMillis(1634068100402L, getFieldSchema(schema, 5), getFieldSchema(schema, 5).getLogicalType());
+        String timeStampMicros = avroTypeConverter.timestampMicros(1634242418614345L, getFieldSchema(schema, 6), getFieldSchema(schema, 6).getLogicalType());
+        String localTimeStampMillis = avroTypeConverter.localTimestampMillis(1634068100402L, getFieldSchema(schema, 7), getFieldSchema(schema, 7).getLogicalType());
+        String localTimeStampMicros = avroTypeConverter.localTimestampMicros(1634242418614345L, getFieldSchema(schema, 8), getFieldSchema(schema, 8).getLogicalType());
 
         assertField(fields, 0, "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", DataType.UUID);
         assertField(fields, 1, new BigDecimal("130.50"), DataType.NUMERIC);
@@ -544,20 +543,19 @@ public class AvroResolverTest {
         resolver.afterPropertiesSet();
         GenericRecord genericRecord = new GenericData.Record(schema);
 
-        genericRecord.put(0, 1634845704629l);
-        genericRecord.put(1, 1634845704629556l);
-        genericRecord.put(2, 1634845704629556l);
-        genericRecord.put(3, 1634845704629l);
+        genericRecord.put(0, 1634845704629L);
+        genericRecord.put(1, 1634845704629556L);
+        genericRecord.put(2, 1634845704629556L);
+        genericRecord.put(3, 1634845704629L);
 
 
         List<OneField> oneFields = resolver.getFields(new OneRow(null, genericRecord));
-        List<Schema.Field> schemaFields = schema.getFields();
         // Default System TimeZone
         TimeZone defaultTimeZone = TimeZone.getDefault();
-        String timeStampMillis = avroTypeConverter.timestampMillis(1634845704629l, getFieldSchema(schema, 0), getFieldSchema(schema, 0).getLogicalType());
-        String timeStampMicros = avroTypeConverter.timestampMicros(1634845704629556l, getFieldSchema(schema, 1), getFieldSchema(schema, 1).getLogicalType());
-        String localTimeStampMillis = avroTypeConverter.localTimestampMillis(1634845704629l, getFieldSchema(schema, 2), getFieldSchema(schema, 2).getLogicalType());
-        String localTimeStampMicros = avroTypeConverter.localTimestampMicros(1634845704629556l, getFieldSchema(schema, 3), getFieldSchema(schema, 3).getLogicalType());
+        String timeStampMillis = avroTypeConverter.timestampMillis(1634845704629L, getFieldSchema(schema, 0), getFieldSchema(schema, 0).getLogicalType());
+        String timeStampMicros = avroTypeConverter.timestampMicros(1634845704629556L, getFieldSchema(schema, 1), getFieldSchema(schema, 1).getLogicalType());
+        String localTimeStampMillis = avroTypeConverter.localTimestampMillis(1634845704629L, getFieldSchema(schema, 2), getFieldSchema(schema, 2).getLogicalType());
+        String localTimeStampMicros = avroTypeConverter.localTimestampMicros(1634845704629556L, getFieldSchema(schema, 3), getFieldSchema(schema, 3).getLogicalType());
 
         assertField(oneFields, 0, timeStampMillis, DataType.TIMESTAMP_WITH_TIME_ZONE);
         assertField(oneFields, 1, timeStampMicros, DataType.TIMESTAMP_WITH_TIME_ZONE);
@@ -568,10 +566,10 @@ public class AvroResolverTest {
 
         oneFields = resolver.getFields(new OneRow(null, genericRecord));
 
-        timeStampMillis = avroTypeConverter.timestampMillis(1634845704629l, getFieldSchema(schema, 0), getFieldSchema(schema, 0).getLogicalType());
-        timeStampMicros = avroTypeConverter.timestampMicros(1634845704629556l, getFieldSchema(schema, 1), getFieldSchema(schema, 1).getLogicalType());
-        localTimeStampMillis = avroTypeConverter.localTimestampMillis(1634845704629l, getFieldSchema(schema, 2), getFieldSchema(schema, 2).getLogicalType());
-        localTimeStampMicros = avroTypeConverter.localTimestampMicros(1634845704629556l, getFieldSchema(schema, 3), getFieldSchema(schema, 3).getLogicalType());
+        timeStampMillis = avroTypeConverter.timestampMillis(1634845704629L, getFieldSchema(schema, 0), getFieldSchema(schema, 0).getLogicalType());
+        timeStampMicros = avroTypeConverter.timestampMicros(1634845704629556L, getFieldSchema(schema, 1), getFieldSchema(schema, 1).getLogicalType());
+        localTimeStampMillis = avroTypeConverter.localTimestampMillis(1634845704629L, getFieldSchema(schema, 2), getFieldSchema(schema, 2).getLogicalType());
+        localTimeStampMicros = avroTypeConverter.localTimestampMicros(1634845704629556L, getFieldSchema(schema, 3), getFieldSchema(schema, 3).getLogicalType());
 
         assertField(oneFields, 0, timeStampMillis, DataType.TIMESTAMP_WITH_TIME_ZONE);
         assertField(oneFields, 1, timeStampMicros, DataType.TIMESTAMP_WITH_TIME_ZONE);
@@ -582,10 +580,10 @@ public class AvroResolverTest {
 
         oneFields = resolver.getFields(new OneRow(null, genericRecord));
 
-        timeStampMillis = avroTypeConverter.timestampMillis(1634845704629l, getFieldSchema(schema, 0), getFieldSchema(schema, 0).getLogicalType());
-        timeStampMicros = avroTypeConverter.timestampMicros(1634845704629556l, getFieldSchema(schema, 1), getFieldSchema(schema, 1).getLogicalType());
-        localTimeStampMillis = avroTypeConverter.localTimestampMillis(1634845704629l, getFieldSchema(schema, 2), getFieldSchema(schema, 2).getLogicalType());
-        localTimeStampMicros = avroTypeConverter.localTimestampMicros(1634845704629556l, getFieldSchema(schema, 3), getFieldSchema(schema, 3).getLogicalType());
+        timeStampMillis = avroTypeConverter.timestampMillis(1634845704629L, getFieldSchema(schema, 0), getFieldSchema(schema, 0).getLogicalType());
+        timeStampMicros = avroTypeConverter.timestampMicros(1634845704629556L, getFieldSchema(schema, 1), getFieldSchema(schema, 1).getLogicalType());
+        localTimeStampMillis = avroTypeConverter.localTimestampMillis(1634845704629L, getFieldSchema(schema, 2), getFieldSchema(schema, 2).getLogicalType());
+        localTimeStampMicros = avroTypeConverter.localTimestampMicros(1634845704629556L, getFieldSchema(schema, 3), getFieldSchema(schema, 3).getLogicalType());
 
         assertField(oneFields, 0, timeStampMillis, DataType.TIMESTAMP_WITH_TIME_ZONE);
         assertField(oneFields, 1, timeStampMicros, DataType.TIMESTAMP_WITH_TIME_ZONE);
@@ -596,9 +594,9 @@ public class AvroResolverTest {
     }
 
     @Test
-    public void wrongLogicalTypeforUUID() throws Exception {
+    public void wrongLogicalTypeforUUID() {
         Exception e = assertThrows(IllegalArgumentException.class,
-                () -> getWrongAvroSchemaForLogicalTypes(true));
+                this::getWrongAvroSchemaForLogicalTypes);
         assertEquals("Time (micros) can only be used with an underlying long type", e.getMessage());
     }
 
@@ -711,7 +709,7 @@ public class AvroResolverTest {
         // add a RECORD with a float, int, and string inside
         fields.add(new Schema.Field(
                 Schema.Type.RECORD.getName(),
-                    createRecord(new Schema.Type[]{Schema.Type.FLOAT, Schema.Type.INT, Schema.Type.STRING}),
+                createRecord(new Schema.Type[]{Schema.Type.FLOAT, Schema.Type.INT, Schema.Type.STRING}),
                 "",
                 null)
         );
@@ -810,10 +808,8 @@ public class AvroResolverTest {
 
     /**
      * Create schema for Avro Logical Types
-     *
-     * @return
      */
-    private Schema getWrongAvroSchemaForLogicalTypes(boolean incorrectLogicalType) {
+    private void getWrongAvroSchemaForLogicalTypes() {
         Schema schema = Schema.createRecord("tableName", "", "public.avro", false);
         List<Schema.Field> fields = new ArrayList<>();
 
@@ -824,8 +820,6 @@ public class AvroResolverTest {
         ));
 
         schema.setFields(fields);
-
-        return schema;
     }
 
     private Schema getAvroDecimalSchema() {

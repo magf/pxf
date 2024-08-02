@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 public class PxfApiVersionChecker {
 
     /**
-     * @param serverApiVersion
-     * @param clientApiVersion
+     * @param serverApiVersion - the server API version
+     * @param clientApiVersion - the client API version
      * @return true if the server is compatible with the client's API version
      */
     public boolean isCompatible(String serverApiVersion, String clientApiVersion) {

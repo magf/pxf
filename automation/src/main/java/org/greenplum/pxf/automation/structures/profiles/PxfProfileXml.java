@@ -31,7 +31,7 @@ public class PxfProfileXml extends XmlBasedComponents {
 	 * scan the file into the profiles list or not.
 	 * 
 	 * @param filePath to profiles XML
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public PxfProfileXml(String filePath) throws Exception {
 		this(filePath, true);
@@ -42,7 +42,7 @@ public class PxfProfileXml extends XmlBasedComponents {
 	 * 
 	 * @param xmlProfilesFilePath to XML file
 	 * @param populateProfilesList if true scan profiles from XML file and populate profilesList
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public PxfProfileXml(String xmlProfilesFilePath, boolean populateProfilesList) throws Exception {
 		// pass file to parent XmlBasedComponents
@@ -56,7 +56,7 @@ public class PxfProfileXml extends XmlBasedComponents {
 	/**
 	 * Populates Profiles List from XML
 	 * 
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void populateProfilesList() throws Exception {
 
@@ -89,9 +89,9 @@ public class PxfProfileXml extends XmlBasedComponents {
 	/**
 	 * Writes Profile List to file
 	 * 
-	 * @throws ConfigurationException
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * @throws ConfigurationException if an error occurs saving configuration
+	 * @throws IOException if I/O error occurs
+	 * @throws InterruptedException if the thread is interrupted
 	 */
 	public void writeProfilesListToFile() throws ConfigurationException, IOException,
 			InterruptedException {
@@ -130,7 +130,7 @@ public class PxfProfileXml extends XmlBasedComponents {
 	/**
 	 * Returns the first {@link Profile} according to profileName
 	 * 
-	 * @param profileName
+	 * @param profileName - the profile name
 	 * @return the first profile matching profileName
 	 */
 	public Profile getProfile(String profileName) {
@@ -147,7 +147,7 @@ public class PxfProfileXml extends XmlBasedComponents {
 	/**
 	 * Adds {@link Profile} to the list
 	 * 
-	 * @param profile
+	 * @param profile - the profile name
 	 */
 	public void addProfile(Profile profile) {
 
@@ -161,7 +161,7 @@ public class PxfProfileXml extends XmlBasedComponents {
 	/**
 	 * Restores the configuration to file
 	 * 
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void restore() throws Exception {
 		save(getConf());
@@ -172,7 +172,7 @@ public class PxfProfileXml extends XmlBasedComponents {
 	 * Sets Permissions for XML profiles file according to set of {@link PosixFilePermission}
 	 * 
 	 * @param permissions required set of {@link PosixFilePermission}
-	 * @throws IOException
+	 * @throws IOException if I/O error occurs
 	 */
 	public void setPermissions(Set<PosixFilePermission> permissions) throws IOException {
 
@@ -186,6 +186,6 @@ public class PxfProfileXml extends XmlBasedComponents {
 
 	/** Creates a new empty {@link List} */
 	public void initProfilesList() {
-		this.profilesList = new ArrayList<Profile>();
+		this.profilesList = new ArrayList<>();
 	}
 }

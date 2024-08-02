@@ -13,7 +13,6 @@ import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
 import java.sql.SQLException;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -58,7 +57,7 @@ public class S3SelectQueryBuilder extends SQLQueryBuilder {
                     DataType.TIMESTAMP
             );
     private static final TreeVisitor PRUNER = new SupportedOperatorPruner(SUPPORTED_OPERATORS);
-    private boolean usePositionToIdentifyColumn;
+    private final boolean usePositionToIdentifyColumn;
 
     /**
      * Constructor

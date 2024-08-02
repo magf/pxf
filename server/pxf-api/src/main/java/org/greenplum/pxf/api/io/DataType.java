@@ -82,7 +82,7 @@ public enum DataType {
 
     // Set of types that preserve the type information when their value is deserialized,
     // this is similar to NOT_TEXT above, but used explicitly in the deserialization case of PXF Write Flow
-    private static EnumSet<DataType> SELF_DESER_TYPES = EnumSet.of(BOOLEAN, SMALLINT, INTEGER, BIGINT, REAL, FLOAT8, BYTEA);
+    private static final EnumSet<DataType> SELF_DESER_TYPES = EnumSet.of(BOOLEAN, SMALLINT, INTEGER, BIGINT, REAL, FLOAT8, BYTEA);
 
     static {
         INT2ARRAY.typeElem = SMALLINT;

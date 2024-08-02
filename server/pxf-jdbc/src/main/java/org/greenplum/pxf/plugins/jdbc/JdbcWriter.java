@@ -224,7 +224,7 @@ public class JdbcWriter {
             if (!executorService.awaitTermination(terminationTimeoutSeconds, TimeUnit.SECONDS)) {
                 log.warn("Executor did not terminate in the specified time.");
                 List<Runnable> droppedTasks = executorService.shutdownNow();
-                log.warn("Dropped " + droppedTasks.size() + " tasks");
+                log.warn("Dropped {} tasks", droppedTasks.size());
             }
         } catch (InterruptedException e) {
             log.warn("Thread received interrupted signal");

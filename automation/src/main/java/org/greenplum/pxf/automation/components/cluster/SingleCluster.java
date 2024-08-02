@@ -91,7 +91,7 @@ public class SingleCluster extends PhdCluster {
     public void restart(EnumClusterServices service) throws Exception {
         // currently singlecluster restart scripts supports only PXF and GPHD
         if ((!service.equals(EnumClusterServices.pxf)) && (!service.equals(EnumClusterServices.gphd))) {
-            throw new UnsupportedOperationException("SingleCluster -> restart is not supported for " + service.toString() + " service");
+            throw new UnsupportedOperationException("SingleCluster -> restart is not supported for " + service + " service");
         }
         ReportUtils.startLevel(report, getClass(), "Restart " + service);
 
@@ -115,7 +115,7 @@ public class SingleCluster extends PhdCluster {
     @Override
     public boolean isUp(EnumClusterServices component) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Check " + component.toString() + " is Up");
-        boolean result = false;
+        boolean result;
 
         // check service is up according to its required processes
         switch (component) {
@@ -143,10 +143,10 @@ public class SingleCluster extends PhdCluster {
      * check if required process are up and appear as defined in the EnumScProcesses enum<br>
      * TODO: use singlecluster script when available
      *
-     * @param proccessesToCheck
+     * @param proccessesToCheck - the component name
      * @return true if component is up
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if an error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     private boolean isComponentUp(EnumScProcesses[] proccessesToCheck) throws IOException, ShellCommandErrorException {
         // use process map to map all process return from jps command:
@@ -154,18 +154,18 @@ public class SingleCluster extends PhdCluster {
         HashMap<String, Integer> processesMap = getProcessMap();
 
         // run over given required process array and check if in map includes required amount
-        for (int i = 0; i < proccessesToCheck.length; i++) {
-            ReportUtils.report(report, getClass(), "Check: " + proccessesToCheck[i].toString());
+        for (EnumScProcesses enumScProcesses : proccessesToCheck) {
+            ReportUtils.report(report, getClass(), "Check: " + enumScProcesses.toString());
             // try to get the process key from map if not in there return false
-            Integer value = processesMap.get(proccessesToCheck[i].toString());
+            Integer value = processesMap.get(enumScProcesses.toString());
             if (value == null) {
                 report.stopLevel();
                 return false;
             }
             // if the process is in the map check amount, if not according to enum, return false
-            int amount = value.intValue();
+            int amount = value;
 
-            if (amount != proccessesToCheck[i].getInstances()) {
+            if (amount != enumScProcesses.getInstances()) {
                 report.stopLevel();
                 return false;
             }
@@ -176,8 +176,8 @@ public class SingleCluster extends PhdCluster {
 
     /**
      * @return Map of running cluster processes <process-name, amount-of-instances>
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     // TODO: remove method when using singlecluster script
     private HashMap<String, Integer> getProcessMap() throws IOException, ShellCommandErrorException {
@@ -186,26 +186,26 @@ public class SingleCluster extends PhdCluster {
         // get result from command
         String cmdResult = getLastCmdResult();
         // split according to line separator into String array
-        String[] splitResults = cmdResult.split(System.getProperty("line.separator"));
+        String[] splitResults = cmdResult.split(System.lineSeparator());
         // create map to store results
         HashMap<String, Integer> map = new HashMap<>();
         // go over split results from jps command
-        for (int i = 0; i < splitResults.length; i++) {
-            String currentSplitResult = null;
+        for (String splitResult : splitResults) {
+            String currentSplitResult;
             try {
                 // get the process name
-                currentSplitResult = splitResults[i].split(" ")[1].trim();
+                currentSplitResult = splitResult.split(" ")[1].trim();
             } catch (Exception e) {
                 continue;
             }
             // if process already in map just increment the count
             int value = 1;
             if (map.get(currentSplitResult) != null) {
-                value = map.get(currentSplitResult).intValue();
+                value = map.get(currentSplitResult);
                 value++;
             }
             // put in the results map
-            map.put(currentSplitResult, Integer.valueOf(value));
+            map.put(currentSplitResult, value);
         }
         return map;
     }
@@ -221,9 +221,9 @@ public class SingleCluster extends PhdCluster {
         RunJar(1),
         Bootstrap(3);
 
-        private int instances;
+        private final int instances;
 
-        private EnumScProcesses(int instances) {
+        EnumScProcesses(int instances) {
             this.instances = instances;
         }
 
@@ -285,12 +285,12 @@ public class SingleCluster extends PhdCluster {
     }
 
     @Override
-    public void runCommandOnAllNodes(String command) throws Exception {
+    public void runCommandOnAllNodes(String command) {
         throw new UnsupportedOperationException("runCommandOnAllNodes is not supported over SingleCluster");
     }
 
     @Override
-    public void runCommandOnNodes(List<Node> nodes, String command) throws Exception {
+    public void runCommandOnNodes(List<Node> nodes, String command) {
         throw new UnsupportedOperationException("runCommandOnNodes is not supported over SingleCluster");
     }
 }

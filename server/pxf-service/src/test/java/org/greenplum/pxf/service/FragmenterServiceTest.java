@@ -199,7 +199,7 @@ class FragmenterServiceTest {
     }
 
     @Test
-    public void testFragmenterCallWithWrongActiveSegmentCount() throws Throwable {
+    public void testFragmenterCallWithWrongActiveSegmentCount() {
         context1.setTransactionId("0");
         context1.setSegmentId(0);
         context1.setTotalSegments(1);
@@ -210,7 +210,7 @@ class FragmenterServiceTest {
     }
 
     @Test
-    public void testFragmenterCallWithLessThanOneActiveSegmentCount() throws Throwable {
+    public void testFragmenterCallWithLessThanOneActiveSegmentCount() {
         context1.setTransactionId("0");
         context1.setSegmentId(0);
         context1.setTotalSegments(1);

@@ -245,6 +245,27 @@ public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
             return null;
         }
 
+        List<ColumnDescriptor> descriptors = getColumnDescriptors(originalSchema);
+
+        SearchArgumentBuilder searchArgumentBuilder =
+                new SearchArgumentBuilder(descriptors, configuration);
+
+        SupportedDataTypePruner supportedDataTypePruner = new SupportedDataTypePruner(context.getTupleDescription(), SUPPORTED_DATATYPES);
+
+        TreeVisitor bpCharOperatorTransformer = new BPCharOperatorTransformer(descriptors);
+
+        // Parse the filter string into a expression tree Node
+        Node root = new FilterParser().parse(filterString);
+        // Prune the parsed tree with valid supported operators and then
+        // traverse the pruned tree with the searchArgumentBuilder to produce a
+        // SearchArgument for ORC
+        TRAVERSER.traverse(root, supportedDataTypePruner, PRUNER, bpCharOperatorTransformer, searchArgumentBuilder);
+
+        // Build the SearchArgument object
+        return searchArgumentBuilder.getFilterBuilder().build();
+    }
+
+    private List<ColumnDescriptor> getColumnDescriptors(TypeDescription originalSchema) {
         List<ColumnDescriptor> descriptors = columnDescriptors;
 
         if (positionalAccess) {
@@ -264,23 +285,7 @@ public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
                 descriptors.add(copyDescriptor);
             }
         }
-
-        SearchArgumentBuilder searchArgumentBuilder =
-                new SearchArgumentBuilder(descriptors, configuration);
-
-        SupportedDataTypePruner supportedDataTypePruner = new SupportedDataTypePruner(context.getTupleDescription(), SUPPORTED_DATATYPES);
-
-        TreeVisitor bpCharOperatorTransformer = new BPCharOperatorTransformer(descriptors);
-
-        // Parse the filter string into a expression tree Node
-        Node root = new FilterParser().parse(filterString);
-        // Prune the parsed tree with valid supported operators and then
-        // traverse the pruned tree with the searchArgumentBuilder to produce a
-        // SearchArgument for ORC
-        TRAVERSER.traverse(root, supportedDataTypePruner, PRUNER, bpCharOperatorTransformer, searchArgumentBuilder);
-
-        // Build the SearchArgument object
-        return searchArgumentBuilder.getFilterBuilder().build();
+        return descriptors;
     }
 
     /**

@@ -15,10 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class LoginSessionTest {
 
-    private LoginSession session, sessionFoo, sessionBar;
+    private LoginSession session;
     private UserGroupInformation ugiFoo, ugiBar;
     private Subject subjectFoo, subjectBar;
-    private User userFoo, userBar;
+    private User userFoo;
 
     private static final String PROPERTY_KEY_KERBEROS_KDC = "java.security.krb5.kdc";
     private static final String PROPERTY_KEY_KERBEROS_REALM = "java.security.krb5.realm";
@@ -44,7 +44,7 @@ public class LoginSessionTest {
         ugiBar = UserGroupInformation.createUserForTesting("bar", new String[]{});
 
         userFoo = new User("foo");
-        userBar = new User("bar");
+        User userBar = new User("bar");
 
         subjectFoo = new Subject(true, Sets.newHashSet(userFoo), Sets.newHashSet(), Sets.newHashSet());
         subjectBar = new Subject(true, Sets.newHashSet(userBar), Sets.newHashSet(), Sets.newHashSet());
@@ -102,9 +102,9 @@ public class LoginSessionTest {
 
     @Test
     public void testEquality() {
-        sessionFoo = new LoginSession("config", "principal", "keytab", ugiFoo, subjectFoo, 1, 0.8f);
+        LoginSession sessionFoo = new LoginSession("config", "principal", "keytab", ugiFoo, subjectFoo, 1, 0.8f);
 
-        sessionBar = new LoginSession("config", "principal", "keytab", ugiBar, subjectBar, 1, 0.8f);
+        LoginSession sessionBar = new LoginSession("config", "principal", "keytab", ugiBar, subjectBar, 1, 0.8f);
         assertEquals(sessionFoo, sessionBar);
         assertEquals(sessionFoo.hashCode(), sessionBar.hashCode());
 

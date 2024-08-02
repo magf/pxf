@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.model.RequestContext;
@@ -65,10 +66,10 @@ public class MetricsReporter {
      * Reports timer metric with a given name, duration and additional tags to the registry.
      * Applies custom tags before reporting and adds a success outcome tag.
      *
-     * @param metric
-     * @param duration
-     * @param context
-     * @param extraTags
+     * @param metric - metric
+     * @param duration - duration
+     * @param context - request context
+     * @param extraTags - tags
      */
     private void reportTimer(PxfMetric metric, Duration duration, RequestContext context, Tags extraTags) {
         String metricName = metric.getMetricName();
@@ -94,9 +95,9 @@ public class MetricsReporter {
      * Reports counter metric with a given name and the increment to the registry.
      * Reports with any tags given by the context and adds a success outcome tag.
      *
-     * @param metric
-     * @param increment
-     * @param context
+     * @param metric - the metric
+     * @param increment - how much to increment
+     * @param context - the request context
      */
     public void reportCounter(PxfMetric metric, long increment, RequestContext context) {
         String metricName = metric.getMetricName();
@@ -106,7 +107,7 @@ public class MetricsReporter {
         }
         Tags tags = getTags(context);
         try {
-            Double incrementCount = Long.valueOf(increment).doubleValue();
+            double incrementCount = Long.valueOf(increment).doubleValue();
             Counter counter = Counter.builder(metricName).tags(tags).register(registry);
             counter.increment(incrementCount);
             if (log.isTraceEnabled()) {
@@ -147,6 +148,7 @@ public class MetricsReporter {
     /**
      * Enum that has information about all custom metrics for PXF.
      */
+    @Getter
     public enum PxfMetric {
         FRAGMENTS_SENT("pxf.fragments.sent", "pxf.metrics.fragments.enabled"),
         RECORDS_SENT("pxf.records.sent", "pxf.metrics.records.enabled"),
@@ -168,12 +170,5 @@ public class MetricsReporter {
             this.enabledPropertyName = enabledPropertyName;
         }
 
-        public String getMetricName() {
-            return metricName;
-        }
-
-        public String getEnabledPropertyName() {
-            return enabledPropertyName;
-        }
     }
 }

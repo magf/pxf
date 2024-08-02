@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,19 +31,18 @@ public class JsonRecordReaderTest {
     private FileSplit fileSplit;
     private LongWritable key;
     private Text data;
-    private RequestContext context;
     private Path path;
-    private String[] hosts = null;
+    private final String[] hosts = null;
     private JsonRecordReader jsonRecordReader;
 
     @BeforeEach
     public void setup() throws URISyntaxException {
-        context = new RequestContext();
+        RequestContext context = new RequestContext();
         context.setConfiguration(new Configuration());
 
         jobConf = new JobConf(context.getConfiguration());
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "cüstömerstätüs");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/input.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/input.json")).toURI());
         context.setDataSource(file.getPath());
         path = new Path(file.getPath());
     }
@@ -51,7 +51,7 @@ public class JsonRecordReaderTest {
     public void testWithCodecSmallFile() throws URISyntaxException, IOException {
 
         // The BZip2Codec is a Splittable compression codec
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/input.json.bz2").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/input.json.bz2")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 50, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -70,7 +70,7 @@ public class JsonRecordReaderTest {
     public void testWithCodecLargeFile() throws URISyntaxException, IOException {
 
         // The BZip2Codec is a Splittable compression codec
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/big_data.json.bz2").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/big_data.json.bz2")).toURI());
         path = new Path(file.getPath());
         // This file split should not be ignored
         // the length is relative to the uncompressed file so pick something large
@@ -174,7 +174,7 @@ public class JsonRecordReaderTest {
     @Test
     public void testEmptyFile() throws URISyntaxException, IOException {
 
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/empty_input.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/empty_input.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 10, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -194,7 +194,7 @@ public class JsonRecordReaderTest {
     @Test
     public void testEmptyJsonObject() throws URISyntaxException, IOException {
 
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/empty_json_object.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/empty_json_object.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 10, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -216,7 +216,7 @@ public class JsonRecordReaderTest {
 
         // search for a non-matching member in the file
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "abc");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/input.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/input.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 1000, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -242,7 +242,7 @@ public class JsonRecordReaderTest {
 
         // search for a non-matching member in the file
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "abc");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/input.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/input.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 10, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -268,7 +268,7 @@ public class JsonRecordReaderTest {
 
         // search for a non-matching member in the file
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "cüstömerstätüs");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/all_on_one_line.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/all_on_one_line.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 50, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -294,7 +294,7 @@ public class JsonRecordReaderTest {
         // each record is about 100 char
         // search for a non-matching member in the file
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "cüstömerstätüs");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/multiple_object_per_line.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/multiple_object_per_line.json")).toURI());
         path = new Path(file.getPath());
         key = createKey();
         data = createValue();
@@ -396,7 +396,7 @@ public class JsonRecordReaderTest {
         // +1 for comma, +1 for space + record 5 is 103 bytes = 565
         // +1 for newline +1 for end bracket = 567
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "cüstömerstätüs");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/straddle_split.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/straddle_split.json")).toURI());
         path = new Path(file.getPath());
         key = createKey();
         data = createValue();
@@ -508,7 +508,7 @@ public class JsonRecordReaderTest {
         // line 7 is closing array bracket
         // search for a non-matching member in the file
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "cüstömerstätüs");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/straddle_split.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/straddle_split.json")).toURI());
         path = new Path(file.getPath());
         key = createKey();
         data = createValue();
@@ -577,7 +577,7 @@ public class JsonRecordReaderTest {
     public void testContainsCarriageReturnAndNewLines() throws URISyntaxException, IOException {
 
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "name");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/carriage_returns.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/carriage_returns.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 1000, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -604,7 +604,7 @@ public class JsonRecordReaderTest {
     public void testContainsMixedCarriageReturns() throws URISyntaxException, IOException {
 
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "name");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/mixed_carriage_returns.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/mixed_carriage_returns.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 1000, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -631,7 +631,7 @@ public class JsonRecordReaderTest {
     public void testMultipleCarriageReturns() throws URISyntaxException, IOException {
 
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "name");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/multiple_carriage_returns.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/multiple_carriage_returns.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 1000, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -666,7 +666,7 @@ public class JsonRecordReaderTest {
     @Test
     public void testMixedJsonRecords() throws URISyntaxException, IOException {
 
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/mixed_input.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/mixed_input.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 1000, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -711,7 +711,7 @@ public class JsonRecordReaderTest {
     @Test
     public void testMemberNotAtTopLevel() throws URISyntaxException, IOException {
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "name");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/complex_input.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/complex_input.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 1000, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -735,7 +735,7 @@ public class JsonRecordReaderTest {
     @Test
     public void testSpecialCharsInJson() throws URISyntaxException, IOException {
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "name");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/offset/special_chars.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/offset/special_chars.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 1000, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -758,7 +758,7 @@ public class JsonRecordReaderTest {
         // If the Split After the BEGIN_OBJECT ( i.e. { ), we expect the record reader to skip over this object entirely.
         //Here the split start after the <SEEK> keyword in the file ( Line # 3 ) and right before the identifier.
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "name");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/seek/seek-into-mid-object-1/input.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/seek/seek-into-mid-object-1/input.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 31, 1000, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);
@@ -799,7 +799,7 @@ public class JsonRecordReaderTest {
 
         // without split this will return one record
         jobConf.set(RECORD_MEMBER_IDENTIFIER, "name");
-        file = new File(this.getClass().getClassLoader().getResource("parser-tests/noseek/array_objects_same_name_in_child.json").toURI());
+        file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("parser-tests/noseek/array_objects_same_name_in_child.json")).toURI());
         path = new Path(file.getPath());
         fileSplit = new FileSplit(path, 0, 1000, hosts);
         jsonRecordReader = new JsonRecordReader(jobConf, fileSplit);

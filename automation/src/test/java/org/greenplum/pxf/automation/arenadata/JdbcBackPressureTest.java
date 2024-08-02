@@ -58,7 +58,6 @@ public class JdbcBackPressureTest extends BaseFeature {
             "| awk -F 'Semaphore remains: ' '{print $2}' | awk -F ';' '{ if ( $1+0 > %d ) print $1 }' | wc -l";
 
     private Table oracleTargetTable;
-    private String pxfHome;
     private String pxfJdbcSiteConfPath;
     private String pxfJdbcSiteConfFile;
     private String pxfJdbcSiteConfTemplate;
@@ -69,7 +68,7 @@ public class JdbcBackPressureTest extends BaseFeature {
 
     @Override
     public void beforeClass() throws Exception {
-        pxfHome = cluster.getPxfHome();
+        String pxfHome = cluster.getPxfHome();
         pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_SERVER_PROFILE);
         pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
         pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;

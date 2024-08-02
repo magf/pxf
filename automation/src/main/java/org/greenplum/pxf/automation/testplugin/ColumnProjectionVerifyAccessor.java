@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.testplugin;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.model.Accessor;
 import org.greenplum.pxf.api.model.BasePlugin;
@@ -12,7 +14,7 @@ import org.greenplum.pxf.api.model.BasePlugin;
  * First column - text, second column - int (counter), third column - bool, fourth column - text.
  */
 public class ColumnProjectionVerifyAccessor extends BasePlugin implements Accessor {
-
+    private static final Log LOG = LogFactory.getLog(ColumnProjectionVerifyAccessor.class);
     private String columnProjection;
     private String userDelimiter;
 
@@ -94,6 +96,7 @@ public class ColumnProjectionVerifyAccessor extends BasePlugin implements Access
 
     @Override
     public void closeForRead() {
+        LOG.info("Close dummy column projection verify accessor connection for read");
     }
 
     @Override

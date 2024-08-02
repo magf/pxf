@@ -1,12 +1,13 @@
 package org.greenplum.pxf.api.filter;
 
+import lombok.Getter;
 import org.greenplum.pxf.api.io.DataType;
 
 /**
  * Scalar, Column Index, List
  */
+@Getter
 public class OperandNode extends Node {
-
     private final DataType dataType;
 
     /**
@@ -18,12 +19,4 @@ public class OperandNode extends Node {
         this.dataType = dataType;
     }
 
-    /**
-     * Returns the data type of the operand
-     *
-     * @return the data type of the operand
-     */
-    public DataType getDataType() {
-        return dataType;
-    }
 }

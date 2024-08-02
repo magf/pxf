@@ -20,27 +20,7 @@ package org.greenplum.pxf.service.bridge;
  */
 
 
-import org.apache.hadoop.conf.Configuration;
-import org.greenplum.pxf.api.io.Writable;
-import org.greenplum.pxf.api.model.RequestContext;
-import org.greenplum.pxf.service.utilities.AnalyzeUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.BitSet;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 // TODO remove Disabled
 @Disabled

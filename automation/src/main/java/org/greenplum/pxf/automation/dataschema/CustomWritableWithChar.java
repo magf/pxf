@@ -3,7 +3,6 @@ package org.greenplum.pxf.automation.dataschema;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Writable;
 
@@ -60,16 +59,5 @@ public void readFields(DataInput paramDataInput)
 
     localIntWritable.readFields(paramDataInput);
     this.char1 = ((char)localIntWritable.get());
-  }
-
-  public void printFieldTypes()
-  {
-    Class localClass = getClass();
-    Field[] arrayOfField = localClass.getDeclaredFields();
-
-    for (int i = 0; i < arrayOfField.length; i++)
-    {
-      System.out.println(arrayOfField[i].getType().getName());
-    }
   }
 }

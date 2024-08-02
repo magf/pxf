@@ -12,13 +12,13 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
  */
 public class MultiLineSmokeDataPreparer implements IDataPreparer {
 
-	public Object[] prepareData(int rows, Table dataTable) throws Exception {
+	public Object[] prepareData(int rows, Table dataTable) {
 
 		Object[] data = new Object[rows];
 
 		for (int j = 0, num1 = 1; j < rows; j++, num1++) {
 
-			ArrayList<String> row = new ArrayList<String>();
+			ArrayList<String> row = new ArrayList<>();
 
 			row.add("t" + num1);
 			row.add(String.valueOf(num1));

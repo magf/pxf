@@ -17,25 +17,22 @@ import java.io.IOException;
  * LOAD DATA LOCAL INPATH
  * '<fullpath>src/test/resources/data/hive/hiveBinaryData' INTO TABLE
  * <tbl_name>;<br>
- *
+ * <p>
  * Override existing file: src/test/resources/data/hive/hiveBinaryData
  */
 public class HiveBinaryDataGen {
 
-    public static void main(String args[]) throws IOException {
+    public static void main(String[] args) {
         try {
             FileOutputStream outputStream = new FileOutputStream("src/test/resources/data/hive/hiveBinaryData");
-            BufferedOutputStream out = new BufferedOutputStream(outputStream);
-            try {
+            try (BufferedOutputStream out = new BufferedOutputStream(outputStream)) {
                 for (int i = 0; i < 256; i++) {
                     out.write(i);
                 }
                 out.flush();
-            } finally {
-                out.close();
             }
         } catch (IOException ex) {
-            System.out.println (ex.toString());
+            System.out.println(ex.getMessage());
         }
     }
 }
