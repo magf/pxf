@@ -127,7 +127,7 @@ public class ProfilesTest extends BaseFeature {
 
         exTable.setProfile(null);
         exTable.setUserParameters(new String[]{"Ready=Go", "Profile=" +
-                EnumPxfDefaultProfiles.HdfsTextSimple.toString()});
+                EnumPxfDefaultProfiles.HdfsTextSimple});
         gpdb.createTableAndVerify(exTable);
         runVerificationSql();
     }

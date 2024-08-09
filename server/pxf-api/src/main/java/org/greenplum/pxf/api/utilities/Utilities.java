@@ -191,7 +191,7 @@ public class Utilities {
      * We double escape each char because it is required in postgres bytea for
      * some bytes. In the minimum all non-printables, backslash, null and single
      * quote. Easier to just escape everything see
-     * http://www.postgresql.org/docs/9.0/static/datatype-binary.html
+     * <a href="http://www.postgresql.org/docs/9.0/static/datatype-binary.html">...</a>
      * <p>
      * Octal codes must be padded to 3 characters (001, 012)
      *

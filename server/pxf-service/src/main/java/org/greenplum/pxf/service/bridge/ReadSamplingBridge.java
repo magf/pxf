@@ -80,7 +80,7 @@ public class ReadSamplingBridge extends ReadBridge {
             bitSetSize /= 10;
             sampleSize /= 10;
         }
-        LOG.debug("bit set size = %d sample size = %d", bitSetSize, sampleSize);
+        LOG.debug("bit set size = {}; sample size = {}", bitSetSize, sampleSize);
 
         sampleBitSet = AnalyzeUtils.generateSamplingBitSet(bitSetSize, sampleSize);
     }

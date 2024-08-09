@@ -29,7 +29,7 @@ import org.greenplum.pxf.api.io.GPDBWritable;
  */
 public class GPDBWritableMapper {
 
-    private GPDBWritable gpdbWritable;
+    private final GPDBWritable gpdbWritable;
     private int type;
     private DataGetter getter = null;
 

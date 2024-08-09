@@ -268,7 +268,7 @@ public class JsonUtilitiesTest {
      * @param serdeType     Greenplum type reported in OneField object, basically a serde type for a given Greenplum type
      * @param value         value to write
      * @param expectedValue expected value that should be written to Json
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     private void runScenarioString(DataType columnType, DataType serdeType, Object value, String expectedValue) throws IOException {
         runScenario(columnType, serdeType, value, "\"" + expectedValue + "\"");
@@ -282,7 +282,7 @@ public class JsonUtilitiesTest {
      * @param serdeType     Greenplum type reported in OneField object, basically a serde type for a given Greenplum type
      * @param value         value to write
      * @param expectedValue expected value that should be written to Json
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     private void runScenario(DataType columnType, DataType serdeType, Object value, String expectedValue) throws IOException {
         ColumnDescriptor nullColumn = new ColumnDescriptor("nada", columnType.getOID(), 0, null, null);

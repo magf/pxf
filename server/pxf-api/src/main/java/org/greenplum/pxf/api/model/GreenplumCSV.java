@@ -1,5 +1,6 @@
 package org.greenplum.pxf.api.model;
 
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -16,10 +17,15 @@ public class GreenplumCSV {
     private static final String NEWLINE = "\n";
     private static final String VALUE_OF_NULL = "";
 
+    @Getter
     private String valueOfNull;
+    @Getter
     private char quote;
+    @Getter
     private Character escape;
+    @Getter
     private String newline;
+    @Getter
     private Character delimiter;
 
     private int newlineLength;
@@ -33,26 +39,6 @@ public class GreenplumCSV {
         withNewline(NEWLINE);
         withDelimiter(DELIMITER);
         withValueOfNull(VALUE_OF_NULL);
-    }
-
-    public String getValueOfNull() {
-        return valueOfNull;
-    }
-
-    public char getQuote() {
-        return quote;
-    }
-
-    public Character getEscape() {
-        return escape;
-    }
-
-    public String getNewline() {
-        return newline;
-    }
-
-    public Character getDelimiter() {
-        return delimiter;
     }
 
     /**

@@ -116,14 +116,6 @@ public class HiveDataFragmenter extends HdfsDataFragmenter {
      * {@inheritDoc}
      */
     @Override
-    public void afterPropertiesSet() {
-        super.afterPropertiesSet();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public List<Fragment> getFragments() throws Exception {
         Metadata.Item tblDesc = hiveClientWrapper.extractTableFromName(context.getDataSource());
 
@@ -316,7 +308,7 @@ public class HiveDataFragmenter extends HdfsDataFragmenter {
         try {
             splits = fformat.getSplits(jobConf, 1);
         } catch (org.apache.hadoop.mapred.InvalidInputException e) {
-            LOG.debug("getSplits failed on " + e.getMessage());
+            LOG.debug("getSplits failed on {}", e.getMessage());
             return;
         }
 

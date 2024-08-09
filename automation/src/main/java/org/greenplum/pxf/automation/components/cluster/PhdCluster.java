@@ -65,7 +65,7 @@ public abstract class PhdCluster extends ShellSystemObject {
 		// fetch the general configuration files from cluster to tempClusterConfDirectory
 		fetchConfiguration(getTempClusterConfDirectory());
 		// set path to local fetched pxf conf directory
-		setPathToLocalPxfConfDirectory(getTempClusterConfDirectory() + (getPathToPxfConfInGeneralConf().equals("") ? "" : "/") + getPathToPxfConfInGeneralConf());
+		setPathToLocalPxfConfDirectory(getTempClusterConfDirectory() + (getPathToPxfConfInGeneralConf().isEmpty() ? "" : "/") + getPathToPxfConfInGeneralConf());
 		// initialize pxfProfiles with profiles XML
 		setPxfProfiles(new PxfProfileXml(getPathToLocalPxfConfDirectory(), true));
 	}
@@ -98,14 +98,14 @@ public abstract class PhdCluster extends ShellSystemObject {
 	/**
 	 * Starts Hive server for JDBC requests
 	 *
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public void startHiveServer() throws Exception;
 
 	/**
 	 * Stops Hive server
 	 *
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public void stopHiveServer() throws Exception;
 
@@ -113,7 +113,7 @@ public abstract class PhdCluster extends ShellSystemObject {
 	 * Starts Cluster service
 	 *
 	 * @param component {@link EnumClusterServices}
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public void start(EnumClusterServices component) throws Exception;
 
@@ -121,7 +121,7 @@ public abstract class PhdCluster extends ShellSystemObject {
 	 * Stops Cluster service
 	 *
 	 * @param service {@link EnumClusterServices}
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public void stop(EnumClusterServices service) throws Exception;
 
@@ -129,7 +129,7 @@ public abstract class PhdCluster extends ShellSystemObject {
 	 * restarts Cluster service
 	 *
 	 * @param service {@link EnumClusterServices}
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public void restart(EnumClusterServices service) throws Exception;
 
@@ -138,14 +138,14 @@ public abstract class PhdCluster extends ShellSystemObject {
 	 *
 	 * @param component {@link EnumClusterServices}
 	 * @return true if up
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public boolean isUp(EnumClusterServices component) throws Exception;
 
 	/**
 	 * Gets configuration files from cluster to local directory
 	 *
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public void fetchConfiguration(String targetDirectory) throws Exception;
 
@@ -154,7 +154,7 @@ public abstract class PhdCluster extends ShellSystemObject {
 	 *
 	 * @param file file to copy
 	 * @param target remote path to copy to
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public void copyFileToNodes(String file, String target) throws Exception;
 
@@ -165,16 +165,16 @@ public abstract class PhdCluster extends ShellSystemObject {
 	 * @param target remote path to copy to
 	 * @param createTargetDirectory if true create the target directory before copying
 	 * @param sudo if true copy the file using sudo
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public void copyFileToNodes(String file, String target, boolean createTargetDirectory, boolean sudo) throws Exception;
 
 	/**
 	 * Deletes target file from cluster.
 	 *
-	 * @param targetFile
+	 * @param targetFile - the file to delete
 	 * @param sudo if true delete using sudo
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public void deleteFileFromNodes(String targetFile, boolean sudo) throws Exception;
 
@@ -182,7 +182,7 @@ public abstract class PhdCluster extends ShellSystemObject {
 	 * Runs shell command on all the nodes in the cluster
 	 *
 	 * @param command command to execute
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public void runCommandOnAllNodes(String command) throws Exception;
 
@@ -191,7 +191,7 @@ public abstract class PhdCluster extends ShellSystemObject {
 	 *
 	 * @param nodes to run command on
 	 * @param command to execute
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	abstract public void runCommandOnNodes(List<Node> nodes, String command) throws Exception;
 
@@ -269,7 +269,7 @@ public abstract class PhdCluster extends ShellSystemObject {
 
 		private String serviceName = "";
 
-		private EnumClusterServices(String serviceName) {
+		EnumClusterServices(String serviceName) {
 			this.setServiceName(serviceName);
 		}
 

@@ -33,10 +33,10 @@ public class Profile {
     private List<Mapping> mappingList;
 
     @XmlTransient
-    private Map<String, String> optionsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, String> optionsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     @XmlTransient
-    private Map<String, String> pluginsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, String> pluginsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     /**
      * Returns the name of the profile

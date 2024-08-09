@@ -33,7 +33,6 @@ public class MultiUserTest extends BaseFeature {
     private static final String gpdbTypesDataFileName = "gpdb_types.txt";
     private static final String gpdbTypesExDataFileName = "gpdb_types_ex.txt";
     private Table gpdbNativeTable;
-    private ExternalTable pxfJdbcReadable, pxfJdbcReadableOverrideDDL;
 
     @Override
     protected void beforeClass() throws Exception {
@@ -68,7 +67,7 @@ public class MultiUserTest extends BaseFeature {
     }
 
     private void prepareReadable() throws Exception {
-        pxfJdbcReadable = TableFactory.getPxfJdbcReadableTable(
+        ExternalTable pxfJdbcReadable = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_readable",
                 TYPES_TABLE_FIELDS,
                 gpdbNativeTable.getName(),
@@ -77,7 +76,7 @@ public class MultiUserTest extends BaseFeature {
         pxfJdbcReadable.setPort(pxfPort);
         gpdb.createTableAndVerify(pxfJdbcReadable);
 
-        pxfJdbcReadableOverrideDDL = TableFactory.getPxfJdbcReadableTable(
+        ExternalTable pxfJdbcReadableOverrideDDL = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_readable_overrideddl",
                 TYPES_TABLE_FIELDS,
                 gpdbNativeTable.getName(),

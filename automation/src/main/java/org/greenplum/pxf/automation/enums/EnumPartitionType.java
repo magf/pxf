@@ -7,6 +7,6 @@ package org.greenplum.pxf.automation.enums;
  */
 public enum EnumPartitionType {
 
-    INT, DATE, ENUM;
+    INT, DATE, ENUM
 
 }

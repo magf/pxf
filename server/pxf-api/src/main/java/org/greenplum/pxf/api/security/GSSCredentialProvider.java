@@ -29,13 +29,13 @@ import java.util.concurrent.TimeUnit;
  * This provider obtains a Kerberos service ticket from the KDC for the end-user to the PXF service
  * thus impersonating the end user. Having this credential, SASL/GSS layer then obtains S4U2proxy credential
  * which is a TGS from the end user to the target Hadoop service.
- *
+ * <p>
  * The provider uses a cache where it stores obtained credentials per user/pxf-server combo, since LoginContext and
  * the corresponding TGT is per PXF server. When the credential is cached, a PXF service TGT (for a given PXF server)
  * is stored along, since the credential will be invalid when TGT expires. When the credential is retrieved from the cache,
  * this provider checks whether the cached TGT is destroyed or cached TGT is different from the current TGT. If true,
  * the cached credential is discarded and a new one is re-obtained from the KDC with the currently active TGT.
- *
+ * <p>
  * Cache expiration is managed by "pxf.service.kerberos.constrained-delegation.credential-cache.expiration" property
  * and is set to 1 day by default, as this is the typical duration of the TGT tickets. If the actual duration is shorter,
  * the entry will be replaced by above-mentioned logic sooner than that. If it is longer, then the entry will be evicted
@@ -57,7 +57,7 @@ public class GSSCredentialProvider {
      * A holder class wrapping a credential and a TGT. It is used as an entry in the credential cache.
      */
     @Data
-    class GSSCredentialHolder {
+    static class GSSCredentialHolder {
         private final GSSCredential credential;
         private final KerberosTicket tgt;
     }
@@ -144,7 +144,7 @@ public class GSSCredentialProvider {
                 .removalListener((RemovalListener<String, GSSCredentialHolder>) notification ->
                         LOG.debug("Removed GSS credential from cache for key {} with cause {}",
                                 notification.getKey(),
-                                notification.getCause().toString()))
+                                notification.getCause()))
                 .build();
     }
 
@@ -194,7 +194,6 @@ public class GSSCredentialProvider {
      */
     private String getSessionPrincipal(String userName, String realm) {
         String realmSuffix = "@" + realm;
-        String userPrincipal = userName.endsWith(realmSuffix) ? userName : userName + realmSuffix;
-        return userPrincipal;
+        return userName.endsWith(realmSuffix) ? userName : userName + realmSuffix;
     }
 }

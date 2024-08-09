@@ -112,7 +112,7 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
     private static final Integer NUM_RETRIES = 5;
 
     @Override
-    public void beforeClass() throws Exception {
+    public void beforeClass() {
         // path for storing data on HDFS (for processing by PXF)
         hdfsWritePath = hdfs.getWorkingDirectory() + "/writableAvro/";
         String absolutePath = Objects.requireNonNull(getClass().getClassLoader().getResource("data")).getPath();
@@ -122,7 +122,7 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
     }
 
     @Override
-    public void beforeMethod() throws Exception {
+    public void beforeMethod() {
         filesToDelete = new ArrayList<>();
         publicStage = "/tmp/publicstage/pxf/";
     }

@@ -60,16 +60,12 @@ public class HBaseIntegerComparator extends ByteArrayComparable {
 	 */
 	@Override
 	public int compareTo(byte[] value, int offset, int length) {
-		/**
-		 * Fix for HD-2610: query fails when recordkey is integer.
-		 */
+		// Fix for HD-2610: query fails when recordkey is integer.
 		if (length == 0)
 			return 1; // empty line, can't compare.
 
-		/**
-		 * TODO optimize by parsing the bytes directly.
-		 * Maybe we can even determine if it is an int or a string encoded.
-		 */
+		// TODO optimize by parsing the bytes directly.
+		// Maybe we can even determine if it is an int or a string encoded.
 		String valueAsString = new String(value, offset, length);
 		Long valueAsLong = Long.parseLong(valueAsString);
 		return val.compareTo(valueAsLong);

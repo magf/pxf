@@ -25,11 +25,11 @@ public class ParallelShellActions {
 	 * @param targetConnections to which connections list to copy file
 	 * @param fromPath local path to file on fromConnection
 	 * @param toPath remote path on targetConnections list
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public static void copyFile(ShellSystemObject fromConnection, List<? extends ShellSystemObject> targetConnections, String fromPath, String toPath) throws Exception {
 		// prepare callable list
-		List<Callable<Integer>> callableList = new ArrayList<Callable<Integer>>();
+		List<Callable<Integer>> callableList = new ArrayList<>();
 		// create FileCopyAction threads and add to the callableList
 		for (ShellSystemObject targetConnction : targetConnections) {
 			Callable<Integer> callable = new FileCopyAction(fromConnection, targetConnction, fromPath, toPath);
@@ -44,11 +44,11 @@ public class ParallelShellActions {
 	 * 
 	 * @param connections list of {@link ShellSystemObject}
 	 * @param command command to execute over connections list
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public static void runParallelCommand(List<? extends ShellSystemObject> connections, String command) throws Exception {
 		// prepare callable list
-		List<Callable<Integer>> callableList = new ArrayList<Callable<Integer>>();
+		List<Callable<Integer>> callableList = new ArrayList<>();
 		// create CommandExecutionAction threads and add to the callableList
 		for (ShellSystemObject connection : connections) {
 			Callable<Integer> callable = new CommandExecutionAction(connection, command);

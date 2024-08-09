@@ -125,7 +125,7 @@ public class FilterParser {
     /**
      * Thrown when a filter's parsing exception occurs.
      */
-    class FilterStringSyntaxException extends IOException {
+    public class FilterStringSyntaxException extends IOException {
         FilterStringSyntaxException(String desc) {
             super(String.format("%s (%s)", desc, filterByteArr != null ?
                     "filter string: '" + new String(filterByteArr) + "'" : "null filter string"));

@@ -16,7 +16,7 @@ public abstract class BaseSystemObject extends SystemObjectImpl {
 	 * from the jsystem framework. In this case, there is an option to silent the jsystem reporter
 	 * which can cause exceptions if not fully using the framework.
 	 * 
-	 * @param silentReport
+	 * @param silentReport if true silent else will try to write to jsystem report for every report
 	 */
 	public BaseSystemObject(boolean silentReport) {
 		if (report != null) {

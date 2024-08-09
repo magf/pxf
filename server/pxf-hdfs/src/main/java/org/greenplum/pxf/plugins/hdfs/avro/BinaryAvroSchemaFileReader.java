@@ -17,9 +17,6 @@ import java.io.IOException;
  * Accessing the Avro file through the "unsplittable" API just to get the
  * schema. The splittable API (AvroInputFormat) which is the one we will be
  * using to fetch the records, does not support getting the Avro schema yet.
- *
- * @return the Avro schema
- * @throws IOException if I/O error occurred while accessing Avro schema file
  */
 public class BinaryAvroSchemaFileReader implements AvroSchemaFileReader {
     @Override

@@ -1,10 +1,14 @@
 package org.greenplum.pxf.api.filter;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * A node in the expression tree
  */
+@Setter
+@Getter
 public class Node {
-
     private Node left;
     private Node right;
 
@@ -33,42 +37,6 @@ public class Node {
     public Node(Node left, Node right) {
         this.left = left;
         this.right = right;
-    }
-
-    /**
-     * Sets the left {@link Node} of the tree
-     *
-     * @param left the left node
-     */
-    public void setLeft(Node left) {
-        this.left = left;
-    }
-
-    /**
-     * Returns the left {@link Node}
-     *
-     * @return the left {@link Node}
-     */
-    public Node getLeft() {
-        return left;
-    }
-
-    /**
-     * Sets the right {@link Node} of the tree
-     *
-     * @param right the right node
-     */
-    public void setRight(Node right) {
-        this.right = right;
-    }
-
-    /**
-     * Returns the right {@link Node}
-     *
-     * @return the right {@link Node}
-     */
-    public Node getRight() {
-        return right;
     }
 
     /**

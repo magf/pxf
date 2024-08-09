@@ -39,7 +39,7 @@ public class CustomAutomationReport implements IReporter {
 					// if a case has "ExpectedFaiGPDBWritable.javalure" annotation, insert to sBuilder
 
 					if (method.getConstructorOrMethod().getMethod().getAnnotation(ExpectedFailure.class) != null) {
-						sBuilder.append(method.getInstance().getClass().getName() + "/" + method.getMethodName()).append(System.lineSeparator());
+						sBuilder.append(method.getInstance().getClass().getName()).append("/").append(method.getMethodName()).append(System.lineSeparator());
 					}
 				}
 			}

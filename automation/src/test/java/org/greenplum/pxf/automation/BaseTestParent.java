@@ -1,9 +1,7 @@
 package org.greenplum.pxf.automation;
 
 import jsystem.framework.report.ListenerstManager;
-import jsystem.framework.sut.SutFactory;
 import jsystem.framework.system.SystemManagerImpl;
-import jsystem.framework.system.SystemObject;
 import jsystem.utils.FileUtils;
 import listeners.CustomAutomationLogger;
 import listeners.FDWSkipTestAnalyzer;
@@ -138,7 +136,7 @@ public abstract class BaseTestParent {
     /**
      * will be called after Class run has ended
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     @AfterClass(alwaysRun = true)
     public final void clean() throws Exception {
@@ -167,7 +165,7 @@ public abstract class BaseTestParent {
     /**
      * will be called before each test method start
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     @BeforeMethod(alwaysRun = true)
     public void runBeforeMethod() throws Exception {
@@ -191,7 +189,7 @@ public abstract class BaseTestParent {
     /**
      * will be called after each test method ended
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     @AfterMethod(alwaysRun = true)
     public void runAfterMethod() throws Exception {
@@ -229,7 +227,7 @@ public abstract class BaseTestParent {
     /**
      * clean up after the class finished
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     protected void afterClass() throws Exception {
     }
@@ -237,7 +235,7 @@ public abstract class BaseTestParent {
     /**
      * Preparations needed before the class starting
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     protected void beforeClass() throws Exception {
     }
@@ -245,7 +243,7 @@ public abstract class BaseTestParent {
     /**
      * clean up after the test method had finished
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     protected void afterMethod() throws Exception {
     }
@@ -253,7 +251,7 @@ public abstract class BaseTestParent {
     /**
      * Preparations needed before the test method starting
      *
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
     protected void beforeMethod() throws Exception {
     }
@@ -289,10 +287,9 @@ public abstract class BaseTestParent {
      *
      * @param methodName to check
      * @return true if method exists in declared methods
-     * @throws NoSuchMethodException
      * @throws SecurityException
      */
-    private boolean checkMethodImplExists(String methodName) throws NoSuchMethodException, SecurityException {
+    private boolean checkMethodImplExists(String methodName) throws SecurityException {
         // get all declared methods
         Method[] methods = getClass().getDeclaredMethods();
         // run over methods and look for methodName

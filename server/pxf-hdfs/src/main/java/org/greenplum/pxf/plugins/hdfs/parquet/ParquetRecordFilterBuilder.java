@@ -10,8 +10,6 @@ import org.apache.parquet.schema.Type;
 import org.greenplum.pxf.api.filter.*;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -31,14 +29,10 @@ import static org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConve
  * scan.
  */
 public class ParquetRecordFilterBuilder implements TreeVisitor {
-
-    protected final Logger LOG = LoggerFactory.getLogger(this.getClass());
-
     private final Map<String, Type> fields;
     private final List<ColumnDescriptor> columnDescriptors;
     private final Deque<FilterPredicate> filterQueue;
-
-    ParquetTypeConverterFactory parquetTypeConverterFactory;
+    private final ParquetTypeConverterFactory parquetTypeConverterFactory;
 
     /**
      * Constructor

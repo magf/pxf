@@ -52,10 +52,10 @@ public enum HcfsType {
 
     public static final String CONFIG_KEY_BASE_PATH = "pxf.fs.basePath";
 
-    protected Logger LOG = LoggerFactory.getLogger(this.getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(HcfsType.class);
 
     private static final String FILE_SCHEME = "file";
-    protected String prefix;
+    protected final String prefix;
 
     HcfsType() {
         this(null);

@@ -30,8 +30,8 @@ public class Regress extends ShellSystemObject {
      * Run the SQL test queries in the given path with pxf_regress
      *
      * @param sqlTestPath path to directory that contains SQL test queries to run
-     * @throws IOException
-     * @throws ShellCommandErrorException
+     * @throws IOException if I/O error occurs
+     * @throws ShellCommandErrorException if shell command fails
      */
     public void runSqlTest(final String sqlTestPath) throws IOException, ShellCommandErrorException {
         ReportUtils.startLevel(report, getClass(), "Run test: " + sqlTestPath);

@@ -1,5 +1,6 @@
 package org.greenplum.pxf.api.filter;
 
+import lombok.Getter;
 import org.greenplum.pxf.api.io.DataType;
 
 import static java.util.Objects.requireNonNull;
@@ -7,8 +8,8 @@ import static java.util.Objects.requireNonNull;
 /**
  * Represents a scalar value (String, Long, Int).
  */
+@Getter
 public class ScalarOperandNode extends OperandNode {
-
     private final String value;
 
     /**
@@ -20,15 +21,6 @@ public class ScalarOperandNode extends OperandNode {
     public ScalarOperandNode(DataType dataType, String value) {
         super(dataType);
         this.value = requireNonNull(value, "value is null");
-    }
-
-    /**
-     * Returns the value of the scalar
-     *
-     * @return the value of the scalar
-     */
-    public String getValue() {
-        return value;
     }
 
     @Override

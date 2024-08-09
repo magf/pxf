@@ -2,6 +2,7 @@ package org.greenplum.pxf.automation.datapreparer;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.greenplum.pxf.automation.fileformats.IDataPreparer;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -23,9 +24,7 @@ public class CustomSequencePreparer implements IDataPreparer {
 
         for (int i = 0; i < cwArr.length; i++) {
 
-            ArrayList<String> row = new ArrayList<String>();
-
-            int num1 = i;
+            ArrayList<String> row = new ArrayList<>();
 
             String tms = "1919-06-28 23:59:59.2233";
 
@@ -39,18 +38,15 @@ public class CustomSequencePreparer implements IDataPreparer {
 
             row.add(tms.toString());
 
-            cwArr[i] = constructor.newInstance(tms, num1, 10 * num1, 20 * num1);
+            cwArr[i] = constructor.newInstance(tms, i, 10 * i, 20 * i);
 
             if (i > 0) {
-                /**
-                 * Read fields and store in data table
-                 */
-
+                // Read fields and store in data table
                 int[] num = ((int[]) cwArr[i].getClass().getField("num").get(
                         cwArr[i]));
 
-                for (int j = 0; j < num.length; j++) {
-                    row.add(String.valueOf(num[j]));
+                for (int k : num) {
+                    row.add(String.valueOf(k));
                 }
 
                 int int1 = ((Integer) cwArr[i].getClass().getField("int1").get(
@@ -66,9 +62,7 @@ public class CustomSequencePreparer implements IDataPreparer {
                 String[] strings = ((String[]) cwArr[i].getClass().getField(
                         "strings").get(cwArr[i]));
 
-                for (int j = 0; j < strings.length; j++) {
-                    row.add(strings[j]);
-                }
+                row.addAll(Arrays.asList(strings));
 
                 String st1 = ((String) cwArr[i].getClass().getField("st1").get(
                         cwArr[i]));
@@ -78,8 +72,8 @@ public class CustomSequencePreparer implements IDataPreparer {
                 double[] dubs = ((double[]) cwArr[i].getClass().getField("dubs").get(
                         cwArr[i]));
 
-                for (int j = 0; j < dubs.length; j++) {
-                    row.add(String.valueOf(dubs[j]));
+                for (double dub : dubs) {
+                    row.add(String.valueOf(dub));
                 }
 
                 double db = ((Double) cwArr[i].getClass().getField("db").get(
@@ -90,8 +84,8 @@ public class CustomSequencePreparer implements IDataPreparer {
                 float[] fts = ((float[]) cwArr[i].getClass().getField("fts").get(
                         cwArr[i]));
 
-                for (int j = 0; j < fts.length; j++) {
-                    row.add(String.valueOf(fts[j]));
+                for (float v : fts) {
+                    row.add(String.valueOf(v));
                 }
 
                 float ft = ((Float) cwArr[i].getClass().getField("ft").get(
@@ -102,8 +96,8 @@ public class CustomSequencePreparer implements IDataPreparer {
                 long[] lngs = ((long[]) cwArr[i].getClass().getField("lngs").get(
                         cwArr[i]));
 
-                for (int j = 0; j < lngs.length; j++) {
-                    row.add(String.valueOf(lngs[j]));
+                for (long l : lngs) {
+                    row.add(String.valueOf(l));
                 }
 
                 long lng = ((Long) cwArr[i].getClass().getField("lng").get(
@@ -113,8 +107,8 @@ public class CustomSequencePreparer implements IDataPreparer {
 
                 boolean[] bools = ((boolean[]) cwArr[i].getClass().getField(
                         "bools").get(cwArr[i]));
-                for (int j = 0; j < bools.length; j++) {
-                    row.add(String.valueOf(bools[j]));
+                for (boolean b : bools) {
+                    row.add(String.valueOf(b));
                 }
 
                 boolean bool = ((Boolean) cwArr[i].getClass().getField("bool").get(
@@ -124,8 +118,8 @@ public class CustomSequencePreparer implements IDataPreparer {
                 short[] shrts = ((short[]) cwArr[i].getClass().getField("shrts").get(
                         cwArr[i]));
 
-                for (int j = 0; j < shrts.length; j++) {
-                    row.add(String.valueOf(shrts[j]));
+                for (short value : shrts) {
+                    row.add(String.valueOf(value));
                 }
 
                 long shrt = ((Short) cwArr[i].getClass().getField("shrt").get(

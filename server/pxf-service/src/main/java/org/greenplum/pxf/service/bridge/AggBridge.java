@@ -69,7 +69,7 @@ public class AggBridge extends ReadBridge implements Bridge {
         }
 
         try {
-            while (outputQueue.isEmpty()) {
+            while (true) {
                 onerow = ((StatsAccessor) accessor).emitAggObject();
                 if (onerow == null) {
                     break;

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OracleParallelSessionParamFactoryTest {
-    private static final OracleParallelSessionParamFactory oracleParallelSessionParamFactory = new OracleParallelSessionParamFactory();;
+    private static final OracleParallelSessionParamFactory oracleParallelSessionParamFactory = new OracleParallelSessionParamFactory();
     private final String property = "jdbc.session.property.alter_session_parallel.1";
     private final String delimiter = "\\.";
 

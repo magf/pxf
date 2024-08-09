@@ -2,6 +2,7 @@ package org.greenplum.pxf.automation.components.common.cli;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import systemobject.terminal.BufferInputStream;
 import systemobject.terminal.Cli;
@@ -20,9 +21,9 @@ import com.aqua.sysobj.conn.Position;
  */
 public class PivotalCliConnectionImpl extends CliConnectionImpl {
 
-	private ArrayList<Prompt> prompts = new ArrayList<Prompt>();;
+	private final ArrayList<Prompt> prompts = new ArrayList<>();
 
-	public PivotalCliConnectionImpl() {
+    public PivotalCliConnectionImpl() {
 		setDump(true);
 		setUseTelnetInputStream(true);
 		setProtocol("ssh-rsa");
@@ -37,17 +38,12 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 	}
 
 	@Override
-	public void init() throws Exception {
-		super.init();
-	}
-
-	@Override
 	public Position[] getPositions() {
 		return null;
 	}
 
 	public Prompt[] getPrompts() {
-		ArrayList<Prompt> prompts = new ArrayList<Prompt>();
+		ArrayList<Prompt> prompts = new ArrayList<>();
 		Prompt p = new Prompt();
 		p.setCommandEnd(true);
 		p.setPrompt("# ");
@@ -62,7 +58,7 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 		p.setPrompt("Password: ");
 		p.setStringToSend(getPassword());
 		prompts.add(p);
-		return prompts.toArray(new Prompt[prompts.size()]);
+		return prompts.toArray(new Prompt[0]);
 	}
 
 	@Override
@@ -80,10 +76,7 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 				break;
 			} catch (Exception e) {
 				report.report("Failed connecting  " + getHost() + ". Attempt " + (retriesCounter + 1) + ".  " + e.getMessage());
-				try {
-					disconnect();
-				} catch (Exception t) {
-				}
+				disconnect();
 				if (retriesCounter == connectRetries - 1) {
 					throw e;
 				}
@@ -152,9 +145,9 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 			terminal.addFilter(new VT100FilterInputStream());
 		}
 		Prompt[] prompts = getAllPrompts();
-		for (int i = 0; i < prompts.length; i++) {
-			cli.addPrompt(prompts[i]);
-		}
+        for (Prompt prompt : prompts) {
+            cli.addPrompt(prompt);
+        }
 		if (isRs232 || leadingEnter) {
 			cli.command("");
 		} else if (isRsa) {
@@ -180,12 +173,9 @@ public class PivotalCliConnectionImpl extends CliConnectionImpl {
 	}
 
 	private Prompt[] getAllPrompts() {
-		ArrayList<Prompt> allPrompts = new ArrayList<Prompt>();
-		allPrompts.addAll(prompts);
+        ArrayList<Prompt> allPrompts = new ArrayList<>(prompts);
 		Prompt[] pr = getPrompts();
-		for (Prompt p : pr) {
-			allPrompts.add(p);
-		}
+        allPrompts.addAll(Arrays.asList(pr));
 		return allPrompts.toArray(new Prompt[0]);
 	}
 }

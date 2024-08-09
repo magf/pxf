@@ -30,7 +30,6 @@ import org.greenplum.pxf.api.utilities.FragmentMetadata;
 import org.greenplum.pxf.api.utilities.Utilities;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,23 +44,7 @@ import java.util.TreeMap;
 @Setter
 public class RequestContext {
 
-    /**
-     * The request type can be used to later determine whether we
-     * are in a read, write or fragmenter call.
-     */
     private RequestType requestType;
-
-    public RequestType getRequestType() {
-        return requestType;
-    }
-
-    /**
-     * The request type can be set when parsing http parameters, etc.
-     * {@link org.greenplum.pxf.service.HttpRequestParser#parseRequest()}
-     */
-    public void setRequestType(RequestType requestType) {
-        this.requestType = requestType;
-    }
 
     public enum RequestType {
         READ_BRIDGE,

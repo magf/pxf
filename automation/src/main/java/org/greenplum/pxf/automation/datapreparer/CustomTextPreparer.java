@@ -4,7 +4,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.TimeZone;
+import java.util.stream.IntStream;
 
 import org.greenplum.pxf.automation.fileformats.IDataPreparer;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -17,14 +19,12 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
 public class CustomTextPreparer implements IDataPreparer {
 
     @Override
-    public Object[] prepareData(int rows, Table dataTable) throws Exception {
+    public Object[] prepareData(int rows, Table dataTable) {
 
         Object[] data = new Object[rows];
 
         // fill data and dataTable with data according to given rows
         for (int i = 0, num1 = 1; i < rows; i++, num1++) {
-
-            ArrayList<String> row = new ArrayList<String>();
 
             // create calendar and set timestamp as milliseconds
             Calendar calendar = new GregorianCalendar();
@@ -48,33 +48,30 @@ public class CustomTextPreparer implements IDataPreparer {
             // get timestamp value from SimpleDateFormat
             String timeStampValue = dateFormat.format(calendar.getTime());
 
-            row.add("s_" + num1);
-            row.add("s_" + num1 * 10);
-            row.add("s_" + num1 * 100);
-            row.add(timeStampValue);
-            row.add(String.valueOf(num1));
-            row.add(String.valueOf(num1 * 10));
-            row.add(String.valueOf(num1 * 100));
-            row.add(String.valueOf(num1 * 100));
-            row.add(String.valueOf(num1 * 100));
-            row.add(String.valueOf(num1 * 100));
-            row.add(String.valueOf(num1 * 100));
-            row.add("s_" + num1);
-            row.add("s_" + num1 * 10);
-            row.add("s_" + num1 * 100);
-            row.add(timeStampValue);
-            row.add(String.valueOf(num1));
-            row.add(String.valueOf(num1 * 10));
-            row.add(String.valueOf(num1 * 100));
-            row.add(String.valueOf(num1 * 100));
-            row.add(String.valueOf(num1 * 100));
-            row.add(String.valueOf(num1 * 100));
-            row.add(String.valueOf(num1 * 100));
+            List<String> row = fillData(num1, timeStampValue);
 
             dataTable.addRow(row);
             data[i] = row;
         }
 
         return data;
+    }
+
+    private List<String> fillData(final int num1, final String timeStampValue) {
+        List<String> rows = new ArrayList<>();
+        IntStream.rangeClosed(0, 1).forEach(i -> {
+            rows.add("s_" + num1);
+            rows.add("s_" + num1 * 10);
+            rows.add("s_" + num1 * 100);
+            rows.add(timeStampValue);
+            rows.add(String.valueOf(num1));
+            rows.add(String.valueOf(num1 * 10));
+            rows.add(String.valueOf(num1 * 100));
+            rows.add(String.valueOf(num1 * 100));
+            rows.add(String.valueOf(num1 * 100));
+            rows.add(String.valueOf(num1 * 100));
+            rows.add(String.valueOf(num1 * 100));
+        });
+        return rows;
     }
 }

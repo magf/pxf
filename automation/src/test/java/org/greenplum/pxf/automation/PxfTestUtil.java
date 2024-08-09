@@ -10,7 +10,7 @@ public class PxfTestUtil {
     public static String getCmdResult(PhdCluster cluster, String command) throws ShellCommandErrorException, IOException {
         cluster.runCommand(command);
         String result = cluster.getLastCmdResult();
-        String[] results = result.split(System.getProperty("line.separator"));
+        String[] results = result.split(System.lineSeparator());
         return results.length > 1 ? results[1].trim() : "Result is empty";
     }
 }

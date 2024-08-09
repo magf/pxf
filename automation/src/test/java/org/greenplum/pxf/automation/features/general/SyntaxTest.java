@@ -542,10 +542,9 @@ public class SyntaxTest extends BaseFeature {
      * Netagive test to verify that table with wrong nameservice is not created.
      * The nameservice is defined in GPDB's hdfs-client.xml file.
      *
-     * @throws Exception
      */
     @Test(groups = "features")
-    public void negativeHaNameserviceReadable() throws Exception {
+    public void negativeHaNameserviceReadable() {
         String unknownNameservicePath = "text_data.csv";
 
         exTable = TableFactory.getPxfReadableTextTable("hatable", new String[] {
@@ -589,10 +588,9 @@ public class SyntaxTest extends BaseFeature {
      * Netagive test to verify that table with wrong nameservice is not created.
      * The nameservice is defined in GPDB's hdfs-client.xml file.
      *
-     * @throws Exception
      */
     @Test(groups = "features")
-    public void negativeHaNameserviceWritable() throws Exception {
+    public void negativeHaNameserviceWritable() {
         String unknownNameservicePath = "text_data.csv";
 
         exTable = TableFactory.getPxfWritableTextTable("hatable", new String[] {

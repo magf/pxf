@@ -46,7 +46,6 @@ public class PushdownPredicateInTest extends BaseFeature {
             "WHERE SQL_FULLTEXT LIKE 'SELECT id, descr FROM " + SOURCE_TABLE_SCHEMA + "." + SOURCE_TABLE_NAME + " WHERE id IN (3,4,5)'";
     private Oracle oracle;
     private List<Node> pxfNodes;
-    private String pxfHome;
     private String pxfJdbcSiteConfFile;
     private String pxfLogFile;
     private Table gpdbPredicateInSourceTable;
@@ -55,7 +54,7 @@ public class PushdownPredicateInTest extends BaseFeature {
 
     @Override
     protected void beforeClass() throws Exception {
-        pxfHome = cluster.getPxfHome();
+        String pxfHome = cluster.getPxfHome();
         restartCommand = pxfHome + "/bin/pxf restart";
         String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_ORACLE_SERVER_PROFILE);
         pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;

@@ -94,7 +94,7 @@ public class OperationStatsTest {
     public void testFlushStatsReport() {
         when(mockMetricReporter.getReportFrequency()).thenReturn(1L);
         OperationStats stats = new OperationStats(OperationStats.Operation.READ, mockMetricReporter, mockContext);
-        stats.setByteCount(15l);
+        stats.setByteCount(15L);
         stats.flushStats();
 
         assertEquals(0L, stats.getRecordCount());

@@ -85,7 +85,7 @@ public class MultiBlockTest extends BaseFeature {
         gpdb.queryResults(analyzeResults,
                 "SELECT COUNT(*) FROM " + table.getName());
         Table sudoResults = new Table("sudoResults", null);
-        sudoResults.addRow(new String[] { new Long(table.getNumberOfLines()).toString() });
+        sudoResults.addRow(new String[] {Long.toString(table.getNumberOfLines())});
         ComparisonUtils.compareTables(analyzeResults, sudoResults, null);
     }
 }

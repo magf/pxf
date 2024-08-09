@@ -1,11 +1,13 @@
 package org.greenplum.pxf.plugins.jdbc.utils;
 
 import com.google.common.collect.Sets;
+import lombok.Getter;
 
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
+@Getter
 public class PoolDescriptor {
 
     private static final String USER_PROPERTY_NAME = "user";
@@ -16,12 +18,13 @@ public class PoolDescriptor {
     private static final Set<String> PROHIBITED_PROPERTIES =
             Sets.newHashSet("username", "password", "dataSource.user", "dataSource.password", "dataSourceClassName", "jdbcUrl");
 
-    private String server;
-    private String jdbcUrl;
+    private final String server;
+    private final String jdbcUrl;
     private String user;
     private String password;
-    private Properties connectionConfig, poolConfig;
-    private String qualifier;
+    private Properties connectionConfig;
+    private final Properties poolConfig;
+    private final String qualifier;
 
 
     public PoolDescriptor(String server, String jdbcUrl, Properties connectionConfig, Properties poolConfig, String qualifier) {
@@ -39,33 +42,8 @@ public class PoolDescriptor {
         this.qualifier = qualifier;
 
         // validate pool configuration
-        PROHIBITED_PROPERTIES.forEach(p -> ensurePoolPropertyNotPresent(p));
+        PROHIBITED_PROPERTIES.forEach(this::ensurePoolPropertyNotPresent);
     }
-
-    public String getServer() {
-        return server;
-    }
-
-    public String getJdbcUrl() {
-        return jdbcUrl;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public Properties getConnectionConfig() {
-        return connectionConfig;
-    }
-
-    public Properties getPoolConfig() {
-        return poolConfig;
-    }
-
 
     @Override
     public boolean equals(Object o) {

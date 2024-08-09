@@ -627,10 +627,9 @@ public class HiveBaseTest extends BaseFeature {
      * Each partitions has different data
      *
      * @param tableName hive table name
-     * @return hive table
      * @throws Exception if test fails to run
      */
-    HiveExternalTable createGenerateHivePartitionTable(String tableName) throws Exception {
+    void createGenerateHivePartitionTable(String tableName) throws Exception {
 
         String smallDataTableName = hiveSmallDataTable.getName();
         HiveExternalTable hiveTable = TableFactory.getHiveByRowCommaExternalTable(tableName, HIVE_RC_COLS);
@@ -677,7 +676,6 @@ public class HiveBaseTest extends BaseFeature {
         setHivePartitionFormat(tableName, "fmt = 'seq'", SEQUENCEFILE);
         setHivePartitionFormat(tableName, "fmt = 'orc'", ORC);
 
-        return hiveTable;
     }
 
     /**

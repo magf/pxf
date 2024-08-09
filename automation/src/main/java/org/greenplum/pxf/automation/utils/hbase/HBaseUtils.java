@@ -19,7 +19,7 @@ public class HBaseUtils {
 	 */
 	public static void getFilterListPrint(StringBuilder result, FilterList filterList) {
 
-		if (filterList == null || filterList.getFilters().size() == 0) {
+		if (filterList == null || filterList.getFilters().isEmpty()) {
 			return;
 		}
 
@@ -46,7 +46,7 @@ public class HBaseUtils {
 			} else {
 
 				// append filter to result
-				result.append("(" + filter + ")");
+				result.append("(").append(filter).append(")");
 
 				// if end of list and not FilterList, close the current list
 				if (listIndex == list.size() - 1) {

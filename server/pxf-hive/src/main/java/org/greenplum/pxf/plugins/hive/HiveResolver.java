@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.hive;
  * under the License.
  */
 
+import lombok.Getter;
 import org.apache.commons.lang.CharUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -100,8 +101,9 @@ public class HiveResolver extends BasePlugin implements Resolver {
     protected String serdeClassName;
     protected List<Integer> hiveIndexes;
     protected HiveMetadata metadata;
-    protected HiveUtilities hiveUtilities;
+    protected final HiveUtilities hiveUtilities;
 
+    @Getter
     private int numberOfPartitions;
     private Map<String, OneField> partitionColumnNames;
     private String hiveDefaultPartName;
@@ -153,10 +155,6 @@ public class HiveResolver extends BasePlugin implements Resolver {
         throw new UnsupportedOperationException("Hive resolver does not support write operation.");
     }
 
-    public int getNumberOfPartitions() {
-        return numberOfPartitions;
-    }
-
     /* Parses user data string (received from fragmenter). */
     void parseUserData(RequestContext context) {
         // HiveMetadata is passed from accessor
@@ -192,7 +190,7 @@ public class HiveResolver extends BasePlugin implements Resolver {
         partitionColumnNames = new HashMap<>();
 
         List<HivePartition> hivePartitionList = metadata.getPartitions();
-        if (hivePartitionList == null || hivePartitionList.size() == 0) {
+        if (hivePartitionList == null || hivePartitionList.isEmpty()) {
             // no partition column information
             return;
         }
@@ -292,62 +290,66 @@ public class HiveResolver extends BasePlugin implements Resolver {
      */
     void initTextPartitionFields(StringBuilder parts) {
         List<HivePartition> hivePartitionList = metadata.getPartitions();
-        if (hivePartitionList == null || hivePartitionList.size() == 0) {
+        if (hivePartitionList == null || hivePartitionList.isEmpty()) {
             return;
         }
         for (HivePartition partition : hivePartitionList) {
             String type = partition.getType();
             String val = partition.getValue();
             parts.append(delimiter);
-            if (isDefaultPartition(type, val)) {
-                parts.append(nullChar);
-            } else {
-                // ignore the type's parameters
-                String typeName = type.replaceAll("\\(.*\\)", "");
-                switch (typeName) {
-                    case serdeConstants.STRING_TYPE_NAME:
-                    case serdeConstants.VARCHAR_TYPE_NAME:
-                    case serdeConstants.CHAR_TYPE_NAME:
-                        parts.append(val);
-                        break;
-                    case serdeConstants.BOOLEAN_TYPE_NAME:
-                        parts.append(Boolean.parseBoolean(val));
-                        break;
-                    case serdeConstants.TINYINT_TYPE_NAME:
-                    case serdeConstants.SMALLINT_TYPE_NAME:
-                        parts.append(Short.parseShort(val));
-                        break;
-                    case serdeConstants.INT_TYPE_NAME:
-                        parts.append(Integer.parseInt(val));
-                        break;
-                    case serdeConstants.BIGINT_TYPE_NAME:
-                        parts.append(Long.parseLong(val));
-                        break;
-                    case serdeConstants.FLOAT_TYPE_NAME:
-                        parts.append(Float.parseFloat(val));
-                        break;
-                    case serdeConstants.DOUBLE_TYPE_NAME:
-                        parts.append(Double.parseDouble(val));
-                        break;
-                    case serdeConstants.TIMESTAMP_TYPE_NAME:
-                        parts.append(Timestamp.valueOf(val));
-                        break;
-                    case serdeConstants.DATE_TYPE_NAME:
-                        parts.append(Date.valueOf(val));
-                        break;
-                    case serdeConstants.DECIMAL_TYPE_NAME:
-                        parts.append(HiveDecimal.create(val).bigDecimalValue());
-                        break;
-                    case serdeConstants.BINARY_TYPE_NAME:
-                        Utilities.byteArrayToOctalString(val.getBytes(), parts);
-                        break;
-                    default:
-                        throw new UnsupportedTypeException(
-                                "Unsupported partition type: " + type);
-                }
-            }
+            appendPartition(parts, type, val);
         }
         this.numberOfPartitions = hivePartitionList.size();
+    }
+
+    void appendPartition(StringBuilder parts, String type, String val) {
+        if (isDefaultPartition(type, val)) {
+            parts.append(nullChar);
+        } else {
+            // ignore the type's parameters
+            String typeName = type.replaceAll("\\(.*\\)", "");
+            switch (typeName) {
+                case serdeConstants.STRING_TYPE_NAME:
+                case serdeConstants.VARCHAR_TYPE_NAME:
+                case serdeConstants.CHAR_TYPE_NAME:
+                    parts.append(val);
+                    break;
+                case serdeConstants.BOOLEAN_TYPE_NAME:
+                    parts.append(Boolean.parseBoolean(val));
+                    break;
+                case serdeConstants.TINYINT_TYPE_NAME:
+                case serdeConstants.SMALLINT_TYPE_NAME:
+                    parts.append(Short.parseShort(val));
+                    break;
+                case serdeConstants.INT_TYPE_NAME:
+                    parts.append(Integer.parseInt(val));
+                    break;
+                case serdeConstants.BIGINT_TYPE_NAME:
+                    parts.append(Long.parseLong(val));
+                    break;
+                case serdeConstants.FLOAT_TYPE_NAME:
+                    parts.append(Float.parseFloat(val));
+                    break;
+                case serdeConstants.DOUBLE_TYPE_NAME:
+                    parts.append(Double.parseDouble(val));
+                    break;
+                case serdeConstants.TIMESTAMP_TYPE_NAME:
+                    parts.append(Timestamp.valueOf(val));
+                    break;
+                case serdeConstants.DATE_TYPE_NAME:
+                    parts.append(Date.valueOf(val));
+                    break;
+                case serdeConstants.DECIMAL_TYPE_NAME:
+                    parts.append(HiveDecimal.create(val).bigDecimalValue());
+                    break;
+                case serdeConstants.BINARY_TYPE_NAME:
+                    Utilities.byteArrayToOctalString(val.getBytes(), parts);
+                    break;
+                default:
+                    throw new UnsupportedTypeException(
+                            "Unsupported partition type: " + type);
+            }
+        }
     }
 
     /**

@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.components.common.threads;
 
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import org.greenplum.pxf.automation.components.common.ShellSystemObject;
@@ -9,10 +10,10 @@ import org.greenplum.pxf.automation.components.common.ShellSystemObject;
  * elsewhere.
  */
 public class FileCopyAction implements Callable<Integer> {
-	private ShellSystemObject from;
-	private ShellSystemObject to;
-	private String fromPath;
-	private String toPath;
+	private final ShellSystemObject from;
+	private final ShellSystemObject to;
+	private final String fromPath;
+	private final String toPath;
 
 	public FileCopyAction(ShellSystemObject from, ShellSystemObject to, String fromPath, String toPath) {
 		this.from = from;
@@ -22,7 +23,7 @@ public class FileCopyAction implements Callable<Integer> {
 	}
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		ShellSystemObject connection = null;
 		try {
 			// create new connection for each thread so it will happen in parallel
@@ -34,7 +35,9 @@ public class FileCopyAction implements Callable<Integer> {
 		} catch (Exception e) {
 			return 0;
 		} finally {
-			connection.close();
+			if (Objects.nonNull(connection)) {
+				connection.close();
+			}
 		}
 	}
 }

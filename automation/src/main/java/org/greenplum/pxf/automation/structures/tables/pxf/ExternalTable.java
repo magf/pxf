@@ -18,7 +18,7 @@ public abstract class ExternalTable extends Table {
 
     private String port = "5888";
 
-    private String path = "somepath/gpdb_regression_data";
+    private String path;
 
     private String fragmenter;
 
@@ -32,7 +32,7 @@ public abstract class ExternalTable extends Table {
 
     private String formatter;
 
-    private List<String> formatterOptions = new ArrayList<>();
+    private final List<String> formatterOptions = new ArrayList<>();
 
     private String delimiter;
 
@@ -73,7 +73,7 @@ public abstract class ExternalTable extends Table {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append("DROP EXTERNAL TABLE IF EXISTS " + getFullName());
+        sb.append("DROP EXTERNAL TABLE IF EXISTS ").append(getFullName());
         if (cascade) {
             sb.append(" CASCADE");
         }
@@ -171,7 +171,7 @@ public abstract class ExternalTable extends Table {
     protected void appendParameter(StringBuilder sBuilder, String parameter) {
 
         // if not the first parameter, add '&'
-        if (!sBuilder.toString().equals("")) {
+        if (!sBuilder.toString().isEmpty()) {
             sBuilder.append("&");
         }
 
@@ -194,7 +194,7 @@ public abstract class ExternalTable extends Table {
         if (getFormatter() != null) {
             String formatterOption = isFormatterMixedCase() ? "FoRmAtTeR" : "formatter";
             createStatement += String.format(" (%s='%s'", formatterOption, getFormatter());
-            if (formatterOptions.size() > 0) {
+            if (!formatterOptions.isEmpty()) {
                 createStatement += ", ";
                 createStatement += formatterOptions.stream().collect(Collectors.joining(", "));
             }
@@ -401,7 +401,7 @@ public abstract class ExternalTable extends Table {
     /**
      * Array of user parameters, each param in the format "KEY=VALUE"
      *
-     * @param userParameters
+     * @param userParameters - array of user parameters
      */
     public void setUserParameters(String[] userParameters) {
 

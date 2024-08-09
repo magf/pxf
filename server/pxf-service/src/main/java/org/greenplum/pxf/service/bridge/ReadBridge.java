@@ -48,7 +48,7 @@ import java.util.zip.ZipException;
  */
 public class ReadBridge extends BaseBridge {
 
-    protected BridgeOutputBuilder outputBuilder;
+    protected final BridgeOutputBuilder outputBuilder;
     protected Deque<Writable> outputQueue = new LinkedList<>();
 
     public ReadBridge(BasePluginFactory pluginFactory, RequestContext context, GSSFailureHandler failureHandler) {
@@ -75,7 +75,7 @@ public class ReadBridge extends BaseBridge {
      */
     @Override
     public Writable getNext() throws Exception {
-        Writable output = null;
+        Writable output;
         OneRow onerow = null;
 
         if (!outputQueue.isEmpty()) {
@@ -83,7 +83,7 @@ public class ReadBridge extends BaseBridge {
         }
 
         try {
-            while (outputQueue.isEmpty()) {
+            while (true) {
                 onerow = accessor.readNextObject();
                 if (onerow == null) {
                     output = outputBuilder.getPartialLine();

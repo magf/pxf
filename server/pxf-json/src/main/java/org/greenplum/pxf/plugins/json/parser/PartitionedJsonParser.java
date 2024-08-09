@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A simple parser that builds up a JSON object from the supplied char fed in. The parser searches for the JSON
  * object containing the member string that the user supplies.
- *
+ * <p>
  * It is not recommended to use this with JSON text where individual JSON objects that can be large (MB's or larger).
  */
 public class PartitionedJsonParser {
@@ -38,7 +38,7 @@ public class PartitionedJsonParser {
 
 	private static final char START_BRACE = '{';
 	private final JsonLexer lexer;
-	private String memberName;
+	private final String memberName;
 
 	private MemberSearchState memberState;
 	private StringBuilder currentObject;
@@ -101,7 +101,7 @@ public class PartitionedJsonParser {
 	 * This function tracks and builds up a JSON object inside `currentObject` as it searches for the
 	 * member string that the user supplies. This code assumes that the user has found the first
 	 * JSON starting bracket '{'.
-	 *
+	 * <p>
 	 * It returns true when an ending bracket '}' at the same level as the first '{' is found, or an ending bracket '}'
 	 * at the same level of the matching member is found.
 	 * EX:
@@ -135,7 +135,7 @@ public class PartitionedJsonParser {
 			} else if (inStringStates.contains(lexer.getState())) {
 				// we're still inside a string, so keep appending to our buffer
 				currentStringLiteral.append(c);
-			} else if (lexer.getState() == JsonLexerState.END_STRING && memberName.equals(currentStringLiteral.toString())) {
+			} else if (lexer.getState() == JsonLexerState.END_STRING && memberName.contentEquals(currentStringLiteral)) {
 
 				if (!objectStack.isEmpty()) {
 					// we hit the end of the string and it matched the member name (yay)
@@ -233,7 +233,7 @@ public class PartitionedJsonParser {
 			// recalculate the average: (averageObjectSize*(numObjectsRead - 1) + currentObjectSize) / numObjectsRead
 			//                        = averageObjectSize + (currentObjectSize - averageObjectSize) / numObjectsRead
 			averageObjectSize += (currentObjectSize - averageObjectSize)/numObjectsRead;
-			LOG.trace("Average JSON object size is " + averageObjectSize + ".");
+            LOG.trace("Average JSON object size is {}.", averageObjectSize);
 		}
 	}
 }

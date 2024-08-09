@@ -15,7 +15,7 @@ public interface IDataPreparer {
 	 * @param rows amount of data to generate
 	 * @param dataTable dataTable structure to save the generated data
 	 * @return Array of Data
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
-	public Object[] prepareData(int rows, Table dataTable) throws Exception;
+    Object[] prepareData(int rows, Table dataTable) throws Exception;
 }

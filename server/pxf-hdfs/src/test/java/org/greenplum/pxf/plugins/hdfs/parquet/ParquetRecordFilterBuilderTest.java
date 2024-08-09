@@ -6,7 +6,6 @@ import org.greenplum.pxf.api.filter.FilterParser;
 import org.greenplum.pxf.api.filter.Node;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalOverflowOption;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
-import org.hamcrest.Matchers;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Test;
 
@@ -156,8 +155,7 @@ public class ParquetRecordFilterBuilderTest extends ParquetBaseTest {
         FilterCompat.Filter recordFilter = filterBuilder.getRecordFilter();
         assertNotNull(recordFilter);
         assertInstanceOf(FilterCompat.FilterPredicateCompat.class, recordFilter);
-        FilterPredicate filterPredicate = ((FilterCompat.FilterPredicateCompat) recordFilter).getFilterPredicate();
-        return filterPredicate;
+        return ((FilterCompat.FilterPredicateCompat) recordFilter).getFilterPredicate();
     }
 
     private ParquetRecordFilterBuilder filterBuilderFromFilterString(String filterString) throws Exception {

@@ -15,7 +15,7 @@ import java.io.IOException;
  */
 public class ThrowOn10000Accessor extends LineBreakAccessor {
 
-    private static Log Log = LogFactory.getLog(ThrowOn10000Accessor.class);
+    private static final Log Log = LogFactory.getLog(ThrowOn10000Accessor.class);
     private int rowCount;
 
     /**

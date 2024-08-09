@@ -54,7 +54,7 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
     void prepareTypesData() throws Exception {
 
         hiveTypesTable = TableFactory.getHiveByRowCommaTable(HIVE_TYPES_TABLE,
-                hiveTypesNoTMCols.toArray(new String[hiveTypesNoTMCols.size()]));
+                hiveTypesNoTMCols.toArray(new String[0]));
 
         hive.createTableAndVerify(hiveTypesTable);
         loadDataIntoHive("hive_types_no_timestamp.txt", hiveTypesTable);
@@ -68,7 +68,7 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
         hive.insertData(hiveSmallDataTable, hiveOrcTable);
 
         hiveOrcAllTypes = new HiveTable("hive_orc_all_types",
-                hiveTypesNoTMCols.toArray(new String[hiveTypesNoTMCols.size()]));
+                hiveTypesNoTMCols.toArray(new String[0]));
         hiveOrcAllTypes.setStoredAs(ORC);
         hive.createTableAndVerify(hiveOrcAllTypes);
         hive.insertData(hiveTypesTable, hiveOrcAllTypes);
@@ -76,7 +76,7 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
 
     private void preparePxfHiveOrcTypes() throws Exception {
         exTable = TableFactory.getPxfHiveOrcReadableTable(PXF_HIVE_ORC_TABLE,
-                gpdbTypesNoTMCols.toArray(new String[gpdbTypesNoTMCols.size()]), hiveOrcAllTypes, true);
+                gpdbTypesNoTMCols.toArray(new String[0]), hiveOrcAllTypes, true);
         // this profile is now deprecated
         exTable.setProfile("HiveVectorizedORC");
         createTable(exTable);

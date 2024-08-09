@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class NullPartitionTest {
 
-    private DbProduct dbProduct = null;
+    private final DbProduct dbProduct = null;
 
     private final String COL_RAW = "col";
     private final String QUOTE = "\"";

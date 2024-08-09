@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -130,7 +131,7 @@ public class JdbcAccessorTest {
     public void testReadFromQueryFailsWhenQueryFileIsEmpty() throws Exception {
         try (MockedStatic<JdbcBasePlugin> jdbcBasePluginMockedStatic = mockStatic(JdbcBasePlugin.class)) {
             wireMocksForRead();
-            String serversDirectory = new File(this.getClass().getClassLoader().getResource("servers").toURI()).getCanonicalPath();
+            String serversDirectory = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("servers")).toURI()).getCanonicalPath();
             configuration.set("pxf.config.server.directory", serversDirectory + File.separator + "test-server");
             context.setDataSource("query:emptyquery");
             accessor.setRequestContext(context);
@@ -144,7 +145,7 @@ public class JdbcAccessorTest {
 
     @Test
     public void testReadFromQuery() throws Exception {
-        String serversDirectory = new File(this.getClass().getClassLoader().getResource("servers").toURI()).getCanonicalPath();
+        String serversDirectory = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("servers")).toURI()).getCanonicalPath();
         configuration.set("pxf.config.server.directory", serversDirectory + File.separator + "test-server");
         context.setDataSource("query:testquery");
         ArgumentCaptor<String> queryPassed = ArgumentCaptor.forClass(String.class);
@@ -164,7 +165,7 @@ public class JdbcAccessorTest {
 
     @Test
     public void testReadFromQueryWithPreparedStatement() throws Exception {
-        String serversDirectory = new File(this.getClass().getClassLoader().getResource("servers").toURI()).getCanonicalPath();
+        String serversDirectory = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("servers")).toURI()).getCanonicalPath();
         configuration.set("pxf.config.server.directory", serversDirectory + File.separator + "test-server");
         context.setDataSource("query:testquery");
         configuration.set("jdbc.read.prepared-statement", "true");
@@ -186,7 +187,7 @@ public class JdbcAccessorTest {
 
     @Test
     public void testReadFromQueryEndingInSemicolon() throws Exception {
-        String serversDirectory = new File(this.getClass().getClassLoader().getResource("servers").toURI()).getCanonicalPath();
+        String serversDirectory = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("servers")).toURI()).getCanonicalPath();
         configuration.set("pxf.config.server.directory", serversDirectory + File.separator + "test-server");
         context.setDataSource("query:testquerywithsemicolon");
         ArgumentCaptor<String> queryPassed = ArgumentCaptor.forClass(String.class);
@@ -206,7 +207,7 @@ public class JdbcAccessorTest {
 
     @Test
     public void testReadFromQueryWithValidSemicolon() throws Exception {
-        String serversDirectory = new File(this.getClass().getClassLoader().getResource("servers").toURI()).getCanonicalPath();
+        String serversDirectory = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("servers")).toURI()).getCanonicalPath();
         configuration.set("pxf.config.server.directory", serversDirectory + File.separator + "test-server");
         context.setDataSource("query:testquerywithvalidsemicolon");
         ArgumentCaptor<String> queryPassed = ArgumentCaptor.forClass(String.class);
@@ -227,7 +228,7 @@ public class JdbcAccessorTest {
 
     @Test
     public void testReadFromQueryWithPartitions() throws Exception {
-        String serversDirectory = new File(this.getClass().getClassLoader().getResource("servers").toURI()).getCanonicalPath();
+        String serversDirectory = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("servers")).toURI()).getCanonicalPath();
         configuration.set("pxf.config.server.directory", serversDirectory + File.separator + "test-server");
         context.setDataSource("query:testquery");
         context.addOption("PARTITION_BY", "count:int");
@@ -251,7 +252,7 @@ public class JdbcAccessorTest {
 
     @Test
     public void testReadFromQueryWithWhereWithPartitions() throws Exception {
-        String serversDirectory = new File(this.getClass().getClassLoader().getResource("servers").toURI()).getCanonicalPath();
+        String serversDirectory = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("servers")).toURI()).getCanonicalPath();
         configuration.set("pxf.config.server.directory", serversDirectory + File.separator + "test-server");
         context.setDataSource("query:testquerywithwhere");
         context.addOption("PARTITION_BY", "count:int");
@@ -276,7 +277,7 @@ public class JdbcAccessorTest {
 
     @Test
     public void testGetFragmentsAndReadFromQueryWithPartitions() throws Exception {
-        String serversDirectory = new File(this.getClass().getClassLoader().getResource("servers").toURI()).getCanonicalPath();
+        String serversDirectory = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("servers")).toURI()).getCanonicalPath();
         configuration.set("pxf.config.server.directory", serversDirectory + File.separator + "test-server");
         context.setDataSource("query:testquery");
         context.addOption("PARTITION_BY", "count:int");

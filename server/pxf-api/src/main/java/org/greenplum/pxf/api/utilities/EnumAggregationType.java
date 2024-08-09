@@ -19,24 +19,19 @@
 
 package org.greenplum.pxf.api.utilities;
 
+import lombok.Getter;
+
+@Getter
 public enum EnumAggregationType {
 
     COUNT("count", true);
 
-    private String aggOperationCode;
-    private boolean optimizationSupported;
+    private final String aggOperationCode;
+    private final boolean optimizationSupported;
 
-    private EnumAggregationType(String aggOperationCode, boolean optimizationSupported) {
+    EnumAggregationType(String aggOperationCode, boolean optimizationSupported) {
         this.aggOperationCode = aggOperationCode;
         this.optimizationSupported = optimizationSupported;
-    }
-
-    public String getAggOperationCode() {
-        return this.aggOperationCode;
-    }
-
-    public boolean isOptimizationSupported() {
-        return this.optimizationSupported;
     }
 
     public static EnumAggregationType getAggregationType(String aggOperationCode) {

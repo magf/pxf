@@ -96,13 +96,13 @@ public final class AvroUtilities {
 
     /**
      * Parse a Postgres external format into a given Avro schema
-     *
+     * <p>
      * Re-used from GPHDFS
-     * https://github.com/greenplum-db/gpdb/blob/3b0bfdc169fab7f686276be7eccb024a5e29543c/gpAux/extensions/gphdfs/src/java/1.2/com/emc/greenplum/gpdb/hadoop/formathandler/util/FormatHandlerUtil.java
+     * <a href="https://github.com/greenplum-db/gpdb/blob/3b0bfdc169fab7f686276be7eccb024a5e29543c/gpAux/extensions/gphdfs/src/java/1.2/com/emc/greenplum/gpdb/hadoop/formathandler/util/FormatHandlerUtil.java">...</a>
      * @param schema target Avro schema
      * @param value Postgres external format (the output of function named by typoutput in pg_type) or `null` if null value
-     * @param isTopLevel
-     * @return
+     * @param isTopLevel - true if it is the first element
+     * @return A Java object
      */
     public Object decodeString(Schema schema, String value, boolean isTopLevel, boolean hasUserProvidedSchema) {
         LOG.trace("schema={}, value={}, isTopLevel={}", schema, value, isTopLevel);
@@ -120,7 +120,7 @@ public final class AvroUtilities {
                 try {
                     list.add(decodeString(elementType, split, false, hasUserProvidedSchema));
                 } catch (NumberFormatException | PxfRuntimeException e) {
-                    String hint = "";
+                    String hint;
                     if (StringUtils.startsWith(split, "{")) {
                         hint = hasUserProvidedSchema ?
                                 "Value is a multi-dimensional array, please check that the provided AVRO schema has the correct dimensions." :
@@ -197,14 +197,14 @@ public final class AvroUtilities {
         }
     }
 
-    private Schema generateSchema(List<ColumnDescriptor> tupleDescription) throws IOException {
+    private Schema generateSchema(List<ColumnDescriptor> tupleDescription) {
         Schema schema = Schema.createRecord("tableName", "", COMMON_NAMESPACE, false);
         List<Schema.Field> fields = new ArrayList<>();
 
         for (ColumnDescriptor cd : tupleDescription) {
             fields.add(new Schema.Field(
                     cd.columnName(),
-                    getFieldSchema(DataType.get(cd.columnTypeCode()), cd.columnName()),
+                    getFieldSchema(DataType.get(cd.columnTypeCode())),
                     "",
                     null
             ));
@@ -215,7 +215,7 @@ public final class AvroUtilities {
         return schema;
     }
 
-    private Schema getFieldSchema(DataType type, String colName) {
+    private Schema getFieldSchema(DataType type) {
         List<Schema> unionList = new ArrayList<>();
         // in this version of gpdb, external table should not set 'notnull' attribute
         // so we should use union between NULL and another type everywhere

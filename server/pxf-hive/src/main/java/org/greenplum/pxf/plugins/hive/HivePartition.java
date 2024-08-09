@@ -1,8 +1,11 @@
 package org.greenplum.pxf.plugins.hive;
 
+import lombok.Getter;
+
 /**
  * Holds the column name, column type and value for a Hive partition
  */
+@Getter
 public class HivePartition {
     private final String name;
     private final String type;
@@ -14,15 +17,4 @@ public class HivePartition {
         this.value = value;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getValue() {
-        return value;
-    }
 }

@@ -18,8 +18,6 @@ import org.testng.annotations.Test;
     private static final String HIVE_DATA_FILE_NAME_2 = "hive_small_data_second.txt";
     private static final String PXF_HIVE_SMALL_DATA_TABLE_SECURE = "pxf_hive_small_data_hive_secure";
 
-    private Hive hive2;
-
     @Override
     protected boolean isRestartAllowed() {
         return false;
@@ -45,7 +43,7 @@ import org.testng.annotations.Test;
 
         trySecureLogin(hdfs2, hdfs2.getTestKerberosPrincipal());
         initializeWorkingDirectory(hdfs2, gpdb.getUserName());
-        hive2 = (Hive) SystemManagerImpl.getInstance().getSystemObject("hive2");
+        Hive hive2 = (Hive) SystemManagerImpl.getInstance().getSystemObject("hive2");
 
         HiveTable hiveSmallDataTable2 =
                 prepareTableData(hdfs2, hive2, null, HIVE_SMALL_DATA_TABLE, HIVE_SMALLDATA_COLS, HIVE_DATA_FILE_NAME_2);

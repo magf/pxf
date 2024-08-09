@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 /**
  * Functional Test for writing fixedwidth data format text files to HCFS
@@ -143,7 +142,7 @@ public class HcfsFixedwidthWriteTest extends BaseWritableFeature {
         if (compression) {
             List<String> files = hdfs.list(targetDataDir);
             assertNotNull(files);
-            assertTrue(files.size() > 0);
+            assertFalse(files.isEmpty());
             assertTrue(files.stream().allMatch(file -> file.endsWith(".gz")));
         }
 

@@ -1,5 +1,6 @@
 package org.greenplum.pxf.plugins.jdbc;
 
+import lombok.Setter;
 import org.greenplum.pxf.api.filter.*;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.RequestContext;
@@ -88,6 +89,7 @@ public class SQLQueryBuilder {
     protected final List<ColumnDescriptor> columns;
     private final String source;
     private String quoteString;
+    @Setter
     private boolean wrapDateWithTime = false;
     private boolean subQueryUsed = false;
 
@@ -132,10 +134,6 @@ public class SQLQueryBuilder {
         }
 
         quoteString = "";
-    }
-
-    public void setWrapDateWithTime(boolean wrapDateWithTime) {
-        this.wrapDateWithTime = wrapDateWithTime;
     }
 
     /**
@@ -217,9 +215,9 @@ public class SQLQueryBuilder {
         for (ColumnDescriptor column : columns) {
             // Define whether column name is mixed-case
             // GPDB uses lower-case names if column name was not quoted
-            if (column.columnName().toLowerCase() != column.columnName()) {
+            if (!column.columnName().toLowerCase().equals(column.columnName())) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Column " + column.columnIndex() + " '" + column.columnName() + "' is mixed-case");
+                    LOG.debug("Column {} '{}' is mixed-case", column.columnIndex(), column.columnName());
                 }
                 mixedCaseNamePresent = true;
                 break;
@@ -227,7 +225,7 @@ public class SQLQueryBuilder {
             // Define whether column name contains special symbols
             if (!normalCharactersPattern.matcher(column.columnName()).matches()) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Column " + column.columnIndex() + " '" + column.columnName() + "' contains special characters");
+                    LOG.debug("Column {} '{}' contains special characters", column.columnIndex(), column.columnName());
                 }
                 specialCharactersNamePresent = true;
                 break;
@@ -238,7 +236,7 @@ public class SQLQueryBuilder {
                 !databaseMetaData.supportsMixedCaseIdentifiers())) {
             quoteString = databaseMetaData.getIdentifierQuoteString();
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Quotation auto-enabled; quote string set to '" + quoteString + "'");
+                LOG.debug("Quotation auto-enabled; quote string set to '{}'", quoteString);
             }
         }
     }
@@ -251,7 +249,7 @@ public class SQLQueryBuilder {
     public void forceSetQuoteString() throws SQLException {
         quoteString = databaseMetaData.getIdentifierQuoteString();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Quotation force-enabled; quote string set to '" + quoteString + "'");
+            LOG.debug("Quotation force-enabled; quote string set to '{}'", quoteString);
         }
     }
 
@@ -325,7 +323,7 @@ public class SQLQueryBuilder {
             LOG.debug("FILTER target: {}", where);
             query.append(where);
         } catch (Exception e) {
-            LOG.debug("WHERE clause is omitted: " + e.toString());
+            LOG.debug("WHERE clause is omitted: {}", e.getMessage());
             // Silence the exception and do not insert constraints
         }
     }

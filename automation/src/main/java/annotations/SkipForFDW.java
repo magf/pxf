@@ -8,7 +8,7 @@ import static java.lang.annotation.ElementType.TYPE;
 
 /**
  * Annotation for marking Test cases that should be skipped when run against PXF FDW.
- *
+ * <p>
  * This is a marker interface for tests that cannot be run against FDW because they
  * exercise features of external tables that are not supported wth FDW.
  */

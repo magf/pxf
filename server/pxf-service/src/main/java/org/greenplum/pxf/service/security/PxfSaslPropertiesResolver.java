@@ -56,7 +56,7 @@ public class PxfSaslPropertiesResolver extends SaslPropertiesResolver {
         // return a enhanced map initialized with properties obtained from the parent class and having
         // an extra property "javax.security.sasl.credentials" added with the value of the GSS credential
         // obtained from the credential provider.
-        return new MapWrapper(props);
+        return new MapWrapper<>(props);
     }
 
     /**
@@ -80,7 +80,7 @@ public class PxfSaslPropertiesResolver extends SaslPropertiesResolver {
      * while the GssKrb5Client constructor that uses this map to lookup the credentials stored in this map
      * with the "javax.security.sasl.credentials" key is expecting a Map<String, ?> as a parameter and expects
      * the value to be an object, or more precisely a GSSCredential instance.
-     *
+     * <p>
      * Using this wrapper satisfies the compiler and at runtime the actual type parameter is erased anyways.
      * @param <T> type of map values
      */

@@ -50,7 +50,7 @@ public class PxfReadResource extends PxfBaseResource<StreamingResponseBody> {
      * REST endpoint for canceling read data requests.
      *
      * @param headers http headers from request that carry all parameters
-     * @return true if read request found and cancelled, false otherwise
+     * @return response object containing output message
      */
     @PostMapping(value = "/cancel", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> cancel(@RequestHeader MultiValueMap<String, String> headers) {

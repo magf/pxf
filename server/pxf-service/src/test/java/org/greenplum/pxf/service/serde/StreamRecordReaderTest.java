@@ -22,7 +22,7 @@ public class StreamRecordReaderTest {
     private DataInputStream mockInputStream;
 
     @Test
-    public void testReadRecord() throws Exception {
+    public void testReadRecord() {
         StreamRecordReader reader = new StreamRecordReader(new RequestContext());
         List<OneField> record = reader.readRecord(mockInputStream);
         assertNotNull(record);
