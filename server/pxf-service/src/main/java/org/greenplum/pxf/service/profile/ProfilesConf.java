@@ -20,6 +20,9 @@ package org.greenplum.pxf.service.profile;
  */
 
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.api.model.PluginConf;
 import org.slf4j.Logger;
@@ -28,21 +31,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.regex.Pattern;
 
-import static org.greenplum.pxf.service.profile.ProfileConfException.MessageFormat.NO_PLUGINS_IN_PROFILE_DEF;
-import static org.greenplum.pxf.service.profile.ProfileConfException.MessageFormat.NO_PROFILE_DEF;
-import static org.greenplum.pxf.service.profile.ProfileConfException.MessageFormat.PROFILES_FILE_LOAD_ERR;
-import static org.greenplum.pxf.service.profile.ProfileConfException.MessageFormat.PROFILES_FILE_NOT_FOUND;
+import static org.greenplum.pxf.service.profile.ProfileConfException.MessageFormat.*;
 
 /**
  * This class holds the profiles files: pxf-profiles.xml and pxf-profiles-default.xml.
