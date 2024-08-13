@@ -1,5 +1,8 @@
 FROM hub.adsw.io/library/gpdb6_regress:adb-6.x-dev
 
+# Update epel repo
+RUN yum-config-manager --disable epel && yum-config-manager --add-repo 'http://archives.fedoraproject.org/pub/archive/epel/7/$basearch'
+
 # install maven
 RUN curl -fSL https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o /tmp/apache-maven-3.9.6-bin.tar.gz \
     && tar -xf /tmp/apache-maven-3.9.6-bin.tar.gz -C /opt \
