@@ -81,6 +81,7 @@ public class HiveOrcTest extends HiveBaseTest {
         hiveBinaryOrcDataTable = new HiveTable(HIVE_BINARY_TABLE + "_orc", HIVE_TYPES_BINARY);
         hiveBinaryOrcDataTable.setStoredAs(ORC);
         hive.createTableAndVerify(hiveBinaryOrcDataTable);
+        hive.runQuery("SET hive.vectorized.execution.enabled = false");
         hive.insertData(hiveBinaryTable, hiveBinaryOrcDataTable);
     }
 

@@ -27,7 +27,6 @@ import org.apache.hadoop.hbase.TableNotFoundException;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.RegionLocator;
 import org.greenplum.pxf.api.model.BaseFragmenter;
 import org.greenplum.pxf.api.model.Fragment;
@@ -78,9 +77,6 @@ public class HBaseDataFragmenter extends BaseFragmenter {
      */
     @Override
     public List<Fragment> getFragments() throws Exception {
-
-        // check that Zookeeper and HBase master are available
-        HBaseAdmin.checkHBaseAvailable(configuration);
         connection = ConnectionFactory.createConnection(configuration);
         Admin hbaseAdmin = connection.getAdmin();
         if (!HBaseUtilities.isTableAvailable(hbaseAdmin, context.getDataSource())) {

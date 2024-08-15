@@ -433,6 +433,7 @@ public class HiveBaseTest extends BaseFeature {
         hiveOrcAllTypes = new HiveTable("hive_orc_all_types", HIVE_TYPES_COLS);
         hiveOrcAllTypes.setStoredAs(ORC);
         hive.createTableAndVerify(hiveOrcAllTypes);
+        hive.runQuery("SET hive.vectorized.execution.enabled = false");
         hive.insertData(hiveTypesTable, hiveOrcAllTypes);
     }
 

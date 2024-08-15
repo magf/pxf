@@ -27,8 +27,12 @@
 
     <repositories>
         <repository>
-            <id>test-dependencies</id>
+            <id>test-repo</id>
             <url>https://jcenter.bintray.com/</url>
+        </repository>
+        <repository>
+            <id>test-repo-extra</id>
+            <url>https://maven.top-q.co.il/content/repositories/public/</url>
         </repository>
     </repositories>
 
