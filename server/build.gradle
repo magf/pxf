@@ -20,19 +20,7 @@
 buildscript {
     repositories {
         mavenCentral()
-        maven {
-            url "https://rt.adsw.io/artifactory/maven-arenadata-release/"
-            mavenContent {
-                releasesOnly()
-            }
-        }
-        maven {
-            url "https://rt.adsw.io/artifactory/maven-arenadata-snapshot/"
-            mavenContent {
-                snapshotsOnly()
-            }
-        }
-    }
+   }
 }
 
 plugins {
