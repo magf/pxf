@@ -36,7 +36,7 @@ dependencies {
     implementation("com.google.guava:guava")
     implementation("commons-codec:commons-codec")
     implementation("commons-collections:commons-collections")
-    implementation("commons-configuration:commons-configuration")
+    implementation("org.apache.commons:commons-configuration2")
     implementation("commons-lang:commons-lang")
     implementation("org.apache.commons:commons-lang3")
     implementation("io.arenadata.security:encryption")
@@ -51,6 +51,7 @@ dependencies {
      *******************************/
 
     testCompileOnly("org.apache.hadoop:hadoop-annotations")
+    testImplementation("org.apache.hadoop.thirdparty:hadoop-shaded-guava")
     testImplementation("com.esotericsoftware:minlog")
     testImplementation("com.esotericsoftware:reflectasm")
     //testImplementation('org.mockito:mockito-inline')

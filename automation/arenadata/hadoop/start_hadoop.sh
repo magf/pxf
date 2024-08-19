@@ -68,7 +68,6 @@ configure $HADOOP_CONF_DIR/httpfs-site.xml httpfs HTTPFS_CONF
 configure $HADOOP_CONF_DIR/kms-site.xml kms KMS_CONF
 configure $HADOOP_CONF_DIR/mapred-site.xml mapred MAPRED_CONF
 configure $HIVE_HOME/conf/hive-site.xml hive HIVE_SITE_CONF
-configure $HBASE_CONF_DIR/hbase-site.xml hbase HBASE_CONF
 configure $TEZ_HOME/conf/tez-site.xml tez TEZ_CONF
 
 if [ "$MULTIHOMED_NETWORK" = "1" ]; then
@@ -169,7 +168,7 @@ fi
 echo "-------------------------------"
 echo "Put Tez library tarball on HDFS"
 echo "-------------------------------"
-hdfs dfs -mkdir /tez && hdfs dfs -put $TEZ_HOME/share/tez.tar.gz /tez/tez-0.10.0.tar.gz
+hdfs dfs -mkdir /tez && hdfs dfs -put $TEZ_HOME/share/tez.tar.gz /tez/tez-0.10.3.tar.gz
 
 echo "----------------------------"
 echo "Start Hive metastore service"
@@ -185,18 +184,27 @@ hdfs dfs -mkdir -p    /user/hive/warehouse
 hdfs dfs -chmod g+w   /tmp
 hdfs dfs -chmod g+w   /user/hive/warehouse
 
-$HIVE_HOME/bin/hiveserver2 --hiveconf hive.server2.enable.doAs=false --hiveconf hive.root.logger=DEBUG,console,DFRA &
+HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS -Dhive.log.dir=/tmp/hive -Dhive.log.file=hiveserver2.log"
+$HIVE_HOME/bin/hiveserver2 --hiveconf hive.server2.enable.doAs=false &
 wait_for_it hadoop:10000
 
-echo "----------------------------"
-echo "        Start HBase"
-echo "----------------------------"
-$HBASE_HOME/bin/start-hbase.sh &
-wait_for_it hadoop:16000
+echo "------------------------------"
+echo " Start zookeeper"
+echo "------------------------------"
+$ZOOKEEPER_HOME/bin/zkServer.sh start &
+wait_for_it hadoop:2181
 
 echo "-----------------------------"
 echo "Put PXF HBase library on HDFS"
 echo "-----------------------------"
-hdfs dfs -mkdir /hbase/lib && hdfs dfs -put /usr/local/greenplum-db-devel/pxf/share/pxf-hbase-*.jar /hbase/lib/
+cp /usr/local/greenplum-db-devel/pxf/share/pxf-hbase-*.jar $HBASE_HOME_DIR/lib/
 
-tail -f $HBASE_HOME/logs/*
+echo "----------------------------"
+echo "        Start HBase"
+echo "----------------------------"
+echo 'export HBASE_DISABLE_HADOOP_CLASSPATH_LOOKUP=true' >> $HBASE_HOME_DIR/conf/hbase-env.sh
+echo 'export HBASE_MANAGES_ZK=false' >> $HBASE_HOME_DIR/conf/hbase-env.sh
+$HBASE_HOME_DIR/bin/start-hbase.sh &
+wait_for_it hadoop:16000
+
+tail -f $HBASE_HOME_DIR/logs/*
