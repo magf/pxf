@@ -54,7 +54,6 @@ dependencies {
     testImplementation("org.apache.hadoop.thirdparty:hadoop-shaded-guava")
     testImplementation("com.esotericsoftware:minlog")
     testImplementation("com.esotericsoftware:reflectasm")
-    //testImplementation('org.mockito:mockito-inline')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
 
     // https://projectlombok.org

@@ -3,6 +3,13 @@ FROM hub.adsw.io/library/gpdb6_regress:adb-6.x-dev
 # Update epel repo
 RUN yum-config-manager --disable epel && yum-config-manager --add-repo 'http://archives.fedoraproject.org/pub/archive/epel/7/$basearch'
 
+# Install Java 17
+RUN curl -fSL https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rpm -o /tmp/jdk-17_linux-x64_bin.rpm && \
+    yum -y install /tmp/jdk-17_linux-x64_bin.rpm && \
+    rm -rf /tmp/jdk-17_linux-x64_bin.rpm
+
+RUN echo "export JAVA_HOME=\$(readlink -f /usr/bin/java | sed 's:bin/java::')" >> /root/.bashrc
+
 # install maven
 RUN curl -fSL https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o /tmp/apache-maven-3.9.6-bin.tar.gz \
     && tar -xf /tmp/apache-maven-3.9.6-bin.tar.gz -C /opt \
