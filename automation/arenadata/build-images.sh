@@ -3,9 +3,10 @@
 echo "=============================="
 echo "      Clean the project       "
 echo "=============================="
-pushd ../../server
-./gradlew clean
-popd
+#pushd ../../server
+# TODO turn on after switching to java 17
+#./gradlew clean
+#popd
 
 echo "=============================="
 echo "Build PXF image for automation"
