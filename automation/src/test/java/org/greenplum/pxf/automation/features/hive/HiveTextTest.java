@@ -9,7 +9,6 @@ import org.greenplum.pxf.automation.utils.tables.ComparisonUtils;
 import org.junit.Assert;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -483,8 +482,7 @@ public class HiveTextTest extends HiveBaseTest {
     /**
      * Pump up the comparison table data for partitions test case
      */
-    private void pumpUpComparisonTableData(int pumpAmount, boolean useSecondPartition)
-            throws IOException {
+    private void pumpUpComparisonTableData(int pumpAmount, boolean useSecondPartition) {
 
         // get original number of line before pump
         int originalNumberOfLines = comparisonDataTable.getData().size();

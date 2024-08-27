@@ -38,6 +38,9 @@ dependencies {
     implementation("org.apache.hive:hive-common")                    { transitive = false }
     implementation("org.apache.hive.shims:hive-shims-0.23")          { transitive = false }
     implementation("org.apache.hive.shims:hive-shims-common")        { transitive = false }
+    implementation("org.apache.curator:curator-client")              { transitive = false }
+    implementation("org.apache.curator:curator-framework")           { transitive = false }
+    implementation('org.apache.zookeeper:zookeeper-jute')            { transitive = false }
     implementation("org.springframework.boot:spring-boot-starter-log4j2")
     implementation("io.arenadata.security:encryption")
 
@@ -48,6 +51,7 @@ dependencies {
     testImplementation("org.apache.parquet:parquet-pig")
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.mockito:mockito-inline')
+    testImplementation("org.apache.hadoop:hadoop-common")
 }
 
 test {

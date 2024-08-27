@@ -22,8 +22,8 @@ public enum EnumHiveToGpdbType {
     StructType("struct", "text", "[<,>]"),
     UnionType("uniontype", "text", "[<,>]");
 
-    private String hiveType;
-    private String gpdbTypeName;
+    private final String hiveType;
+    private final String gpdbTypeName;
     private String splitExpression;
 
     EnumHiveToGpdbType(String hiveType, String gpdbTypeName) {
@@ -53,10 +53,9 @@ public enum EnumHiveToGpdbType {
      *
      * @param hiveType Hive type
      * @return corresponding Gpdb type
-     * @throws Exception
      */
     public static String getGpdbType(String hiveType) {
-        if (hiveType == null || hiveType.length() == 0)
+        if (hiveType == null || hiveType.isEmpty())
             throw new RuntimeException("Unable to map Hive's type, empty type was passed.");
         for (EnumHiveToGpdbType t : values()) {
             String hiveTypeName = hiveType;

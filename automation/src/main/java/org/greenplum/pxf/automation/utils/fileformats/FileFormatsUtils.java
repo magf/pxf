@@ -26,7 +26,7 @@ public class FileFormatsUtils {
 				listString.append(item).append(",");
 			}
 			listString.deleteCharAt(listString.length() - 1);
-			listString.append(System.getProperty("line.separator"));
+			listString.append(System.lineSeparator());
 		}
 		listString.deleteCharAt(listString.length() - 1);
 

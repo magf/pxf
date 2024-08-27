@@ -63,27 +63,12 @@ public class JdbcTest extends BaseFeature {
             "max  int"};
 
     private ExternalTable pxfJdbcSingleFragment;
-    private ExternalTable pxfJdbcDateWideRangeOn;
-    private ExternalTable pxfJdbcDateWideRangeOff;
-    private ExternalTable pxfJdbcMultipleFragmentsByInt;
-    private ExternalTable pxfJdbcMultipleFragmentsByDate;
-    private ExternalTable pxfJdbcMultipleFragmentsByEnum;
-    private ExternalTable pxfJdbcReadServerConfigAll; // all server-based props coming from there, not DDL
-    private ExternalTable pxfJdbcReadViewNoParams, pxfJdbcReadViewSessionParams;
-    private ExternalTable pxfJdbcWritable;
-    private ExternalTable pxfJdbcWritableNoBatch;
-    private ExternalTable pxfJdbcWritablePool;
-    private ExternalTable pxfJdbcColumns;
-    private ExternalTable pxfJdbcColumnProjectionSubset;
-    private ExternalTable pxfJdbcColumnProjectionSuperset;
-    private ExternalTable pxfJdbcNamedQuery;
 
     private static final String gpdbTypesWithDateWideRangeDataFileName = "gpdb_types_with_date_wide_range.txt";
     private static final String gpdbTypesDataFileName = "gpdb_types.txt";
     private static final String gpdbColumnsDataFileName = "gpdb_columns.txt";
     private Table gpdbNativeTableTypes, gpdbNativeTableTypesWithDateWideRange, gpdbNativeTableColumns, gpdbWritableTargetTable;
     private Table gpdbWritableTargetTableNoBatch, gpdbWritableTargetTablePool;
-    private Table gpdbDeptTable, gpdbEmpTable;
 
     @Override
     protected void beforeClass() throws Exception {
@@ -146,7 +131,7 @@ public class JdbcTest extends BaseFeature {
 
         // create emp and dept tables for named query test
         String[] deptTableFields = new String[]{"name text", "id int"};
-        gpdbDeptTable = new Table("gpdb_dept", deptTableFields);
+        Table gpdbDeptTable = new Table("gpdb_dept", deptTableFields);
         gpdbDeptTable.setDistributionFields(new String[]{"name"});
         gpdb.createTableAndVerify(gpdbDeptTable);
         String[][] deptRows = new String[][] {
@@ -158,7 +143,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.insertData(dataTable, gpdbDeptTable);
 
         String[] empTableFields = new String[]{"name text", "dept_id int", "salary int"};
-        gpdbEmpTable = new Table("gpdb_emp", empTableFields);
+        Table gpdbEmpTable = new Table("gpdb_emp", empTableFields);
         gpdbEmpTable.setDistributionFields(new String[]{"name"});
         gpdb.createTableAndVerify(gpdbEmpTable);
         final String[][] empRows = new String[][] {
@@ -190,7 +175,7 @@ public class JdbcTest extends BaseFeature {
     }
 
     private void prepareMultipleFragmentsByEnum() throws Exception {
-        pxfJdbcMultipleFragmentsByEnum = TableFactory
+        ExternalTable pxfJdbcMultipleFragmentsByEnum = TableFactory
                 .getPxfJdbcReadablePartitionedTable(
                         "pxf_jdbc_multiple_fragments_by_enum",
                         TYPES_TABLE_FIELDS,
@@ -209,7 +194,7 @@ public class JdbcTest extends BaseFeature {
     }
 
     private void prepareMultipleFragmentsByInt() throws Exception {
-        pxfJdbcMultipleFragmentsByInt = TableFactory
+        ExternalTable pxfJdbcMultipleFragmentsByInt = TableFactory
                 .getPxfJdbcReadablePartitionedTable(
                         "pxf_jdbc_multiple_fragments_by_int",
                         TYPES_TABLE_FIELDS,
@@ -228,7 +213,7 @@ public class JdbcTest extends BaseFeature {
     }
 
     private void prepareMultipleFragmentsByDate() throws Exception {
-        pxfJdbcMultipleFragmentsByDate = TableFactory
+        ExternalTable pxfJdbcMultipleFragmentsByDate = TableFactory
                 .getPxfJdbcReadablePartitionedTable(
                         "pxf_jdbc_multiple_fragments_by_date",
                         TYPES_TABLE_FIELDS,
@@ -247,7 +232,8 @@ public class JdbcTest extends BaseFeature {
     }
 
     private void prepareServerBasedMultipleFragmentsByInt() throws Exception {
-        pxfJdbcReadServerConfigAll = TableFactory
+        // all server-based props coming from there, not DDL
+        ExternalTable pxfJdbcReadServerConfigAll = TableFactory
                 .getPxfJdbcReadablePartitionedTable(
                         "pxf_jdbc_read_server_config_all",
                         TYPES_TABLE_FIELDS,
@@ -266,7 +252,7 @@ public class JdbcTest extends BaseFeature {
     }
 
     private void prepareViewBasedForTestingSessionParams() throws Exception {
-        pxfJdbcReadViewNoParams = TableFactory.getPxfJdbcReadableTable(
+        ExternalTable pxfJdbcReadViewNoParams = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_read_view_no_params",
                 PGSETTINGS_VIEW_FIELDS,
                 "pg_settings",
@@ -275,7 +261,7 @@ public class JdbcTest extends BaseFeature {
         pxfJdbcReadViewNoParams.setPort(pxfPort);
         gpdb.createTableAndVerify(pxfJdbcReadViewNoParams);
 
-        pxfJdbcReadViewSessionParams = TableFactory.getPxfJdbcReadableTable(
+        ExternalTable pxfJdbcReadViewSessionParams = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_read_view_session_params",
                 PGSETTINGS_VIEW_FIELDS,
                 "pg_settings",
@@ -286,7 +272,7 @@ public class JdbcTest extends BaseFeature {
     }
 
     private void prepareWritable() throws Exception {
-        pxfJdbcWritable = TableFactory.getPxfJdbcWritableTable(
+        ExternalTable pxfJdbcWritable = TableFactory.getPxfJdbcWritableTable(
                 "pxf_jdbc_writable",
                 TYPES_TABLE_FIELDS,
                 gpdbWritableTargetTable.getName(),
@@ -297,7 +283,7 @@ public class JdbcTest extends BaseFeature {
         pxfJdbcWritable.setPort(pxfPort);
         gpdb.createTableAndVerify(pxfJdbcWritable);
 
-        pxfJdbcWritableNoBatch = TableFactory.getPxfJdbcWritableTable(
+        ExternalTable pxfJdbcWritableNoBatch = TableFactory.getPxfJdbcWritableTable(
                 "pxf_jdbc_writable_nobatch",
                 TYPES_TABLE_FIELDS_SMALL,
                 gpdbWritableTargetTableNoBatch.getName(),
@@ -308,7 +294,7 @@ public class JdbcTest extends BaseFeature {
         pxfJdbcWritableNoBatch.setPort(pxfPort);
         gpdb.createTableAndVerify(pxfJdbcWritableNoBatch);
 
-        pxfJdbcWritablePool = TableFactory.getPxfJdbcWritableTable(
+        ExternalTable pxfJdbcWritablePool = TableFactory.getPxfJdbcWritableTable(
                 "pxf_jdbc_writable_pool",
                 TYPES_TABLE_FIELDS_SMALL,
                 gpdbWritableTargetTablePool.getName(),
@@ -321,7 +307,7 @@ public class JdbcTest extends BaseFeature {
     }
 
     private void prepareColumns() throws Exception {
-        pxfJdbcColumns = TableFactory.getPxfJdbcReadableTable(
+        ExternalTable pxfJdbcColumns = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_columns",
                 COLUMNS_TABLE_FIELDS,
                 gpdbNativeTableColumns.getName(),
@@ -334,7 +320,7 @@ public class JdbcTest extends BaseFeature {
     }
 
     private void prepareColumnProjectionSubsetInDifferentOrder() throws Exception {
-        pxfJdbcColumnProjectionSubset = TableFactory.getPxfJdbcReadableTable(
+        ExternalTable pxfJdbcColumnProjectionSubset = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_subset_of_fields_diff_order",
                 COLUMNS_TABLE_FIELDS_IN_DIFFERENT_ORDER_SUBSET,
                 gpdbNativeTableColumns.getName(),
@@ -347,7 +333,7 @@ public class JdbcTest extends BaseFeature {
     }
 
     private void prepareColumnProjectionSuperset() throws Exception {
-        pxfJdbcColumnProjectionSuperset = TableFactory.getPxfJdbcReadableTable(
+        ExternalTable pxfJdbcColumnProjectionSuperset = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_superset_of_fields",
                 COLUMNS_TABLE_FIELDS_SUPERSET,
                 gpdbNativeTableColumns.getName(),
@@ -373,7 +359,7 @@ public class JdbcTest extends BaseFeature {
     }
 
     private void prepareDateWideRange() throws Exception {
-        pxfJdbcDateWideRangeOn = TableFactory.getPxfJdbcReadableTable(
+        ExternalTable pxfJdbcDateWideRangeOn = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_readable_date_wide_range_on",
                 TYPES_TABLE_FIELDS_WITH_TIMESTAMPTZ,
                 gpdbNativeTableTypesWithDateWideRange.getName(),
@@ -385,7 +371,7 @@ public class JdbcTest extends BaseFeature {
         pxfJdbcDateWideRangeOn.addUserParameter("date_wide_range=true");
         gpdb.createTableAndVerify(pxfJdbcDateWideRangeOn);
 
-        pxfJdbcDateWideRangeOff = TableFactory.getPxfJdbcReadableTable(
+        ExternalTable pxfJdbcDateWideRangeOff = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_readable_date_wide_range_off",
                 TYPES_TABLE_FIELDS_WITH_TIMESTAMPTZ,
                 gpdbNativeTableTypesWithDateWideRange.getName(),
@@ -399,7 +385,7 @@ public class JdbcTest extends BaseFeature {
     }
 
     private void prepareNamedQuery() throws Exception {
-        pxfJdbcNamedQuery = TableFactory.getPxfJdbcReadableTable(
+        ExternalTable pxfJdbcNamedQuery = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_read_named_query",
                 NAMED_QUERY_FIELDS,
                 "query:report",

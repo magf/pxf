@@ -20,10 +20,10 @@
 package org.greenplum.pxf.api.utilities;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
 import org.greenplum.pxf.api.io.DataType;
 
 import java.io.IOException;
@@ -32,8 +32,7 @@ class EnumGpdbTypeSerializer extends JsonSerializer<EnumGpdbType> {
 
     @Override
     public void serialize(EnumGpdbType value, JsonGenerator generator,
-                          SerializerProvider provider) throws IOException,
-            JsonProcessingException {
+                          SerializerProvider provider) throws IOException {
       generator.writeString(value.getTypeName());
     }
   }
@@ -43,6 +42,7 @@ class EnumGpdbTypeSerializer extends JsonSerializer<EnumGpdbType> {
  * GPDB types which could be used in plugins.
  *
  */
+@Getter
 @JsonSerialize(using = EnumGpdbTypeSerializer.class)
 public enum EnumGpdbType {
     Int2Type("int2", DataType.SMALLINT),
@@ -59,8 +59,8 @@ public enum EnumGpdbType {
     NumericType("numeric", DataType.NUMERIC, (byte) 2),
     BpcharType("bpchar", DataType.BPCHAR, (byte) 1);
 
-    private DataType dataType;
-    private String typeName;
+    private final DataType dataType;
+    private final String typeName;
     private byte modifiersNum;
 
     EnumGpdbType(String typeName, DataType dataType) {
@@ -72,30 +72,4 @@ public enum EnumGpdbType {
         this(typeName, dataType);
         this.modifiersNum = modifiersNum;
     }
-
-    /**
-     * 
-     * @return name of type
-     */
-    public String getTypeName() {
-        return this.typeName;
-    }
-
-    /**
-     * 
-     * @return number of modifiers for type
-     */
-    public byte getModifiersNum() {
-        return this.modifiersNum;
-    }
-
-    /**
-     * 
-     * @return data type
-     * @see DataType
-     */
-    public DataType getDataType() {
-        return this.dataType;
-    }
-
 }

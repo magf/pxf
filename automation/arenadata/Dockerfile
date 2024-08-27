@@ -1,5 +1,8 @@
 FROM hub.adsw.io/library/gpdb6_regress:adb-6.x-dev
 
+# Update epel repo
+RUN yum-config-manager --disable epel && yum-config-manager --add-repo 'http://archives.fedoraproject.org/pub/archive/epel/7/$basearch'
+
 # install maven
 RUN curl -fSL https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o /tmp/apache-maven-3.9.6-bin.tar.gz \
     && tar -xf /tmp/apache-maven-3.9.6-bin.tar.gz -C /opt \
@@ -7,9 +10,9 @@ RUN curl -fSL https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven
 
 # Download jar files
 RUN mkdir -p /tmp/libs
-RUN curl -fSL https://rt.adsw.io/artifactory/maven-arenadata-release/io/arenadata/security/encryption/1.0.0/encryption-1.0.0-exec.jar -o /tmp/libs/encryption-1.0.0-exec.jar
-RUN curl -fSL https://rt.adsw.io/artifactory/maven-apache/com/oracle/database/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar -o /tmp/libs/ojdbc8-12.2.0.1.jar
-RUN curl -fSL https://rt.adsw.io/artifactory/maven-apache/com/mysql/mysql-connector-j/8.3.0/mysql-connector-j-8.3.0.jar -o /tmp/libs/mysql-connector-j-8.3.0.jar
+RUN curl -fSL https://repo1.maven.org/maven2/io/arenadata/security/encryption/1.0.0/encryption-1.0.0-exec.jar -o /tmp/libs/encryption-1.0.0-exec.jar
+RUN curl -fSL https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar -o /tmp/libs/ojdbc8-12.2.0.1.jar
+RUN curl -fSL https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.3.0/mysql-connector-j-8.3.0.jar -o /tmp/libs/mysql-connector-j-8.3.0.jar
 
 # install go, ginkgo and keep env variables which may be used as a part of base image
 RUN set -eux; \

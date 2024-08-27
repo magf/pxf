@@ -22,7 +22,7 @@ public class OperationStats {
     private long lastReportedRecordCount = 0;
     private long lastReportedByteCount = 0;
 
-    enum Operation {
+    public enum Operation {
         READ(MetricsReporter.PxfMetric.RECORDS_SENT, MetricsReporter.PxfMetric.BYTES_SENT),
         WRITE(MetricsReporter.PxfMetric.RECORDS_RECEIVED, MetricsReporter.PxfMetric.BYTES_RECEIVED);
 
@@ -43,7 +43,7 @@ public class OperationStats {
     }
     /**
      * Increments the values of the object using the values from the passed in stats
-     *
+     * <p>
      * Note: we do not check to see if the operation matches because the operation stats
      * only live within the context of processing data, which is confined to a single
      * operation type.

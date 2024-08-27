@@ -23,8 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -235,10 +237,12 @@ public class PxfUserGroupInformationTest {
     @Test
     public void testReloginFromKeytabFailsNoLogin() {
         user.setLogin(null); // simulate missing login context for the user
-        ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
-        ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        UserGroupInformation ugi = mock(UserGroupInformation.class);
+        when(ugi.getAuthenticationMethod()).thenReturn(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        when(ugi.isFromKeytab()).thenReturn(true);
         // leave user.lastLogin at 0 to simulate old login
-        session = new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f);
+        session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
+        doReturn(ugi).when(session).getLoginUser();
 
         Exception e = assertThrows(KerberosAuthException.class,
                 () -> pxfUserGroupInformation.reloginFromKeytab(serverName, session));
@@ -248,10 +252,12 @@ public class PxfUserGroupInformationTest {
     @Test
     public void testReloginFromKeytabFailsNoKeytab() {
         user.setLogin(mockLoginContext);
-        ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
-        ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        UserGroupInformation ugi = mock(UserGroupInformation.class);
+        when(ugi.getAuthenticationMethod()).thenReturn(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        when(ugi.isFromKeytab()).thenReturn(true);
         // leave user.lastLogin at 0 to simulate old login
-        session = new LoginSession("config", "principal", null, ugi, subjectWithKerberosKeyTab, 1, 0.8f);
+        session = spy(new LoginSession("config", "principal", null, ugi, subjectWithKerberosKeyTab, 1, 0.8f));
+        doReturn(ugi).when(session).getLoginUser();
 
         Exception e = assertThrows(KerberosAuthException.class,
                 () -> pxfUserGroupInformation.reloginFromKeytab(serverName, session));
@@ -268,10 +274,12 @@ public class PxfUserGroupInformationTest {
         user.setLogin(mockLoginContext);
         when(mockTGT.getServer()).thenReturn(nonTgtPrincipal); // ticket is not from krbtgt, so not valid
 
-        ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
-        ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        UserGroupInformation ugi = mock(UserGroupInformation.class);
+        when(ugi.getAuthenticationMethod()).thenReturn(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        when(ugi.isFromKeytab()).thenReturn(true);
         // leave user.lastLogin at 0 to simulate old login
-        session = new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f);
+        session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
+        doReturn(ugi).when(session).getLoginUser();
 
         // train to return another LoginContext when it is constructed during re-login
         mockAnotherLoginContext = mock(LoginContext.class);
@@ -302,10 +310,12 @@ public class PxfUserGroupInformationTest {
         when(mockTGT.getStartTime()).thenReturn(new Date(nowMs - 3600 * 1000L));
         when(mockTGT.getEndTime()).thenReturn(new Date(nowMs + 600 * 1000L));
 
-        ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
-        ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        UserGroupInformation ugi = mock(UserGroupInformation.class);
+        when(ugi.getAuthenticationMethod()).thenReturn(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        when(ugi.isFromKeytab()).thenReturn(true);
         // leave user.lastLogin at 0 to simulate old login
-        session = new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f);
+        session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
+        doReturn(ugi).when(session).getLoginUser();
 
         // train to return another LoginContext when it is constructed during re-login
         mockAnotherLoginContext = mock(LoginContext.class);
@@ -331,10 +341,12 @@ public class PxfUserGroupInformationTest {
         when(mockTGT.getStartTime()).thenReturn(new Date(nowMs - 3600 * 1000L));
         when(mockTGT.getEndTime()).thenReturn(new Date(nowMs + 3600 * 1000L));
 
-        ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
-        ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        UserGroupInformation ugi = mock(UserGroupInformation.class);
+        when(ugi.getAuthenticationMethod()).thenReturn(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        when(ugi.isFromKeytab()).thenReturn(true);
         // leave user.lastLogin at 0 to simulate old login
-        session = new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f);
+        session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
+        doReturn(ugi).when(session).getLoginUser();
 
         // with the default threshold, there should be no change to the login
         pxfUserGroupInformation.reloginFromKeytab(serverName, session);
@@ -363,11 +375,12 @@ public class PxfUserGroupInformationTest {
 
         user.setLogin(mockLoginContext);
         when(mockTGT.getServer()).thenReturn(nonTgtPrincipal); // ticket is not from krbtgt, so not valid
-
-        ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
-        ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        UserGroupInformation ugi = mock(UserGroupInformation.class);
+        when(ugi.getAuthenticationMethod()).thenReturn(UserGroupInformation.AuthenticationMethod.KERBEROS);
+        when(ugi.isFromKeytab()).thenReturn(true);
         // leave user.lastLogin at 0 to simulate old login
-        session = new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f);
+        session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
+        doReturn(ugi).when(session).getLoginUser();
 
         // train to return another LoginContext when it is constructed during re-login
         mockAnotherLoginContext = mock(LoginContext.class);

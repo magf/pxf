@@ -93,8 +93,13 @@ public class FilterParser {
             DataType.BOOLEAN,
             DataType.DATE,
             DataType.TIMESTAMP,
+            DataType.TIMESTAMP_WITH_TIME_ZONE,
             DataType.TIME,
-            DataType.BYTEA
+            DataType.BYTEA,
+            DataType.INTERVAL,
+            DataType.UUID,
+            DataType.JSON,
+            DataType.JSONB
     );
 
     private static final Operator[] OPERATOR_ARRAY = new Operator[]{
@@ -120,7 +125,7 @@ public class FilterParser {
     /**
      * Thrown when a filter's parsing exception occurs.
      */
-    class FilterStringSyntaxException extends IOException {
+    public class FilterStringSyntaxException extends IOException {
         FilterStringSyntaxException(String desc) {
             super(String.format("%s (%s)", desc, filterByteArr != null ?
                     "filter string: '" + new String(filterByteArr) + "'" : "null filter string"));

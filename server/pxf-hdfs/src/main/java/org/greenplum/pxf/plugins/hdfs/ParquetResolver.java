@@ -21,15 +21,9 @@ package org.greenplum.pxf.plugins.hdfs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.simple.SimpleGroupFactory;
-import org.apache.parquet.io.api.Binary;
-import org.apache.parquet.schema.GroupType;
-import org.apache.parquet.schema.LogicalTypeAnnotation;
-import org.apache.parquet.schema.MessageType;
-import org.apache.parquet.schema.PrimitiveType;
-import org.apache.parquet.schema.Type;
+import org.apache.parquet.schema.*;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.error.UnsupportedTypeException;
@@ -37,7 +31,6 @@ import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.BasePlugin;
 import org.greenplum.pxf.api.model.Resolver;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
-import org.greenplum.pxf.api.utilities.Utilities;
 import org.greenplum.pxf.plugins.hdfs.parquet.*;
 import org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConverter;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalOverflowOption;
@@ -45,16 +38,11 @@ import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
 import org.greenplum.pxf.plugins.hdfs.utilities.PgUtilities;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
-import static org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
-import static org.apache.parquet.schema.LogicalTypeAnnotation.IntLogicalTypeAnnotation;
-import static org.apache.parquet.schema.LogicalTypeAnnotation.StringLogicalTypeAnnotation;
-import static org.apache.parquet.schema.LogicalTypeAnnotation.TimestampLogicalTypeAnnotation;
 import static org.apache.parquet.schema.Type.Repetition.REPEATED;
 import static org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor.DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE;
 import static org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor.USE_LOCAL_PXF_TIMEZONE_WRITE_NAME;
@@ -73,21 +61,21 @@ public class ParquetResolver extends BasePlugin implements Resolver {
     private MessageType schema;
     private SimpleGroupFactory groupFactory;
     private List<ColumnDescriptor> columnDescriptors;
-    private DecimalUtilities decimalUtilities;
-    private ParquetConfig parquetConfig;
     private ParquetTypeConverterFactory parquetTypeConverterFactory;
+    private List<ParquetTypeConverter> schemaConverters;
 
     @Override
     public void afterPropertiesSet() {
         super.afterPropertiesSet();
         columnDescriptors = context.getTupleDescription();
         DecimalOverflowOption decimalOverflowOption = DecimalOverflowOption.valueOf(configuration.get(PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME, DecimalOverflowOption.ROUND.name()).toUpperCase());
-        decimalUtilities = new DecimalUtilities(decimalOverflowOption, true);
+        DecimalUtilities decimalUtilities = new DecimalUtilities(decimalOverflowOption, true);
         boolean useLocalPxfTimezoneWrite = context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
         boolean useLocalPxfTimezoneRead = context.getOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
-        parquetConfig = ParquetConfig.builder()
+        ParquetConfig parquetConfig = ParquetConfig.builder()
                 .useLocalPxfTimezoneWrite(useLocalPxfTimezoneWrite)
                 .useLocalPxfTimezoneRead(useLocalPxfTimezoneRead)
+                .decimalUtilities(decimalUtilities)
                 .build();
         parquetTypeConverterFactory = new ParquetTypeConverterFactory(parquetConfig);
     }
@@ -131,17 +119,6 @@ public class ParquetResolver extends BasePlugin implements Resolver {
         Group group = groupFactory.newGroup();
         for (int i = 0; i < record.size(); i++) {
             OneField field = record.get(i);
-            ColumnDescriptor columnDescriptor = columnDescriptors.get(i);
-
-            /*
-             * We need to right trim the incoming value from Greenplum. This is
-             * consistent with the behaviour in Hive, where char fields are right
-             * trimmed during write. Note that String and varchar Hive types are
-             * not right trimmed. Hive does not trim tabs or newlines
-             */
-            if (columnDescriptor.getDataType() == DataType.BPCHAR && field.val instanceof String) {
-                field.val = Utilities.rightTrimWhiteSpace((String) field.val);
-            }
             fillGroup(group, i, field);
         }
         return new OneRow(null, group);
@@ -159,134 +136,12 @@ public class ParquetResolver extends BasePlugin implements Resolver {
             return;
         }
 
-        Type type = schema.getType(columnIndex);
-        if (type.isPrimitive()) {
-            fillGroupWithPrimitive(group, columnIndex, field.val, type.asPrimitiveType());
-            return;
+        ParquetTypeConverter converter = schemaConverters.get(columnIndex);
+        try {
+            converter.write(group, columnIndex, field.val);
+        } catch (UnsupportedTypeException ex) {
+            throw new UnsupportedTypeException(ex.getMessage().replaceAll("(?<=\\s)" + columnIndex + "(?=\\s)", columnDescriptors.get(columnIndex).columnName()));
         }
-
-        LogicalTypeAnnotation logicalTypeAnnotation = type.getLogicalTypeAnnotation();
-        if (logicalTypeAnnotation == null) {
-            throw new UnsupportedTypeException("Parquet group type without logical annotation is not supported");
-        }
-
-        if (logicalTypeAnnotation != LogicalTypeAnnotation.listType()) {
-            throw new UnsupportedTypeException(String.format("Parquet complex type %s is not supported", logicalTypeAnnotation));
-        }
-        /*
-         * https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#lists
-         * Parquet LIST must always annotate a 3-level structure:
-         * <list-repetition> group <name> (LIST) {            // listType, a listType always has only 1 repeatedType
-         *   repeated group list {                            // repeatedType, a repeatedType always has only 1 element type
-         *     <element-repetition> <element-type> element;   // elementType
-         *   }
-         * }
-         */
-        GroupType listType = type.asGroupType();
-        GroupType repeatedType = listType.getType(0).asGroupType();
-        PrimitiveType elementType = repeatedType.getType(0).asPrimitiveType();
-        // Decode Postgres String representation of an array into a list of Objects
-        List<Object> values = parquetUtilities.parsePostgresArray(field.val.toString(), elementType.getPrimitiveTypeName(), elementType.getLogicalTypeAnnotation());
-
-        /*
-         * For example, the value of a text array ["hello","",null,"test"] would look like:
-         * text_arr
-         *    list
-         *      element: hello
-         *    list
-         *      element:         --> empty element ""
-         *    list               --> NULL element
-         *    list
-         *      element: test
-         */
-        Group listGroup = group.addGroup(columnIndex);
-        for (Object value : values) {
-            Group repeatedGroup = listGroup.addGroup(0);
-            if (value != null) {
-                fillGroupWithPrimitive(repeatedGroup, 0, value, elementType);
-            }
-        }
-    }
-
-    /**
-     * Fill the element of Parquet Group at the given index with provided field value and Parquet Primitive type
-     *
-     * @param group         the Parquet Group object being filled
-     * @param columnIndex   the index of the column in a row that needs to be filled with data
-     * @param fieldValue    OneField object holding the value we need to fill into the Parquet Group object
-     * @param primitiveType the Primitive Parquet schema we need to fill into the Parquet Group object
-     */
-    private void fillGroupWithPrimitive(Group group, int columnIndex, Object fieldValue, PrimitiveType primitiveType) {
-        LogicalTypeAnnotation logicalTypeAnnotation = primitiveType.getLogicalTypeAnnotation();
-        PrimitiveType.PrimitiveTypeName primitiveTypeName = primitiveType.getPrimitiveTypeName();
-
-        switch (primitiveTypeName) {
-            case BINARY:
-                if (logicalTypeAnnotation instanceof StringLogicalTypeAnnotation) {
-                    group.add(columnIndex, (String) fieldValue);
-                } else if (fieldValue instanceof ByteBuffer) {
-                    ByteBuffer byteBuffer = (ByteBuffer) fieldValue;
-                    group.add(columnIndex, Binary.fromReusedByteArray(byteBuffer.array(), 0, byteBuffer.limit()));
-                } else {
-                    group.add(columnIndex, Binary.fromReusedByteArray((byte[]) fieldValue));
-                }
-                break;
-            case INT32:
-                if (logicalTypeAnnotation instanceof DateLogicalTypeAnnotation) {
-                    String dateString = (String) fieldValue;
-                    group.add(columnIndex, ParquetTimestampUtilities.getDaysFromEpochFromDateString(dateString));
-                } else if (logicalTypeAnnotation instanceof IntLogicalTypeAnnotation &&
-                        ((IntLogicalTypeAnnotation) logicalTypeAnnotation).getBitWidth() == 16) {
-                    group.add(columnIndex, (Short) fieldValue);
-                } else {
-                    group.add(columnIndex, (Integer) fieldValue);
-                }
-                break;
-            case INT64:
-                if (logicalTypeAnnotation instanceof TimestampLogicalTypeAnnotation) {
-                    String timestamp = (String) fieldValue;
-                    boolean isTimestampWithTimeZone = TIMESTAMP_PATTERN.matcher(timestamp).find();
-                    TimestampLogicalTypeAnnotation originalType = (TimestampLogicalTypeAnnotation) logicalTypeAnnotation;
-                    group.add(columnIndex, ParquetTimestampUtilities
-                            .getLongFromTimestamp(timestamp, originalType.isAdjustedToUTC(), isTimestampWithTimeZone));
-                } else if (fieldValue instanceof Long) {
-                    group.add(columnIndex, (Long) fieldValue);
-                }
-                break;
-            case DOUBLE:
-                group.add(columnIndex, (Double) fieldValue);
-                break;
-            case FLOAT:
-                group.add(columnIndex, (Float) fieldValue);
-                break;
-            case FIXED_LEN_BYTE_ARRAY:
-                byte[] fixedLenByteArray = getFixedLenByteArray((String) fieldValue, primitiveType, columnDescriptors.get(columnIndex).columnName());
-                if (fixedLenByteArray == null) {
-                    return;
-                }
-                group.add(columnIndex, Binary.fromReusedByteArray(fixedLenByteArray));
-                break;
-            case INT96:  // SQL standard timestamp string value with or without time zone literals: https://www.postgresql.org/docs/9.4/datatype-datetime.html
-                String timestamp = (String) fieldValue;
-                if (TIMESTAMP_PATTERN.matcher(timestamp).find()) {
-                    // Note: this conversion convert type "timestamp with time zone" will lose timezone information
-                    // while preserving the correct value. (as Parquet doesn't support timestamp with time zone)
-                    group.add(columnIndex, ParquetTimestampUtilities.getBinaryFromTimestampWithTimeZone(timestamp));
-                } else {
-                    group.add(columnIndex, ParquetTimestampUtilities.getBinaryFromTimestamp(timestamp, parquetConfig.isUseLocalPxfTimezoneWrite()));
-                }
-                break;
-            case BOOLEAN:
-                group.add(columnIndex, (Boolean) fieldValue);
-                break;
-            default:
-                throw new UnsupportedTypeException(String.format("Parquet primitive type %s is not supported.", primitiveTypeName));
-        }
-    }
-
-    private byte[] getFixedLenByteArray(String value, Type type, String columnName) {
-        return ParquetFixedLenByteArrayUtilities.convertFromBigDecimal(decimalUtilities, value, columnName,
-                (DecimalLogicalTypeAnnotation) type.getLogicalTypeAnnotation());
     }
 
     // Set schema from context if null
@@ -298,6 +153,15 @@ public class ParquetResolver extends BasePlugin implements Resolver {
             if (schema == null)
                 throw new RuntimeException("No schema detected in request context");
             groupFactory = new SimpleGroupFactory(schema);
+            schemaConverters = new ArrayList<>();
+            int i = 0;
+            for (ColumnDescriptor columnDescriptor : columnDescriptors) {
+                if (columnDescriptor.isProjected()) {
+                    schemaConverters.add(
+                            parquetTypeConverterFactory.create(schema.getType(i), columnDescriptor.getDataType()));
+                    i++;
+                }
+            }
         }
     }
 
@@ -313,7 +177,7 @@ public class ParquetResolver extends BasePlugin implements Resolver {
         // get type converter based on the field data type
         // schema is the readSchema, if there is column projection, the schema will be a subset of tuple descriptions
         Type type = schema.getType(columnIndex);
-        ParquetTypeConverter converter = parquetTypeConverterFactory.create(type);
+        ParquetTypeConverter converter = schemaConverters.get(columnIndex);
         // determine how many values for the field are present in the column
         int repetitionCount = group.getFieldRepetitionCount(columnIndex);
         if (type.getRepetition() == REPEATED) {
@@ -321,7 +185,7 @@ public class ParquetResolver extends BasePlugin implements Resolver {
             // the element value will be converted into JSON value
             ArrayNode jsonArray = mapper.createArrayNode();
             for (int repeatIndex = 0; repeatIndex < repetitionCount; repeatIndex++) {
-                converter.addValueToJsonArray(group, columnIndex, repeatIndex, type, jsonArray);
+                converter.addValueToJsonArray(group, columnIndex, repeatIndex, jsonArray);
             }
             field.type = DataType.TEXT.getOID();
             try {
@@ -339,12 +203,12 @@ public class ParquetResolver extends BasePlugin implements Resolver {
         } else if (repetitionCount == 0) {
             // For non-REPEATED type, repetitionCount can only be 0 or 1
             // repetitionCount == 0 means this is a null LIST/Primitive
-            field.type = converter.getDataType(type).getOID();
+            field.type = converter.getDataType().getOID();
             field.val = null;
         } else {
             // repetitionCount can only be 1
-            field.type = converter.getDataType(type).getOID();
-            field.val = converter.getValue(group, columnIndex, 0, type);
+            field.type = converter.getDataType().getOID();
+            field.val = converter.read(group, columnIndex, 0);
         }
         return field;
     }

@@ -43,15 +43,11 @@ public class Gpdb extends DbSystemObject {
 
 		ReportUtils.startLevel(report, getClass(), "Init");
 
-		/**
-		 * Determine the port
-		 */
+		// Determine the port
 		initPort();
 
-		/**
-		 * Connect using default "template1" database for creating the required database and
-		 * connecting it.
-		 */
+
+		// Connect using default "template1" database for creating the required database and connecting it.
 		driver = "org.postgresql.Driver";
 		connectToDataBase("template1");
 		version = determineVersion();
@@ -309,7 +305,7 @@ public class Gpdb extends DbSystemObject {
 	 * Opens a psql connection to getDb() The connection should be closed using closePsql()
 	 *
 	 * @return shell connection with open psql session
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public ShellSystemObject openPsql() throws Exception {
 
@@ -349,7 +345,7 @@ public class Gpdb extends DbSystemObject {
 	 * @param sql sql command to run
 	 * @param checkErrors if true assert that there is no ERROR in result
 	 * @return sql command's result
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public String runSqlCmd(ShellSystemObject sso, String sql, boolean checkErrors) throws Exception {
 
@@ -375,7 +371,7 @@ public class Gpdb extends DbSystemObject {
 	 * @param to copy to required table
 	 * @param delim delimiter
 	 * @param csv is csv format - if it is, delimiter is not used.
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void copyFromStdin(Table from, Table to, String delim, boolean csv) throws Exception {
 
@@ -392,16 +388,15 @@ public class Gpdb extends DbSystemObject {
 
 		StringBuilder dataStringBuilder = new StringBuilder();
 		List<List<String>> data = from.getData();
-		for (int i = 0; i < data.size(); i++) {
-			List<String> row = data.get(i);
-			for (int j = 0; j < row.size(); j++) {
-				dataStringBuilder.append(row.get(j));
-				if (j != row.size() - 1) {
-					dataStringBuilder.append(delimeter);
-				}
-			}
-			dataStringBuilder.append("\n");
-		}
+        for (List<String> row : data) {
+            for (int j = 0; j < row.size(); j++) {
+                dataStringBuilder.append(row.get(j));
+                if (j != row.size() - 1) {
+                    dataStringBuilder.append(delimeter);
+                }
+            }
+            dataStringBuilder.append("\n");
+        }
 		dataStringBuilder.append("\\.");
 
 		copyWithOptionalCTAS("STDIN", to, dataStringBuilder.toString(), delim, null, csv);
@@ -414,7 +409,7 @@ public class Gpdb extends DbSystemObject {
 	 * @param path file to copy
 	 * @param delim delimiter
 	 * @param csv is csv format - if it is, delimiter is not used.
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void copyFromFile(Table to, File path, String delim, boolean csv) throws Exception {
 		String from = "'" + path.getAbsolutePath() + "'";
@@ -457,7 +452,7 @@ public class Gpdb extends DbSystemObject {
      * @param delim delimiter
      * @param nullChar null symbol character
      * @param csv is csv format - if it is, delimiter is not used.
-     * @throws Exception
+     * @throws Exception if an error occurs
      */
 	public void copyFromFile(Table to, File path, String delim, String nullChar, boolean csv) throws Exception {
 		String from = "'" + path.getAbsolutePath() + "'";
@@ -508,7 +503,7 @@ public class Gpdb extends DbSystemObject {
 		Table dataname = new Table("dataname", null);
 		queryResults(dataname, "SELECT datname FROM pg_catalog.pg_database");
 
-		ArrayList<String> dbList = new ArrayList<String>();
+		ArrayList<String> dbList = new ArrayList<>();
 
 		for (List<String> row : dataname.getData()) {
 
@@ -526,10 +521,10 @@ public class Gpdb extends DbSystemObject {
 	/**
 	 * Perform analyze over table
 	 *
-	 * @param table
+	 * @param table - the table to analyze
 	 * @param expectTurnedOffWarning if true expect specific Warning: <b>analyze for PXF tables is
 	 *            turned off by 'pxf_enable_stat_collection'</b>
-	 * @throws Exception
+	 * @throws Exception if an error occurs
 	 */
 	public void analyze(Table table, boolean expectTurnedOffWarning) throws Exception {
 
@@ -570,7 +565,7 @@ public class Gpdb extends DbSystemObject {
 		int gpIndex = fullVersion.indexOf(GREENPLUM_DATABASE_PREFIX); // where the version prefix starts
 		int dotIndex = fullVersion.indexOf(".", gpIndex);             // where the first dot of GP version starts
 		String versionStr = fullVersion.substring(gpIndex + GREENPLUM_DATABASE_PREFIX.length(), dotIndex);
-		int versionInt = Integer.valueOf(versionStr);
+		int versionInt = Integer.parseInt(versionStr);
 		ReportUtils.report(report, getClass(), "Determined Greenplum version: " + versionInt);
 		return versionInt;
 	}

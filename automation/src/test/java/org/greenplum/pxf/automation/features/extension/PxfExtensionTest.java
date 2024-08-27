@@ -16,7 +16,6 @@ public class PxfExtensionTest extends BaseFunctionality {
             "bool    boolean"
     };
 
-    private ReadableExternalTable externalTable;
     private String location;
     private String location_multi;
 
@@ -118,6 +117,7 @@ public class PxfExtensionTest extends BaseFunctionality {
     }
 
     private void createReadablePxfTable(String serverName, String location, boolean multi) throws Exception {
+        ReadableExternalTable externalTable;
         if (multi) {
             externalTable = TableFactory.getPxfReadableTextTable("pxf_upgrade_test_multibyte", FIELDS, location, null);
             externalTable.setFormat("CUSTOM");

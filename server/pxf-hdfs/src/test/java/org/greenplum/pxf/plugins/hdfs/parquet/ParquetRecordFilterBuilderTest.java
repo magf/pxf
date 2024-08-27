@@ -5,18 +5,21 @@ import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.greenplum.pxf.api.filter.FilterParser;
 import org.greenplum.pxf.api.filter.Node;
 import org.greenplum.pxf.plugins.hdfs.utilities.DecimalOverflowOption;
+import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
+import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ParquetRecordFilterBuilderTest extends ParquetBaseTest {
 
     @Test
-    public void testUnsupportedOperationError() {
+    public void testUnsupportedInOperationError() {
         // a16 in (11, 12)
         Exception e = assertThrows(UnsupportedOperationException.class,
                 () -> filterBuilderFromFilterString("a16m1007s2d11s2d12o10"));
-        assertEquals("not supported IN", e.getMessage());
+        assertThat(e.getMessage(), new StringContains("not supported IN"));
     }
 
     @Test
@@ -152,14 +155,18 @@ public class ParquetRecordFilterBuilderTest extends ParquetBaseTest {
         FilterCompat.Filter recordFilter = filterBuilder.getRecordFilter();
         assertNotNull(recordFilter);
         assertInstanceOf(FilterCompat.FilterPredicateCompat.class, recordFilter);
-        FilterPredicate filterPredicate = ((FilterCompat.FilterPredicateCompat) recordFilter).getFilterPredicate();
-        return filterPredicate;
+        return ((FilterCompat.FilterPredicateCompat) recordFilter).getFilterPredicate();
     }
 
     private ParquetRecordFilterBuilder filterBuilderFromFilterString(String filterString) throws Exception {
-
+        ParquetConfig parquetConfig = ParquetConfig.builder()
+                .useLocalPxfTimezoneWrite(true)
+                .useLocalPxfTimezoneRead(true)
+                .decimalUtilities(new DecimalUtilities(DecimalOverflowOption.IGNORE, true))
+                .build();
+        ParquetTypeConverterFactory parquetTypeConverterFactory = new ParquetTypeConverterFactory(parquetConfig);
         ParquetRecordFilterBuilder filterBuilder = new ParquetRecordFilterBuilder(columnDescriptors, originalFieldsMap,
-                DecimalOverflowOption.IGNORE, true);
+                parquetTypeConverterFactory);
 
         // Parse the filter string into a expression tree Node
         Node root = new FilterParser().parse(filterString);

@@ -5,8 +5,6 @@ import org.greenplum.pxf.api.model.RequestContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
-
 /**
  * Implementation of ProtocolHandler for json protocol.
  */

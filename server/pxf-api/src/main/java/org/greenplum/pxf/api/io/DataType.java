@@ -47,10 +47,11 @@ public enum DataType {
     TIME(1083, true),
     TIMESTAMP(1114, true),
     TIMESTAMP_WITH_TIME_ZONE(1184, true),
+    INTERVAL(1186, false),
     NUMERIC(1700, false),
     UUID(2950, false),
-    JSON(114, false),
-    JSONB(3802, false),
+    JSON(114, true),
+    JSONB(3802, true),
 
     INT2ARRAY(1005),
     INT4ARRAY(1007),
@@ -68,6 +69,7 @@ public enum DataType {
     TIMEARRAY(1183),
     TIMESTAMPARRAY(1115),
     TIMESTAMP_WITH_TIMEZONE_ARRAY(1185),
+    INTERVALARRAY(1187),
     JSONARRAY(199),
     JSONBARRAY(3807),
 
@@ -80,7 +82,7 @@ public enum DataType {
 
     // Set of types that preserve the type information when their value is deserialized,
     // this is similar to NOT_TEXT above, but used explicitly in the deserialization case of PXF Write Flow
-    private static EnumSet<DataType> SELF_DESER_TYPES = EnumSet.of(BOOLEAN, SMALLINT, INTEGER, BIGINT, REAL, FLOAT8, BYTEA);
+    private static final EnumSet<DataType> SELF_DESER_TYPES = EnumSet.of(BOOLEAN, SMALLINT, INTEGER, BIGINT, REAL, FLOAT8, BYTEA);
 
     static {
         INT2ARRAY.typeElem = SMALLINT;
@@ -99,6 +101,7 @@ public enum DataType {
         TIMEARRAY.typeElem = TIME;
         TIMESTAMPARRAY.typeElem = TIMESTAMP;
         TIMESTAMP_WITH_TIMEZONE_ARRAY.typeElem = TIMESTAMP_WITH_TIME_ZONE;
+        INTERVALARRAY.typeElem = INTERVAL;
         JSONARRAY.typeElem = JSON;
         JSONBARRAY.typeElem = JSONB;
 
@@ -118,6 +121,7 @@ public enum DataType {
         TIME.typeArray = TIMEARRAY;
         TIMESTAMP.typeArray = TIMESTAMPARRAY;
         TIMESTAMP_WITH_TIME_ZONE.typeArray = TIMESTAMP_WITH_TIMEZONE_ARRAY;
+        INTERVAL.typeArray = INTERVALARRAY;
         JSON.typeArray = JSONARRAY;
         JSONB.typeArray = JSONBARRAY;
 

@@ -5,41 +5,20 @@ import org.apache.parquet.filter2.predicate.FilterApi;
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.filter2.predicate.Operators;
 import org.apache.parquet.io.api.Binary;
-import org.apache.parquet.schema.LogicalTypeAnnotation;
+import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
-import org.greenplum.pxf.api.filter.ColumnIndexOperandNode;
-import org.greenplum.pxf.api.filter.Node;
-import org.greenplum.pxf.api.filter.OperandNode;
-import org.greenplum.pxf.api.filter.Operator;
-import org.greenplum.pxf.api.filter.OperatorNode;
-import org.greenplum.pxf.api.filter.TreeVisitor;
+import org.greenplum.pxf.api.filter.*;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
-import org.greenplum.pxf.plugins.hdfs.ParquetResolver;
-import org.greenplum.pxf.plugins.hdfs.utilities.DecimalOverflowOption;
-import org.greenplum.pxf.plugins.hdfs.utilities.DecimalUtilities;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConverter;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import static org.apache.parquet.filter2.predicate.FilterApi.and;
-import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.doubleColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.floatColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.longColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.not;
-import static org.apache.parquet.filter2.predicate.FilterApi.or;
-import static org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
-import static org.apache.parquet.schema.LogicalTypeAnnotation.TimestampLogicalTypeAnnotation;
-import static org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
+import static org.apache.parquet.filter2.predicate.FilterApi.*;
+import static org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConverter.FILTER_COLUMN;
 
 /**
  * This is the implementation of {@link TreeVisitor} for Parquet.
@@ -50,14 +29,10 @@ import static org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalType
  * scan.
  */
 public class ParquetRecordFilterBuilder implements TreeVisitor {
-
-    protected final Logger LOG = LoggerFactory.getLogger(this.getClass());
-
     private final Map<String, Type> fields;
     private final List<ColumnDescriptor> columnDescriptors;
     private final Deque<FilterPredicate> filterQueue;
-    private final DecimalUtilities decimalUtilities;
-    private final boolean useLocalPxfTimezoneRead;
+    private final ParquetTypeConverterFactory parquetTypeConverterFactory;
 
     /**
      * Constructor
@@ -66,12 +41,11 @@ public class ParquetRecordFilterBuilder implements TreeVisitor {
      * @param originalFields    a map of field names to types
      */
     public ParquetRecordFilterBuilder(List<ColumnDescriptor> columnDescriptors, Map<String, Type> originalFields,
-                                      DecimalOverflowOption decimalOverflowOption, boolean useLocalPxfTimezone) {
+                                      ParquetTypeConverterFactory parquetTypeConverterFactory) {
         this.columnDescriptors = columnDescriptors;
         this.filterQueue = new LinkedList<>();
         this.fields = originalFields;
-        this.decimalUtilities = new DecimalUtilities(decimalOverflowOption, true);
-        this.useLocalPxfTimezoneRead = useLocalPxfTimezone;
+        this.parquetTypeConverterFactory = parquetTypeConverterFactory;
     }
 
     @Override
@@ -168,42 +142,58 @@ public class ParquetRecordFilterBuilder implements TreeVisitor {
         ColumnDescriptor columnDescriptor = columnDescriptors.get(columnIndexOperand.index());
         String filterColumnName = columnDescriptor.columnName();
         Type type = fields.get(filterColumnName);
+        PrimitiveType.PrimitiveTypeName primitiveTypeName = type.asPrimitiveType().getPrimitiveTypeName();
+        ParquetTypeConverter typeConverter = parquetTypeConverterFactory.create(type, columnDescriptor.getDataType());
+        if (valueOperand != null && valueOperand.getDataType().isArrayType()) {
+            throw new UnsupportedOperationException("Currently not supported IN on this level(should be rewritten before this builder).");
+        }
+        Object filterValue;
+        try {
+            // todo also look at data type of the filter value
+            filterValue = (valueOperand != null) ? typeConverter.filterValue(valueOperand.toString()) : null;
+        } catch (Exception ex) {
+            if (ex.getMessage().contains(FILTER_COLUMN)) {
+                throw new IllegalArgumentException(ex.getMessage().replace(FILTER_COLUMN, filterColumnName), ex);
+            } else {
+                throw ex;
+            }
+        }
 
         // INT96 cannot be pushed down
         // for more details look at org.apache.parquet.filter2.dictionarylevel.DictionaryFilter#expandDictionary
         // where INT96 are not dictionary values
         FilterPredicate simpleFilter;
-        switch (type.asPrimitiveType().getPrimitiveTypeName()) {
+        switch (primitiveTypeName) {
             case INT32:
                 simpleFilter = ParquetRecordFilterBuilder.<Integer, Operators.IntColumn>getOperatorWithLtGtSupport(operator)
-                        .apply(intColumn(type.getName()), getIntegerForINT32(type.getLogicalTypeAnnotation(), valueOperand));
+                        .apply(intColumn(type.getName()), (Integer) filterValue);
                 break;
 
             case INT64:
                 simpleFilter = ParquetRecordFilterBuilder.<Long, Operators.LongColumn>getOperatorWithLtGtSupport(operator)
-                        .apply(longColumn(type.getName()), getLongForINT64(type.getLogicalTypeAnnotation(), valueOperand));
+                        .apply(longColumn(type.getName()), (Long) filterValue);
                 break;
 
             case FIXED_LEN_BYTE_ARRAY:
             case BINARY:
                 simpleFilter = ParquetRecordFilterBuilder.<Binary, Operators.BinaryColumn>getOperatorWithLtGtSupport(operator)
-                        .apply(binaryColumn(type.getName()), getBinaryFromString(type.getLogicalTypeAnnotation(), valueOperand, filterColumnName));
+                        .apply(binaryColumn(type.getName()), (Binary) filterValue);
                 break;
 
             case BOOLEAN:
                 // Boolean does not SupportsLtGt
                 simpleFilter = ParquetRecordFilterBuilder.<Boolean, Operators.BooleanColumn>getOperatorWithEqNotEqSupport(operator)
-                        .apply(booleanColumn(type.getName()), valueOperand == null ? null : Boolean.parseBoolean(valueOperand.toString()));
+                        .apply(booleanColumn(type.getName()), (Boolean) filterValue);
                 break;
 
             case FLOAT:
                 simpleFilter = ParquetRecordFilterBuilder.<Float, Operators.FloatColumn>getOperatorWithLtGtSupport(operator)
-                        .apply(floatColumn(type.getName()), valueOperand == null ? null : Float.parseFloat(valueOperand.toString()));
+                        .apply(floatColumn(type.getName()), (Float) filterValue);
                 break;
 
             case DOUBLE:
                 simpleFilter = ParquetRecordFilterBuilder.<Double, Operators.DoubleColumn>getOperatorWithLtGtSupport(operator)
-                        .apply(doubleColumn(type.getName()), valueOperand == null ? null : Double.parseDouble(valueOperand.toString()));
+                        .apply(doubleColumn(type.getName()), (Double) filterValue);
                 break;
 
             default:
@@ -272,36 +262,4 @@ public class ParquetRecordFilterBuilder implements TreeVisitor {
         }
     }
 
-    private static Integer getIntegerForINT32(LogicalTypeAnnotation logicalTypeAnnotation, OperandNode valueOperand) {
-        if (valueOperand == null) return null;
-        if (logicalTypeAnnotation instanceof DateLogicalTypeAnnotation) {
-            // Number of days since epoch
-            LocalDate localDateValue = LocalDate.parse(valueOperand.toString());
-            LocalDate epoch = LocalDate.ofEpochDay(0);
-            return (int) ChronoUnit.DAYS.between(epoch, localDateValue);
-        }
-        return Integer.parseInt(valueOperand.toString());
-    }
-
-    private Long getLongForINT64(LogicalTypeAnnotation logicalTypeAnnotation, OperandNode valueOperand) {
-        if (valueOperand == null) return null;
-        String value = valueOperand.toString();
-        if (logicalTypeAnnotation instanceof TimestampLogicalTypeAnnotation) {
-            return ParquetTimestampUtilities.getLongFromTimestamp(value, useLocalPxfTimezoneRead,
-                    ParquetResolver.TIMESTAMP_PATTERN.matcher(value).find());
-        }
-        return Long.parseLong(value);
-    }
-
-    private Binary getBinaryFromString(LogicalTypeAnnotation logicalTypeAnnotation, OperandNode valueOperand,
-                                              String columnName) {
-        if (valueOperand == null) return null;
-        String value = valueOperand.toString();
-        if (logicalTypeAnnotation instanceof DecimalLogicalTypeAnnotation) {
-            DecimalLogicalTypeAnnotation decimalType = (DecimalLogicalTypeAnnotation) logicalTypeAnnotation;
-            byte[] tgt = ParquetFixedLenByteArrayUtilities.convertFromBigDecimal(decimalUtilities, value, columnName, decimalType);
-            return Binary.fromReusedByteArray(tgt);
-        }
-        return Binary.fromString(value);
-    }
 }

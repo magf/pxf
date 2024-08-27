@@ -31,7 +31,7 @@ public class BaseSecurityService implements SecurityService {
     private final UGIProvider ugiProvider;
 
     /* feature flag to expand Kerberos User Principal name when impersonating */
-    private boolean isExpandUserPrincipal;
+    private final boolean isExpandUserPrincipal;
 
     public BaseSecurityService(SecureLogin secureLogin, UGIProvider ugiProvider,
                                @Value("${" + EXPAND_PRINCIPAL_PROPERTY + "}") boolean isExpandUserPrincipal) {

@@ -61,15 +61,6 @@ public class CharsetUtils {
                 put("KOI8", new String[]{"KOI8_U", "KOI8_R"});
                 put("KOI8R", new String[]{"KOI8_R"});
                 put("KOI8U", new String[]{"KOI8_U"});
-                // The following encodings do not have a java equivalent
-                // Adding them below for documentation completeness
-                // put("MULE_INTERNAL", new String[0]);
-                // put("LATIN6", new String[0]);
-                // put("LATIN8", new String[0]);
-                // put("LATIN10", new String[0]);
-                // put("GB18030", new String[0]);
-                // put("SHIFT_JIS_2004", new String[0]);
-                // put("EUC_JIS_2004", new String[0]);
             }}
     );
 

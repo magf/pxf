@@ -46,18 +46,17 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
     public static final String RECORD_MEMBER_IDENTIFIER = "json.input.format.record.identifier";
     public static final String RECORD_MAX_LENGTH = "multilinejsonrecordreader.maxlength";
     private static final Logger LOG = LoggerFactory.getLogger(JsonRecordReader.class);
-    private final String jsonMemberName;
-    private long start;
+    private final long start;
     private long pos;
-    private long end;
-    private int maxObjectLength;
-    private PartitionedJsonParser parser;
+    private final long end;
+    private final int maxObjectLength;
+    private final PartitionedJsonParser parser;
     private LineRecordReader lineRecordReader;
     // position of the underlying lineRecordReader
     private long filePos;
     // line that was read in by the line record reader
-    private Text currentLine;
-    private JobConf conf;
+    private final Text currentLine;
+    private final JobConf conf;
     private final Path file;
     // this is the current line in buffer form
     private StringBuffer currentLineBuffer;
@@ -65,7 +64,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
     private int currentLineIndex = Integer.MAX_VALUE;
     private boolean inNextSplit = false;
     // used to store characters that were read before we hit a json begin object marker
-    private StringBuilder readValues = new StringBuilder(MAX_CHARS);
+    private final StringBuilder readValues = new StringBuilder(MAX_CHARS);
     // max number of characters to read before we update the position
     private static final int MAX_CHARS = 1024;
 
@@ -87,7 +86,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
      */
     public JsonRecordReader(JobConf conf, FileSplit split) throws IOException {
 
-        jsonMemberName = conf.get(RECORD_MEMBER_IDENTIFIER);
+        String jsonMemberName = conf.get(RECORD_MEMBER_IDENTIFIER);
         maxObjectLength = conf.getInt(RECORD_MAX_LENGTH, Integer.MAX_VALUE);
 
         start = split.getStart();
@@ -161,7 +160,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
                 // check the char length of the json against the MAXLENGTH parameter
                 long jsonLength = json.length();
                 if (jsonLength > maxObjectLength) {
-                    LOG.warn("Skipped JSON object of size " + json.length());
+                    LOG.warn("Skipped JSON object of size {}", json.length());
                 } else {
                     // the key is set to the length of the json object
                     key.set(jsonLength);
@@ -191,7 +190,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
     }
 
     @Override
-    public long getPos() throws IOException {
+    public long getPos() {
         return pos;
     }
 
@@ -209,7 +208,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
      * {@inheritDoc}
      */
     @Override
-    public float getProgress() throws IOException {
+    public float getProgress() {
         if (start == end) {
             return 0.0f;
         } else {
@@ -221,7 +220,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
      * Reads the next character in the buffer. It will pull the next line as necessary
      *
      * @return the int value of a character
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     private int readNextChar() throws IOException {
         // if the currentLineBuffer is null, nothing has been read yet, so we need to read the next line
@@ -242,7 +241,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
      * Read through the characters until we hit starting bracket that indicates the start of a JSON object
      *
      * @return true when an open bracket '{' is found, false otherwise
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     private boolean scanToNextJsonBeginObject() throws IOException {
         // assumes each line is a valid json line
@@ -276,7 +275,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
 
     /**
      * Append the given character to the string of characters read
-     *
+     * <p>
      * If the number of characters read equals MAX_CHARS, then
      * set the global pos and reset the string of characters read to empty
      * @param c the character that was read
@@ -294,7 +293,7 @@ public class JsonRecordReader implements RecordReader<LongWritable, Text> {
      * Closes the current LineRecordReader and opens a new one that starts at the end of the current split
      * The end of the new split is set to Long.MAX
      *
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     private void getNextSplit() throws IOException {
         // close the old lineRecordReader

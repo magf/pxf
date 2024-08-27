@@ -56,7 +56,7 @@ public class PgArrayBuilder {
 
     /**
      * Add the element provided by the consumer to the array
-     *
+     * <p>
      * This is an optimization to avoid allocating new Strings. Instead, we
      * allow callers to act directly on the buffer through this function.
      * @param consumer the consumer function that modifies the buffer itself

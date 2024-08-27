@@ -2,7 +2,6 @@ package org.greenplum.pxf.api.model;
 
 import org.apache.hadoop.conf.Configuration;
 
-import java.io.File;
 import java.util.Map;
 
 public interface ConfigurationFactory {

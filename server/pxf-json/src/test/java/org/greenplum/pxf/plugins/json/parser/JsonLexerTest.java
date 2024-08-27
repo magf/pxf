@@ -25,12 +25,11 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.List;
-import java.util.ListIterator;
+import java.nio.file.Files;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +44,9 @@ public class JsonLexerTest {
     public void testSimple() throws IOException {
         File testsDir = new File("src/test/resources/lexer-tests");
         File[] jsonFiles = testsDir.listFiles((file, s) -> s.endsWith(".json"));
-
+        if (Objects.isNull(jsonFiles)) {
+            throw new IllegalStateException("Json files cannot be null");
+        }
         for (File jsonFile : jsonFiles) {
             File stateFile = new File(jsonFile.getAbsolutePath() + ".state");
             if (stateFile.exists()) {
@@ -59,7 +60,7 @@ public class JsonLexerTest {
     public void runTest(File jsonFile, File stateFile) throws IOException {
         List<String> lexerStates = FileUtils.readLines(stateFile, Charset.defaultCharset());
 
-        try (InputStream jsonInputStream = new FileInputStream(jsonFile)) {
+        try (InputStream jsonInputStream = Files.newInputStream(jsonFile.toPath())) {
             JsonLexer lexer = new JsonLexer();
 
             int byteOffset = 0;
@@ -91,7 +92,7 @@ public class JsonLexerTest {
                     String state = stateIterator.next().trim();
                     stateFileLineNum++;
 
-                    while (state.equals("") || state.startsWith("#")) {
+                    while (state.isEmpty() || state.startsWith("#")) {
                         if (!stateIterator.hasNext()) {
                             fail(formatStateInfo(jsonFile, sb.toString(), byteOffset, stateFileLineNum)
                                     + ": Input stream had character '" + c + "' but no matching state");

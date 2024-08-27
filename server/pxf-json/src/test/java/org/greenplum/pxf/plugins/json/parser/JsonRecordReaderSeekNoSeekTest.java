@@ -32,11 +32,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -46,7 +47,7 @@ public class JsonRecordReaderSeekNoSeekTest {
 
     private static final String RECORD_MEMBER_IDENTIFIER = "json.input.format.record.identifier";
     private JobConf jobConf;
-    private String[] hosts = null;
+    private final String[] hosts = null;
 
     @BeforeEach
     public void setup() {
@@ -61,8 +62,9 @@ public class JsonRecordReaderSeekNoSeekTest {
     public void testSeek() throws IOException {
         File testsDir = new File("src/test/resources/parser-tests/seek");
         File[] dirs = testsDir.listFiles();
-
-
+        if (Objects.isNull(dirs)) {
+            throw new IllegalStateException("Dirs cannot be null");
+        }
         for (File jsonDir : dirs) {
             File childFile = new File(jsonDir, "input.json");
 
@@ -76,9 +78,10 @@ public class JsonRecordReaderSeekNoSeekTest {
     public void testNoSeek() throws IOException {
         File testsDir = new File("src/test/resources/parser-tests/noseek");
         File[] dirs = testsDir.listFiles();
-
+        if (Objects.isNull(dirs)) {
+            throw new IllegalStateException("Dirs files cannot be null");
+        }
         for (File jsonFile : dirs) {
-
             File[] jsonObjectFiles = jsonFile.getParentFile().listFiles((file, s) ->
                     s.contains(jsonFile.getName()) && s.contains("expected"));
             runTest(jsonFile, jsonObjectFiles, false);
@@ -89,7 +92,7 @@ public class JsonRecordReaderSeekNoSeekTest {
 
         int start = 0;
         if (seek) {
-            try (InputStream jsonInputStream = new FileInputStream(jsonFile)) {
+            try (InputStream jsonInputStream = Files.newInputStream(jsonFile.toPath())) {
                 start = seekToStart(jsonInputStream);
             }
 
@@ -105,7 +108,7 @@ public class JsonRecordReaderSeekNoSeekTest {
         Arrays.sort(jsonObjectFiles);
         if (jsonObjectFiles.length == 0) {
             jsonRecordReader.next(key, data);
-            assertEquals(0, data.getLength(), "File " + jsonFile.getAbsolutePath() + " got result '" + data.toString() + "'");
+            assertEquals(0, data.getLength(), "File " + jsonFile.getAbsolutePath() + " got result '" + data + "'");
         } else {
             for (File jsonObjectFile : jsonObjectFiles) {
                 String expected = normalizeWhitespaces(FileUtils.readFileToString(jsonObjectFile, Charset.defaultCharset()));

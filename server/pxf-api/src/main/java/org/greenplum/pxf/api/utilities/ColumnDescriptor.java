@@ -20,8 +20,11 @@ package org.greenplum.pxf.api.utilities;
  */
 
 
+import lombok.Getter;
 import org.apache.commons.lang.ArrayUtils;
 import org.greenplum.pxf.api.io.DataType;
+
+import java.util.Arrays;
 
 /**
  * ColumnDescriptor describes one column in gpdb database.
@@ -29,6 +32,7 @@ import org.greenplum.pxf.api.io.DataType;
  */
 public class ColumnDescriptor {
 
+    @Getter
     private final DataType dataType;
     private final int dbColumnTypeCode;
     private final String dbColumnName;
@@ -151,15 +155,6 @@ public class ColumnDescriptor {
     }
 
     /**
-     * Returns the {@link DataType} for the column
-     *
-     * @return the {@link DataType} for the column
-     */
-    public DataType getDataType() {
-        return dataType;
-    }
-
-    /**
      * Returns <tt>true</tt> if {@link #dbColumnName} is a {@link #RECORD_KEY_NAME}.
      *
      * @return whether column is a record key column
@@ -192,7 +187,7 @@ public class ColumnDescriptor {
                 + ", dbColumnName=" + dbColumnName
                 + ", dbColumnTypeName=" + dbColumnTypeName
                 + ", dbColumnIndex=" + dbColumnIndex
-                + ", dbColumnTypeModifiers=" + dbColumnTypeModifiers
+                + ", dbColumnTypeModifiers=" + Arrays.toString(dbColumnTypeModifiers)
                 + ", isProjected=" + isProjected + "]";
     }
 }

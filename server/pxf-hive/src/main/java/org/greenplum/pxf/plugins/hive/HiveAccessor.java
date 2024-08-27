@@ -106,7 +106,7 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
     private String hiveColumnTypesString;
     private boolean isPredicatePushdownAllowed;
 
-    protected HiveUtilities hiveUtilities;
+    protected final HiveUtilities hiveUtilities;
     protected List<Integer> hiveIndexes;
 
     // ----- members for predicate pushdown handling -----
@@ -176,8 +176,8 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
                     DataType.BOOLEAN,
                     DataType.DATE,
                     DataType.TIMESTAMP,
-                    DataType.TIME,
-                    DataType.BYTEA
+                    DataType.TIME
+                    //DataType.BYTEA
             );
 
     private static final TreeTraverser TRAVERSER = new TreeTraverser();
@@ -435,7 +435,7 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
             ToStringTreeVisitor toStringTreeVisitor = new ToStringTreeVisitor();
             new TreeTraverser().traverse(root, toStringTreeVisitor);
 
-            LOG.debug("Filter string after pruning {}", toStringTreeVisitor.toString());
+            LOG.debug("Filter string after pruning {}", toStringTreeVisitor);
         }
 
         return returnData;

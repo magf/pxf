@@ -34,9 +34,8 @@ import java.util.List;
  */
 public class ChunkReader implements Closeable {
     public static final int DEFAULT_BUFFER_SIZE = 64 * 1024;
-    private int bufferSize = DEFAULT_BUFFER_SIZE;
-    private InputStream in;
-    private byte[] buffer;
+    private final InputStream in;
+    private final byte[] buffer;
     // the number of bytes of real data in the buffer
     private int bufferLength = 0;
     // the current position in the buffer
@@ -50,7 +49,7 @@ public class ChunkReader implements Closeable {
      */
     public ChunkReader(InputStream in) {
         this.in = in;
-        this.buffer = new byte[this.bufferSize];
+        this.buffer = new byte[DEFAULT_BUFFER_SIZE];
     }
 
     /**
@@ -67,7 +66,7 @@ public class ChunkReader implements Closeable {
      * doing several read operation until we reach the chunk size -
      * maxBytesToConsume
      */
-    private class Node {
+    private static class Node {
         /* part of a chunk brought in a single inputstream.read() operation */
         public byte[] slice;
         /* the size of the slice */
@@ -87,7 +86,7 @@ public class ChunkReader implements Closeable {
      */
     public int readChunk(Writable str, int maxBytesToConsume) throws IOException {
         ChunkWritable cw = (ChunkWritable) str;
-        List<Node> list = new LinkedList<Node>();
+        List<Node> list = new LinkedList<>();
 
         long bytesConsumed = 0;
 

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  * for older Hive servers to still be able query metadata.
  * <p>
  * The motivation for this approach is taken from here:
- * https://github.com/HotelsDotCom/waggle-dance/pull/133/files
+ * <a href="https://github.com/HotelsDotCom/waggle-dance/pull/133/files">...</a>
  */
 @SuppressWarnings("deprecation")
 public class HiveMetaStoreClientCompatibility1xx extends HiveMetaStoreClient implements IMetaStoreClient {

@@ -20,11 +20,16 @@ package org.greenplum.pxf.api;
  */
 
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Represents one row in the external system data store.
  * Supports the general case where one row contains both a record and a
  * separate key like in the HDFS key/value model for MapReduce (Example: HDFS sequence file).
  */
+@Setter
+@Getter
 public class OneRow {
     private Object key;
     private Object data;
@@ -50,22 +55,6 @@ public class OneRow {
      */
     public OneRow(Object data) {
         this.data = data;
-    }
-
-    public void setKey(Object key) {
-        this.key = key;
-    }
-
-    public void setData(Object data) {
-        this.data = data;
-    }
-
-    public Object getKey() {
-        return key;
-    }
-
-    public Object getData() {
-        return data;
     }
 
     @Override

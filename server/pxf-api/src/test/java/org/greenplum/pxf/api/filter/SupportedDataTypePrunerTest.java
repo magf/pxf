@@ -5,6 +5,7 @@ import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -15,11 +16,11 @@ public class SupportedDataTypePrunerTest {
     private static final TreeTraverser TRAVERSER = new TreeTraverser();
     private static final Integer[] TM = new Integer[]{}; // type modifiers
 
-    private static final List<ColumnDescriptor> oneTextColumn = Arrays.asList(
+    private static final List<ColumnDescriptor> oneTextColumn = Collections.singletonList(
             new ColumnDescriptor("c0", DataType.TEXT.getOID(), 0, "", TM)
     );
 
-    private static final List<ColumnDescriptor> oneBooleanColumn = Arrays.asList(
+    private static final List<ColumnDescriptor> oneBooleanColumn = Collections.singletonList(
             new ColumnDescriptor("c0", DataType.BOOLEAN.getOID(), 0, "", TM)
     );
 
@@ -59,7 +60,7 @@ public class SupportedDataTypePrunerTest {
     @Test
     public void test_simpleOperator_InvalidType() throws Exception {
         supportedTypes = EnumSet.of(DataType.TEXT);
-        List<ColumnDescriptor> invalidColumn = Arrays.asList(
+        List<ColumnDescriptor> invalidColumn = Collections.singletonList(
                 new ColumnDescriptor("c0", 12345678, 0, "", TM)
         );
         helper("", "a0c25s3dbaro4", invalidColumn, supportedTypes);

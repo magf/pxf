@@ -76,7 +76,7 @@ public class FragmenterService {
         if (LOG.isDebugEnabled()) {
             LOG.debug("fragmentCache size={}, stats={}",
                     fragmenterCacheFactory.getCache().size(),
-                    fragmenterCacheFactory.getCache().stats().toString());
+                    fragmenterCacheFactory.getCache().stats());
         }
 
         LOG.debug("FRAGMENTER started for path \"{}\"", path);
@@ -209,7 +209,7 @@ public class FragmenterService {
         int shiftedIndex = gpSessionId % totalSegments + gpCommandCount; // index of fragment #0 to use for mod function
 
         if (totalSegments == activeSegmentCount) {
-            List<Fragment> filteredFragments = new ArrayList<>((int) Math.ceil(fragments.size() / totalSegments));
+            List<Fragment> filteredFragments = new ArrayList<>((int) Math.ceil((double) fragments.size() / totalSegments));
             for (Fragment fragment : fragments) {
                 if (segmentId == (shiftedIndex % totalSegments)) {
                     filteredFragments.add(fragment);
@@ -220,7 +220,7 @@ public class FragmenterService {
         } else {
             int index = 0;
             List<Integer> activeSegmentList = getActiveSegmentList(shiftedIndex, activeSegmentCount, totalSegments);
-            List<Fragment> filteredFragments = new ArrayList<>((int) Math.ceil(fragments.size() / activeSegmentCount));
+            List<Fragment> filteredFragments = new ArrayList<>((int) Math.ceil((double) fragments.size() / activeSegmentCount));
             for (Fragment fragment : fragments) {
                 if (segmentId == activeSegmentList.get(index % activeSegmentList.size())) {
                     filteredFragments.add(fragment);

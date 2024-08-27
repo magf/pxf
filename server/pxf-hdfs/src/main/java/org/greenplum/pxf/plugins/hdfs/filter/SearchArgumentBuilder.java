@@ -1,5 +1,6 @@
 package org.greenplum.pxf.plugins.hdfs.filter;
 
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.common.type.HiveChar;
@@ -51,6 +52,7 @@ public class SearchArgumentBuilder implements TreeVisitor {
 
     private static final Logger LOG = LoggerFactory.getLogger(SearchArgumentBuilder.class);
 
+    @Getter
     private final SearchArgument.Builder filterBuilder;
     private final List<ColumnDescriptor> columnDescriptors;
 
@@ -112,17 +114,12 @@ public class SearchArgumentBuilder implements TreeVisitor {
         return node;
     }
 
-    public SearchArgument.Builder getFilterBuilder() {
-        return filterBuilder;
-    }
-
     /**
      * Builds a single argument
      *
      * @param operatorNode the operatorNode node
-     * @return true if the argument is build, false otherwise
      */
-    private boolean buildArgument(OperatorNode operatorNode) {
+    private void buildArgument(OperatorNode operatorNode) {
 
         Operator operator = operatorNode.getOperator();
         ColumnIndexOperandNode columnIndexOperand = operatorNode.getColumnIndexOperand();
@@ -208,10 +205,8 @@ public class SearchArgumentBuilder implements TreeVisitor {
                 break;
             default: {
                 LOG.debug("Filter push-down is not supported for {} operation.", operator);
-                return false;
             }
         }
-        return true;
     }
 
     /**
@@ -246,7 +241,7 @@ public class SearchArgumentBuilder implements TreeVisitor {
         } else if (literal instanceof List) {
             @SuppressWarnings("unchecked")
             List<Object> l = (List<Object>) literal;
-            if (l.size() > 0)
+            if (!l.isEmpty())
                 return getType(l.get(0));
         }
         throw new IllegalArgumentException(String.format("Unknown type for literal %s", literal));
@@ -274,6 +269,8 @@ public class SearchArgumentBuilder implements TreeVisitor {
             // to avoid change in precision when upcasting float to double
             // we convert the literal to string and parse it as double. (HIVE-8460)
             return Double.parseDouble(literal.toString());
+        } else if (literal instanceof byte[]) {
+            return new String((byte[]) literal);
         } else {
             throw new IllegalArgumentException("Unknown type for literal " +
                     literal);
@@ -336,5 +333,4 @@ public class SearchArgumentBuilder implements TreeVisitor {
             throw new IllegalStateException(String.format("failed to parse number data %s for type %s", value, dataType), nfe);
         }
     }
-
 }

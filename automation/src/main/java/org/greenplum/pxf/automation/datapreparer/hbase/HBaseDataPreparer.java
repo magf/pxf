@@ -1,6 +1,7 @@
 package org.greenplum.pxf.automation.datapreparer.hbase;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,15 +25,15 @@ public class HBaseDataPreparer implements IDataPreparer {
 	private String rowKeyPrefix = "";
 	private String columnFamilyName = "cf1";
 	private boolean useNull = false;
-	private final int UNSUPORTTED_CHAR = 92;
-	private final int FIRST_PRINTABLE_CHAR = 32;
-	private final int LAST_PRINTABLE_CHAR = 126;
+	private static final int UNSUPPORTED_CHAR = 92;
+	private final static int FIRST_PRINTABLE_CHAR = 32;
+	private final static int LAST_PRINTABLE_CHAR = 126;
 
 	@Override
 	public Object[] prepareData(int rows, Table dataTable) throws Exception {
 
 		byte[] columnFamily = Bytes.toBytes(columnFamilyName);
-		List<Put> generatedRows = new ArrayList<Put>();
+		List<Put> generatedRows = new ArrayList<>();
 
 		HBaseTable hbaseTable = (HBaseTable) dataTable;
 		String[] qualifiers = hbaseTable.getQualifiers();
@@ -76,8 +77,8 @@ public class HBaseDataPreparer implements IDataPreparer {
 				addValue(newRow, columnFamily, qualifiers[7], String.format("%d", (i % Short.MAX_VALUE)));
 
 				// Qualifier 9. bigint (long)
-				Long value9 = ((i * i * i * 10000000000L + i) % Long.MAX_VALUE) * (long) Math.pow(-1, i % 2);
-				addValue(newRow, columnFamily, qualifiers[8], value9.toString());
+				long value9 = ((i * i * i * 10000000000L + i) % Long.MAX_VALUE) * (long) Math.pow(-1, i % 2);
+				addValue(newRow, columnFamily, qualifiers[8], Long.toString(value9));
 
 				// Qualifier 10. boolean
 				addValue(newRow, columnFamily, qualifiers[9], Boolean.toString((i % 2) == 0));
@@ -90,7 +91,7 @@ public class HBaseDataPreparer implements IDataPreparer {
 				// Removing system timezone so tests will pass anywhere in the
 				// world :)
 				int timeZoneOffset = TimeZone.getDefault().getRawOffset();
-				addValue(newRow, columnFamily, qualifiers[11], (new Timestamp((6000 * i) - timeZoneOffset)).toString());
+				addValue(newRow, columnFamily, qualifiers[11], (new Timestamp((6000L * i) - timeZoneOffset)).toString());
 
 				generatedRows.add(newRow);
 
@@ -114,7 +115,7 @@ public class HBaseDataPreparer implements IDataPreparer {
 
 		chars++;
 
-		if (chars == UNSUPORTTED_CHAR) {
+		if (chars == UNSUPPORTED_CHAR) {
 			chars++;
 		}
 
@@ -122,11 +123,11 @@ public class HBaseDataPreparer implements IDataPreparer {
 	}
 
 	private void addValue(Put row, byte[] cf, String ql, byte[] value) {
-		row.add(cf, ql.getBytes(), value);
+		row.addColumn(cf, ql.getBytes(), value);
 	}
 
-	private void addValue(Put row, byte[] cf, String ql, String value) throws java.io.UnsupportedEncodingException {
-		addValue(row, cf, ql, value.getBytes("UTF-8"));
+	private void addValue(Put row, byte[] cf, String ql, String value) {
+		addValue(row, cf, ql, value.getBytes(StandardCharsets.UTF_8));
 	}
 
 	public int getNumberOfSplits() {

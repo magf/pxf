@@ -17,11 +17,11 @@ public class HBaseSmokeDataPreparer implements IDataPreparer {
 	private String columnFamilyName;
 	private String[] qualifiers;
 
-	public Object[] prepareData(int rows, Table table) throws Exception {
+	public Object[] prepareData(int rows, Table table) {
 
 		HBaseTable hbaseTable = (HBaseTable) table;
 		String[] qualifiers = hbaseTable.getQualifiers();
-		ArrayList<Put> generatedRows = new ArrayList<Put>();
+		ArrayList<Put> generatedRows = new ArrayList<>();
 
 		for (int i = 1; i <= rows; i++) {
 
@@ -31,23 +31,23 @@ public class HBaseSmokeDataPreparer implements IDataPreparer {
 
 			// String value
 			String value = "row_" + i;
-			newRow.add(columnFamilyName.getBytes(), qualifiers[0].getBytes(), value.getBytes());
+			newRow.addColumn(columnFamilyName.getBytes(), qualifiers[0].getBytes(), value.getBytes());
 
 			// int value
 			value = Integer.toString(i);
-			newRow.add(columnFamilyName.getBytes(), qualifiers[1].getBytes(), value.getBytes());
+			newRow.addColumn(columnFamilyName.getBytes(), qualifiers[1].getBytes(), value.getBytes());
 
 			// double value
 			value = Double.toString(i);
-			newRow.add(columnFamilyName.getBytes(), qualifiers[2].getBytes(), value.getBytes());
+			newRow.addColumn(columnFamilyName.getBytes(), qualifiers[2].getBytes(), value.getBytes());
 
 			// long value
-			value = String.valueOf(Long.toString(100000000000L * (i)));
-			newRow.add(columnFamilyName.getBytes(), qualifiers[3].getBytes(), value.getBytes());
+			value = Long.toString(100000000000L * (i));
+			newRow.addColumn(columnFamilyName.getBytes(), qualifiers[3].getBytes(), value.getBytes());
 
 			// boolean value
 			value = Boolean.toString((i % 2) == 0);
-			newRow.add(columnFamilyName.getBytes(), qualifiers[4].getBytes(), value.getBytes());
+			newRow.addColumn(columnFamilyName.getBytes(), qualifiers[4].getBytes(), value.getBytes());
 
 			generatedRows.add(newRow);
 		}

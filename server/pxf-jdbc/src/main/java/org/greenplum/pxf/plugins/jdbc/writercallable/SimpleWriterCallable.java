@@ -25,7 +25,6 @@ import org.greenplum.pxf.plugins.jdbc.JdbcResolver;
 import org.greenplum.pxf.plugins.jdbc.JdbcBasePlugin;
 import org.greenplum.pxf.plugins.jdbc.utils.DbProduct;
 
-import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
@@ -73,7 +72,7 @@ class SimpleWriterCallable implements WriterCallable {
     }
 
     @Override
-    public SQLException call() throws IOException, SQLException {
+    public SQLException call() throws SQLException {
         log.trace("Writer {}: call() to insert row", this);
         long start = System.nanoTime();
         if (row == null) {

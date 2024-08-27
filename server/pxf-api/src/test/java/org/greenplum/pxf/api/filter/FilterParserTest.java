@@ -141,7 +141,6 @@ public class FilterParserTest {
         runParseNegative("const operand with missing 'd' delimiter", filter, exception);
 
         filter = "c20s5d";
-        index = 5;
         exception = "data size larger than filter string starting at " + index;
         runParseNegative("const operand with missing data", filter, exception);
 

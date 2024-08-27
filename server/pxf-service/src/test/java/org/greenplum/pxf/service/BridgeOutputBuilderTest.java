@@ -613,8 +613,7 @@ public class BridgeOutputBuilderTest {
             context.setFormat("CSV"); // assume CSV table format for TEXT transport format
         }
         createPrimitiveTypesSchema(context);
-        BridgeOutputBuilder builder = makeBuilder(context);
-        return builder;
+        return makeBuilder(context);
     }
 
     private BridgeOutputBuilder makeBuilder(RequestContext context) {

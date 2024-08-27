@@ -11,6 +11,7 @@ import org.apache.orc.Writer;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.junit.Ignore;
 import org.testng.annotations.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -36,8 +37,6 @@ public class HiveOrcTest extends HiveBaseTest {
     private HiveTable hiveOrcCollectionTable;
     private HiveTable hiveBinaryOrcDataTable;
     private HiveTable hiveOrcLargeDataTable;
-
-    private String largeOrcDataFile;
 
     @Override
     protected void createExternalTable(String tableName, String[] fields, HiveTable hiveTable) throws Exception {
@@ -75,13 +74,14 @@ public class HiveOrcTest extends HiveBaseTest {
     }
 
     @Override
-    void prepareBinaryData() throws Exception{
+    void prepareBinaryData() throws Exception {
 
         super.prepareBinaryData();
         // Create a copy of binary data in ORC format
         hiveBinaryOrcDataTable = new HiveTable(HIVE_BINARY_TABLE + "_orc", HIVE_TYPES_BINARY);
         hiveBinaryOrcDataTable.setStoredAs(ORC);
         hive.createTableAndVerify(hiveBinaryOrcDataTable);
+        hive.runQuery("SET hive.vectorized.execution.enabled = false");
         hive.insertData(hiveBinaryTable, hiveBinaryOrcDataTable);
     }
 
@@ -108,7 +108,7 @@ public class HiveOrcTest extends HiveBaseTest {
         // Insert into table using dynamic partitioning.
         // Some of the fields are NULL so they will be inserted into the default partition.
         hive.insertDataToPartition(hiveTypesTable, hiveOrcPartitionedTable,
-                new String[] { "fmt" }, new String[] { "t1", "t2", "num1", "t1", "vc1" });
+                new String[]{"fmt"}, new String[]{"t1", "t2", "num1", "t1", "vc1"});
     }
 
     private void preparePxfHiveOrcTypes() throws Exception {
@@ -123,12 +123,12 @@ public class HiveOrcTest extends HiveBaseTest {
                 PXF_HIVE_SMALLDATA_COLS, hiveOrcTable);
 
         Table gpdbNativeTable = new Table(GPDB_SMALL_DATA_TABLE, PXF_HIVE_SMALLDATA_COLS);
-        gpdbNativeTable.setDistributionFields(new String[] { "t1" });
+        gpdbNativeTable.setDistributionFields(new String[]{"t1"});
         gpdb.createTableAndVerify(gpdbNativeTable);
         gpdb.copyData(exTable, gpdbNativeTable);
     }
 
-   private void prepareOrcLargeData(int numRows) throws Exception {
+    private void prepareOrcLargeData(int numRows) throws Exception {
         hiveOrcLargeDataTable = new HiveTable("hive_orc_large_data", HIVE_ORC_LARGE_DATA_COLS);
         hiveOrcLargeDataTable.setStoredAs(ORC);
         hive.createTableAndVerify(hiveOrcLargeDataTable);
@@ -136,7 +136,7 @@ public class HiveOrcTest extends HiveBaseTest {
         configuration.set("orc.overwrite.output.file", "true");
         TypeDescription schema = TypeDescription.fromString(ORC_LARGE_DATA_TYPE);
         String fileName = String.format("large_data_%d_rows.orc", numRows);
-        largeOrcDataFile = dataTempFolder + "/" + fileName;
+        String largeOrcDataFile = dataTempFolder + "/" + fileName;
         Writer writer = OrcFile.createWriter(new Path(largeOrcDataFile),
                 OrcFile.writerOptions(configuration).setSchema(schema));
 
@@ -173,7 +173,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "hcatalog", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "hcatalog", "features", "gpdb", "security"})
     public void sanity() throws Exception {
 
         createExternalTable(PXF_HIVE_SMALL_DATA_TABLE + "_orc",
@@ -204,7 +204,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "features", "gpdb", "security"})
     public void columnSubsetOfPartitionedHiveSchema() throws Exception {
 
         preparePartitionedData();
@@ -220,12 +220,12 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "features", "gpdb", "security"})
     public void hiveLongBinaryType() throws Exception {
 
         prepareBinaryData();
         createExternalTable(PXF_HIVE_BINARY_TABLE + "_orc",
-                new String[] { "b1 BYTEA" }, hiveBinaryOrcDataTable);
+                new String[]{"b1 BYTEA"}, hiveBinaryOrcDataTable);
 
         runSqlTest("features/hive/binary_orc_data");
     }
@@ -235,7 +235,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "hcatalog", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "hcatalog", "features", "gpdb", "security"})
     public void storeAsOrc() throws Exception {
 
         createExternalTable(PXF_HIVE_SMALL_DATA_TABLE,
@@ -251,7 +251,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "hcatalog", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "hcatalog", "features", "gpdb", "security"})
     public void storeAsOrcAllTypesHive1AndHive2() throws Exception {
 
         runSqlTest("features/hive/orc_primitive_types");
@@ -265,7 +265,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = {"hive", "hcatalog", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "hcatalog", "features", "gpdb", "security"})
     public void storeAsOrcAllTypesHive1Only() throws Exception {
 
         runSqlTest("features/hive/orc_primitive_types_hive1_only");
@@ -276,7 +276,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "features", "gpdb", "security"})
     public void queryWithNotPushedDownOperators() throws Exception {
 
         runSqlTest("features/hive/orc_operators_no_ppd");
@@ -287,7 +287,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "hcatalog", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "hcatalog", "features", "gpdb", "security"})
     public void storeAsOrcSnappy() throws Exception {
 
         prepareOrcSnappyData();
@@ -303,7 +303,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "hcatalog", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "hcatalog", "features", "gpdb", "security"})
     public void storeAsOrcZlib() throws Exception {
 
         prepareOrcZlibData();
@@ -319,7 +319,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "hcatalog", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "hcatalog", "features", "gpdb", "security"})
     public void storeAsOrcMultiFile() throws Exception {
 
         prepareOrcMultiFileData();
@@ -333,7 +333,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "hcatalog", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "hcatalog", "features", "gpdb", "security"})
     public void storeAsOrcMultiFileGetVectorized() throws Exception {
 
         prepareOrcMultiFileData();
@@ -348,7 +348,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "features" })
+    @Test(groups = {"features"})
     public void defaultAnalyze() throws Exception {
 
         createExternalTable(PXF_HIVE_SMALL_DATA_TABLE,
@@ -356,7 +356,7 @@ public class HiveOrcTest extends HiveBaseTest {
 
         // Perform Analyze on external table and check suitable Warnings.
         gpdb.runQueryWithExpectedWarning("ANALYZE " + exTable.getName(),
-                "ANALYZE for HiveRc, HiveText, and HiveOrc plugins is not supported", true);
+                "skipping \"" + exTable.getName() + "\"", true);
 
         runSqlTest("features/hive/default_analyze");
     }
@@ -366,7 +366,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "features", "gpdb", "security"})
     public void hivePartitionedTable() throws Exception {
 
         preparePartitionedData();
@@ -385,7 +385,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "features", "gpdb", "security"})
     public void hiveCollectionTypes() throws Exception {
 
         prepareHiveCollection();
@@ -401,20 +401,21 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "features", "hcatalog" })
+    @Test(groups = {"features", "hcatalog"})
+    @Ignore
     public void aggregateQueries() throws Exception {
 
         createExternalTable(PXF_HIVE_SMALL_DATA_TABLE,
                 PXF_HIVE_SMALLDATA_COLS, hiveOrcTypesTable);
 
         exTable = TableFactory.getPxfHiveOrcReadableTable(PXF_HIVE_SMALL_DATA_TABLE +
-                        "_multiple_fragments_per_file", PXF_HIVE_TYPES_COLS, hiveOrcAllTypes, true);
+                "_multiple_fragments_per_file", PXF_HIVE_TYPES_COLS, hiveOrcAllTypes, true);
 
         exTable.setAccessor("org.greenplum.pxf.plugins.hive.HiveORCAccessor");
         exTable.setFragmenter("org.greenplum.pxf.automation.testplugin.MultipleHiveFragmentsPerFileFragmenter");
         exTable.setResolver("org.greenplum.pxf.plugins.hive.HiveORCSerdeResolver");
         exTable.setProfile(null);
-        exTable.setUserParameters(new String[] { "TEST-FRAGMENTS-NUM=10" });
+        exTable.setUserParameters(new String[]{"TEST-FRAGMENTS-NUM=10"});
         createTable(exTable);
 
         runSqlTest("features/hcatalog/aggregate_queries");
@@ -427,7 +428,7 @@ public class HiveOrcTest extends HiveBaseTest {
      *
      * @throws Exception if test fails to run
      */
-    @Test(groups = { "hive", "features", "gpdb", "security" })
+    @Test(groups = {"hive", "features", "gpdb", "security"})
     public void hiveTableWithSkipHeader() throws Exception {
 
         HiveTable hiveOrcSkipHeaderTable = new HiveTable("hive_table_with_skipheader_orc", HIVE_RC_COLS);

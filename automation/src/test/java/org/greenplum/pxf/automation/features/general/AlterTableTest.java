@@ -8,6 +8,8 @@ import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
 import org.testng.annotations.Test;
 
+import java.util.Objects;
+
 @WorksWithFDW
 public class AlterTableTest extends BaseFeature {
 
@@ -72,7 +74,7 @@ public class AlterTableTest extends BaseFeature {
 
         // Avro
         // location of schema and data files
-        String absolutePath = getClass().getClassLoader().getResource("data").getPath();
+        String absolutePath = Objects.requireNonNull(getClass().getClassLoader().getResource("data")).getPath();
         resourcePath = absolutePath + "/avro/";
         hdfs.writeAvroFileFromJson(hdfsPath + "/avro/" + AVRO_TYPES_FILE_NAME + SUFFIX_AVRO,
                 FILE_SCHEME + resourcePath + AVRO_TYPES_FILE_NAME + SUFFIX_AVSC,

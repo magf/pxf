@@ -20,19 +20,7 @@
 buildscript {
     repositories {
         mavenCentral()
-        maven {
-            url "https://rt.adsw.io/artifactory/maven-arenadata-release/"
-            mavenContent {
-                releasesOnly()
-            }
-        }
-        maven {
-            url "https://rt.adsw.io/artifactory/maven-arenadata-snapshot/"
-            mavenContent {
-                snapshotsOnly()
-            }
-        }
-    }
+   }
 }
 
 plugins {
@@ -101,7 +89,7 @@ configure(javaProjects) {
             dependency("com.esotericsoftware:reflectasm:1.11.6")
             dependency("com.fasterxml.woodstox:woodstox-core:5.0.3")
             dependency("com.google.code.findbugs:annotations:1.3.9")
-            dependency("com.google.guava:guava:20.0")
+            dependency("com.google.guava:guava:32.0.1-jre")
             dependency("com.google.protobuf:protobuf-java:2.5.0")
             dependency("com.google.cloud.bigdataoss:gcs-connector:hadoop2-1.9.17")
             dependency("com.microsoft.azure:azure-storage:5.5.0")
@@ -111,7 +99,7 @@ configure(javaProjects) {
             dependency("com.zaxxer:HikariCP:3.4.5")
             dependency("commons-codec:commons-codec:1.14")
             dependency("commons-collections:commons-collections:3.2.2")
-            dependency("commons-configuration:commons-configuration:1.10")
+            dependency("org.apache.commons:commons-configuration2:2.1.1")
             dependency("commons-io:commons-io:2.7")
             dependency("commons-lang:commons-lang:2.6")
             dependency("commons-logging:commons-logging:1.1.3")
@@ -123,7 +111,7 @@ configure(javaProjects) {
             dependency("org.apache.commons:commons-compress:1.20")
             dependency("org.apache.htrace:htrace-core:3.1.0-incubating")
             dependency("org.apache.htrace:htrace-core4:4.0.1-incubating")
-            dependency("org.apache.zookeeper:zookeeper:3.4.6")
+            dependency("org.apache.zookeeper:zookeeper:3.8.4")
             dependency("org.codehaus.woodstox:stax2-api:3.1.4")
             dependency("org.datanucleus:datanucleus-api-jdo:4.2.4")
             dependency("org.datanucleus:datanucleus-core:4.1.17")
@@ -131,9 +119,13 @@ configure(javaProjects) {
             dependency("org.json:json:20090211")
             dependency("org.mortbay.jetty:jetty-util:6.1.26")
             dependency("org.objenesis:objenesis:2.1")
+            dependency("com.google.re2j:re2j:1.7")
+            dependency("org.apache.yetus:audience-annotations:0.13.0")
 
             // revert once springboot provided postgresql is upgraded to bundle postgresql:42.7.2+
             dependency("org.postgresql:postgresql:42.7.2")
+
+            dependency("org.mongodb:bson:5.1.1")
 
             dependency("org.simplify4u:slf4j-mock:2.3.0")
             dependency("org.threeten:threeten-extra:1.5.0")
@@ -167,7 +159,22 @@ configure(javaProjects) {
                 entry("hbase-client")
                 entry("hbase-common")
                 entry("hbase-protocol")
+                entry("hbase-protocol-shaded")
+                entry("hbase-zookeeper")
             }
+            dependencySet(group:"org.apache.hbase.thirdparty", version:"4.1.5") {
+                entry("hbase-unsafe")
+                entry("hbase-shaded-protobuf")
+                entry("hbase-shaded-miscellaneous")
+                entry("hbase-shaded-netty")
+                entry("hbase-shaded-gson")
+            }
+            dependencySet(group:"io.opentelemetry", version:"1.15.0") {
+                entry("opentelemetry-api")
+                entry("opentelemetry-context")
+            }
+            dependency("io.opentelemetry:opentelemetry-semconv:1.15.0-alpha")
+            dependency("io.dropwizard.metrics:metrics-core:3.2.6")
 
             // Hive dependencies
             dependency("org.apache.hive:hive-storage-api:${hiveStorageApiVersion}")
@@ -188,14 +195,19 @@ configure(javaProjects) {
                 entry("hive-shims-common")
                 entry("hive-shims-0.23")
             }
+            dependencySet(group:"org.apache.curator", version:"5.6.0") {
+                entry("curator-client")
+                entry("curator-framework")
+            }
+            dependency('org.apache.zookeeper:zookeeper-jute:3.8.4')
 
             // Parquet dependencies
-            dependency("org.apache.parquet:parquet-format:2.7.0")
             dependencySet(group:"org.apache.parquet", version:"${parquetVersion}") {
                 entry("parquet-column")
                 entry("parquet-common")
                 entry("parquet-encoding")
                 entry("parquet-generator")
+                entry("parquet-format-structures")
                 entry("parquet-hadoop")
                 entry("parquet-jackson")
                 entry("parquet-pig")
@@ -232,6 +244,12 @@ configure(javaProjects) {
                 entry("aws-java-sdk-s3")
             }
 
+            // Unit test dependencies
+            dependencySet(group:"org.apache.hadoop.thirdparty", version:"1.1.1") {
+                entry("hadoop-shaded-guava")
+                entry("hadoop-shaded-protobuf_3_7")
+            }
+
             // currently imported BOM spring-boot-dependencies:2.5.12 includes log4j-bom:2.17.2 and
             // importing a module log4j-spring-boot:2.17.2 results in its transitive Junit dependencies
             // being put into compileClasspath so we have to exclude them here so they are not shipped with PXF
@@ -260,7 +278,7 @@ configure(javaProjects) {
         options.compilerArgs += [
                 "-g", "-Xlint:varargs", "-Xlint:cast", "-Xlint:classfile", "-Xlint:dep-ann", "-Xlint:divzero",
                 "-Xlint:empty", "-Xlint:finally", "-Xlint:overrides", "-Xlint:path", "-Xlint:-processing", "-Xlint:static",
-                "-Xlint:try", "-Xlint:fallthrough", "-Xlint:deprecation", "-Xlint:unchecked", "-Xlint:-options", "-Werror"
+                "-Xlint:try", "-Xlint:fallthrough", "-Xlint:unchecked", "-Xlint:-options", "-Werror"
         ]
     }
 
@@ -268,7 +286,7 @@ configure(javaProjects) {
         options.compilerArgs += [
                 "-g", "-Xlint:varargs", "-Xlint:cast", "-Xlint:classfile", "-Xlint:dep-ann", "-Xlint:divzero",
                 "-Xlint:empty", "-Xlint:finally", "-Xlint:overrides", "-Xlint:path", "-Xlint:-processing", "-Xlint:static",
-                "-Xlint:try", "-Xlint:fallthrough", "-Xlint:deprecation", "-Xlint:unchecked", "-Xlint:-options", "-Werror"
+                "-Xlint:try", "-Xlint:fallthrough", "-Xlint:unchecked", "-Xlint:-options", "-Werror"
         ]
     }
 

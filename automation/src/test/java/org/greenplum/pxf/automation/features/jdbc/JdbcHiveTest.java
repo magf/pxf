@@ -128,7 +128,6 @@ public class JdbcHiveTest extends BaseFeature {
     private Hive hive;
     private Hive hive2;
     private Hive hiveNonSecure;
-    private ExternalTable pxfJdbcHiveTypesTable, pxfJdbcHiveTypesServerTable;
 
     // and another kerberized hadoop environment
     private Hdfs hdfs2;
@@ -171,6 +170,7 @@ public class JdbcHiveTest extends BaseFeature {
 
         // On kerberized cluster, enabled then we need the hive/hiveserver2_hostname principal in the connection string.
         // Assuming here that somewhere upstream ugi has a valid login context
+        ExternalTable pxfJdbcHiveTypesTable;
         if (!StringUtils.isEmpty(hive.getKerberosPrincipal())) {
             // When using Hive with Kerberos, JDBC properties must be defined in a server configuration
             pxfJdbcHiveTypesTable = TableFactory.getPxfJdbcReadableTable(
@@ -184,7 +184,7 @@ public class JdbcHiveTest extends BaseFeature {
         pxfJdbcHiveTypesTable.setPort(pxfPort);
         gpdb.createTableAndVerify(pxfJdbcHiveTypesTable);
 
-        pxfJdbcHiveTypesServerTable = TableFactory.getPxfJdbcReadableTable(
+        ExternalTable pxfJdbcHiveTypesServerTable = TableFactory.getPxfJdbcReadableTable(
                 gpdbQueryTableName, GPDB_QUERY_FIELDS, "query:hive-report", serverName);
         pxfJdbcHiveTypesServerTable.setHost(pxfHost);
         pxfJdbcHiveTypesServerTable.setPort(pxfPort);

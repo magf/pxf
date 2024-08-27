@@ -58,17 +58,17 @@ public class JdbcBackPressureTest extends BaseFeature {
             "| awk -F 'Semaphore remains: ' '{print $2}' | awk -F ';' '{ if ( $1+0 > %d ) print $1 }' | wc -l";
 
     private Table oracleTargetTable;
-    private String pxfHome;
     private String pxfJdbcSiteConfPath;
     private String pxfJdbcSiteConfFile;
     private String pxfJdbcSiteConfTemplate;
     private String pxfLogFile;
     private List<Node> pxfNodes;
     private Oracle oracle;
+    private String restartCommand;
 
     @Override
     public void beforeClass() throws Exception {
-        pxfHome = cluster.getPxfHome();
+        String pxfHome = cluster.getPxfHome();
         pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_SERVER_PROFILE);
         pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
         pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
@@ -76,6 +76,7 @@ public class JdbcBackPressureTest extends BaseFeature {
         if (cluster instanceof MultiNodeCluster) {
             pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
         }
+        restartCommand = pxfHome + "/bin/pxf restart";
         oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
         prepareData();
         changeLogLevel("trace");
@@ -187,8 +188,7 @@ public class JdbcBackPressureTest extends BaseFeature {
     }
 
     private void changeLogLevel(String level) throws Exception {
-        cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_LOG_LEVEL=%s", level));
-        cluster.restart(PhdCluster.EnumClusterServices.pxf);
+        cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_LOG_LEVEL=%s;%s", level, restartCommand));
     }
 
     private void cleanPxfLog() throws Exception {

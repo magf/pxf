@@ -19,14 +19,15 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,7 +48,6 @@ public class JsonAccessorWriteTest {
 
     private JsonAccessor accessor;
     private RequestContext context;
-    private Configuration configuration;
     private List<ColumnDescriptor> columnDescriptors;
 
     @BeforeEach
@@ -55,7 +55,7 @@ public class JsonAccessorWriteTest {
         columnDescriptors = new ArrayList<>();
 
         context = new RequestContext();
-        configuration = new Configuration();
+        Configuration configuration = new Configuration();
         configuration.set("pxf.fs.basePath", "/");
         context.setConfiguration(configuration);
 
@@ -153,7 +153,7 @@ public class JsonAccessorWriteTest {
      * @param values         values for the string field, one value per row
      * @param root           value for the root element, null if no object layout is needed
      * @param useCompression whether to use compression when writing the data
-     * @throws IOException
+     * @throws IOException if I/O error occurs
      */
     private void runScenario(String fileName, String[] values, String root, boolean useCompression) throws IOException {
         String path = temp.getAbsolutePath() + "/json/" + fileName;
@@ -195,12 +195,12 @@ public class JsonAccessorWriteTest {
         String writtenExtension = extension + (useCompression ? ".gz" : "");
         File writtenFile = new File(path + "/XID-XYZ-123456_4" + writtenExtension);
         assertTrue(writtenFile.exists());
-        File expectedFile = new File(getClass().getClassLoader().getResource(fileName + extension).getPath());
+        File expectedFile = new File(Objects.requireNonNull(getClass().getClassLoader().getResource(fileName + extension)).getPath());
         if (useCompression) {
             // file contents are not equal as written, but should be equal once the written file is uncompressed
             assertFalse(FileUtils.contentEqualsIgnoreEOL(expectedFile, writtenFile, "UTF-8"));
-            try (Reader expectedInput = new InputStreamReader(new FileInputStream(expectedFile), StandardCharsets.UTF_8);
-                 Reader writtenInput  = new InputStreamReader(new GZIPInputStream(new FileInputStream(writtenFile)), StandardCharsets.UTF_8)) {
+            try (Reader expectedInput = new InputStreamReader(Files.newInputStream(expectedFile.toPath()), StandardCharsets.UTF_8);
+                 Reader writtenInput  = new InputStreamReader(new GZIPInputStream(Files.newInputStream(writtenFile.toPath())), StandardCharsets.UTF_8)) {
                 assertTrue(IOUtils.contentEqualsIgnoreEOL(expectedInput, writtenInput));
             }
         } else {

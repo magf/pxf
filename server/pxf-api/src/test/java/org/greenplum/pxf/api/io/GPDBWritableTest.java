@@ -163,7 +163,7 @@ public class GPDBWritableTest {
     }
 
     // add data to stream, end with EOFException on demand.
-    private DataInput buildStream(int[] data, boolean throwException) throws Exception {
+    private void buildStream(int[] data, boolean throwException) throws Exception {
         inputStream = mock(DataInput.class);
         OngoingStubbing<Integer> ongoing = when(inputStream.readInt());
         for (int b : data) {
@@ -173,6 +173,5 @@ public class GPDBWritableTest {
         if (throwException) {
             ongoing.thenThrow(new EOFException());
         }
-        return inputStream;
     }
 }

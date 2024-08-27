@@ -34,7 +34,6 @@ public class HiveProxySmokeTest extends BaseSmoke {
     private Hive hive;
     private HiveTable hiveTableAllowed;
     private HiveTable hiveTableProhibited;
-    private String hdfsLocationProhibited, hdfsLocationAllowed;
 
     @Override
     public void beforeClass() throws Exception {
@@ -43,7 +42,7 @@ public class HiveProxySmokeTest extends BaseSmoke {
     }
 
     @Override
-    public void afterClass() throws Exception {
+    public void afterClass() {
         // close hive connection
         if (hive != null)
             hive.close();
@@ -93,12 +92,12 @@ public class HiveProxySmokeTest extends BaseSmoke {
         hiveTarget.loadData(hiveTableProhibited, (hdfsTarget.getWorkingDirectory() + "/" + fileName), false);
 
         // update permissions on HDFS directory for prohibited table to be only readable by gpadmin user
-        hdfsLocationProhibited = cluster.getHiveBaseHdfsDirectory() + "/hive_table_prohibited/hiveSmallData.txt";
+        String hdfsLocationProhibited = cluster.getHiveBaseHdfsDirectory() + "/hive_table_prohibited/hiveSmallData.txt";
         hdfsTarget.setMode(hdfsLocationProhibited, "700");
         hdfsTarget.setOwner(hdfsLocationProhibited, getAdminUser(), getAdminUser());
 
         // update permissions on HDFS directory for allowed table to only be readable by testuser
-        hdfsLocationAllowed = cluster.getHiveBaseHdfsDirectory() + "/hive_table_allowed/hiveSmallData.txt";
+        String hdfsLocationAllowed = cluster.getHiveBaseHdfsDirectory() + "/hive_table_allowed/hiveSmallData.txt";
         hdfsTarget.setMode(hdfsLocationAllowed, "700");
         hdfsTarget.setOwner(hdfsLocationAllowed, TEST_USER, TEST_USER);
     }

@@ -4,8 +4,6 @@ import annotations.FailsWithFDW;
 import annotations.WorksWithFDW;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
-import org.greenplum.pxf.automation.utils.system.ProtocolEnum;
-import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
 import org.testng.annotations.Test;
 
 @WorksWithFDW
@@ -84,13 +82,11 @@ public class OrcReadTest extends BaseFeature {
     };
 
     private String hdfsPath;
-    private ProtocolEnum protocol;
 
     @Override
     public void beforeClass() throws Exception {
         // path for storing data on HDFS (for processing by PXF)
         hdfsPath = hdfs.getWorkingDirectory() + "/orc/";
-        protocol = ProtocolUtils.getProtocol();
 
         String resourcePath = localDataResourcesFolder + "/orc/";
         hdfs.copyFromLocal(resourcePath + ORC_PRIMITIVE_TYPES, hdfsPath + ORC_PRIMITIVE_TYPES);

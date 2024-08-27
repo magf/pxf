@@ -54,7 +54,7 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
     void prepareTypesData() throws Exception {
 
         hiveTypesTable = TableFactory.getHiveByRowCommaTable(HIVE_TYPES_TABLE,
-                hiveTypesNoTMCols.toArray(new String[hiveTypesNoTMCols.size()]));
+                hiveTypesNoTMCols.toArray(new String[0]));
 
         hive.createTableAndVerify(hiveTypesTable);
         loadDataIntoHive("hive_types_no_timestamp.txt", hiveTypesTable);
@@ -68,15 +68,17 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
         hive.insertData(hiveSmallDataTable, hiveOrcTable);
 
         hiveOrcAllTypes = new HiveTable("hive_orc_all_types",
-                hiveTypesNoTMCols.toArray(new String[hiveTypesNoTMCols.size()]));
+                hiveTypesNoTMCols.toArray(new String[0]));
         hiveOrcAllTypes.setStoredAs(ORC);
         hive.createTableAndVerify(hiveOrcAllTypes);
+        hive.runQuery("SET hive.vectorized.execution.enabled = false");
         hive.insertData(hiveTypesTable, hiveOrcAllTypes);
+        hive.runQuery("SET hive.vectorized.execution.enabled = true");
     }
 
     private void preparePxfHiveOrcTypes() throws Exception {
         exTable = TableFactory.getPxfHiveOrcReadableTable(PXF_HIVE_ORC_TABLE,
-                gpdbTypesNoTMCols.toArray(new String[gpdbTypesNoTMCols.size()]), hiveOrcAllTypes, true);
+                gpdbTypesNoTMCols.toArray(new String[0]), hiveOrcAllTypes, true);
         // this profile is now deprecated
         exTable.setProfile("HiveVectorizedORC");
         createTable(exTable);
@@ -91,6 +93,7 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
         hiveRepeatingNoNullsOrcTable = new HiveTable("hive_types_all_columns_repeating_no_nulls_orc", HIVE_TYPES_NO_TIMESTAMP_COLS);
         hiveRepeatingNoNullsOrcTable.setStoredAs(ORC);
         hive.createTableAndVerify(hiveRepeatingNoNullsOrcTable);
+        hive.runQuery("SET hive.vectorized.execution.enabled = false");
         hive.insertData(hiveRepeatingCsvTable, hiveRepeatingNoNullsOrcTable);
 
         hiveRepeatingCsvTable = prepareTableData(hdfs, hive, null, "hive_types_all_columns_repeating_csv", HIVE_TYPES_NO_TIMESTAMP_COLS, "hive_types_all_columns_repeating_nulls.txt");
@@ -99,7 +102,7 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
         hiveRepeatingNullsOrcTable.setStoredAs(ORC);
         hive.createTableAndVerify(hiveRepeatingNullsOrcTable);
         hive.insertData(hiveRepeatingCsvTable, hiveRepeatingNullsOrcTable);
-
+        hive.runQuery("SET hive.vectorized.execution.enabled = true");
     }
 
     @Override

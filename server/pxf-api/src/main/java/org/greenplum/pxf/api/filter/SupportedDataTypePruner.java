@@ -38,8 +38,8 @@ public class SupportedDataTypePruner extends BaseTreePruner {
                 DataType datatype = columnDescriptor.getDataType();
                 if (!supportedDataTypes.contains(datatype)) {
                     // prune the operator node if its operand is a column of unsupported type
-                    LOG.debug("DataType oid={} for column=(index:{} name:{}) is not supported",
-                            datatype.getOID(), columnDescriptor.columnIndex(), columnDescriptor.columnName());
+                    LOG.debug("DataType (name={} oid={}) for column=(index:{} name:{}) is not supported",
+                            datatype.name(), datatype.getOID(), columnDescriptor.columnIndex(), columnDescriptor.columnName());
                     return null;
                 }
             }

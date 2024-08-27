@@ -154,7 +154,8 @@ public class HiveORCVectorizedResolver extends HiveResolver implements ReadVecto
                 }
                 break;
             }
-            case SHORT: {
+            case SHORT:
+            case BYTE: {
                 fieldType = SMALLINT;
                 LongColumnVector lcv = (LongColumnVector) columnVector;
                 for (int rowIndex = 0; rowIndex < vectorizedBatch.size; rowIndex++) {
@@ -245,54 +246,15 @@ public class HiveORCVectorizedResolver extends HiveResolver implements ReadVecto
                 break;
             }
             case VARCHAR: {
-                fieldType = VARCHAR;
-                BytesColumnVector bcv = (BytesColumnVector) columnVector;
-                for (int rowIndex = 0; rowIndex < vectorizedBatch.size; rowIndex++) {
-                    fieldValue = null;
-                    if (columnVector != null) {
-                        int rowId = bcv.isRepeating ? 0 : rowIndex;
-                        if (!bcv.isNull[rowId]) {
-                            Text textValue = new Text();
-                            textValue.set(bcv.vector[rowId], bcv.start[rowId], bcv.length[rowId]);
-                            fieldValue = textValue;
-                        }
-                    }
-                    addValueToColumn(columnIndex, rowIndex, new OneField(fieldType.getOID(), fieldValue));
-                }
+                addValueToTextColumn(vectorizedBatch, columnIndex, columnVector, VARCHAR);
                 break;
             }
             case CHAR: {
-                fieldType = BPCHAR;
-                BytesColumnVector bcv = (BytesColumnVector) columnVector;
-                for (int rowIndex = 0; rowIndex < vectorizedBatch.size; rowIndex++) {
-                    fieldValue = null;
-                    if (columnVector != null) {
-                        int rowId = bcv.isRepeating ? 0 : rowIndex;
-                        if (!bcv.isNull[rowId]) {
-                            Text textValue = new Text();
-                            textValue.set(bcv.vector[rowId], bcv.start[rowId], bcv.length[rowId]);
-                            fieldValue = textValue;
-                        }
-                    }
-                    addValueToColumn(columnIndex, rowIndex, new OneField(fieldType.getOID(), fieldValue));
-                }
+                addValueToTextColumn(vectorizedBatch, columnIndex, columnVector, BPCHAR);
                 break;
             }
             case STRING: {
-                fieldType = TEXT;
-                BytesColumnVector bcv = (BytesColumnVector) columnVector;
-                for (int rowIndex = 0; rowIndex < vectorizedBatch.size; rowIndex++) {
-                    fieldValue = null;
-                    if (columnVector != null) {
-                        int rowId = bcv.isRepeating ? 0 : rowIndex;
-                        if (!bcv.isNull[rowId]) {
-                            Text textValue = new Text();
-                            textValue.set(bcv.vector[rowId], bcv.start[rowId], bcv.length[rowId]);
-                            fieldValue = textValue;
-                        }
-                    }
-                    addValueToColumn(columnIndex, rowIndex, new OneField(fieldType.getOID(), fieldValue));
-                }
+                addValueToTextColumn(vectorizedBatch, columnIndex, columnVector, TEXT);
                 break;
             }
             case BINARY: {
@@ -326,26 +288,30 @@ public class HiveORCVectorizedResolver extends HiveResolver implements ReadVecto
                 }
                 break;
             }
-            case BYTE: {
-                fieldType = SMALLINT;
-                LongColumnVector lcv = (LongColumnVector) columnVector;
-                for (int rowIndex = 0; rowIndex < vectorizedBatch.size; rowIndex++) {
-                    fieldValue = null;
-                    if (lcv != null) {
-                        int rowId = lcv.isRepeating ? 0 : rowIndex;
-                        if (!lcv.isNull[rowId]) {
-                            fieldValue = (short) lcv.vector[rowId];
-                        }
-                    }
-                    addValueToColumn(columnIndex, rowIndex, new OneField(fieldType.getOID(), fieldValue));
-                }
-                break;
-            }
             default: {
                 throw new UnsupportedTypeException(oi.getTypeName()
                         + " conversion is not supported by "
                         + getClass().getSimpleName());
             }
+        }
+    }
+
+    private void addValueToTextColumn(VectorizedRowBatch vectorizedBatch, int columnIndex, ColumnVector columnVector, DataType dataType) {
+        DataType fieldType;
+        Object fieldValue;
+        fieldType = dataType;
+        BytesColumnVector bcv = (BytesColumnVector) columnVector;
+        for (int rowIndex = 0; rowIndex < vectorizedBatch.size; rowIndex++) {
+            fieldValue = null;
+            if (columnVector != null) {
+                int rowId = bcv.isRepeating ? 0 : rowIndex;
+                if (!bcv.isNull[rowId]) {
+                    Text textValue = new Text();
+                    textValue.set(bcv.vector[rowId], bcv.start[rowId], bcv.length[rowId]);
+                    fieldValue = textValue;
+                }
+            }
+            addValueToColumn(columnIndex, rowIndex, new OneField(fieldType.getOID(), fieldValue));
         }
     }
 }

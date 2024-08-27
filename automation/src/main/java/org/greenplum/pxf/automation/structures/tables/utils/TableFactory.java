@@ -474,8 +474,7 @@ public abstract class TableFactory {
      */
     public static HiveTable getHiveByRowCommaTable(String name, String[] fields) {
 
-    	HiveTable table = getHiveByRowCommaTable(name, null, fields);
-        return table;
+        return getHiveByRowCommaTable(name, null, fields);
     }
 
 
@@ -516,7 +515,7 @@ public abstract class TableFactory {
                                                          String server, String customParameters) {
         ExternalTable exTable = getReadableExternalOrForeignTable(name, fields,
                 dataSourcePath, "CUSTOM");
-        List<String> userParameters = new ArrayList<String>();
+        List<String> userParameters = new ArrayList<>();
         if (driver != null) {
             userParameters.add("JDBC_DRIVER=" + driver);
         }
@@ -544,7 +543,7 @@ public abstract class TableFactory {
         if (customParameters != null) {
             userParameters.add(customParameters);
         }
-        exTable.setUserParameters(userParameters.toArray(new String[userParameters.size()]));
+        exTable.setUserParameters(userParameters.toArray(new String[0]));
         exTable.setProfile("jdbc");
         exTable.setFormatter("pxfwritable_import");
 
@@ -567,7 +566,7 @@ public abstract class TableFactory {
             String dbUrl, String user, String customParameters) {
 
         ExternalTable exTable = getWritableExternalOrForeignTable(name, fields, dataSourcePath, "CUSTOM");
-        List<String> userParameters = new ArrayList<String>();
+        List<String> userParameters = new ArrayList<>();
         if (driver != null) {
             userParameters.add("JDBC_DRIVER=" + driver);
         }
@@ -580,7 +579,7 @@ public abstract class TableFactory {
         if (customParameters != null) {
             userParameters.add(customParameters);
         }
-        exTable.setUserParameters(userParameters.toArray(new String[userParameters.size()]));
+        exTable.setUserParameters(userParameters.toArray(new String[0]));
         exTable.setProfile("jdbc");
         exTable.setFormatter("pxfwritable_export");
 

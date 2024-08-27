@@ -9,7 +9,7 @@ import java.io.IOException;
 
 /**
  * This class fixes an issue introduced in ORC core library version 1.5.9
- * where the {@link org.apache.orc.TypeDescription#createColumn(TypeDescription.RowBatchVersion, int)}
+ * where the {@link org.apache.orc.impl.TypeUtils#createColumn(TypeDescription, TypeDescription.RowBatchVersion, int)}
  * method returns a {@link DateColumnVector} instead of a
  * {@link org.apache.hadoop.hive.ql.exec.vector.LongColumnVector}. The problem
  * with that change is that

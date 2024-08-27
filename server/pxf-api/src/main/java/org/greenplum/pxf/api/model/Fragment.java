@@ -27,32 +27,29 @@ import org.greenplum.pxf.api.utilities.FragmentMetadata;
  * Fragment holds a data fragment' information.
  * {@link Fragmenter#getFragments} returns a list of fragments.
  */
+@Getter
 public class Fragment {
 
     /**
      * File path+name, table name, etc.
      */
-    @Getter
     private final String sourceName;
 
     /**
      * Fragment index (incremented per sourceName).
      */
-    @Getter
     @Setter
     private int index;
 
     /**
      * Fragment metadata information (starting point + length, region location, etc.).
      */
-    @Getter
     @Setter
     private FragmentMetadata metadata;
 
     /**
      * Profile name, recommended for reading given Fragment.
      */
-    @Getter
     @Setter
     private String profile;
 

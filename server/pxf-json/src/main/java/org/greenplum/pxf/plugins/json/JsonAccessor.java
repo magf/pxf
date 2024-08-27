@@ -105,7 +105,7 @@ public class JsonAccessor extends LineBreakAccessor {
      * for an object layout the name of the root element that will have a tuple array as the value
      */
     private String rootName;
-    private JsonFactory jsonFactory;
+    private final JsonFactory jsonFactory;
     private JsonGenerator jsonGenerator;
     private ColumnDescriptor[] columnDescriptors;
     private boolean isFirstRecord;
@@ -159,7 +159,7 @@ public class JsonAccessor extends LineBreakAccessor {
      * Opens the resource for write and writes a header, if applicable.
      *
      * @return true if the resource is successfully opened
-     * @throws Exception if opening the resource failed
+     * @throws IOException if I/O error occurs
      */
     @Override
     public boolean openForWrite() throws IOException {
@@ -188,8 +188,8 @@ public class JsonAccessor extends LineBreakAccessor {
      * Writes the next object.
      *
      * @param onerow the object to be written
-     * @return true if the write succeeded
-     * @throws Exception writing to the resource failed
+     * @return true if write succeeded
+     * @throws IOException if I/O error occurs
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -225,7 +225,7 @@ public class JsonAccessor extends LineBreakAccessor {
     /**
      * Closes the resource for write.
      *
-     * @throws Exception if closing the resource failed
+     * @throws IOException if I/O error occurs
      */
     @Override
     public void closeForWrite() throws IOException {
@@ -250,7 +250,7 @@ public class JsonAccessor extends LineBreakAccessor {
                 // closing of streams failed, but if there was a more important exception caught before, suppress this one
                 if (caughtException) {
                     // suppress the new exception, just log its message and let the original one propagate
-                    LOG.warn("Suppressing exception when closing Json generator: ", e.getMessage());
+                    LOG.warn("Suppressing exception when closing Json generator: {}", e.getMessage());
                 } else {
                     // since this is the first and only exception we see, throw it
                     throw e;
@@ -267,7 +267,7 @@ public class JsonAccessor extends LineBreakAccessor {
             identifier = context.getOption(IDENTIFIER_PARAM);
             // If the member identifier is set then check if a record max length is defined as well.
             if (!isEmpty(context.getOption(RECORD_MAX_LENGTH_PARAM))) {
-                maxRecordLength = Integer.valueOf(context.getOption(RECORD_MAX_LENGTH_PARAM));
+                maxRecordLength = Integer.parseInt(context.getOption(RECORD_MAX_LENGTH_PARAM));
             }
         }
     }

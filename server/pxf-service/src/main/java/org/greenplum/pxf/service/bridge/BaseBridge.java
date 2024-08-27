@@ -14,13 +14,13 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class BaseBridge implements Bridge {
 
-    protected final Logger LOG = LoggerFactory.getLogger(this.getClass());
+    protected static final Logger LOG = LoggerFactory.getLogger(BaseBridge.class);
 
     protected Accessor accessor;
-    protected Resolver resolver;
-    protected BasePluginFactory pluginFactory;
-    protected RequestContext context;
-    protected GSSFailureHandler failureHandler;
+    protected final Resolver resolver;
+    protected final BasePluginFactory pluginFactory;
+    protected final RequestContext context;
+    protected final GSSFailureHandler failureHandler;
 
     /**
      * Creates a new instance of the bridge.

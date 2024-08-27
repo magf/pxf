@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.hbase;
  * under the License.
  */
 
+import lombok.Getter;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.filter.BinaryComparator;
 import org.apache.hadoop.hbase.filter.ByteArrayComparable;
@@ -86,7 +87,21 @@ public class HBaseFilterBuilder implements TreeVisitor {
 
     private boolean endKeyAssigned = false;
     private boolean startKeyAssigned = false;
+    /**
+     *  Returns the endKey for scanning the HBase table.
+     *  If the user specified an operation
+     *  on a textual row key column, this value will be returned.
+     *  Otherwise, the end of table.
+     */
+    @Getter
     private byte[] endKey;
+    /**
+     *  Returns the startKey for scanning the HBase table.
+     *  If the user specified an operation
+     *  on a textual row key column, this value will be returned.
+     *  Otherwise, the start of table.
+     */
+    @Getter
     private byte[] startKey;
     private final Deque<Filter> filterQueue;
     private Filter currentFilter;
@@ -159,30 +174,6 @@ public class HBaseFilterBuilder implements TreeVisitor {
             throw new IllegalStateException("Filter queue is not empty after visiting all nodes");
         }
         return currentFilter;
-    }
-
-    /**
-     * Returns the startKey for scanning the HBase table.
-     * If the user specified a {@code > / >=} operation
-     * on a textual row key column, this value will be returned.
-     * Otherwise, the start of table.
-     *
-     * @return start key for scanning HBase table
-     */
-    public byte[] getStartKey() {
-        return startKey;
-    }
-
-    /**
-     * Returns the endKey for scanning the HBase table.
-     * If the user specified a {@code < / <=} operation
-     * on a textual row key column, this value will be returned.
-     * Otherwise, the end of table.
-     *
-     * @return end key for scanning HBase table
-     */
-    public byte[] getEndKey() {
-        return endKey;
     }
 
     /**

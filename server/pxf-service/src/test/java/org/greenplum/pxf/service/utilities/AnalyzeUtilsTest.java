@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 public class AnalyzeUtilsTest {
 
     @Test
-    public void generateSamplingBitSet() throws Exception {
+    public void generateSamplingBitSet() {
         runGenerateSamplingBitSetTest(10, 5, new int[]{0, 3, 4, 6, 9});
 
         runGenerateSamplingBitSetTest(9, 8, new int[]{0, 2, 3, 4, 5, 6, 7, 8});
@@ -51,7 +51,7 @@ public class AnalyzeUtilsTest {
 
     @Test
     @Disabled("flakey test due to java heap space (memory err)")
-    public void generateSamplingBitSetBig() throws Exception {
+    public void generateSamplingBitSetBig() {
         BitSet result = AnalyzeUtils.generateSamplingBitSet(1000000, 990000);
         assertEquals(result.cardinality(), 990000);
         assertTrue(result.length() < 1000000);
@@ -62,7 +62,7 @@ public class AnalyzeUtilsTest {
     }
 
     @Test
-    public void getSampleFragments() throws Exception {
+    public void getSampleFragments() {
         // fragments less than threshold
         runGetSampleFragmentsTest(4, 100, 4, new int[]{0, 1, 2, 3});
 
@@ -91,7 +91,7 @@ public class AnalyzeUtilsTest {
         runGetSampleFragmentsTest(10, 0, 10, new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
     }
 
-    private void runGenerateSamplingBitSetTest(int poolSize, int sampleSize, int[] expectedIndexes) throws Exception {
+    private void runGenerateSamplingBitSetTest(int poolSize, int sampleSize, int[] expectedIndexes) {
         BitSet expected = new BitSet();
         for (int i : expectedIndexes) {
             expected.set(i);
@@ -101,7 +101,7 @@ public class AnalyzeUtilsTest {
         assertEquals(expected, result);
     }
 
-    private void runGetSampleFragmentsTest(int inputSize, int maxFragments, int expectedSize, int[] expectedIndexes) throws Exception {
+    private void runGetSampleFragmentsTest(int inputSize, int maxFragments, int expectedSize, int[] expectedIndexes) {
         RequestContext mockContext = mock(RequestContext.class);
         when(mockContext.getStatsMaxFragments()).thenReturn(maxFragments);
 

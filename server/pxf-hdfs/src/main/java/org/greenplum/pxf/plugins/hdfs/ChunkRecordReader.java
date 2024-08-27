@@ -31,7 +31,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.Seekable;
 import org.apache.hadoop.hdfs.DFSInputStream;
-import org.apache.hadoop.hdfs.DFSInputStream.ReadStatistics;
+import org.apache.hadoop.hdfs.ReadStatistics;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.compress.CodecPool;
@@ -54,16 +54,15 @@ import org.apache.hadoop.mapred.RecordReader;
 public class ChunkRecordReader implements
         RecordReader<LongWritable, ChunkWritable> {
 
-    private CompressionCodecFactory compressionCodecs = null;
     private long start;
     private long pos;
     private long end;
-    private long fileLength;
-    private ChunkReader in;
-    private FSDataInputStream fileIn;
+    private final long fileLength;
+    private final ChunkReader in;
+    private final FSDataInputStream fileIn;
     private final Seekable filePosition;
-    private int maxLineLength;
-    private CompressionCodec codec;
+    private final int maxLineLength;
+    private final CompressionCodec codec;
     private Decompressor decompressor;
     private static final int CHUNK_SIZE = 1024 * 1024;
 
@@ -107,7 +106,7 @@ public class ChunkRecordReader implements
         start = split.getStart();
         end = start + split.getLength();
         final Path file = split.getPath();
-        compressionCodecs = new CompressionCodecFactory(job);
+        CompressionCodecFactory compressionCodecs = new CompressionCodecFactory(job);
         codec = compressionCodecs.getCodec(file);
 
         // openForWrite the file and seek to the start of the split
@@ -198,9 +197,9 @@ public class ChunkRecordReader implements
         float factor = 1.5f;
         int limit = (int) (factor * CHUNK_SIZE);
         long curPos = getFilePosition();
-        int newSize = 0;
+        int newSize;
 
-        while (curPos <= end) {
+        if (curPos <= end) {
             key.set(pos);
 
             if ((end - curPos) > limit) {
@@ -210,7 +209,7 @@ public class ChunkRecordReader implements
                         Math.max(maxBytesToConsume(pos), maxLineLength));
             }
             if (newSize == 0) {
-                break;
+                return false;
             }
 
             pos += newSize;
@@ -256,7 +255,7 @@ public class ChunkRecordReader implements
      * @return pos - start byte of the unread tail of the file
      */
     @Override
-    public synchronized long getPos() throws IOException {
+    public synchronized long getPos() {
         return pos;
     }
 

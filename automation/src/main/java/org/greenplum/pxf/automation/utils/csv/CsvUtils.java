@@ -1,6 +1,5 @@
 package org.greenplum.pxf.automation.utils.csv;
 
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -10,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -28,7 +26,7 @@ public abstract class CsvUtils {
 	 *
 	 * @param pathToCsvFile to read from to Table
 	 * @return {@link Table} with data list from CSV file
-	 * @throws IOException
+	 * @throws IOException if I/O error occurs
 	 */
 	public static Table getTable(String pathToCsvFile) throws IOException {
 
@@ -42,9 +40,9 @@ public abstract class CsvUtils {
 		Table dataTable = new Table(pathToCsvFile, null);
 
 		try {
-			for (Iterator<String[]> iterator = list.iterator(); iterator.hasNext();) {
-				dataTable.addRow(iterator.next());
-			}
+            for (String[] strings : list) {
+                dataTable.addRow(strings);
+            }
 		} finally {
 			csvReader.close();
 		}
@@ -58,7 +56,7 @@ public abstract class CsvUtils {
 	 *
 	 * @param originalDelim Original single char delimiter
 	 * @param newDelimiter Desired multi-char delimiter
-	 * @throws IOException
+	 * @throws IOException if I/O error occurs
 	 */
 	public static void updateDelim(String targetCsvFile, char originalDelim, String newDelimiter)
 			throws IOException {
@@ -80,7 +78,7 @@ public abstract class CsvUtils {
 	 * @param quotechar the quote value to use for each col
 	 * @param escapechar the escape value to use
 	 * @param eol the eol value to indicate end of row
-	 * @throws IOException
+	 * @throws IOException if I/O error occurs
 	 */
 	public static void writeTableToCsvFile(Table table, String targetCsvFile, Charset charset,
 										   char delimiter, char quotechar,
@@ -88,7 +86,7 @@ public abstract class CsvUtils {
 			throws IOException {
 
 		// create CsvWriter using OutputStreamWriter to allow for user given values
-		CSVWriter csvWriter = new CSVWriter(new OutputStreamWriter(new FileOutputStream(targetCsvFile), charset), delimiter, quotechar, escapechar, eol);
+		CSVWriter csvWriter = new CSVWriter(new OutputStreamWriter(Files.newOutputStream(Paths.get(targetCsvFile)), charset), delimiter, quotechar, escapechar, eol);
 		try {
 			// go over list and write each inner list to csv file
 			for (List<String> currentList : table.getData()) {
@@ -110,7 +108,7 @@ public abstract class CsvUtils {
 	 *
 	 * @param table {@link Table} contains required data list to write to CSV file
 	 * @param targetCsvFile to write the data Table
-	 * @throws IOException
+	 * @throws IOException if I/O error occurs
 	 */
 	public static void writeTableToCsvFile(Table table, String targetCsvFile)
 		throws IOException {

@@ -109,7 +109,7 @@ public class HdfsDataFragmenter extends BaseFragmenter {
 
     protected List<InputSplit> getSplits(Path path) throws IOException {
         JobConf jobConf = getJobConf();
-        PxfInputFormat pxfInputFormat = new PxfInputFormat();
+        PxfInputFormat<?, ?> pxfInputFormat = new PxfInputFormat<>();
         PxfInputFormat.setInputPaths(jobConf, path);
         InputSplit[] splits = pxfInputFormat.getSplits(jobConf, 1);
         List<InputSplit> result = new ArrayList<>();

@@ -1,5 +1,6 @@
 package org.greenplum.pxf.plugins.hive;
 
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -33,6 +34,7 @@ import java.net.URL;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
@@ -52,6 +54,8 @@ public class HiveClientWrapper {
     private static final String STR_RC_FILE_INPUT_FORMAT = "org.apache.hadoop.hive.ql.io.RCFileInputFormat";
     private static final String STR_TEXT_FILE_INPUT_FORMAT = "org.apache.hadoop.mapred.TextInputFormat";
     private static final String STR_ORC_FILE_INPUT_FORMAT = "org.apache.hadoop.hive.ql.io.orc.OrcInputFormat";
+    private static final Collection<String> STR_FILE_INPUT_FORMAT_LIST = Arrays.asList(STR_RC_FILE_INPUT_FORMAT,
+            STR_TEXT_FILE_INPUT_FORMAT, STR_ORC_FILE_INPUT_FORMAT);
 
     private HiveClientFactory hiveClientFactory;
     private HiveUtilities hiveUtilities;
@@ -281,7 +285,7 @@ public class HiveClientWrapper {
         try {
             databases = client.getDatabases(dbPattern);
             if (databases.isEmpty()) {
-                LOG.warn("No database found for the given pattern: " + dbPattern);
+                LOG.warn("No database found for the given pattern: {}", dbPattern);
                 return null;
             }
             for (String dbName : databases) {
@@ -344,22 +348,15 @@ public class HiveClientWrapper {
      * transforms the class name to an enumeration for writing it to the
      * accessors on other PXF instances.
      */
-    private String assertFileType(String className, HiveTablePartition partData) {
-        switch (className) {
-            case STR_RC_FILE_INPUT_FORMAT:
-                return HiveInputFormatFragmenter.PXF_HIVE_INPUT_FORMATS.RC_FILE_INPUT_FORMAT.name();
-            case STR_TEXT_FILE_INPUT_FORMAT:
-                return HiveInputFormatFragmenter.PXF_HIVE_INPUT_FORMATS.TEXT_FILE_INPUT_FORMAT.name();
-            case STR_ORC_FILE_INPUT_FORMAT:
-                return HiveInputFormatFragmenter.PXF_HIVE_INPUT_FORMATS.ORC_FILE_INPUT_FORMAT.name();
-            default:
-                throw new IllegalArgumentException(
-                        "HiveInputFormatFragmenter does not yet support "
-                                + className
-                                + " for "
-                                + partData
-                                + ". Supported InputFormat are "
-                                + Arrays.toString(HiveInputFormatFragmenter.PXF_HIVE_INPUT_FORMATS.values()));
+    private void assertFileType(String className, HiveTablePartition partData) {
+        if (!STR_FILE_INPUT_FORMAT_LIST.contains(className)) {
+            throw new IllegalArgumentException(
+                    "HiveInputFormatFragmenter does not yet support "
+                            + className
+                            + " for "
+                            + partData
+                            + ". Supported InputFormat are "
+                            + Arrays.toString(HiveInputFormatFragmenter.PXF_HIVE_INPUT_FORMATS.values()));
         }
     }
 
@@ -402,23 +399,17 @@ public class HiveClientWrapper {
      * The class just wraps the real client, it does not delegate any methods to the real client as there would be
      * too many methods to override.
      */
+    @Getter
     public static class MetaStoreClientHolder implements AutoCloseable {
         private final IMetaStoreClient client;
 
         /**
          * Creates a new holder of the provided Metastore client.
+         *
          * @param client a client to hold
          */
         MetaStoreClientHolder(IMetaStoreClient client) {
             this.client = client;
-        }
-
-        /**
-         * Returns a Metastore client contained by the holder.
-         * @return
-         */
-        public IMetaStoreClient getClient() {
-            return client;
         }
 
         @Override
