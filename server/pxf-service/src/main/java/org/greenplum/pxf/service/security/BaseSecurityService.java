@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.HadoopKerberosName;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.ConfigurationFactory;
 import org.greenplum.pxf.api.model.RequestContext;
@@ -99,6 +100,11 @@ public class BaseSecurityService implements SecurityService {
                 String realm = (new HadoopKerberosName(loginUser.getUserName())).getRealm();
                 // include realm in the principal name, if required
                 remoteUser = expandRemoteUserName(configuration, remoteUser, realm, isConstrainedDelegationEnabled);
+            } else {
+                // Initialize hadoop default rules if the user contains '@', for example user@domaim.com
+                if (remoteUser.contains("@") && !KerberosName.hasRulesBeenSet()) {
+                    HadoopKerberosName.setConfiguration(configuration);
+                }
             }
 
             // set remote user so that it can be retrieved in the downstream logic, e.g. by PxfSaslPropertiesResolver

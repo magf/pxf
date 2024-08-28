@@ -122,7 +122,7 @@ public class SecureLogin {
                         String remoteUser = configuration.get(CONFIG_KEY_SERVICE_USER_NAME, System.getProperty("user.name"));
                         // Initialize hadoop default rules if the user contains '@', for example user@domaim.com
                         if (remoteUser.contains("@") && !KerberosName.hasRulesBeenSet()) {
-                            HadoopKerberosName.setConfiguration(new Configuration());
+                            HadoopKerberosName.setConfiguration(configuration);
                          }
                         UserGroupInformation loginUser = UserGroupInformation.createRemoteUser(remoteUser);
                         loginSession = new LoginSession(configDirectory, loginUser);

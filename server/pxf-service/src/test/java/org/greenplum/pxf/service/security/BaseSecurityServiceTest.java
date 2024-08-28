@@ -21,6 +21,7 @@ package org.greenplum.pxf.service.security;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.greenplum.pxf.api.error.PxfRuntimeException;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.security.SecureLogin;
@@ -37,6 +38,7 @@ import java.security.PrivilegedAction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -85,6 +87,13 @@ public class BaseSecurityServiceTest {
         expectScenario("login-user", false, false, false, false);
         service.doAs(context, EMPTY_ACTION);
         verifyScenario("login-user", false, false, false);
+    }
+
+    @Test
+    public void determineRemoteUserWithRealm_IsLoginUser_NoKerberos_NoImpersonation_NoServiceUser() throws Exception {
+        expectScenarioWithRealm("login-user@REALM", false, false, false, false, true);
+        service.doAs(context, EMPTY_ACTION);
+        verifyScenario("login-user@REALM", false, false, false, true, true);
     }
 
     @Test
@@ -152,7 +161,7 @@ public class BaseSecurityServiceTest {
         // this is a useless case as constrained delegation is enabled for no reason, but it is a possible config combo
         expectScenario("login-user@REALM", true, false, false, true);
         service.doAs(context, EMPTY_ACTION);
-        verifyScenario("login-user@REALM", true, false, true, false);
+        verifyScenario("login-user@REALM", true, false, true, false, false);
     }
 
     @Test
@@ -171,7 +180,7 @@ public class BaseSecurityServiceTest {
         service = new BaseSecurityService(mockSecureLogin, mockUGIProvider, false);
         expectScenario("login-user@REALM", true, false, false, true);
         service.doAs(context, EMPTY_ACTION);
-        verifyScenario("login-user@REALM", true, false, true, false);
+        verifyScenario("login-user@REALM", true, false, true, false, false);
     }
 
     @Test
@@ -297,6 +306,15 @@ public class BaseSecurityServiceTest {
     /* ----------- helper methods ----------- */
 
     private void expectScenario(String remoteUser, boolean kerberos, boolean impersonation, boolean serviceUser, boolean constrainedDelegation) throws Exception {
+        expectScenarioWithRealm(remoteUser, kerberos, impersonation, serviceUser, constrainedDelegation, false);
+    }
+
+    private void expectScenarioWithRealm(String remoteUser,
+                                         boolean kerberos,
+                                         boolean impersonation,
+                                         boolean serviceUser,
+                                         boolean constrainedDelegation,
+                                         boolean realm) throws Exception {
         if (kerberos) {
             configuration.set("hadoop.security.authentication", "kerberos");
         }
@@ -307,7 +325,7 @@ public class BaseSecurityServiceTest {
         when(mockSecureLogin.isUserImpersonationEnabled(configuration)).thenReturn(impersonation);
         when(mockSecureLogin.isConstrainedDelegationEnabled(configuration)).thenReturn(constrainedDelegation);
 
-        if (kerberos) {
+        if (kerberos || realm) {
             when(mockLoginUGI.getUserName()).thenReturn("login-user@REALM");
         } else {
             when(mockLoginUGI.getUserName()).thenReturn("login-user");
@@ -334,8 +352,8 @@ public class BaseSecurityServiceTest {
         if (kerberos) {
             configuration.set("hadoop.security.authentication", "kerberos");
         }
-        configuration.set("pxf.service.kerberos.constrained-delegation","true");
-        configuration.set("pxf.config.server.directory","foo-dir"); // for checking error hint message
+        configuration.set("pxf.service.kerberos.constrained-delegation", "true");
+        configuration.set("pxf.config.server.directory", "foo-dir"); // for checking error hint message
 
         when(mockSecureLogin.isUserImpersonationEnabled(configuration)).thenReturn(impersonation);
         when(mockSecureLogin.isConstrainedDelegationEnabled(configuration)).thenReturn(true);
@@ -354,11 +372,11 @@ public class BaseSecurityServiceTest {
     }
 
     private void verifyScenario(String user, boolean kerberos, boolean impersonation, boolean constrainedDelegation) {
-        verifyScenario(user, kerberos, impersonation, constrainedDelegation, true);
+        verifyScenario(user, kerberos, impersonation, constrainedDelegation, true, false);
     }
 
     private void verifyScenario(String user, boolean kerberos, boolean impersonation,
-                                boolean constrainedDelegation, boolean expectPropertiesResolver) {
+                                boolean constrainedDelegation, boolean expectPropertiesResolver, boolean realm) {
         if (impersonation || constrainedDelegation) {
             verify(mockUGIProvider).createProxyUser(user, mockLoginUGI);
         } else {
@@ -371,6 +389,9 @@ public class BaseSecurityServiceTest {
             assertEquals(PxfSaslPropertiesResolver.class.getName(), saslProviderName);
         } else {
             assertNull(saslProviderName);
+        }
+        if (realm) {
+            assertTrue(KerberosName.hasRulesBeenSet());
         }
     }
 }
