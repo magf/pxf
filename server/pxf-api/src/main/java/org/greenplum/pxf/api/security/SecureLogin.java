@@ -22,10 +22,12 @@ package org.greenplum.pxf.api.security;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.net.DNS;
+import org.apache.hadoop.security.HadoopKerberosName;
 import org.apache.hadoop.security.LoginSession;
 import org.apache.hadoop.security.PxfUserGroupInformation;
 import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.utilities.Utilities;
 import org.slf4j.Logger;
@@ -112,14 +114,16 @@ public class SecureLogin {
             synchronized (SecureLogin.class) {
                 loginSession = getServerLoginSession(serverName, configDirectory, configuration);
                 if (loginSession == null) {
-
                     if (Utilities.isSecurityEnabled(configuration)) {
                         LOG.info("Kerberos Security is enabled for server {}", serverName);
                         loginSession = login(serverName, configDirectory, configuration);
                     } else {
                         // Remote user specified in config file, or defaults to user running pxf service
                         String remoteUser = configuration.get(CONFIG_KEY_SERVICE_USER_NAME, System.getProperty("user.name"));
-
+                        // Initialize hadoop default rules if the user contains '@', for example user@domaim.com
+                        if (remoteUser.contains("@") && !KerberosName.hasRulesBeenSet()) {
+                            HadoopKerberosName.setConfiguration(configuration);
+                         }
                         UserGroupInformation loginUser = UserGroupInformation.createRemoteUser(remoteUser);
                         loginSession = new LoginSession(configDirectory, loginUser);
                     }

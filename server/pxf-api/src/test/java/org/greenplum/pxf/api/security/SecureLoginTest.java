@@ -151,6 +151,24 @@ public class SecureLoginTest {
     }
 
     @Test
+    public void testLoginNoKerberosWithServiceUserWithRealm() throws IOException {
+        expectedLoginSession = new LoginSession("config", null, null, null, null, 0, 0);
+        configuration.set("pxf.service.user.name", "foo@REALM");
+
+        UserGroupInformation loginUGI = secureLogin.getLoginUser("server", "config", configuration);
+
+        LoginSession loginSession = SecureLogin.getCache().get("server");
+        assertEquals(1, SecureLogin.getCache().size());
+        assertEquals(expectedLoginSession, loginSession);
+        assertSame(loginUGI, loginSession.getLoginUser());
+        assertEquals("foo@REALM", loginUGI.getUserName());
+        assertNull(loginSession.getSubject());
+        assertNull(loginSession.getUser());
+
+        verifyNoInteractions(pxfUserGroupInformationMock);
+    }
+
+    @Test
     public void testLoginKerberosFailsWhenNoPrincipal() {
         configuration.set("hadoop.security.authentication", "kerberos");
 
