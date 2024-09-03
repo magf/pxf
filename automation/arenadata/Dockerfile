@@ -39,7 +39,7 @@ RUN set -eux; \
          yum-config-manager --disable epel && yum-config-manager --add-repo 'http://archives.fedoraproject.org/pub/archive/epel/7/$basearch'; \
          ;; \
        ubuntu*) \
-         apt install -y unzip; \
+         apt install -y unzip vim nano; \
          ;; \
     esac;
 ENV GOPATH=$HOME/go
@@ -76,6 +76,19 @@ RUN mkdir workspace && ln -s /home/gpadmin/pxf_src /home/gpadmin/workspace/pxf &
 ENV PXF_HOME=/usr/local/greenplum-db-devel/pxf
 RUN localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 RUN cp ${PXF_HOME}/templates/*-site.xml ${PXF_HOME}/servers/default/
+
+# Need to change ssh key to RSA for automation tests with Ubuntu
+RUN set -eux; \
+    . /etc/os-release; \
+        case "$ID" in \
+           ubuntu*) \
+             bash -c 'ssh-keygen -p -P "" -N "" -m pem -f /home/gpadmin/.ssh/id_rsa'; \
+             bash -c 'ssh-keygen -p -P "" -N "" -m pem -f /root/.ssh/id_rsa'; \
+             bash -c 'echo "KexAlgorithms +diffie-hellman-group-exchange-sha1" >> /etc/ssh/sshd_config'; \
+             bash -c 'echo "PubkeyAcceptedAlgorithms +ssh-rsa" >> /etc/ssh/sshd_config'; \
+             bash -c 'echo "HostKeyAlgorithms +ssh-rsa" >> /etc/ssh/sshd_config'; \
+             ;; \
+        esac;
 
 # Move libs to the destination folder
 RUN cp /tmp/libs/* ${PXF_HOME}/lib/
