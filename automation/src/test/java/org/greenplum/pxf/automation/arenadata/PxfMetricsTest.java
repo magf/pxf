@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
@@ -15,19 +16,17 @@ import org.testng.annotations.Test;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 public class PxfMetricsTest extends BaseFeature {
     private static final String CLUSTER_NAME = "TestEnv";
     private static final String[] SOURCE_TABLE_FIELDS = new String[]{"id    int"};
-    private Table gpdbMetricsSourceTable, gpdbMetricsReadableTable;
     private final Collection<URL> serviceMetricsUrls = new ArrayList<>();
     private final Collection<URL> clusterMetricsUrls = new ArrayList<>();
+    private Table gpdbMetricsSourceTable, gpdbMetricsReadableTable;
 
     @Override
     protected void beforeClass() throws Exception {
@@ -129,5 +128,31 @@ public class PxfMetricsTest extends BaseFeature {
         }
         assertEquals(Float.compare(actualPxfRecordsSent, expectedPxfRecordsSent), 0,
                 "Check service metrics. If expected value is not 0 then the actual service metric is not the same we are expecting");
+    }
+
+    @Test(groups = {"arenadata"}, description = "Check service-metrics and service-metrics/cluster-metrics endpoints contain pxf thread metrics")
+    public void testPxfThreadMetrics() throws Exception {
+        List<String> expectedPxfThreadMetricsList = Arrays.asList(
+                "pxf.executor.active",
+                "pxf.executor.completed",
+                "pxf.executor.pool.core",
+                "pxf.executor.pool.max",
+                "pxf.executor.pool.size",
+                "pxf.executor.queue.capacity",
+                "pxf.executor.queue.remaining",
+                "pxf.executor.queued"
+        );
+        for (URL serviceMetricsUrl : serviceMetricsUrls) {
+            String json = IOUtils.toString(serviceMetricsUrl, StandardCharsets.UTF_8);
+            JSONArray metrics = new JSONObject(json).getJSONArray("metrics");
+            List<String> actualPxfThreadMetricsList = new ArrayList<>();
+            for (int i = 0; i < metrics.length(); i++) {
+                String metricName = metrics.getJSONObject(i).getString("name");
+                if (expectedPxfThreadMetricsList.contains(metricName)) {
+                    actualPxfThreadMetricsList.add(metricName);
+                }
+            }
+            assertTrue(CollectionUtils.isEqualCollection(expectedPxfThreadMetricsList, actualPxfThreadMetricsList));
+        }
     }
 }
