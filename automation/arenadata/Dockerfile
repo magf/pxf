@@ -40,6 +40,7 @@ RUN set -eux; \
          ;; \
        ubuntu*) \
          apt install -y unzip vim nano; \
+         update-locale LANG=en_US.UTF-8; \
          ;; \
     esac;
 ENV GOPATH=$HOME/go
