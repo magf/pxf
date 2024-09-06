@@ -18,5 +18,5 @@ echo "=============================="
 echo "Build PXF image for automation"
 echo "=============================="
 pushd ../..
-docker build -t gpdb6_pxf_automation:it -f automation/arenadata/Dockerfile .
+docker build -t gpdb6_pxf_automation:it --build-arg "GPDB_IMAGE=${GPDB_IMAGE:-hub.adsw.io/library/gpdb6_regress:adb-6.x-dev}" -f automation/arenadata/Dockerfile .
 popd
