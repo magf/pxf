@@ -1,6 +1,13 @@
 ARG GPDB_IMAGE=hub.adsw.io/library/gpdb6_regress:adb-6.x-dev
 FROM $GPDB_IMAGE as base
 
+# Install Java 17
+RUN curl -fSL https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rpm -o /tmp/jdk-17_linux-x64_bin.rpm && \
+    yum -y install /tmp/jdk-17_linux-x64_bin.rpm && \
+    rm -rf /tmp/jdk-17_linux-x64_bin.rpm
+
+RUN echo "export JAVA_HOME=\$(readlink -f /usr/bin/java | sed 's:bin/java::')" >> /root/.bashrc
+
 # install go, ginkgo and keep env variables which may be used as a part of base image
 RUN set -eux; \
     ARCH="$(uname -m)"; \
