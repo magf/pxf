@@ -74,6 +74,7 @@ RUN source gpdb_src/concourse/scripts/common.bash && \
     mkdir pxf_tarball && \
     install_gpdb && \
     source '/usr/local/greenplum-db-devel/greenplum_path.sh' && \
+    export JAVA_HOME=/usr/lib/jvm/jdk-17.0.12-oracle-x64 && \
     export SKIP_FDW_BUILD_REASON=0 && \
     pxf_src/concourse/scripts/compile_pxf_without_test.sh && \
     chown -R gpadmin:gpadmin /home/gpadmin/pxf_src
