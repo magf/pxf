@@ -1,7 +1,5 @@
-FROM hub.adsw.io/library/gpdb6_regress:adb-6.x-dev
-
-# Update epel repo
-RUN yum-config-manager --disable epel && yum-config-manager --add-repo 'http://archives.fedoraproject.org/pub/archive/epel/7/$basearch'
+ARG GPDB_IMAGE=hub.adsw.io/library/gpdb6_regress:adb-6.x-dev
+FROM $GPDB_IMAGE
 
 # Install Java 17
 RUN curl -fSL https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rpm -o /tmp/jdk-17_linux-x64_bin.rpm && \
@@ -41,11 +39,22 @@ RUN set -eux; \
          echo "Unsupported arch: ${ARCH}"; \
          exit 1; \
          ;; \
+    esac; \
+    . /etc/os-release; \
+    case "$ID" in \
+       centos*) \
+         yum-config-manager --disable epel && yum-config-manager --add-repo 'http://archives.fedoraproject.org/pub/archive/epel/7/$basearch'; \
+         ;; \
+       ubuntu*) \
+         apt install -y unzip vim nano; \
+         update-locale LANG=en_US.UTF-8; \
+         ;; \
     esac;
 ENV GOPATH=$HOME/go
 ENV PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 RUN go install github.com/onsi/ginkgo/ginkgo@latest
 
+SHELL ["bash", "-c"]
 # Install gpdb source files
 WORKDIR /home/gpadmin/
 RUN mkdir -p /data1/master /data1/primary /data1/mirror && chmod -R 755 /data1 && \
@@ -56,6 +65,7 @@ RUN mkdir -p /data1/master /data1/primary /data1/mirror && chmod -R 755 /data1 &
     install_gpdb
 
 # Install PXF
+ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
 ENV OUTPUT_ARTIFACT_DIR="pxf_tarball"
 COPY . /home/gpadmin/pxf_src
 COPY ./automation/arenadata/scripts/compile_pxf_without_test.sh ./pxf_src/concourse/scripts/compile_pxf_without_test.sh
@@ -74,6 +84,19 @@ RUN mkdir workspace && ln -s /home/gpadmin/pxf_src /home/gpadmin/workspace/pxf &
 ENV PXF_HOME=/usr/local/greenplum-db-devel/pxf
 RUN localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 RUN cp ${PXF_HOME}/templates/*-site.xml ${PXF_HOME}/servers/default/
+
+# Need to change ssh key to RSA for automation tests with Ubuntu
+RUN set -eux; \
+    . /etc/os-release; \
+        case "$ID" in \
+           ubuntu*) \
+             bash -c 'ssh-keygen -p -P "" -N "" -m pem -f /home/gpadmin/.ssh/id_rsa'; \
+             bash -c 'ssh-keygen -p -P "" -N "" -m pem -f /root/.ssh/id_rsa'; \
+             bash -c 'echo "KexAlgorithms +diffie-hellman-group-exchange-sha1" >> /etc/ssh/sshd_config'; \
+             bash -c 'echo "PubkeyAcceptedAlgorithms +ssh-rsa" >> /etc/ssh/sshd_config'; \
+             bash -c 'echo "HostKeyAlgorithms +ssh-rsa" >> /etc/ssh/sshd_config'; \
+             ;; \
+        esac;
 
 # Move libs to the destination folder
 RUN cp /tmp/libs/* ${PXF_HOME}/lib/
