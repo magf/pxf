@@ -25,12 +25,12 @@
         <powermock.version>1.6.4</powermock.version>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>test-repo</id>
-            <url>https://repository.jsweet.org/artifactory/libs-release/</url>
-        </repository>
-    </repositories>
+<!--    <repositories>-->
+<!--        <repository>-->
+<!--            <id>test-repo</id>-->
+<!--            <url>https://repository.jsweet.org/artifactory/libs-release/</url>-->
+<!--        </repository>-->
+<!--    </repositories>-->
 
 
     <build>
