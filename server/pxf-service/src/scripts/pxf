@@ -59,8 +59,8 @@ export PXF_RUNDIR=${PXF_RUNDIR:=${PXF_BASE}/run}
 # Port
 export PXF_PORT=${PXF_PORT:=5888}
 
-# Memory
-export PXF_JVM_OPTS=${PXF_JVM_OPTS:='-Xmx2g -Xms1g --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED'}
+# Memory and modules
+export PXF_JVM_OPTS=${PXF_JVM_OPTS:='-Xmx2g -Xms1g --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED'}
 
 # Set to true to enable Remote debug via port 2020
 export PXF_DEBUG=${PXF_DEBUG:-false}
