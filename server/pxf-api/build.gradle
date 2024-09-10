@@ -1,7 +1,33 @@
-apply plugin: "java-library"
+plugins {
+    id "java-library"
+    id "maven-publish"
+}
 
 jar {
     enabled = true
+}
+
+publishing {
+    publications {
+        pxf(MavenPublication) {
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'artifactory'
+            url = "${project.properties.artifactoryRepoUrl ?: 'http://artifactory:8080/repository/maven-releases/'}"
+            credentials(PasswordCredentials)
+        }
+    }
 }
 
 dependencies {
