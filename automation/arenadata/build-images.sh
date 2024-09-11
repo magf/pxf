@@ -8,12 +8,12 @@ pushd ../../server
 popd
 
 # Uncomment this section if image is not available in the docker registry
-echo "===================================="
-echo "      Build Hadoop 3.3.6 image      "
-echo "===================================="
-pushd hadoop
-docker build -f Dockerfile -t cloud-hub.adsw.io/library/pxf-hadoop:3.3.6 .
-popd
+#echo "===================================="
+#echo "      Build Hadoop 3.3.6 image      "
+#echo "===================================="
+#pushd hadoop
+#docker build -f Dockerfile -t cloud-hub.adsw.io/library/pxf-hadoop:3.3.6 .
+#popd
 
 echo "=============================="
 echo "Build PXF image for automation"

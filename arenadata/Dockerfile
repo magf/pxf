@@ -63,6 +63,10 @@ RUN source gpdb_src/concourse/scripts/common.bash && \
     mkdir ${OUTPUT_ARTIFACT_DIR} && \
     export SKIP_FDW_BUILD_REASON=0 && \
     pxf_src/concourse/scripts/compile_pxf.bash
+    
+    
+RUN sudo su - gpadmin -c 'echo -e "export JAVA_HOME=\$(readlink -f /usr/bin/java | sed \"s:bin/java::\")" >> /home/gpadmin/.bash_profile'
+RUN sudo su - gpadmin -c 'echo $JAVA_HOME'
 
 # create test image which prepares base image and keeps only pxf artifacts from build image
 FROM base as test
