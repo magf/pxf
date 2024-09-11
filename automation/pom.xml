@@ -27,13 +27,8 @@
 
     <repositories>
         <repository>
-            <id>Default</id>
-            <name>For the sake of speed</name>
-            <url>https://repo.maven.apache.org/maven2/</url>
-        </repository>
-        <repository>
             <id>test-repo</id>
-            <url>https://repository.jsweet.org/artifactory/libs-release/</url>
+            <url>file://${project.basedir}/local-repo</url>
         </repository>
     </repositories>
 
