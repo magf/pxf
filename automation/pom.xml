@@ -97,6 +97,14 @@
 
         <dependency>
             <groupId>org.greenplum</groupId>
+            <artifactId>pxf-hbase-lib</artifactId>
+            <scope>system</scope>
+            <systemPath>${pxf.lib}/pxf-hbase-lib.jar</systemPath>
+            <version>LATEST</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.greenplum</groupId>
             <artifactId>pxf-hdfs</artifactId>
             <scope>system</scope>
             <systemPath>${pxf.lib}/pxf-hdfs.jar</systemPath>
