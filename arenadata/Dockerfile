@@ -6,7 +6,8 @@ RUN curl -fSL https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rp
     yum -y install /tmp/jdk-17_linux-x64_bin.rpm && \
     rm -rf /tmp/jdk-17_linux-x64_bin.rpm
 
-RUN echo "export JAVA_HOME=\$(readlink -f /usr/bin/java | sed 's:bin/java::')" >> /root/.bashrc
+# Set JAVA_HOME
+RUN sed -i "s/JAVA_HOME=.*/JAVA_HOME=\$(readlink -f \/usr\/bin\/java | sed 's:bin\/java::')/g" /etc/profile.d/jdk_home.sh
 
 # install go, ginkgo and keep env variables which may be used as a part of base image
 RUN set -eux; \
@@ -62,10 +63,7 @@ RUN source gpdb_src/concourse/scripts/common.bash && \
     source '/usr/local/greenplum-db-devel/greenplum_path.sh' && \
     mkdir ${OUTPUT_ARTIFACT_DIR} && \
     export SKIP_FDW_BUILD_REASON=0 && \
-    pxf_src/concourse/scripts/compile_pxf.bash
-    
-# Set JAVA_HOME
-RUN sed -i "s/JAVA_HOME=.*/JAVA_HOME=\$(readlink -f \/usr\/bin\/java | sed 's:bin\/java::')/g" /etc/profile.d/jdk_home.sh
+    pxf_src/concourse/scripts/compile_pxf.bash    
 
 # create test image which prepares base image and keeps only pxf artifacts from build image
 FROM base as test
