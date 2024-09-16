@@ -88,41 +88,7 @@ public class PxfErrorAttributes extends DefaultErrorAttributes {
         hint.append(String.format(DEFAULT_HINT, pxfProperties.getBase(), hostname));
 
         if (throwable != null && pxfProperties.isNestedExceptionEnabled()) {
-            hint.append("\nCompact trace:\n");
-            String[] traces = ExceptionUtils.getRootCauseStackTrace(throwable);
-            int nestedExceptionWrappedDepth = getNestedExceptionWrappedDepth();
-            String lastWrappedException = "";
-            for (String trace : traces) {
-                if (nestedExceptionWrappedDepth-- <= 0) {
-                    // The limit has been reached. We check the last wrapped message, and if it is not the same
-                    // as the throwable, we add the throwable to the output. If we don’t print the latest throwable,
-                    // the stack trace added below (nestedExceptionTraceDepth) will not be correct.
-                    lastWrappedException = getLastWrappedException(lastWrappedException);
-                    if (StringUtils.isNotEmpty(lastWrappedException) && !lastWrappedException.equals(throwable.toString())) {
-                        hint.append(" ......... there are more than ").append(getNestedExceptionWrappedDepth())
-                                .append(" messages in the stack. We will get the last one.\n");
-                        hint.append(" [wrapped] ").append(throwable).append("\n");
-                    }
-                    break;
-                }
-                if (trace.startsWith("\t")) {
-                    continue;
-                }
-                hint.append(trace).append("\n");
-                lastWrappedException = trace;
-            }
-
-            int nestedExceptionTraceDepth = pxfProperties.getNestedExceptionTraceDepth();
-            // We need to add the last throwable if the wrapped stack traces are turned off
-            if (nestedExceptionTraceDepth > 0 && getNestedExceptionWrappedDepth() <= 0) {
-                hint.append(throwable).append("\n");
-            }
-            for (StackTraceElement ste : throwable.getStackTrace()) {
-                if (nestedExceptionTraceDepth-- <= 0) {
-                    break;
-                }
-                hint.append("\tat ").append(ste).append("\n");
-            }
+            appendNestedExceptionInformation(throwable, hint);
         }
 
         errorAttributes.put("hint", hint.toString());
@@ -133,6 +99,55 @@ public class PxfErrorAttributes extends DefaultErrorAttributes {
         }
 
         return errorAttributes;
+    }
+
+    private void appendNestedExceptionInformation(Throwable throwable, StringBuilder hint) {
+        hint.append("\nCompact trace:\n");
+        if (getNestedExceptionWrappedDepth() > 0) {
+            appendWrappedException(throwable, hint);
+        }
+        if (pxfProperties.getNestedExceptionTraceDepth() > 0) {
+            appendStackTraceInformation(throwable, hint);
+        }
+    }
+
+    private void appendWrappedException(Throwable throwable, StringBuilder hint) {
+        String[] traces = ExceptionUtils.getRootCauseStackTrace(throwable);
+        int nestedExceptionWrappedDepth = getNestedExceptionWrappedDepth();
+        String lastWrappedException = "";
+        for (String trace : traces) {
+            if (nestedExceptionWrappedDepth-- <= 0) {
+                // The limit has been reached. We check the last wrapped message, and if it is not the same
+                // as the throwable, we add the throwable to the output. If we don’t print the latest throwable,
+                // the stack trace added below (nestedExceptionTraceDepth) will not be correct.
+                lastWrappedException = getLastWrappedException(lastWrappedException);
+                if (StringUtils.isNotEmpty(lastWrappedException) && !lastWrappedException.equals(throwable.toString())) {
+                    hint.append(" ......... there are more than ").append(getNestedExceptionWrappedDepth())
+                            .append(" messages in the stack. We will get the last one.\n");
+                    hint.append(" [wrapped] ").append(throwable).append("\n");
+                }
+                break;
+            }
+            if (trace.startsWith("\t")) {
+                continue;
+            }
+            hint.append(trace).append("\n");
+            lastWrappedException = trace;
+        }
+    }
+
+    private void appendStackTraceInformation(Throwable throwable, StringBuilder hint) {
+        int nestedExceptionTraceDepth = pxfProperties.getNestedExceptionTraceDepth();
+        // We need to add the last throwable if the wrapped stack traces are turned off
+        if (getNestedExceptionWrappedDepth() <= 0) {
+            hint.append(throwable).append("\n");
+        }
+        for (StackTraceElement ste : throwable.getStackTrace()) {
+            if (nestedExceptionTraceDepth-- <= 0) {
+                break;
+            }
+            hint.append("\tat ").append(ste).append("\n");
+        }
     }
 
     private int getNestedExceptionWrappedDepth() {
