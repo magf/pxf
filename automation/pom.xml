@@ -28,7 +28,7 @@
     <repositories>
         <repository>
             <id>test-repo</id>
-            <url>https://repository.jsweet.org/artifactory/libs-release/</url>
+            <url>file://${project.basedir}/local-repo</url>
         </repository>
     </repositories>
 
