@@ -1,13 +1,5 @@
-ARG GPDB_IMAGE=hub.adsw.io/library/gpdb6_regress:adb-6.x-dev
+ARG GPDB_IMAGE=cloud-hub.adsw.io/library/gpdb6_u22:adb-6.x-dev
 FROM $GPDB_IMAGE as base
-
-# Install Java 17
-RUN curl -fSL https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rpm -o /tmp/jdk-17_linux-x64_bin.rpm && \
-    yum -y install /tmp/jdk-17_linux-x64_bin.rpm && \
-    rm -rf /tmp/jdk-17_linux-x64_bin.rpm
-
-# Set JAVA_HOME
-RUN sed -i "s/JAVA_HOME=.*/JAVA_HOME=\$(readlink -f \/usr\/bin\/java | sed 's:bin\/java::')/g" /etc/profile.d/jdk_home.sh
 
 # install go, ginkgo and keep env variables which may be used as a part of base image
 RUN set -eux; \
@@ -34,12 +26,19 @@ RUN set -eux; \
     case "$ID" in \
        centos*) \
          yum-config-manager --disable epel && yum-config-manager --add-repo 'http://archives.fedoraproject.org/pub/archive/epel/7/$basearch'; \
+         curl -fSL https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rpm -o /tmp/jdk-17_linux-x64_bin.rpm \
+             && yum -y install /tmp/jdk-17_linux-x64_bin.rpm \
+             && rm -rf /tmp/jdk-17_linux-x64_bin.rpm; \
+         sed -i "s/JAVA_HOME=.*/JAVA_HOME=\$(readlink -f \/usr\/bin\/java | sed 's:bin\/java::')/g" /etc/profile.d/jdk_home.sh; \
          ;; \
-    esac;
+       ubuntu*) \
+         apt-get install -y openjdk-17-jdk; \
+         ;; \
+        esac;
 ENV GOPATH=$HOME/go
 ENV PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
-RUN go install github.com/onsi/ginkgo/ginkgo@latest
-RUN go install github.com/onsi/ginkgo/v2/ginkgo@latest
+RUN go install github.com/onsi/ginkgo/ginkgo@latest \
+    && go install github.com/onsi/ginkgo/v2/ginkgo@latest
 
 # leave pxf artifacts dir env also
 ENV OUTPUT_ARTIFACT_DIR="pxf_tarball"
@@ -63,7 +62,7 @@ RUN source gpdb_src/concourse/scripts/common.bash && \
     source '/usr/local/greenplum-db-devel/greenplum_path.sh' && \
     mkdir ${OUTPUT_ARTIFACT_DIR} && \
     export SKIP_FDW_BUILD_REASON=0 && \
-    pxf_src/concourse/scripts/compile_pxf.bash    
+    pxf_src/concourse/scripts/compile_pxf.bash
 
 # create test image which prepares base image and keeps only pxf artifacts from build image
 FROM base as test
