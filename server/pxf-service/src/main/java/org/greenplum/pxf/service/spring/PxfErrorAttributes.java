@@ -1,5 +1,6 @@
 package org.greenplum.pxf.service.spring;
 
+import jakarta.servlet.ServletException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.greenplum.pxf.api.configuration.PxfServerProperties;
@@ -196,7 +197,7 @@ public class PxfErrorAttributes extends DefaultErrorAttributes {
             }
 
             if (exception instanceof BeanCreationException ||
-                    exception instanceof NestedServletException) {
+                    exception instanceof ServletException) {
                 // Unwrap exception
                 exceptionToReport = exception.getCause();
             }

@@ -80,10 +80,14 @@ dependencies {
     testImplementation("org.apache.hadoop.thirdparty:hadoop-shaded-guava")
     testImplementation("com.esotericsoftware:minlog")
     testImplementation("com.esotericsoftware:reflectasm")
-    testImplementation('org.mockito:mockito-inline')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
+
+    // https://projectlombok.org
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
 }
 
 test {
+    jvmArgs '--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED'
     useJUnitPlatform()
 }

@@ -1,6 +1,13 @@
 ARG GPDB_IMAGE=hub.adsw.io/library/gpdb6_regress:adb-6.x-dev
 FROM $GPDB_IMAGE
 
+# Install Java 17
+RUN curl -fSL https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rpm -o /tmp/jdk-17_linux-x64_bin.rpm && \
+    yum -y install /tmp/jdk-17_linux-x64_bin.rpm && \
+    rm -rf /tmp/jdk-17_linux-x64_bin.rpm
+
+RUN echo "export JAVA_HOME=\$(readlink -f /usr/bin/java | sed 's:bin/java::')" >> /root/.bashrc
+
 # install maven
 RUN curl -fSL https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o /tmp/apache-maven-3.9.6-bin.tar.gz \
     && tar -xf /tmp/apache-maven-3.9.6-bin.tar.gz -C /opt \
@@ -67,6 +74,7 @@ RUN source gpdb_src/concourse/scripts/common.bash && \
     mkdir pxf_tarball && \
     install_gpdb && \
     source '/usr/local/greenplum-db-devel/greenplum_path.sh' && \
+    export JAVA_HOME=/usr/lib/jvm/jdk-17.0.12-oracle-x64 && \
     export SKIP_FDW_BUILD_REASON=0 && \
     pxf_src/concourse/scripts/compile_pxf_without_test.sh && \
     chown -R gpadmin:gpadmin /home/gpadmin/pxf_src
