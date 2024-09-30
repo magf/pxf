@@ -363,7 +363,7 @@ function setup_gpadmin_user() {
 	fi
 
 	if grep -i ubuntu /etc/os-release; then
-		echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> ~gpadmin/.bashrc
+		echo "export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> ~gpadmin/.bashrc
 		echo '[[ -f ~/.bashrc ]] && . ~/.bashrc' >> ~gpadmin/.bash_profile
 		chown gpadmin:gpadmin ~gpadmin/.bash_profile
 	else

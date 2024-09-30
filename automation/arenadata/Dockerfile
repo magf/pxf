@@ -1,12 +1,7 @@
-ARG GPDB_IMAGE=hub.adsw.io/library/gpdb6_regress:adb-6.x-dev
+ARG GPDB_IMAGE=cloud-hub.adsw.io/library/gpdb6_u22:adb-6.x-dev
 FROM $GPDB_IMAGE
 
-# Install Java 17
-RUN curl -fSL https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rpm -o /tmp/jdk-17_linux-x64_bin.rpm && \
-    yum -y install /tmp/jdk-17_linux-x64_bin.rpm && \
-    rm -rf /tmp/jdk-17_linux-x64_bin.rpm
-
-RUN echo "export JAVA_HOME=\$(readlink -f /usr/bin/java | sed 's:bin/java::')" >> /root/.bashrc
+SHELL ["bash", "-c"]
 
 # install maven
 RUN curl -fSL https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o /tmp/apache-maven-3.9.6-bin.tar.gz \
@@ -24,15 +19,15 @@ RUN set -eux; \
     ARCH="$(uname -m)"; \
     case "${ARCH}" in \
        aarch64|armhf|armv7l|amd64|x86_64) \
-         wget https://go.dev/dl/go1.21.3.linux-amd64.tar.gz \
+         curl -fSL https://go.dev/dl/go1.21.3.linux-amd64.tar.gz -o go1.21.3.linux-amd64.tar.gz \
          && rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.3.linux-amd64.tar.gz && rm go1.21.3.linux-amd64.tar.gz \
          ;; \
        arm64) \
-         wget https://go.dev/dl/go1.21.3.linux-arm64.tar.gz \
+         curl -fSL https://go.dev/dl/go1.21.3.linux-arm64.tar.gz -o go1.21.3.linux-arm64.tar.gz \
          && rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.3.linux-arm64.tar.gz && rm go1.21.3.linux-arm64.tar.gz \
          ;; \
        ppc64el|ppc64le) \
-         wget https://go.dev/dl/go1.21.3.linux-ppc64le.tar.gz \
+         curl -fSL https://go.dev/dl/go1.21.3.linux-ppc64le.tar.gz -o go1.21.3.linux-ppc64le.tar.gz \
          && rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.3.linux-ppc64le.tar.gz && rm go1.21.3.linux-ppc64le.tar.gz \
          ;; \
        *) \
@@ -44,9 +39,13 @@ RUN set -eux; \
     case "$ID" in \
        centos*) \
          yum-config-manager --disable epel && yum-config-manager --add-repo 'http://archives.fedoraproject.org/pub/archive/epel/7/$basearch'; \
+         curl -fSL https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rpm -o /tmp/jdk-17_linux-x64_bin.rpm && \
+           yum -y install /tmp/jdk-17_linux-x64_bin.rpm && \
+           rm -rf /tmp/jdk-17_linux-x64_bin.rpm; \
+         sed -i "s/JAVA_HOME=.*/JAVA_HOME=\$(readlink -f \/usr\/bin\/java | sed 's:bin\/java::')/g" /etc/profile.d/jdk_home.sh; \
          ;; \
        ubuntu*) \
-         apt install -y unzip vim nano; \
+         apt install -y unzip vim nano openjdk-17-jdk; \
          update-locale LANG=en_US.UTF-8; \
          ;; \
     esac;
@@ -54,7 +53,6 @@ ENV GOPATH=$HOME/go
 ENV PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 RUN go install github.com/onsi/ginkgo/ginkgo@latest
 
-SHELL ["bash", "-c"]
 # Install gpdb source files
 WORKDIR /home/gpadmin/
 RUN mkdir -p /data1/master /data1/primary /data1/mirror && chmod -R 755 /data1 && \
@@ -66,7 +64,6 @@ RUN mkdir -p /data1/master /data1/primary /data1/mirror && chmod -R 755 /data1 &
 
 # Install PXF
 ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
-ENV OUTPUT_ARTIFACT_DIR="pxf_tarball"
 COPY . /home/gpadmin/pxf_src
 COPY ./automation/arenadata/scripts/compile_pxf_without_test.sh ./pxf_src/concourse/scripts/compile_pxf_without_test.sh
 RUN chmod +x ./pxf_src/concourse/scripts/compile_pxf_without_test.sh
@@ -74,7 +71,6 @@ RUN source gpdb_src/concourse/scripts/common.bash && \
     mkdir pxf_tarball && \
     install_gpdb && \
     source '/usr/local/greenplum-db-devel/greenplum_path.sh' && \
-    export JAVA_HOME=/usr/lib/jvm/jdk-17.0.12-oracle-x64 && \
     export SKIP_FDW_BUILD_REASON=0 && \
     pxf_src/concourse/scripts/compile_pxf_without_test.sh && \
     chown -R gpadmin:gpadmin /home/gpadmin/pxf_src
@@ -91,11 +87,11 @@ RUN set -eux; \
     . /etc/os-release; \
         case "$ID" in \
            ubuntu*) \
-             bash -c 'ssh-keygen -p -P "" -N "" -m pem -f /home/gpadmin/.ssh/id_rsa'; \
-             bash -c 'ssh-keygen -p -P "" -N "" -m pem -f /root/.ssh/id_rsa'; \
-             bash -c 'echo "KexAlgorithms +diffie-hellman-group-exchange-sha1" >> /etc/ssh/sshd_config'; \
-             bash -c 'echo "PubkeyAcceptedAlgorithms +ssh-rsa" >> /etc/ssh/sshd_config'; \
-             bash -c 'echo "HostKeyAlgorithms +ssh-rsa" >> /etc/ssh/sshd_config'; \
+             ssh-keygen -p -P "" -N "" -m pem -f /home/gpadmin/.ssh/id_rsa; \
+             ssh-keygen -p -P "" -N "" -m pem -f /root/.ssh/id_rsa; \
+             echo "KexAlgorithms +diffie-hellman-group-exchange-sha1" >> /etc/ssh/sshd_config; \
+             echo "PubkeyAcceptedAlgorithms +ssh-rsa" >> /etc/ssh/sshd_config; \
+             echo "HostKeyAlgorithms +ssh-rsa" >> /etc/ssh/sshd_config; \
              ;; \
         esac;
 
