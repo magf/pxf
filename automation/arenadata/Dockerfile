@@ -45,7 +45,7 @@ RUN set -eux; \
          sed -i "s/JAVA_HOME=.*/JAVA_HOME=\$(readlink -f \/usr\/bin\/java | sed 's:bin\/java::')/g" /etc/profile.d/jdk_home.sh; \
          ;; \
        ubuntu*) \
-         apt install -y unzip vim nano openjdk-17-jdk; \
+         apt-get -y update && apt-get install -y unzip vim nano openjdk-17-jdk; \
          update-locale LANG=en_US.UTF-8; \
          ;; \
     esac;
