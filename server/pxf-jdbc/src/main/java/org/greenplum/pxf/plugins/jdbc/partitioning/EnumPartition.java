@@ -68,7 +68,7 @@ public class EnumPartition extends BaseValuePartition implements JdbcFragmentMet
     }
 
     @Override
-    public String toSqlConstraint(String quoteString, DbProduct dbProduct) {
+    public String toSqlConstraint(String quoteString, DbProduct dbProduct, boolean wrapDateWithTime) {
         String quotedColumn = getQuotedColumn(quoteString);
 
         if (excluded != null && excluded.length > 0) {

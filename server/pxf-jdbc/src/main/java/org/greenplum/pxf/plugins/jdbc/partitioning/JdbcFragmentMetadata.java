@@ -32,7 +32,8 @@ public interface JdbcFragmentMetadata extends FragmentMetadata {
      *
      * @param quoteString a string to quote partition column
      * @param dbProduct   a {@link DbProduct} to wrap constraint values
+     * @param wrapDateWithTime a boolean value specifies wrapping type to the date with time
      * @return a pure SQL constraint (without WHERE)
      */
-    String toSqlConstraint(String quoteString, DbProduct dbProduct);
+    String toSqlConstraint(String quoteString, DbProduct dbProduct, boolean wrapDateWithTime);
 }

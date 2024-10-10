@@ -47,7 +47,7 @@ public class IntRangePartition extends BaseRangePartition implements IntPartitio
     }
 
     @Override
-    public String toSqlConstraint(String quoteString, DbProduct dbProduct) {
+    public String toSqlConstraint(String quoteString, DbProduct dbProduct, boolean wrapDateWithTime) {
         return generateRangeConstraint(
                 getQuotedColumn(quoteString),
                 convert(start),

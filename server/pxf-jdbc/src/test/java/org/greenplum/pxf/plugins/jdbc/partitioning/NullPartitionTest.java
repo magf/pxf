@@ -33,11 +33,12 @@ public class NullPartitionTest {
     private final String COL_RAW = "col";
     private final String QUOTE = "\"";
     private final String COL = QUOTE + COL_RAW + QUOTE;
+    private final boolean WRAP_DATE_WITH_TIME = false;
 
     @Test
     public void testNormal() {
         NullPartition partition = new NullPartition(COL_RAW);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
 
         assertEquals(COL + " IS NULL", constraint);
         assertTrue(partition.isNull());
@@ -46,7 +47,7 @@ public class NullPartitionTest {
     @Test
     public void testIsNotNull() {
         NullPartition partition = new NullPartition(COL_RAW, false);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
 
         assertEquals(COL + " IS NOT NULL", constraint);
     }
@@ -61,6 +62,6 @@ public class NullPartitionTest {
     public void testInvalidNullQuoteString() {
         NullPartition partition = new NullPartition(COL_RAW);
         assertThrows(RuntimeException.class,
-            () -> partition.toSqlConstraint(null, dbProduct));
+            () -> partition.toSqlConstraint(null, dbProduct, WRAP_DATE_WITH_TIME));
     }
 }

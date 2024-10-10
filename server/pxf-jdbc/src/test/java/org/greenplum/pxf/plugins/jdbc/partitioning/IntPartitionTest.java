@@ -32,11 +32,12 @@ public class IntPartitionTest {
     private final String COL_RAW = "col";
     private final String QUOTE = "\"";
     private final String COL = QUOTE + COL_RAW + QUOTE;
+    private final boolean WRAP_DATE_WITH_TIME = false;
 
     @Test
     public void testNormal() {
         IntPartition partition = IntPartition.create(COL_RAW, 0L, 1L);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
 
         assertEquals(COL + " >= 0 AND " + COL + " < 1", constraint);
     }
@@ -44,7 +45,7 @@ public class IntPartitionTest {
     @Test
     public void testRightBounded() {
         IntPartition partition = IntPartition.create(COL_RAW, null, 0L);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
 
         assertEquals(COL + " < 0", constraint);
     }
@@ -52,7 +53,7 @@ public class IntPartitionTest {
     @Test
     public void testLeftBounded() {
         IntPartition partition = IntPartition.create(COL_RAW, 0L, null);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
 
         assertEquals(COL + " >= 0", constraint);
     }
@@ -60,7 +61,7 @@ public class IntPartitionTest {
     @Test
     public void testRightBoundedInclusive() {
         IntPartition partition = IntPartition.create(COL_RAW, null, 0L);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
 
         assertEquals(COL + " < 0", constraint);
     }
@@ -68,7 +69,7 @@ public class IntPartitionTest {
     @Test
     public void testLeftBoundedInclusive() {
         IntPartition partition = IntPartition.create(COL_RAW, 0L, null);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
 
         assertEquals(COL + " >= 0", constraint);
     }
@@ -76,7 +77,7 @@ public class IntPartitionTest {
     @Test
     public void testEqualBoundaries() {
         IntPartition partition = IntPartition.create(COL_RAW, 0L, 0L);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
 
         assertEquals(COL + " = 0", constraint);
     }
@@ -85,7 +86,7 @@ public class IntPartitionTest {
     public void testEqualBoundariesMaxValue() {
         long value = Long.MAX_VALUE;
         IntPartition partition = IntPartition.create(COL_RAW, value, value);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
 
         assertEquals(COL + " = " + value, constraint);
     }
@@ -109,6 +110,6 @@ public class IntPartitionTest {
         IntPartition partition = IntPartition.create(COL_RAW, 0L, 1L);
 
         assertThrows(RuntimeException.class,
-            () -> partition.toSqlConstraint(null, dbProduct));
+            () -> partition.toSqlConstraint(null, dbProduct, WRAP_DATE_WITH_TIME));
     }
 }

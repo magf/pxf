@@ -91,16 +91,17 @@ public class DatePartitionTestGenerate {
         final String RANGE = "0101-02-03 BC:10001-02-02 AD";
         final String INTERVAL = "1000:year";
         final DbProduct dbProduct = DbProduct.POSTGRES;
+        final boolean WRAP_DATE_WITH_TIME = false;
 
         DatePartition[] parts = PartitionType.DATE.generate(COLUMN, RANGE, INTERVAL, true).stream()
                 .map(p -> (DatePartition) p).toArray(DatePartition[]::new);
 
         assertEquals(13, parts.length);
-        assertEquals("col < date'0101-02-03 BC'", parts[0].toSqlConstraint("", dbProduct));
-        assertEquals("col >= date'10001-02-02 AD'", parts[1].toSqlConstraint("", dbProduct));
-        assertEquals("col >= date'0101-02-03 BC' AND col < date'0900-02-03 AD'", parts[2].toSqlConstraint("", dbProduct));
-        assertEquals("col >= date'4900-02-03 AD' AND col < date'5900-02-03 AD'", parts[7].toSqlConstraint("", dbProduct));
-        assertEquals("col >= date'9900-02-03 AD' AND col < date'10001-02-02 AD'", parts[12].toSqlConstraint("", dbProduct));
+        assertEquals("col < date'0101-02-03 BC'", parts[0].toSqlConstraint("", dbProduct, WRAP_DATE_WITH_TIME));
+        assertEquals("col >= date'10001-02-02 AD'", parts[1].toSqlConstraint("", dbProduct, WRAP_DATE_WITH_TIME));
+        assertEquals("col >= date'0101-02-03 BC' AND col < date'0900-02-03 AD'", parts[2].toSqlConstraint("", dbProduct, WRAP_DATE_WITH_TIME));
+        assertEquals("col >= date'4900-02-03 AD' AND col < date'5900-02-03 AD'", parts[7].toSqlConstraint("", dbProduct, WRAP_DATE_WITH_TIME));
+        assertEquals("col >= date'9900-02-03 AD' AND col < date'10001-02-02 AD'", parts[12].toSqlConstraint("", dbProduct, WRAP_DATE_WITH_TIME));
     }
 
     @Test

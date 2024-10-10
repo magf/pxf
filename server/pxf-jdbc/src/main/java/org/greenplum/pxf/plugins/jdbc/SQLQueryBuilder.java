@@ -358,7 +358,7 @@ public class SQLQueryBuilder {
         }
 
         JdbcFragmentMetadata fragmentMetadata = context.getFragmentMetadata();
-        String fragmentSql = fragmentMetadata.toSqlConstraint(quoteString, dbProduct);
+        String fragmentSql = fragmentMetadata.toSqlConstraint(quoteString, dbProduct, wrapDateWithTime);
 
         query.append(fragmentSql);
     }

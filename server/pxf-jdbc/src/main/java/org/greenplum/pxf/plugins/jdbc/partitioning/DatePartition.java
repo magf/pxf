@@ -67,7 +67,7 @@ class DatePartition extends BaseRangePartition {
     }
 
     @Override
-    public String toSqlConstraint(String quoteString, DbProduct dbProduct) {
+    public String toSqlConstraint(String quoteString, DbProduct dbProduct, boolean wrapDateWithTime) {
         if (dbProduct == null) {
             throw new RuntimeException(String.format(
                     "DbProduct cannot be null for partitions of type '%s'", PartitionType.DATE
