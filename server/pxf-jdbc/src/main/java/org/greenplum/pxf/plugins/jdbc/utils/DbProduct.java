@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -162,7 +163,8 @@ public enum DbProduct {
      * @return a string with a properly wrapped date object
      */
     public String wrapDateWithTime(@NonNull LocalDateTime val, boolean isDateWideRange) {
-        return wrapDateWithTime(isDateWideRange ? val.format(ISO_LOCAL_DATE_TIME) : val.toString());
+        return wrapDateWithTime(isDateWideRange ? val.format(ISO_LOCAL_DATE_TIME) :
+                val.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     /**
@@ -183,7 +185,8 @@ public enum DbProduct {
      * @param isDateWideRange flag which is used when the year might contain more than 4 digits
      */
     public String wrapTimestamp(@NonNull LocalDateTime val, boolean isDateWideRange) {
-        return wrapTimestamp(isDateWideRange ? val.format(ISO_LOCAL_DATE_TIME) : val.toString());
+        return wrapTimestamp(isDateWideRange ? val.format(ISO_LOCAL_DATE_TIME) :
+                val.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     /**
