@@ -38,7 +38,7 @@ public class IntValuePartition extends BaseValuePartition implements IntPartitio
     }
 
     @Override
-    public String toSqlConstraint(String quoteString, DbProduct dbProduct, boolean wrapDateWithTime) {
+    public String toSqlConstraint(String quoteString, DbProduct dbProduct) {
         return generateConstraint(
                 getQuotedColumn(quoteString),
                 String.valueOf(value)

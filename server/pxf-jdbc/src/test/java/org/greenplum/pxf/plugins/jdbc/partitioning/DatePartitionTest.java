@@ -34,12 +34,11 @@ public class DatePartitionTest {
     private final String COL_RAW = "col";
     private final String QUOTE = "\"";
     private final String COL = QUOTE + COL_RAW + QUOTE;
-    private final boolean WRAP_DATE_WITH_TIME = false;
 
     @Test
     public void testNormal() {
         DatePartition partition = new DatePartition(COL_RAW, LocalDate.parse("2000-01-01"), LocalDate.parse("2000-01-02"));
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals(
             COL + " >= date'2000-01-01' AND " + COL + " < date'2000-01-02'",
@@ -51,7 +50,7 @@ public class DatePartitionTest {
     @Test
     public void testDateWideRange() {
         DatePartition partition = new DatePartition(COL_RAW, LocalDate.of(-1, 2,3), LocalDate.of(99999, 4, 5), true);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals(
                 COL + " >= date'0002-02-03 BC' AND " + COL + " < date'99999-04-05 AD'",
@@ -63,7 +62,7 @@ public class DatePartitionTest {
     @Test
     public void testRightBounded() {
         DatePartition partition = new DatePartition(COL_RAW, null, LocalDate.parse("2000-01-01"));
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals(
             COL + " < date'2000-01-01'",
@@ -74,7 +73,7 @@ public class DatePartitionTest {
     @Test
     public void testLeftBounded() {
         DatePartition partition = new DatePartition(COL_RAW, LocalDate.parse("2000-01-01"), null);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals(
             COL + " >= date'2000-01-01'",
@@ -85,7 +84,7 @@ public class DatePartitionTest {
     @Test
     public void testSpecialDateValue() {
         DatePartition partition = new DatePartition(COL_RAW, LocalDate.parse("0001-01-01"), LocalDate.parse("1970-01-02"));
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals(
             COL + " >= date'0001-01-01' AND " + COL + " < date'1970-01-02'",
@@ -116,13 +115,13 @@ public class DatePartitionTest {
     public void testInvalidNullQuoteString() {
         DatePartition partition = new DatePartition(COL_RAW, LocalDate.parse("2000-01-01"), LocalDate.parse("2000-01-02"));
         assertThrows(RuntimeException.class,
-            () -> partition.toSqlConstraint(null, dbProduct, WRAP_DATE_WITH_TIME));
+            () -> partition.toSqlConstraint(null, dbProduct));
     }
 
     @Test
     public void testInvalidNullDbProduct() {
         DatePartition partition = new DatePartition(COL_RAW, LocalDate.parse("2000-01-01"), LocalDate.parse("2000-01-02"));
         assertThrows(RuntimeException.class,
-            () -> partition.toSqlConstraint(COL, null, WRAP_DATE_WITH_TIME));
+            () -> partition.toSqlConstraint(COL, null));
     }
 }

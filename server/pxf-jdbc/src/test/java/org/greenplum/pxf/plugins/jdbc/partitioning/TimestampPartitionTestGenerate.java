@@ -74,11 +74,11 @@ public class TimestampPartitionTestGenerate {
                 .map(p -> (TimestampPartition) p).toArray(TimestampPartition[]::new);
 
         assertEquals(20, parts.length);
-        assertEquals("col < '10101-02-03 12:48:10 BC'", parts[0].toSqlConstraint("", dbProduct, WRAP_DATE_WITH_TIME));
-        assertEquals("col >= '10101-02-03 13:05:30 BC'", parts[1].toSqlConstraint("", dbProduct, WRAP_DATE_WITH_TIME));
-        assertEquals("col >= '10101-02-03 12:48:10 BC' AND col < '10101-02-03 12:49:10 BC'", parts[2].toSqlConstraint("", dbProduct, WRAP_DATE_WITH_TIME));
-        assertEquals("col >= '10101-02-03 12:53:10 BC' AND col < '10101-02-03 12:54:10 BC'", parts[7].toSqlConstraint("", dbProduct, WRAP_DATE_WITH_TIME));
-        assertEquals("col >= '10101-02-03 13:05:10 BC' AND col < '10101-02-03 13:05:30 BC'", parts[19].toSqlConstraint("", dbProduct, WRAP_DATE_WITH_TIME));
+        assertEquals("col < '10101-02-03 12:48:10 BC'", parts[0].toSqlConstraint("", dbProduct));
+        assertEquals("col >= '10101-02-03 13:05:30 BC'", parts[1].toSqlConstraint("", dbProduct));
+        assertEquals("col >= '10101-02-03 12:48:10 BC' AND col < '10101-02-03 12:49:10 BC'", parts[2].toSqlConstraint("", dbProduct));
+        assertEquals("col >= '10101-02-03 12:53:10 BC' AND col < '10101-02-03 12:54:10 BC'", parts[7].toSqlConstraint("", dbProduct));
+        assertEquals("col >= '10101-02-03 13:05:10 BC' AND col < '10101-02-03 13:05:30 BC'", parts[19].toSqlConstraint("", dbProduct));
     }
 
     @Test

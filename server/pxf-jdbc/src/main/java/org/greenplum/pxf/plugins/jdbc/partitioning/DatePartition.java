@@ -67,7 +67,7 @@ class DatePartition extends BaseRangePartition {
     }
 
     @Override
-    public String toSqlConstraint(String quoteString, DbProduct dbProduct, boolean wrapDateWithTime) {
+    public String toSqlConstraint(String quoteString, DbProduct dbProduct) {
         if (dbProduct == null) {
             throw new RuntimeException(String.format(
                     "Partitioning by %s is not supported for this DB", PartitionType.DATE

@@ -91,11 +91,6 @@ public enum DbProduct {
         public String wrapTimestamp(@NonNull LocalDateTime val, boolean isDateWideRange) {
             return wrapTimestamp(isDateWideRange ? val.format(DateTimeEraFormatters.LOCAL_DATE_TIME_FORMATTER) : val.toString());
         }
-
-        @Override
-        public String wrapDateWithTime(@NonNull LocalDateTime val, boolean isDateWideRange) {
-            return wrapTimestamp(val, isDateWideRange);
-        }
     },
 
     S3_SELECT {
@@ -152,19 +147,6 @@ public enum DbProduct {
      */
     public String wrapDateWithTime(String val) {
         return wrapTimestamp(val);
-    }
-
-    /**
-     * Wraps a given date value to the date with time.
-     * It might be used in some special cases.
-     *
-     * @param val {@link java.sql.Date} object to wrap
-     * @param isDateWideRange flag which is used when the year might contain more than 4 digits
-     * @return a string with a properly wrapped date object
-     */
-    public String wrapDateWithTime(@NonNull LocalDateTime val, boolean isDateWideRange) {
-        return wrapDateWithTime(isDateWideRange ? val.format(ISO_LOCAL_DATE_TIME) :
-                val.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     /**

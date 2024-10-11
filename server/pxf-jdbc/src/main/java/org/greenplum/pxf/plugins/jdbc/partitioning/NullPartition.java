@@ -56,7 +56,7 @@ class NullPartition extends BasePartition implements JdbcFragmentMetadata {
     }
 
     @Override
-    public String toSqlConstraint(String quoteString, DbProduct dbProduct, boolean wrapDateWithTime) {
+    public String toSqlConstraint(String quoteString, DbProduct dbProduct) {
         return getQuotedColumn(quoteString) +
                 (isNull ? " IS NULL" : " IS NOT NULL");
     }

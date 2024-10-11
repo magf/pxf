@@ -15,12 +15,11 @@ public class TimestampPartitionTest {
     private final String COL_RAW = "col";
     private final String QUOTE = "\"";
     private final String COL = QUOTE + COL_RAW + QUOTE;
-    private final boolean WRAP_DATE_WITH_TIME = false;
 
     @Test
     public void testNormal() {
         TimestampPartition partition = new TimestampPartition(COL_RAW, LocalDateTime.parse("2024-01-02T17:19:10"), LocalDateTime.parse("2024-01-02T17:19:11"));
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals(
                 COL + " >= '2024-01-02T17:19:10' AND " + COL + " < '2024-01-02T17:19:11'",
@@ -32,7 +31,7 @@ public class TimestampPartitionTest {
     @Test
     public void testDateWideRange() {
         TimestampPartition partition = new TimestampPartition(COL_RAW, LocalDateTime.of(-1, 2,3, 12, 30, 5), LocalDateTime.of(-1, 2,3, 12, 50, 5), true);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals(
                 COL + " >= '0002-02-03 12:30:05 BC' AND " + COL + " < '0002-02-03 12:50:05 BC'",
@@ -44,7 +43,7 @@ public class TimestampPartitionTest {
     @Test
     public void testWrapDateWithTime() {
         TimestampPartition partition = new TimestampPartition(COL_RAW, LocalDateTime.parse("2024-01-02T17:19:10"), LocalDateTime.parse("2024-01-02T17:19:11"));
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, true);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals(
                 COL + " >= '2024-01-02T17:19:10' AND " + COL + " < '2024-01-02T17:19:11'",
@@ -56,7 +55,7 @@ public class TimestampPartitionTest {
     @Test
     public void testRightBounded() {
         TimestampPartition partition = new TimestampPartition(COL_RAW, null, LocalDateTime.parse("2024-01-02T17:19:11"));
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals(
                 COL + " < '2024-01-02T17:19:11'",
@@ -67,7 +66,7 @@ public class TimestampPartitionTest {
     @Test
     public void testLeftBounded() {
         TimestampPartition partition = new TimestampPartition(COL_RAW, LocalDateTime.parse("2024-01-02T17:19:10"), null);
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals(
                 COL + " >= '2024-01-02T17:19:10'",
@@ -98,6 +97,6 @@ public class TimestampPartitionTest {
     public void testInvalidNullDbProduct() {
         TimestampPartition partition = new TimestampPartition(COL_RAW, LocalDateTime.parse("2000-01-02T17:19:10"), LocalDateTime.parse("2000-01-02T17:45:10"));
         assertThrows(RuntimeException.class,
-                () -> partition.toSqlConstraint(COL, null, WRAP_DATE_WITH_TIME));
+                () -> partition.toSqlConstraint(COL, null));
     }
 }

@@ -48,7 +48,7 @@ class TimestampPartition extends BaseRangePartition {
     }
 
     @Override
-    public String toSqlConstraint(String quoteString, DbProduct dbProduct, boolean wrapDateWithTime) {
+    public String toSqlConstraint(String quoteString, DbProduct dbProduct) {
         if (dbProduct == null) {
             throw new RuntimeException(String.format(
                     "Partitioning by %s is not supported for this DB", PartitionType.TIMESTAMP
@@ -57,19 +57,15 @@ class TimestampPartition extends BaseRangePartition {
 
         return generateRangeConstraint(
                 getQuotedColumn(quoteString),
-                convert(start, dbProduct, wrapDateWithTime),
-                convert(end, dbProduct, wrapDateWithTime)
+                convert(start, dbProduct),
+                convert(end, dbProduct)
         );
     }
 
-    private String convert(LocalDateTime value, DbProduct dbProduct, boolean wrapDateWithTime) {
+    private String convert(LocalDateTime value, DbProduct dbProduct) {
         if (value == null) {
             return null;
         }
-        if (wrapDateWithTime) {
-            return dbProduct.wrapDateWithTime(value, isDateWideRange);
-        } else {
-            return dbProduct.wrapTimestamp(value, isDateWideRange);
-        }
+        return dbProduct.wrapTimestamp(value, isDateWideRange);
     }
 }

@@ -31,12 +31,11 @@ public class EnumPartitionTest {
 
     private final String COL_RAW = "col";
     private final String QUOTE = "\"";
-    private final boolean WRAP_DATE_WITH_TIME = false;
 
     @Test
     public void testNormal() {
         EnumPartition partition = new EnumPartition(COL_RAW, "enum1");
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals("\"col\" = 'enum1'", constraint);
     }
@@ -44,7 +43,7 @@ public class EnumPartitionTest {
     @Test
     public void testExcluded1() {
         EnumPartition partition = new EnumPartition(COL_RAW, new String[]{"enum1"});
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals("( \"col\" <> 'enum1' )", constraint);
     }
@@ -52,7 +51,7 @@ public class EnumPartitionTest {
     @Test
     public void testExcluded2() {
         EnumPartition partition = new EnumPartition(COL_RAW, new String[]{"enum1", "enum2"});
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals("( \"col\" <> 'enum1' AND \"col\" <> 'enum2' )", constraint);
     }
@@ -60,7 +59,7 @@ public class EnumPartitionTest {
     @Test
     public void testExcluded3() {
         EnumPartition partition = new EnumPartition(COL_RAW, new String[]{"enum1", "enum2", "enum3"});
-        String constraint = partition.toSqlConstraint(QUOTE, dbProduct, WRAP_DATE_WITH_TIME);
+        String constraint = partition.toSqlConstraint(QUOTE, dbProduct);
 
         assertEquals("( \"col\" <> 'enum1' AND \"col\" <> 'enum2' AND \"col\" <> 'enum3' )", constraint);
     }
@@ -99,6 +98,6 @@ public class EnumPartitionTest {
     public void testInvalidNullQuoteString() {
         EnumPartition partition = new EnumPartition(COL_RAW, "enum1");
         assertThrows(RuntimeException.class,
-            () -> partition.toSqlConstraint(null, dbProduct, WRAP_DATE_WITH_TIME));
+            () -> partition.toSqlConstraint(null, dbProduct));
     }
 }
