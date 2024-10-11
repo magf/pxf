@@ -246,6 +246,9 @@ public abstract class BaseTestParent {
      * @throws Exception if an error occurs
      */
     protected void afterMethod() throws Exception {
+        if (gpdb != null && exTable != null) {
+            gpdb.dropTable(exTable, true);
+        }
     }
 
     /**
