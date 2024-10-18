@@ -26,9 +26,9 @@ RUN set -eux; \
     case "$ID" in \
        centos*) \
          yum-config-manager --disable epel && yum-config-manager --add-repo 'http://archives.fedoraproject.org/pub/archive/epel/7/$basearch'; \
-         curl -fSL https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rpm -o /tmp/jdk-17_linux-x64_bin.rpm \
-             && yum -y install /tmp/jdk-17_linux-x64_bin.rpm \
-             && rm -rf /tmp/jdk-17_linux-x64_bin.rpm; \
+         curl -fSL https://download.oracle.com/java/17/archive/jdk-17.0.12_linux-x64_bin.rpm -o /tmp/jdk-17.0.12_linux-x64_bin.rpm \
+             && yum -y install /tmp/jdk-17.0.12_linux-x64_bin.rpm \
+             && rm -rf /tmp/jdk-17.0.12_linux-x64_bin.rpm; \
          sed -i "s/JAVA_HOME=.*/JAVA_HOME=\$(readlink -f \/usr\/bin\/java | sed 's:bin\/java::')/g" /etc/profile.d/jdk_home.sh; \
          ;; \
        ubuntu*) \
