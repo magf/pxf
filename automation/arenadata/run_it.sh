@@ -95,12 +95,34 @@ check_test_result() {
 
 check_docker_container_status false # We don't need oracle service immediately
 
-#echo "---------------------------------------------"
-#echo "Start running smoke tests with external table"
-#echo "---------------------------------------------"
-#docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=smoke'
-#check_test_result $? smoke external-table
-#start_copy_artifacts smoke external-table
+echo "---------------------------------------------"
+echo "Start running smoke tests with external table"
+echo "---------------------------------------------"
+docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=smoke'
+check_test_result $? smoke external-table
+start_copy_artifacts smoke external-table
+
+echo "-------------------------------------------------------------------"
+echo "Start running integration tests in 'gpdb' group with external table"
+echo "-------------------------------------------------------------------"
+docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=gpdb'
+check_test_result $? gpdb external-table
+start_copy_artifacts gpdb external-table
+
+echo "------------------------------------------------------------------------"
+echo "Start running integration tests in 'arenadata' group with external table"
+echo "------------------------------------------------------------------------"
+check_docker_container_status true # We need oracle service to be healthy for this group of tests
+docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=arenadata'
+check_test_result $? arenadata external-table
+start_copy_artifacts arenadata external-table
+
+echo "------------------"
+echo "Restart containers"
+echo "------------------"
+docker-compose down -v
+docker-compose up -d
+check_docker_container_status false # We don't need oracle service for FDW tests
 
 echo "----------------------------------"
 echo "Start running smoke tests with FDW"
@@ -109,13 +131,6 @@ docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd 
 check_test_result $? smoke fdw
 start_copy_artifacts smoke fdw
 
-#echo "-------------------------------------------------------------------"
-#echo "Start running integration tests in 'gpdb' group with external table"
-#echo "-------------------------------------------------------------------"
-#docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=gpdb'
-#check_test_result $? gpdb external-table
-#start_copy_artifacts gpdb external-table
-
 echo "--------------------------------------------------------"
 echo "Start running integration tests in 'gpdb' group with FDW"
 echo "--------------------------------------------------------"
@@ -123,18 +138,9 @@ docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd 
 check_test_result $? gpdb fdw
 start_copy_artifacts gpdb fdw
 
-#echo "------------------------------------------------------------------------"
-#echo "Start running integration tests in 'arenadata' group with external table"
-#echo "------------------------------------------------------------------------"
-#check_docker_container_status true # We need oracle service to be healthy for this group of tests
-#docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=arenadata'
-#check_test_result $? arenadata external-table
-#start_copy_artifacts arenadata external-table
-
 echo "-------------------------------------------------------------"
 echo "Start running integration tests in 'arenadata' group with FDW"
 echo "-------------------------------------------------------------"
-check_docker_container_status true # We need oracle service to be healthy for this group of tests
 docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=arenadata USE_FDW=true'
 check_test_result $? arenadata fdw
 start_copy_artifacts arenadata fdw
