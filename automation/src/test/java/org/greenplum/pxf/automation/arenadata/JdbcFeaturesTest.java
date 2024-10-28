@@ -4,6 +4,7 @@ import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.testng.annotations.Test;
 import java.io.File;
 
@@ -42,13 +43,15 @@ public class JdbcFeaturesTest extends BaseFeature {
 
     @Override
     protected void beforeClass() throws Exception {
-        String pxfHome = cluster.getPxfHome();
-        String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, NAMED_QUERY_SERVER_PROFILE);
-        String queryFile = pxfHome + "/" + PXF_NAMED_QUERY_TEMPLATE_RELATIVE_PATH;
-        String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
-        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
-        cluster.copyFileToNodes(queryFile, pxfJdbcSiteConfPath, true, false);
-        prepareData();
+        if (!FDWUtils.useFDW) {
+            String pxfHome = cluster.getPxfHome();
+            String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, NAMED_QUERY_SERVER_PROFILE);
+            String queryFile = pxfHome + "/" + PXF_NAMED_QUERY_TEMPLATE_RELATIVE_PATH;
+            String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
+            cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
+            cluster.copyFileToNodes(queryFile, pxfJdbcSiteConfPath, true, false);
+            prepareData();
+        }
     }
 
     protected void prepareData() throws Exception {

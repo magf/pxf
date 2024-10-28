@@ -10,6 +10,7 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -47,16 +48,18 @@ public class FragmentDistributionTest extends BaseFeature {
 
     @Override
     protected void beforeClass() throws Exception {
-        String pxfHome = cluster.getPxfHome();
-        restartCommand = pxfHome + "/bin/pxf restart";
-        if (cluster instanceof MultiNodeCluster) {
-            pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
+        if (!FDWUtils.useFDW) {
+            String pxfHome = cluster.getPxfHome();
+            restartCommand = pxfHome + "/bin/pxf restart";
+            if (cluster instanceof MultiNodeCluster) {
+                pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
+            }
+            pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
+            hdfsPath = hdfs.getWorkingDirectory() + "/parquet_fragment_distribution/";
+            prepareData();
+            changeLogLevel("debug");
+            cluster.runCommand("mkdir -p " + PXF_TEMP_LOG_PATH);
         }
-        pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
-        hdfsPath = hdfs.getWorkingDirectory() + "/parquet_fragment_distribution/";
-        prepareData();
-        changeLogLevel("debug");
-        cluster.runCommand("mkdir -p " + PXF_TEMP_LOG_PATH);
     }
 
     @Override

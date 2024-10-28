@@ -6,6 +6,7 @@ import org.greenplum.pxf.automation.components.oracle.Oracle;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.testng.annotations.Test;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.*;
@@ -50,11 +51,13 @@ public class OracleParallelSessionTest extends BaseFeature {
 
     @Override
     public void beforeClass() throws Exception {
-        String pxfHome = cluster.getPxfHome();
-        pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_ORACLE_SERVER_PROFILE);
-        pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
-        pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
-        oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
+        if (!FDWUtils.useFDW) {
+            String pxfHome = cluster.getPxfHome();
+            pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_ORACLE_SERVER_PROFILE);
+            pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
+            pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
+            oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
+        }
     }
 
     @Test(groups = {"arenadata"}, description = "Set default parameters for parallel queries")
