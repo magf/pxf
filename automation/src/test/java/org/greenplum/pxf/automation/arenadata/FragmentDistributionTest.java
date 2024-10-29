@@ -64,7 +64,9 @@ public class FragmentDistributionTest extends BaseFeature {
 
     @Override
     public void afterClass() throws Exception {
-        changeLogLevel("info");
+        if (!FDWUtils.useFDW) {
+            changeLogLevel("info");
+        }
     }
 
     protected void prepareData() throws Exception {
