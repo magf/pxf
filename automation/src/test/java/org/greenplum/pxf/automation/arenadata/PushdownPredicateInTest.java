@@ -10,6 +10,7 @@ import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -54,24 +55,28 @@ public class PushdownPredicateInTest extends BaseFeature {
 
     @Override
     protected void beforeClass() throws Exception {
-        String pxfHome = cluster.getPxfHome();
-        restartCommand = pxfHome + "/bin/pxf restart";
-        String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_ORACLE_SERVER_PROFILE);
-        pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
-        String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
-        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
-        if (cluster instanceof MultiNodeCluster) {
-            pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
+        if (!FDWUtils.useFDW) {
+            String pxfHome = cluster.getPxfHome();
+            restartCommand = pxfHome + "/bin/pxf restart";
+            String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_ORACLE_SERVER_PROFILE);
+            pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
+            String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
+            cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
+            if (cluster instanceof MultiNodeCluster) {
+                pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
+            }
+            pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
+            oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
+            prepareData();
+            changeLogLevel("debug");
         }
-        pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
-        oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
-        prepareData();
-        changeLogLevel("debug");
     }
 
     @Override
     public void afterClass() throws Exception {
-        changeLogLevel("info");
+        if (!FDWUtils.useFDW) {
+            changeLogLevel("info");
+        }
     }
 
     protected void prepareData() throws Exception {

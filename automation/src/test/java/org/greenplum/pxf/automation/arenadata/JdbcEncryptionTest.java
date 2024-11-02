@@ -4,6 +4,7 @@ import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.testng.annotations.Test;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.*;
@@ -33,14 +34,16 @@ public class JdbcEncryptionTest extends BaseFeature {
 
     @Override
     public void beforeClass() throws Exception {
-        String pxfHome = cluster.getPxfHome();
-        pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_ENCRYPTION_SERVER_PROFILE);
-        pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
-        pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
-        gpdb.runQuery(CREATE_USER_QUERY, true, false);
-        cluster.runCommandOnAllNodes(String.format(ADD_ENCRYPTION_PROPERTIES_COMMAND_TEMPLATE, pxfHome, pxfHome));
-        cluster.restart(PhdCluster.EnumClusterServices.pxf);
-        prepareData();
+        if (!FDWUtils.useFDW) {
+            String pxfHome = cluster.getPxfHome();
+            pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_ENCRYPTION_SERVER_PROFILE);
+            pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
+            pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
+            gpdb.runQuery(CREATE_USER_QUERY, true, false);
+            cluster.runCommandOnAllNodes(String.format(ADD_ENCRYPTION_PROPERTIES_COMMAND_TEMPLATE, pxfHome, pxfHome));
+            cluster.restart(PhdCluster.EnumClusterServices.pxf);
+            prepareData();
+        }
     }
 
     protected void prepareData() throws Exception {

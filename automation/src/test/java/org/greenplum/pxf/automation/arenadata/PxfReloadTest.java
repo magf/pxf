@@ -11,6 +11,7 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.greenplum.pxf.automation.utils.fileformats.FileFormatsUtils;
+import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.greenplum.pxf.automation.utils.system.ProtocolEnum;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
 import org.testng.Assert;
@@ -53,29 +54,31 @@ public class PxfReloadTest extends BaseFeature {
 
     @Override
     protected void beforeClass() throws Exception {
-        String pxfHome = cluster.getPxfHome();
-        String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
+        if (!FDWUtils.useFDW) {
+            String pxfHome = cluster.getPxfHome();
+            String pxfJdbcSiteConfTemplate = pxfHome + "/" + PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH;
 
-        String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_RELOAD_SERVER_PROFILE);
-        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
+            String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_RELOAD_SERVER_PROFILE);
+            cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
 
-        String pxfSecondJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_RELOAD_SECOND_SERVER_PROFILE);
-        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfSecondJdbcSiteConfPath, true, false);
+            String pxfSecondJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, PXF_RELOAD_SECOND_SERVER_PROFILE);
+            cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfSecondJdbcSiteConfPath, true, false);
 
-        if (cluster instanceof MultiNodeCluster) {
-            pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
-            masterNode = ((MultiNodeCluster) cluster).getNode(CoordinatorNode.class, PhdCluster.EnumClusterServices.pxf).get(0);
+            if (cluster instanceof MultiNodeCluster) {
+                pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
+                masterNode = ((MultiNodeCluster) cluster).getNode(CoordinatorNode.class, PhdCluster.EnumClusterServices.pxf).get(0);
+            }
+            pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
+            //hdfs preparation
+            String resourcePath = "target/classes" + testPackageLocation;
+            String newPath = "/tmp/publicstage/pxf";
+            cluster.copyFileToNodes(new File(resourcePath + throwOn10000Accessor
+                    + SUFFIX_CLASS).getAbsolutePath(), newPath
+                    + testPackageLocation, true, false);
+            cluster.addPathToPxfClassPath(newPath);
+            cluster.restart(PhdCluster.EnumClusterServices.pxf);
+            protocol = ProtocolUtils.getProtocol();
         }
-        pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
-        //hdfs preparation
-        String resourcePath = "target/classes" + testPackageLocation;
-        String newPath = "/tmp/publicstage/pxf";
-        cluster.copyFileToNodes(new File(resourcePath + throwOn10000Accessor
-                + SUFFIX_CLASS).getAbsolutePath(), newPath
-                + testPackageLocation, true, false);
-        cluster.addPathToPxfClassPath(newPath);
-        cluster.restart(PhdCluster.EnumClusterServices.pxf);
-        protocol = ProtocolUtils.getProtocol();
     }
 
     @Test(groups = {"arenadata"})

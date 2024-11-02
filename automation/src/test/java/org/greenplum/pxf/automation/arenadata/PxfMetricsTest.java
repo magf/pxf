@@ -12,6 +12,7 @@ import org.greenplum.pxf.automation.components.cluster.installer.nodes.SegmentNo
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.testng.annotations.Test;
 
 import java.net.URL;
@@ -30,17 +31,18 @@ public class PxfMetricsTest extends BaseFeature {
 
     @Override
     protected void beforeClass() throws Exception {
-        String pxfAppPropertiesFile = cluster.getPxfHome() + "/conf/pxf-application.properties";
-        cluster.runCommandOnAllNodes("sed -i 's/# server.address=localhost/server.address=0\\.0\\.0\\.0\\ncluster-name=" + CLUSTER_NAME + "/' " + pxfAppPropertiesFile);
-        cluster.restart(PhdCluster.EnumClusterServices.pxf);
-        Collection<String> pxfHostNames = getPxfHostNames();
-        for (String pxfHostName : pxfHostNames) {
-            serviceMetricsUrls.add(new URL("http://" + pxfHostName + ":" + pxfPort + "/service-metrics"));
-            clusterMetricsUrls.add(new URL("http://" + pxfHostName + ":" + pxfPort + "/service-metrics/cluster-metrics"));
+        if (!FDWUtils.useFDW) {
+            String pxfAppPropertiesFile = cluster.getPxfHome() + "/conf/pxf-application.properties";
+            cluster.runCommandOnAllNodes("sed -i 's/# server.address=localhost/server.address=0\\.0\\.0\\.0\\ncluster-name=" + CLUSTER_NAME + "/' " + pxfAppPropertiesFile);
+            cluster.restart(PhdCluster.EnumClusterServices.pxf);
+            Collection<String> pxfHostNames = getPxfHostNames();
+            for (String pxfHostName : pxfHostNames) {
+                serviceMetricsUrls.add(new URL("http://" + pxfHostName + ":" + pxfPort + "/service-metrics"));
+                clusterMetricsUrls.add(new URL("http://" + pxfHostName + ":" + pxfPort + "/service-metrics/cluster-metrics"));
+            }
+            prepareData();
+            runQueryWithExternalTable();
         }
-
-        prepareData();
-        runQueryWithExternalTable();
     }
 
     private Collection<String> getPxfHostNames() {

@@ -63,10 +63,11 @@ function check_docker_container_status() {
 
 start_copy_artifacts() {
   local test=$1
+  local table_type=$2
   echo "-------------------------------------"
-  echo "Start copy artifacts for $test"
+  echo "Start copy artifacts for $test ($table_type)"
   echo "-------------------------------------"
-  test_dir=artifacts/$test
+  test_dir=artifacts/$test/$table_type
   mkdir -p $test_dir
   docker-compose cp $run_test_service_name:/home/gpadmin/workspace/pxf/automation/target/surefire-reports ./$test_dir
   docker-compose cp $run_test_service_name:/home/gpadmin/workspace/pxf/automation/sqlrepo ./$test_dir
@@ -79,13 +80,14 @@ start_copy_artifacts() {
 check_test_result() {
   local exit_code=$1
   local test_group=$2
+  local table_type=$3
   if [ "$exit_code" -eq "0" ]; then
     echo "------------------------------------------------------"
-    echo "Test for the group '$test_group' finished with SUCCESS"
+    echo "Test for the group '$test_group' ($table_type) finished with SUCCESS"
     echo "------------------------------------------------------"
   else
     echo "----------------------------------------------------"
-    echo "Test for the group $test_group finished with ERROR"
+    echo "Test for the group '$test_group' ($table_type) finished with ERROR"
     echo "----------------------------------------------------"
     test_result_status=1
   fi
@@ -93,27 +95,55 @@ check_test_result() {
 
 check_docker_container_status false # We don't need oracle service immediately
 
-echo "-------------------------"
-echo "Start running smoke tests"
-echo "-------------------------"
+echo "---------------------------------------------"
+echo "Start running smoke tests with external table"
+echo "---------------------------------------------"
 docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=smoke'
-check_test_result $? smoke
-start_copy_artifacts smoke
+check_test_result $? smoke external-table
+start_copy_artifacts smoke external-table
 
-echo "-----------------------------------------------"
-echo "Start running integration tests in 'gpdb' group"
-echo "-----------------------------------------------"
+echo "-------------------------------------------------------------------"
+echo "Start running integration tests in 'gpdb' group with external table"
+echo "-------------------------------------------------------------------"
 docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=gpdb'
-check_test_result $? gpdb
-start_copy_artifacts gpdb
+check_test_result $? gpdb external-table
+start_copy_artifacts gpdb external-table
 
-echo "----------------------------------------------------"
-echo "Start running integration tests in 'arenadata' group"
-echo "----------------------------------------------------"
+echo "------------------------------------------------------------------------"
+echo "Start running integration tests in 'arenadata' group with external table"
+echo "------------------------------------------------------------------------"
 check_docker_container_status true # We need oracle service to be healthy for this group of tests
 docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=arenadata'
-check_test_result $? arenadata
-start_copy_artifacts arenadata
+check_test_result $? arenadata external-table
+start_copy_artifacts arenadata external-table
+
+echo "------------------"
+echo "Restart containers"
+echo "------------------"
+docker-compose down -v
+docker-compose up -d
+check_docker_container_status false # We don't need oracle service for FDW tests
+
+echo "----------------------------------"
+echo "Start running smoke tests with FDW"
+echo "----------------------------------"
+docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=smoke USE_FDW=true'
+check_test_result $? smoke fdw
+start_copy_artifacts smoke fdw
+
+echo "--------------------------------------------------------"
+echo "Start running integration tests in 'gpdb' group with FDW"
+echo "--------------------------------------------------------"
+docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=gpdb USE_FDW=true'
+check_test_result $? gpdb fdw
+start_copy_artifacts gpdb fdw
+
+echo "-------------------------------------------------------------"
+echo "Start running integration tests in 'arenadata' group with FDW"
+echo "-------------------------------------------------------------"
+docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=arenadata USE_FDW=true'
+check_test_result $? arenadata fdw
+start_copy_artifacts arenadata fdw
 
 echo "-------------------"
 echo "Shutdown containers"

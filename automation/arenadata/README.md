@@ -38,6 +38,12 @@ Start all tests from the specific group:
 docker-compose exec mdw sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=gpdb'
 ```
 
+By default, external table is used in all tests. In order to use foreign table feature, additional parameter USE_FDW should be passed.\
+In this case only tests marked with annotation @WorksWithFDW are be executed. Others are skipped.
+```shell
+docker-compose exec mdw sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=gpdb USE_FDW=true'
+```
+
 ### How to build Hadoop image for integration tests
 ```shell
 cd pxf/automation/arenadata/hadoop/

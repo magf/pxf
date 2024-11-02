@@ -6,6 +6,7 @@ import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -37,9 +38,11 @@ public class JdbcJsonFeatureTest extends BaseFeature {
 
     @Override
     protected void beforeClass() throws Exception {
-        mysql = (Mysql) SystemManagerImpl.getInstance().getSystemObject("mysql");
-        copyJdbcConfFile();
-        prepareData();
+        if (!FDWUtils.useFDW) {
+            mysql = (Mysql) SystemManagerImpl.getInstance().getSystemObject("mysql");
+            copyJdbcConfFile();
+            prepareData();
+        }
     }
 
     protected void prepareData() throws Exception {

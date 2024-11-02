@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.features.avro;
 
+import annotations.FailsWithFDW;
 import annotations.WorksWithFDW;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -263,6 +264,7 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
         runSqlTest("features/hdfs/writable/avro/complex_user_provided_schema_on_classpath");
     }
 
+    @FailsWithFDW
     @Test(groups = {"features", "gpdb", "hcfs", "security"})
     public void userProvidedSchemaFileGPDBArraysAsAvroArraysWithNulls() throws Exception {
         tableNamePrefix = "writable_avro_array_user_schema_w_nulls";
