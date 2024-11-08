@@ -19,6 +19,7 @@ package org.greenplum.pxf.plugins.hive.utilities;
  * under the License.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hive.ql.io.RCFileInputFormat;
 import org.apache.hadoop.hive.ql.io.orc.OrcInputFormat;
 import org.apache.hadoop.mapred.InputFormat;
@@ -29,12 +30,10 @@ import org.apache.hadoop.mapred.TextInputFormat;
  *
  */
 public class ProfileFactory {
-
     private static final String HIVE_PROFILE = "hive";
     private static final String HIVE_TEXT_PROFILE = "hive:text";
     private static final String HIVE_RC_PROFILE = "hive:rc";
     private static final String HIVE_ORC_PROFILE = "hive:orc";
-    private static final String HIVE_ORC_VECTORIZED_PROFILE_OLD = "HiveVectorizedORC";
 
     /**
      * The method which returns optimal profile
@@ -45,21 +44,19 @@ public class ProfileFactory {
      * @return name of optimal profile
      */
     public static String get(InputFormat<?,?> inputFormat, boolean hasComplexTypes, String userProfileName) {
-        String profileName;
-        if (HIVE_ORC_VECTORIZED_PROFILE_OLD.equalsIgnoreCase(userProfileName))
-            // specialized Vectorized ORC profile is deprecated, but still needs to be supported for now
+        if (StringUtils.isNotBlank(userProfileName) && !userProfileName.equalsIgnoreCase(HIVE_PROFILE)) {
             return userProfileName;
-        if (inputFormat instanceof TextInputFormat && !hasComplexTypes) {
-            profileName = HIVE_TEXT_PROFILE;
-        } else if (inputFormat instanceof RCFileInputFormat) {
-            profileName = HIVE_RC_PROFILE;
-        } else if (inputFormat instanceof OrcInputFormat) {
-            profileName = HIVE_ORC_PROFILE;
-        } else {
-            //Default case
-            profileName = HIVE_PROFILE;
         }
-        return profileName;
+
+        if (inputFormat instanceof TextInputFormat && !hasComplexTypes) {
+            return HIVE_TEXT_PROFILE;
+        } else if (inputFormat instanceof RCFileInputFormat) {
+            return HIVE_RC_PROFILE;
+        } else if (inputFormat instanceof OrcInputFormat) {
+            return HIVE_ORC_PROFILE;
+        } else {
+            return HIVE_PROFILE;
+        }
     }
 
     /**

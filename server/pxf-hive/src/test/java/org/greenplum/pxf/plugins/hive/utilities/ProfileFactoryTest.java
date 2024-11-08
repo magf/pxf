@@ -65,6 +65,9 @@ public class ProfileFactoryTest {
         // For other formats Hive profile should be used
         profileName = ProfileFactory.get(new SequenceFileInputFilter(), false);
         assertEquals("hive", profileName);
-    }
 
+        // If user specified custom profile, no matter what the input format is, the custom profile should be used
+        profileName = ProfileFactory.get(new RCFileInputFormat(), true, "hive-custom-profile");
+        assertEquals("hive-custom-profile", profileName);
+    }
 }
