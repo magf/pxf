@@ -1,3 +1,11 @@
+-- The following NOTICE is generated when creating a role. It is to inform the
+-- user that the database will assign the default resource queue to the role if
+-- the user has not explicitly specified one. Hence we want to ignore this
+-- notice, because it is printed by GPDB 6 and is not printed by GPDB 7.
+-- start_matchignore
+-- m/^NOTICE:.*resource queue required -- using default resource queue ".*"/
+-- end_matchignore
+
 -- ===================================================================
 -- create FDW objects
 -- ===================================================================

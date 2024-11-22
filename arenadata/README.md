@@ -3,6 +3,10 @@ From the root pxf folder run:
 ```bash
 docker build -t gpdb6_pxf_regress:latest -f arenadata/Dockerfile .
 ```
+For default Docker will use image "hub.adsw.io/library/gpdb6_regress:adb-6.x-dev" (see ARG GPDB_IMAGE in the Dockerfile). It may be changed by the `--build-arg` param:
+```bash
+docker build -t gpdb7_pxf_regress:latest --build-arg GPDB_IMAGE="hub.adsw.io/library/gpdb7_u22:latest" -f arenadata/Dockerfile .
+```
 This will build an image called `gpdb6_pxf_regress` with the tag `latest`. This image is based on `gpdb6_regress:latest`, which additionally contains pxf sources and pxf artifacts tarball in `/tmp/build/pxf_src` and `/tmp/build/pxf_tarball` folders respectively.
 
 ## How to test PXF

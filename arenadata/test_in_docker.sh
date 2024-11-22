@@ -10,6 +10,9 @@ set -exo pipefail
 chown gpadmin:gpadmin -R /usr/local/greenplum-db-devel
 chown gpadmin:gpadmin -R /tmp/build/pxf_src
 
+# Display the diff if we fail
+trap "cat /tmp/build/pxf_src/fdw/regression.diffs /tmp/build/pxf_src/external-table/regression.diffs" ERR
+
 # test fdw and external-table
 su - gpadmin -c "
     source '/usr/local/greenplum-db-devel/greenplum_path.sh';
