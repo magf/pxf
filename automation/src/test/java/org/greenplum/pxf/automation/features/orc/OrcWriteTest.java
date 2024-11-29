@@ -359,6 +359,66 @@ public class OrcWriteTest extends BaseFeature {
         runSqlTest("features/orc/write/decimal_with_large_scale");
     }
 
+    @Test(groups = {"features", "gpdb", "security", "hcfs"})
+    public void orcWritePrimitivesSnappy() throws Exception {
+        gpdbTableNamePrefix = "pxf_orc_primitive_types_snappy";
+        fullTestPath = hdfsPath + "pxf_orc_primitive_types_snappy";
+
+        prepareWritableExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS, fullTestPath, new String[]{"COMPRESSION_CODEC=snappy"});
+        prepareReadableExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS, fullTestPath, false /*mapByPosition*/);
+        prepareView(gpdbTableNamePrefix + "_readable");
+
+        // > 30 to let the DATE field to repeat the value
+        attemptInsert(() -> insertDataWithoutNulls(gpdbTableNamePrefix, 33), fullTestPath, NUM_RETRIES);
+        // use PXF *:orc profile to read the data
+        runSqlTest("features/orc/write/primitive_types_compress");
+    }
+
+    @Test(groups = {"features", "gpdb", "security", "hcfs"})
+    public void orcWritePrimitivesZlib() throws Exception {
+        gpdbTableNamePrefix = "pxf_orc_primitive_types_zlib";
+        fullTestPath = hdfsPath + "pxf_orc_primitive_types_zlib";
+
+        prepareWritableExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS, fullTestPath, new String[]{"COMPRESSION_CODEC=ZLIB"});
+        prepareReadableExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS, fullTestPath, false /*mapByPosition*/);
+        prepareView(gpdbTableNamePrefix + "_readable");
+
+        // > 30 to let the DATE field to repeat the value
+        attemptInsert(() -> insertDataWithoutNulls(gpdbTableNamePrefix, 33), fullTestPath, NUM_RETRIES);
+        // use PXF *:orc profile to read the data
+        runSqlTest("features/orc/write/primitive_types_compress");
+    }
+
+    @Test(groups = {"features", "gpdb", "security", "hcfs"})
+    public void orcWritePrimitivesZstd() throws Exception {
+        gpdbTableNamePrefix = "pxf_orc_primitive_types_zstd";
+        fullTestPath = hdfsPath + "pxf_orc_primitive_types_zstd";
+
+        prepareWritableExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS, fullTestPath, new String[]{"COMPRESSION_CODEC=zstd"});
+        prepareReadableExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS, fullTestPath, false /*mapByPosition*/);
+        prepareView(gpdbTableNamePrefix + "_readable");
+
+        // > 30 to let the DATE field to repeat the value
+        attemptInsert(() -> insertDataWithoutNulls(gpdbTableNamePrefix, 33), fullTestPath, NUM_RETRIES);
+        // use PXF *:orc profile to read the data
+        runSqlTest("features/orc/write/primitive_types_compress");
+    }
+
+    @Test(groups = {"features", "gpdb", "security", "hcfs"})
+    public void orcWritePrimitivesLz4() throws Exception {
+        gpdbTableNamePrefix = "pxf_orc_primitive_types_lz4";
+        fullTestPath = hdfsPath + "pxf_orc_primitive_types_lz4";
+
+        prepareWritableExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS, fullTestPath, new String[]{"COMPRESSION_CODEC=lz4"});
+        prepareReadableExternalTable(gpdbTableNamePrefix, ORC_PRIMITIVE_TABLE_COLUMNS, fullTestPath, false /*mapByPosition*/);
+        prepareView(gpdbTableNamePrefix + "_readable");
+
+        // > 30 to let the DATE field to repeat the value
+        attemptInsert(() -> insertDataWithoutNulls(gpdbTableNamePrefix, 33), fullTestPath, NUM_RETRIES);
+        // use PXF *:orc profile to read the data
+        runSqlTest("features/orc/write/primitive_types_compress");
+    }
+
     private void insertDataWithoutNulls(String exTable, int numRows) throws Exception {
         StringBuilder statementBuilder = new StringBuilder("INSERT INTO " + exTable + "_writable VALUES ");
         for (int i = 0; i < numRows; i++) {
@@ -512,6 +572,14 @@ public class OrcWriteTest extends BaseFeature {
         createTable(exTable);
     }
 
+    private void prepareWritableExternalTable(String name, String[] fields, String path, String[] userParameters) throws Exception {
+        exTable = TableFactory.getPxfHcfsWritableTable(name + "_writable", fields, path, hdfs.getBasePath(), "orc");
+        if (userParameters != null) {
+            exTable.setUserParameters(userParameters);
+        }
+        createTable(exTable);
+    }
+
     private void prepareReadableExternalTable(String name, String[] fields, String path, boolean mapByPosition) throws Exception {
         exTable = TableFactory.getPxfHcfsReadableTable(name + "_readable", fields, path, hdfs.getBasePath(), "orc");
         if (mapByPosition) {
@@ -520,4 +588,7 @@ public class OrcWriteTest extends BaseFeature {
         createTable(exTable);
     }
 
+    private void prepareView(String name) throws Exception {
+        gpdb.runQuery("CREATE OR REPLACE VIEW pxf_orc_view AS SELECT * FROM " + name);
+    }
 }
