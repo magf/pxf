@@ -120,7 +120,7 @@ start_copy_artifacts arenadata external-table
 echo "------------------"
 echo "Restart containers"
 echo "------------------"
-docker-compose down -v
+docker-compose down
 docker-compose up -d
 check_docker_container_status false # We don't need oracle service for FDW tests
 
