@@ -135,7 +135,7 @@ function waitForSpringBoot() {
     sleep_time=1 # sleep 1 second between attempts
 
     if [[ "$PXF_PROTOCOL" = "https" ]]; then
-      curl_command="$curl --cacert ${PXF_SSL_CACERT_PATH} --cert ${PXF_SSL_CERT} --key ${PXF_SSL_KEY} --silent --connect-timeout 1 -I ${PXF_PROTOCOL}://${PXF_HOST}:${PXF_PORT}"
+      curl_command="$curl --cacert ${PXF_SSL_CACERT} --cert ${PXF_SSL_CERT} --key ${PXF_SSL_KEY} --silent --connect-timeout 1 -I ${PXF_PROTOCOL}://${PXF_HOST}:${PXF_PORT}"
     else
       curl_command="$curl --silent --connect-timeout 1 -I ${PXF_PROTOCOL}://${PXF_HOST}:${PXF_PORT}"
     fi
@@ -164,7 +164,7 @@ function checkWebapp() {
     waitForSpringBoot "$1" "$2" || return 1
 
     if [[ "$PXF_SSL_ENABLED" = true ]]; then
-      curl_response_command="$curl -s --cacert ${PXF_SSL_CACERT_PATH} --cert ${PXF_SSL_CERT} --key ${PXF_SSL_KEY} ${PXF_PROTOCOL}://${PXF_HOST}:${PXF_PORT}/actuator/health"
+      curl_response_command="$curl -s --cacert ${PXF_SSL_CACERT} --cert ${PXF_SSL_CERT} --key ${PXF_SSL_KEY} ${PXF_PROTOCOL}://${PXF_HOST}:${PXF_PORT}/actuator/health"
     else
       curl_response_command="$curl -s ${PXF_PROTOCOL}://${PXF_HOST}:${PXF_PORT}/actuator/health"
     fi

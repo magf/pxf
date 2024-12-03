@@ -90,7 +90,7 @@ func (cmd *command) GetFunctionToExecute() (func(string) string, error) {
 
 		reloadCommandTemplate := ""
 		if pxfProtocolStr == "https" {
-			reloadCommandTemplate = "curl -k --cacert ${PXF_SSL_CACERT_PATH} --cert ${PXF_SSL_CERT} --key ${PXF_SSL_KEY} --silent --fail --show-error --request POST %s://%s:%s/pxf/reload --header \"Content-Type: application/json\" --data '{\"profile\":\"%s\",\"server\":\"%s\"}'"
+			reloadCommandTemplate = "curl -k --cacert ${PXF_SSL_CACERT} --cert ${PXF_SSL_CERT} --key ${PXF_SSL_KEY} --silent --fail --show-error --request POST %s://%s:%s/pxf/reload --header \"Content-Type: application/json\" --data '{\"profile\":\"%s\",\"server\":\"%s\"}'"
 		} else {
 			reloadCommandTemplate = "curl --silent --fail --show-error --request POST %s://%s:%s/pxf/reload --header \"Content-Type: application/json\" --data '{\"profile\":\"%s\",\"server\":\"%s\"}'"
 		}
