@@ -40,6 +40,7 @@ services:
       - PXF_SSL_CACERT=/opt/ssl/certs/ca-cert
       - PXF_SSL_CERT=/opt/ssl/certs/pxf-client.pem
       - PXF_SSL_KEY=/opt/ssl/certs/pxf-client.key
+      - PXF_SSL_CERT_TYPE=PEM
     volumes:
       - "vault-env:/vault/env:ro"
       - "./conf/ssl/certs:/opt/ssl/certs:ro"
@@ -80,6 +81,7 @@ services:
       - PXF_SSL_CACERT=/opt/ssl/certs/ca-cert
       - PXF_SSL_CERT=/opt/ssl/certs/pxf-client.pem
       - PXF_SSL_KEY=/opt/ssl/certs/pxf-client.key
+      - PXF_SSL_CERT_TYPE=PEM
     volumes:
       - "vault-env:/vault/env:ro"
       - "./conf/ssl/certs:/opt/ssl/certs:ro"
@@ -117,6 +119,7 @@ services:
       - PXF_SSL_CACERT=/opt/ssl/certs/ca-cert
       - PXF_SSL_CERT=/opt/ssl/certs/pxf-client.pem
       - PXF_SSL_KEY=/opt/ssl/certs/pxf-client.key
+      - PXF_SSL_CERT_TYPE=PEM
     volumes:
       - "vault-env:/vault/env:ro"
       - "./conf/ssl/certs:/opt/ssl/certs:ro"
