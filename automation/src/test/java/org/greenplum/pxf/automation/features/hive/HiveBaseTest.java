@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.features.hive;
 
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.components.hdfs.Hdfs;
 import org.greenplum.pxf.automation.components.hive.Hive;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -369,6 +370,7 @@ public class HiveBaseTest extends BaseFeature {
         loadDataIntoHive(hdfs, hive, fileName, tableName);
     }
 
+    @Step("Load data into Hive")
     void loadDataIntoHive(Hdfs hdfs, Hive hive, String fileName, HiveTable tableName) throws Exception {
 
         // copy data to hdfs
@@ -382,6 +384,7 @@ public class HiveBaseTest extends BaseFeature {
         return new String[]{"TEST-HIVE-FILTER=" + filterString};
     }
 
+    @Step("Prepare data")
     private HiveTable prepareData(String tableName, String format) throws Exception {
 
         HiveTable hiveTable = new HiveTable(tableName, HIVE_RC_COLS);
@@ -391,17 +394,20 @@ public class HiveBaseTest extends BaseFeature {
         return hiveTable;
     }
 
+    @Step("Prepare data")
     void prepareData() throws Exception {
 
         prepareSmallData();
         prepareTypesData();
     }
 
+    @Step("Prepare small data")
     void prepareSmallData() throws Exception {
 
         hiveSmallDataTable = prepareTableData(hdfs, hive, hiveSmallDataTable, HIVE_SMALL_DATA_TABLE, HIVE_SMALLDATA_COLS, HIVE_DATA_FILE_NAME);
     }
 
+    @Step("Prepare table data")
     HiveTable prepareTableData(Hdfs hdfs, Hive hive, HiveTable hiveTable, String tableName, String[] tableColumns, String dataFileName) throws Exception {
 
         if (hiveTable != null)
@@ -412,6 +418,7 @@ public class HiveBaseTest extends BaseFeature {
         return hiveTable;
     }
 
+    @Step("Prepare types data")
     void prepareTypesData() throws Exception {
 
         if (hiveTypesTable != null)
@@ -421,6 +428,7 @@ public class HiveBaseTest extends BaseFeature {
         loadDataIntoHive(HIVE_TYPES_DATA_FILE_NAME, hiveTypesTable);
     }
 
+    @Step("Prepare ORC data")
     void prepareOrcData() throws Exception {
 
         if (hiveOrcTable != null)
@@ -437,6 +445,7 @@ public class HiveBaseTest extends BaseFeature {
         hive.insertData(hiveTypesTable, hiveOrcAllTypes);
     }
 
+    @Step("Prepare ORC multi-field data")
     void prepareOrcMultiFileData() throws Exception {
 
         if (hiveOrcMultiFileTable != null)
@@ -450,6 +459,7 @@ public class HiveBaseTest extends BaseFeature {
         hive.insertData(hiveSmallDataTable, hiveOrcMultiFileTable);
     }
 
+    @Step("Prepare ORC snappy data")
     void prepareOrcSnappyData() throws Exception {
 
         if (hiveOrcSnappyTable != null)
@@ -463,6 +473,7 @@ public class HiveBaseTest extends BaseFeature {
         hive.insertData(hiveSmallDataTable, hiveOrcSnappyTable);
     }
 
+    @Step("Prepare ORC zlib data")
     void prepareOrcZlibData() throws Exception {
 
         if (hiveOrcZlibTable != null)
@@ -476,6 +487,7 @@ public class HiveBaseTest extends BaseFeature {
         hive.insertData(hiveSmallDataTable, hiveOrcZlibTable);
     }
 
+    @Step("Prepare Hive collection")
     void prepareHiveCollection() throws Exception {
 
         if (hiveCollectionTable != null)
@@ -491,6 +503,7 @@ public class HiveBaseTest extends BaseFeature {
         loadDataIntoHive(HIVE_COLLECTIONS_FILE_NAME, hiveCollectionTable);
     }
 
+    @Step("Prepare RC data")
     void prepareRCData() throws Exception {
 
         if (hiveRcTable != null)
@@ -498,6 +511,7 @@ public class HiveBaseTest extends BaseFeature {
         hiveRcTable = prepareData(HIVE_RC_TABLE, RCFILE);
     }
 
+    @Step("Prepare Parquet data")
     void prepareParquetData() throws Exception {
 
         if (hiveParquetTable != null)
@@ -505,6 +519,7 @@ public class HiveBaseTest extends BaseFeature {
         hiveParquetTable = prepareData(HIVE_PARQUET_TABLE, PARQUET);
     }
 
+    @Step("Prepare Parquet for alter data")
     void prepareParquetForAlterData() throws Exception {
 
         if (hiveParquetForAlterTable != null)
@@ -512,6 +527,7 @@ public class HiveBaseTest extends BaseFeature {
         hiveParquetForAlterTable = prepareData(HIVE_PARQUET_FOR_ALTER_TABLE, PARQUET);
     }
 
+    @Step("Prepare mismatch source table")
     void prepareParquetMismatchSourceTable() throws Exception {
         if (hiveParquetMismatchSourceTable != null)
             return;
@@ -521,6 +537,7 @@ public class HiveBaseTest extends BaseFeature {
                 HIVE_PARQUET_MISMATCH_DATA_FILE_NAME);
     }
 
+    @Step("Prepare Avro data")
     void prepareAvroData() throws Exception {
 
         if (hiveAvroTable != null)
@@ -528,6 +545,7 @@ public class HiveBaseTest extends BaseFeature {
         hiveAvroTable = prepareData(HIVE_AVRO_TABLE, AVRO);
     }
 
+    @Step("Prepare sequence data")
     void prepareSequenceData() throws Exception {
 
         if (hiveSequenceTable != null)
@@ -538,6 +556,7 @@ public class HiveBaseTest extends BaseFeature {
         hive.insertData(hiveSmallDataTable, hiveSequenceTable);
     }
 
+    @Step("Prepare binary data")
     void prepareBinaryData() throws Exception {
 
         if (hiveBinaryTable != null)
@@ -547,6 +566,7 @@ public class HiveBaseTest extends BaseFeature {
         loadDataIntoHive("hiveBinaryData", hiveBinaryTable);
     }
 
+    @Step("Prepare non default schema data")
     void prepareNonDefaultSchemaData() throws Exception {
 
         if (hiveNonDefaultSchemaTable != null)
@@ -557,6 +577,7 @@ public class HiveBaseTest extends BaseFeature {
         hive.createTableAndVerify(hiveNonDefaultSchemaTable);
     }
 
+    @Step("Prepare open csv data")
     void prepareOpenCsvData() throws Exception {
 
         if (hiveOpenCsvTable != null)
@@ -569,12 +590,14 @@ public class HiveBaseTest extends BaseFeature {
         hive.insertData(hiveSmallDataTable, hiveOpenCsvTable);
     }
 
+    @Step("Add Hive partition")
     void addHivePartition(String hiveTable, String partition, String location) throws Exception {
 
         hive.runQuery("ALTER TABLE " + hiveTable + " ADD PARTITION ("
                 + partition + ") LOCATION " + location);
     }
 
+    @Step("Set Hive partition format")
     void setHivePartitionFormat(String hiveTable, String partition, String format) throws Exception {
 
         hive.runQuery("ALTER TABLE " + hiveTable + " PARTITION ("
@@ -585,6 +608,7 @@ public class HiveBaseTest extends BaseFeature {
      * Adds a partition to given hive table, with partition parameter as specified.
      * The partition is another hive table whose location is used.
      */
+    @Step("Add table as partition")
     void addTableAsPartition(HiveTable hiveTable, String partition, HiveTable partitionTable)
             throws Exception {
 
@@ -601,6 +625,7 @@ public class HiveBaseTest extends BaseFeature {
      * @param tableName hive table name
      * @throws Exception if test fails to run
      */
+    @Step("Create Hive partitioned table")
     void createHivePartitionTable(String tableName) throws Exception {
 
         prepareSmallData();
@@ -630,6 +655,7 @@ public class HiveBaseTest extends BaseFeature {
      * @param tableName hive table name
      * @throws Exception if test fails to run
      */
+    @Step("Create Hive partitioned table")
     void createGenerateHivePartitionTable(String tableName) throws Exception {
 
         String smallDataTableName = hiveSmallDataTable.getName();
@@ -693,6 +719,7 @@ public class HiveBaseTest extends BaseFeature {
      *
      * @throws Exception if test fails to run
      */
+    @Step("Create Hive Parquet column mismatch partitioned table")
     void createHiveParquetColumnMismatchPartitionTable() throws Exception {
 
         String[] partitionColumns = new String[]{"part"};
@@ -759,6 +786,7 @@ public class HiveBaseTest extends BaseFeature {
         }
     }
 
+    @Step("Create external table")
     protected void createExternalTable(String tableName, String[] fields,
                                        HiveTable hiveTable, boolean useProfile, String serverName)
             throws Exception {

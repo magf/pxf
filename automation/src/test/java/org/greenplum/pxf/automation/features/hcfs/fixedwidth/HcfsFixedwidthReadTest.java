@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.hcfs.fixedwidth;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
@@ -11,6 +13,7 @@ import java.util.Objects;
  * The dataset is based on a set of tests available in Greenplum
  * https://github.com/greenplum-db/gpdb/blob/main/contrib/formatter_fixedwidth/data/fixedwidth_small_correct.tbl
  */
+@Feature("Reading fixedwidth files in HCFS")
 public class HcfsFixedwidthReadTest extends BaseFeature {
 
     private static final String[] SMALL_DATA_FIELDS = new String[]{
@@ -171,6 +174,7 @@ public class HcfsFixedwidthReadTest extends BaseFeature {
         runSqlTest("features/hcfs/fixedwidth/read/small_data_correct_crlf_delim");
     }
 
+    @Step("Prepare readable table")
     private void prepareReadableTable(String name, String[] fields, String[] formatterOptions, String path) {
         // default external table with common settings
         exTable = TableFactory.getPxfHcfsReadableTable(name, fields, path, hdfs.getBasePath(), "fixedwidth");

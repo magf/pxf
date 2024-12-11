@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.hive;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector;
@@ -19,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Feature("Hive ORC")
 public class HiveOrcTest extends HiveBaseTest {
     private static final String ORC_LARGE_DATA_TYPE = "struct<col1:int,col2:string>";
     private static final String[] HIVE_ORC_LARGE_DATA_COLS = {
@@ -39,12 +42,14 @@ public class HiveOrcTest extends HiveBaseTest {
     private HiveTable hiveOrcLargeDataTable;
 
     @Override
+    @Step("Create external table")
     protected void createExternalTable(String tableName, String[] fields, HiveTable hiveTable) throws Exception {
 
         exTable = TableFactory.getPxfHiveOrcReadableTable(tableName, fields, hiveTable, true);
         createTable(exTable);
     }
 
+    @Step("Create external vectorized table")
     protected void createExternalVectorizedTable(String tableName, String[] fields, HiveTable hiveTable) throws Exception {
 
         exTable = TableFactory.getPxfHiveVectorizedOrcReadableTable(tableName, fields, hiveTable, true);
@@ -52,6 +57,7 @@ public class HiveOrcTest extends HiveBaseTest {
     }
 
     @Override
+    @Step("Prepare data")
     void prepareData() throws Exception {
 
         prepareSmallData();
@@ -63,6 +69,7 @@ public class HiveOrcTest extends HiveBaseTest {
     }
 
     @Override
+    @Step("Prepare small data")
     void prepareSmallData() throws Exception {
 
         super.prepareSmallData();
@@ -74,6 +81,7 @@ public class HiveOrcTest extends HiveBaseTest {
     }
 
     @Override
+    @Step("Prepare binary data")
     void prepareBinaryData() throws Exception {
 
         super.prepareBinaryData();
@@ -86,6 +94,7 @@ public class HiveOrcTest extends HiveBaseTest {
     }
 
     @Override
+    @Step("Prepare hive collection")
     void prepareHiveCollection() throws Exception {
 
         super.prepareHiveCollection();
@@ -96,6 +105,7 @@ public class HiveOrcTest extends HiveBaseTest {
         hive.insertData(hiveCollectionTable, hiveOrcCollectionTable);
     }
 
+    @Step("Prepare partitioned data")
     private void preparePartitionedData() throws Exception {
 
         hiveOrcPartitionedTable = new HiveTable(HIVE_PARTITIONED_TABLE, HIVE_RC_COLS);
@@ -111,12 +121,14 @@ public class HiveOrcTest extends HiveBaseTest {
                 new String[]{"fmt"}, new String[]{"t1", "t2", "num1", "t1", "vc1"});
     }
 
+    @Step("Prepare PXF Hive ORC types")
     private void preparePxfHiveOrcTypes() throws Exception {
 
         createExternalTable(PXF_HIVE_ORC_TABLE,
                 PXF_HIVE_TYPES_COLS, hiveOrcAllTypes);
     }
 
+    @Step("Prepare PXF Hive small data")
     private void preparePxfHiveSmallData() throws Exception {
 
         createExternalTable(PXF_HIVE_SMALL_DATA_TABLE,
@@ -128,6 +140,7 @@ public class HiveOrcTest extends HiveBaseTest {
         gpdb.copyData(exTable, gpdbNativeTable);
     }
 
+    @Step("Prepare ORC large data")
     private void prepareOrcLargeData(int numRows) throws Exception {
         hiveOrcLargeDataTable = new HiveTable("hive_orc_large_data", HIVE_ORC_LARGE_DATA_COLS);
         hiveOrcLargeDataTable.setStoredAs(ORC);

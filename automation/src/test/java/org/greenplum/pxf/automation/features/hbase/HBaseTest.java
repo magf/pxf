@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.hbase;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.components.hbase.HBase;
 import org.greenplum.pxf.automation.structures.tables.hbase.HBaseTable;
 import org.greenplum.pxf.automation.structures.tables.hbase.LookupTable;
@@ -17,9 +19,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
-/**
- * Functional cases for PXF HBase connector
- */
+@Feature("PXF HBase connector")
 public class HBaseTest extends BaseFeature {
 
     // Components that are used in different cases
@@ -134,11 +134,7 @@ public class HBaseTest extends BaseFeature {
         }
     }
 
-    /**
-     * Prepares lookup table with suitable mapping for 2 hbase tables.
-     *
-     * @throws Exception if test fails to run
-     */
+    @Step("Prepares lookup table with suitable mapping for 2 hbase tables")
     private void prepareLookupTable() throws Exception {
         lookupTable = new LookupTable();
         hbase.createTableAndVerify(lookupTable);
@@ -625,6 +621,7 @@ public class HBaseTest extends BaseFeature {
      *
      * @throws Exception if test fails to run
      */
+    @Step("Verify PXF Filters over HBase table")
     private void verifyFilterResults(HBaseTable hbaseTable, ReadableExternalTable externalTable,
             String whereClause, String filterString, String sqlTestPath) throws Exception {
 
@@ -649,6 +646,7 @@ public class HBaseTest extends BaseFeature {
      *
      * @throws Exception if test fails to run
      */
+    @Step("Verify PXF Filters over HBase table")
     private void verifyFilterResults(HBaseTable hbaseTable, ReadableExternalTable externalTable,
             String whereClause, String filterString, String sqlTestPath, boolean verifyFilterString) throws Exception {
 
@@ -682,6 +680,7 @@ public class HBaseTest extends BaseFeature {
      *
      * @throws Exception if test fails to run
      */
+    @Step("Create PXF external table using FilterPrinterAccessor and verify")
     private void createAndQueryPxfGpdbFilterTable(HBaseTable hbaseTable, String[] fields,
             String whereClause, String expectedFilter) throws Exception {
 
@@ -719,6 +718,7 @@ public class HBaseTest extends BaseFeature {
      *
      * @throws Exception if test fails to run
      */
+    @Step("Creates PXF HBase table using HBaseAccessorWithFilter")
     private void createPxfHBaseFilterTable(String filter, HBaseTable hbaseTable, String[] fields) throws Exception {
 
         ReadableExternalTable externalTableHBaseWithFilter = new ReadableExternalTable(
@@ -746,6 +746,7 @@ public class HBaseTest extends BaseFeature {
      *
      * @throws Exception if test fails to run
      */
+    @Step("Prepare data chain")
     private ReadableExternalTable prepareDataChain(HBaseTable hbaseTable,
             HBaseDataPreparer dataPreparer, int rows) throws Exception {
 

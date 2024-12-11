@@ -2,6 +2,8 @@ package org.greenplum.pxf.automation.features.general;
 
 import annotations.FailsWithFDW;
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
@@ -11,6 +13,7 @@ import org.testng.annotations.Test;
 import java.util.Objects;
 
 @WorksWithFDW
+@Feature("Alter table")
 public class AlterTableTest extends BaseFeature {
 
     private static final String AVRO_TYPES_FILE_NAME = "supported_primitive_types";
@@ -172,6 +175,7 @@ public class AlterTableTest extends BaseFeature {
         runSqlTest("features/general/alter/csv");
     }
 
+    @Step("Prepare external table table")
     private void setParamsAndVerifyTable() throws Exception
     {
         exTable.setHost(pxfHost);

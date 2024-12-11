@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import io.qameta.allure.Step;
 import jsystem.framework.report.Reporter;
 
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -110,6 +111,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param expectedResult to match the query result
 	 * @throws Exception if an error occurs
 	 */
+	@Step("Run analytic query and compare the result with expectedResult")
 	public void runAnalyticQuery(String query, String expectedResult) throws Exception {
 		Table analyticResult = new Table("analyticResult", null);
 		queryResults(analyticResult, query);
@@ -128,16 +130,19 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	}
 
 	@Override
+	@Step("Drop table")
 	public void dropTable(Table table, boolean cascade) throws Exception {
 		runQuery(table.constructDropStmt(cascade), true, false);
 	}
 
 	@Override
+	@Step("Drop database")
 	public void dropDataBase(String schemaName, boolean cascade, boolean ignoreFail) throws Exception {
 		runQuery("DROP SCHEMA " + schemaName + ((cascade) ? " CASCADE" : ""), ignoreFail, false);
 	}
 
 	@Override
+	@Step("Insert data into table")
 	public void insertData(Table source, Table target) throws Exception {
 		StringBuilder dataStringBuilder = new StringBuilder();
 		List<List<String>> data = source.getData();
@@ -170,6 +175,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param target table to insert data into, can be an internal, an external or a foreign table
 	 * @throws Exception is operation fails
 	 */
+	@Step("Inserts data from the provided string into the target Table")
 	public void insertData(String data, Table target) throws Exception {
 		if (!data.startsWith("(")) {
 			data = "(" + data;
@@ -187,6 +193,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	}
 
 	@Override
+	@Step("Create database")
 	public void createDataBase(String schemaName, boolean ignoreFail) throws Exception {
 
 		runQuery("CREATE SCHEMA " + schemaName, ignoreFail, false);
@@ -235,6 +242,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param ignoreNoWarning if no warning returned at all
 	 * @throws Exception if an error occurs
 	 */
+	@Step("Run query which expected to get warning")
 	public void runQueryWithExpectedWarning(String query, String expectedWarning, boolean isRegex, boolean ignoreNoWarning) throws Exception {
 
 		runQuery(query, true, false);
@@ -250,6 +258,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param isRegex if true refer to expectedWarning as regular expression
 	 * @throws Exception if an error occurs
 	 */
+	@Step("Run query which expected to get warning")
 	public void runQueryWithExpectedWarning(String query, String expectedWarning, boolean isRegex) throws Exception {
 
 		runQueryWithExpectedWarning(query, expectedWarning, isRegex, false);
@@ -263,6 +272,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param fetchResultSet fetch the whole result set, iterate over all records.
 	 * @throws Exception if an error occurs
 	 */
+	@Step("Run query")
 	public void runQuery(String query, boolean ignoreFail, boolean fetchResultSet) throws Exception {
 
 		ReportUtils.startLevel(report, getClass(), query);
@@ -390,6 +400,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	}
 
 	@Override
+	@Step("Create table and verify")
 	public void createTableAndVerify(Table table) throws Exception {
 		ReportUtils.startLevel(report, getClass(), "Create and Verify Table: " + table.getFullName());
 		try {

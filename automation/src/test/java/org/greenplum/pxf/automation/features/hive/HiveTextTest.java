@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.hive;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveExternalTable;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
@@ -13,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Feature("Hive text")
 public class HiveTextTest extends HiveBaseTest {
 
     private HiveExternalTable hiveHeteroTable;
@@ -20,6 +23,7 @@ public class HiveTextTest extends HiveBaseTest {
     private HiveTable hiveTextTable;
 
     @Override
+    @Step("Create external table")
     protected void createExternalTable(String tableName, String[] fields,
                                      HiveTable hiveTable, boolean useProfile, String delimiter) throws Exception {
 
@@ -29,6 +33,7 @@ public class HiveTextTest extends HiveBaseTest {
     }
 
     @Override
+    @Step("Create external table")
     protected void createExternalTable(String tableName, String[] fields,
                                      HiveTable hiveTable, boolean useProfile) throws Exception {
 
@@ -43,6 +48,7 @@ public class HiveTextTest extends HiveBaseTest {
         createExternalTable(tableName, fields, hiveTable, true);
     }
 
+    @Step("Prepare hetero data")
     private void prepareHeteroData() throws Exception {
 
         if (hiveHeteroTable != null)
@@ -59,6 +65,7 @@ public class HiveTextTest extends HiveBaseTest {
     }
 
     @Override
+    @Step("Prepare data")
     void prepareData() throws Exception {
 
         prepareSmallData();
@@ -482,6 +489,7 @@ public class HiveTextTest extends HiveBaseTest {
     /**
      * Pump up the comparison table data for partitions test case
      */
+    @Step("Pump up the comparison table data")
     private void pumpUpComparisonTableData(int pumpAmount, boolean useSecondPartition) {
 
         // get original number of line before pump

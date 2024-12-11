@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.system.SystemManagerImpl;
 import org.greenplum.pxf.automation.components.oracle.Oracle;
 import org.greenplum.pxf.automation.features.BaseFeature;
@@ -11,6 +13,7 @@ import org.testng.annotations.Test;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE;
 
+@Feature("Oracle date type map")
 public class OracleDateTypeMapTest extends BaseFeature {
     private static final String ORACLE_SOURCE_TABLE_NAME = "date_type_source_table";
     private static final String PXF_ORACLE_SERVER_PROFILE = "oracle-date-map";
@@ -41,12 +44,14 @@ public class OracleDateTypeMapTest extends BaseFeature {
         }
     }
 
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         prepareOracleDateTypeSourceTable();
         createGpdbReadableOracleTable("date_type_without_mapping_ext_table", "false");
         createGpdbReadableOracleTable("date_type_with_mapping_ext_table", "true");
     }
 
+    @Step("Prepare Oracle date type source table")
     private void prepareOracleDateTypeSourceTable() throws Exception {
         oracleDateTypeSourceTable = new Table(ORACLE_SOURCE_TABLE_NAME, ORACLE_SOURCE_TABLE_FIELDS);
         oracleDateTypeSourceTable.setSchema("system");
@@ -54,6 +59,7 @@ public class OracleDateTypeMapTest extends BaseFeature {
         oracle.runQuery(ORACLE_INSERT_QUERY);
     }
 
+    @Step("Create GPDB readable Oracle table")
     private void createGpdbReadableOracleTable(String tableName, String convertOracleDate) throws Exception {
         ExternalTable gpdbReadableOracleTable = TableFactory.getPxfJdbcReadableTable(
                 tableName,

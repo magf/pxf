@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.hive;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveExternalTable;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
@@ -12,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+@Feature("Hive RC")
 public class HiveRcTest extends HiveBaseTest {
 
     private HiveTable hiveRcTypes = null;
@@ -19,6 +22,7 @@ public class HiveRcTest extends HiveBaseTest {
 
 
     @Override
+    @Step("Create external table")
     protected void createExternalTable(String tableName, String[] fields,
                                        HiveTable hiveTable, boolean useProfile) throws Exception {
 
@@ -26,6 +30,7 @@ public class HiveRcTest extends HiveBaseTest {
         createTable(exTable);
     }
 
+    @Step("Prepare RC data")
     void prepareRCData() throws Exception {
 
         // hive types data
@@ -47,6 +52,7 @@ public class HiveRcTest extends HiveBaseTest {
     }
 
     @Override
+    @Step("Prepare data")
     void prepareData() throws Exception {
 
         prepareSmallData();
@@ -67,6 +73,7 @@ public class HiveRcTest extends HiveBaseTest {
      * @return {@link HiveTable} object
      * @throws Exception if test fails to run
      */
+    @Step("Create RC table and load data")
     private HiveTable createRcTableAndLoadData(String tableName, boolean setSerde)
             throws Exception {
 
@@ -89,7 +96,7 @@ public class HiveRcTest extends HiveBaseTest {
         return hiveRcTable;
     }
 
-
+    @Step("Add partitions")
     private void addPartitionsOne(HiveTable hiveTable, HiveTable partitionTable) throws Exception {
 
         addTableAsPartition(hiveTable, "fmt = 'rc1'", partitionTable);
@@ -97,6 +104,7 @@ public class HiveRcTest extends HiveBaseTest {
         addTableAsPartition(hiveTable, "fmt = 'rc3'", partitionTable);
     }
 
+    @Step("Add partitions")
     private void addPartitionsTwo(HiveTable hiveTable, HiveTable partitionTable) throws Exception {
 
         addTableAsPartition(hiveTable, "fmt = 'rc1', prt = 'a'", partitionTable);

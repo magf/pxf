@@ -2,6 +2,7 @@ package org.greenplum.pxf.automation.datapreparer.hbase;
 
 import java.util.ArrayList;
 
+import io.qameta.allure.Step;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -17,6 +18,7 @@ public class HBaseSmokeDataPreparer implements IDataPreparer {
 	private String columnFamilyName;
 	private String[] qualifiers;
 
+	@Step("Prepare data in HBase table")
 	public Object[] prepareData(int rows, Table table) {
 
 		HBaseTable hbaseTable = (HBaseTable) table;

@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
@@ -10,6 +12,7 @@ import java.io.File;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE;
 
+@Feature("JDBC features")
 public class JdbcFeaturesTest extends BaseFeature {
     private static final String[] LONG_YEAR_SOURCE_TABLE_FIELDS = new String[]{
             "id    int",
@@ -54,6 +57,7 @@ public class JdbcFeaturesTest extends BaseFeature {
         }
     }
 
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         prepareLongYearSourceTable();
         prepareLongYearTargetTable();
@@ -69,6 +73,7 @@ public class JdbcFeaturesTest extends BaseFeature {
         createNamedQueryExternalTable("named_query_wrong_read_ext_table", "query:wrong_file_name");
     }
 
+    @Step("Prepare long year source table")
     private void prepareLongYearSourceTable() throws Exception {
         gpdbLongYearSourceTable = new Table("long_year_source_table", LONG_YEAR_SOURCE_TABLE_FIELDS);
         gpdbLongYearSourceTable.setDistributionFields(new String[]{"id"});
@@ -78,18 +83,21 @@ public class JdbcFeaturesTest extends BaseFeature {
 
     }
 
+    @Step("Prepare long year target table")
     private void prepareLongYearTargetTable() throws Exception {
         gpdbLongYearTargetTable = new Table("long_year_target_table", LONG_YEAR_TARGET_TABLE_FIELDS);
         gpdbLongYearTargetTable.setDistributionFields(new String[]{"id"});
         gpdb.createTableAndVerify(gpdbLongYearTargetTable);
     }
 
+    @Step("Prepare long year target legacy table")
     private void prepareLongYearTargetLegacyTable() throws Exception {
         gpdbLongYearTargetLegacyTable = new Table("long_year_target_legacy_table", LONG_YEAR_TARGET_TABLE_FIELDS);
         gpdbLongYearTargetLegacyTable.setDistributionFields(new String[]{"id"});
         gpdb.createTableAndVerify(gpdbLongYearTargetLegacyTable);
     }
 
+    @Step("Create long year readable table")
     private void createLongYearReadableTable() throws Exception {
         ExternalTable gpdbReadableTable = TableFactory.getPxfJdbcReadableTable(
                 "long_year_read_ext_table",
@@ -100,6 +108,7 @@ public class JdbcFeaturesTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbReadableTable);
     }
 
+    @Step("Create long year readable legacy table")
     private void createLongYearReadableLegacyTable() throws Exception {
         ExternalTable gpdbReadableTable = TableFactory.getPxfJdbcReadableTable(
                 "long_year_read_legacy_ext_table",
@@ -110,6 +119,7 @@ public class JdbcFeaturesTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbReadableTable);
     }
 
+    @Step("Create long year writable table")
     private void createLongYearWritableTable() throws Exception {
         ExternalTable gpdbWritableTable = TableFactory.getPxfJdbcWritableTable(
                 "long_year_write_ext_table",
@@ -120,6 +130,7 @@ public class JdbcFeaturesTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbWritableTable);
     }
 
+    @Step("Create long year writable legacy table")
     private void createLongYearWritableLegacyTable() throws Exception {
         ExternalTable gpdbWritableTable = TableFactory.getPxfJdbcWritableTable(
                 "long_year_write_legacy_ext_table",
@@ -130,6 +141,7 @@ public class JdbcFeaturesTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbWritableTable);
     }
 
+    @Step("Prepare bool data type source table")
     private void prepareBoolDataTypeSourceTable() throws Exception {
         gpdbBoolDateTypeSourceTable = new Table("bool_data_type_source_table", BOOL_DATA_TYPE_SOURCE_TABLE_FIELDS);
         gpdbBoolDateTypeSourceTable.setDistributionFields(new String[]{"id"});
@@ -145,6 +157,7 @@ public class JdbcFeaturesTest extends BaseFeature {
         gpdb.insertData(dataTable, gpdbBoolDateTypeSourceTable);
     }
 
+    @Step("Create bool data type readable table")
     private void createBoolDataTypeReadableTable() throws Exception {
         Table gpdbBoolDataTypeReadableTable = TableFactory.getPxfJdbcReadableTable(
                 "bool_data_type_read_ext_table",
@@ -154,6 +167,7 @@ public class JdbcFeaturesTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbBoolDataTypeReadableTable);
     }
 
+    @Step("Prepare named query source table")
     private void prepareNamedQuerySourceTable() throws Exception {
         Table gpdbNamedSourceTable = new Table("gpdb_named_query_source_table", NAMED_QUERY_TABLE_FIELDS);
         gpdbNamedSourceTable.setDistributionFields(new String[]{"name"});
@@ -167,6 +181,7 @@ public class JdbcFeaturesTest extends BaseFeature {
         gpdb.insertData(dataTable, gpdbNamedSourceTable);
     }
 
+    @Step("Create named query external table")
     private void createNamedQueryExternalTable(String tableName, String dataSourcePath) throws Exception {
         ExternalTable pxfJdbcNamedQuery = TableFactory.getPxfJdbcReadableTable(
                 tableName,

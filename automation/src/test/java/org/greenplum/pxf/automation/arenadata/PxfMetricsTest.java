@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -22,6 +24,7 @@ import java.util.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+@Feature("PXF Metrics")
 public class PxfMetricsTest extends BaseFeature {
     private static final String CLUSTER_NAME = "TestEnv";
     private static final String[] SOURCE_TABLE_FIELDS = new String[]{"id    int"};
@@ -60,11 +63,13 @@ public class PxfMetricsTest extends BaseFeature {
         return pxfHostNames;
     }
 
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         prepareMetricsSourceTable();
         createMetricsReadableTable();
     }
 
+    @Step("Prepare metrics source table")
     private void prepareMetricsSourceTable() throws Exception {
         gpdbMetricsSourceTable = new Table("metrics_source_table", SOURCE_TABLE_FIELDS);
         gpdbMetricsSourceTable.setDistributionFields(new String[]{"id"});
@@ -79,6 +84,7 @@ public class PxfMetricsTest extends BaseFeature {
         gpdb.insertData(dataTable, gpdbMetricsSourceTable);
     }
 
+    @Step("Create metrics readable table")
     private void createMetricsReadableTable() throws Exception {
         gpdbMetricsReadableTable = TableFactory.getPxfJdbcReadableTable(
                 "metrics_read_ext_table",

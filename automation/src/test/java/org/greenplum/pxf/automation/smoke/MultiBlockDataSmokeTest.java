@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.smoke;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.utils.fileformats.FileFormatsUtils;
@@ -7,13 +9,13 @@ import org.testng.annotations.Test;
 
 import org.greenplum.pxf.automation.datapreparer.MultiLineSmokeDataPreparer;
 
-/** PXF on large HDFS text file (268.13 MB) */
+@Feature("PXF on large HDFS text file")
 public class MultiBlockDataSmokeTest extends BaseSmoke {
     protected String multiBlockedFile = "multiblock.csv";
 
     @Override
+    @Step("Create local Large file and copy to HDFS")
     protected void prepareData() throws Exception {
-        // Create local Large file and copy to HDFS
         String textFilePath = hdfs.getWorkingDirectory() + "/" + multiBlockedFile;
         String localDataFile = dataTempFolder + "/" + multiBlockedFile;
 
@@ -26,6 +28,7 @@ public class MultiBlockDataSmokeTest extends BaseSmoke {
     }
 
     @Override
+    @Step("Create GPDB external table directed to the HDFS file")
     protected void createTables() throws Exception {
         // Create GPDB external table
         exTable = new ReadableExternalTable("pxf_smoke_multi_blocked_data",

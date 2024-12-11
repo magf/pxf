@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.hive;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.system.SystemManagerImpl;
 import org.greenplum.pxf.automation.components.common.ShellSystemObject;
 import org.greenplum.pxf.automation.components.hive.Hive;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Feature("Hive")
 public class HiveTest extends HiveBaseTest {
 
     private static final String HIVE_PARTITIONED_SKEWED_TABLE = "hive_partitioned_skewed_table";
@@ -47,6 +50,7 @@ public class HiveTest extends HiveBaseTest {
     private HiveTable hivePartitionedSkewedTable;
     private HiveTable hivePartitionedSkewedStoredAsDirsTable;
 
+    @Step("Prepare partitioned clustered sorted data")
     private void preparePartitionedClusteredSortedData() throws Exception {
 
         if (hivePartitionedClusteredSortedTable != null)
@@ -61,6 +65,7 @@ public class HiveTest extends HiveBaseTest {
         hiveAlterPartitionedFileFormats(hivePartitionedClusteredSortedTable);
     }
 
+    @Step("Prepare skewed data")
     private void prepareSkewedData() throws Exception {
 
         if (hivePartitionedSkewedTable != null)
@@ -74,6 +79,7 @@ public class HiveTest extends HiveBaseTest {
         hiveAlterPartitionedFileFormats(hivePartitionedSkewedTable);
     }
 
+    @Step("Prepare skewed stored as dirs data")
     private void prepareSkewedStoredAsDirsData() throws Exception {
 
         if (hivePartitionedSkewedStoredAsDirsTable != null)
@@ -87,6 +93,7 @@ public class HiveTest extends HiveBaseTest {
         hiveAlterPartitionedFileFormats(hivePartitionedSkewedStoredAsDirsTable);
     }
 
+    @Step("Prepare partitioned data")
     private void preparePartitionedData() throws Exception {
 
         if (hivePartitionedTable != null)
@@ -97,6 +104,7 @@ public class HiveTest extends HiveBaseTest {
         hiveAlterPartitionedFileFormats(hivePartitionedTable);
     }
 
+    @Step("Prepare data with many partitions")
     private void prepareManyPartitionedData() throws Exception {
 
         if (hiveManyPartitionsTable != null)
@@ -116,6 +124,7 @@ public class HiveTest extends HiveBaseTest {
                 new String[]{"*"});
     }
 
+    @Step("Prepare partitioned clustered data")
     private void preparePartitionedClusteredData() throws Exception {
 
         if (hivePartitionedClusteredTable != null)
@@ -129,6 +138,7 @@ public class HiveTest extends HiveBaseTest {
         hiveAlterPartitionedFileFormats(hivePartitionedClusteredTable);
     }
 
+    @Step("Alter partitioned file formats")
     private void hiveAlterPartitionedFileFormats(HiveTable table) throws Exception {
 
         prepareSmallData();

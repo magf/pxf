@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.general;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.components.gpdb.Gpdb;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
@@ -13,9 +15,7 @@ import java.util.List;
 
 import static java.lang.Thread.sleep;
 
-/**
- * Tests non-UTF8 database encodings
- **/
+@Feature("Non-UTF8 database encodings")
 public class DatabaseEncodingTest extends BaseFeature {
 
     private static final String[] PARQUET_TYPES_COLUMNS = new String[]{
@@ -111,6 +111,7 @@ public class DatabaseEncodingTest extends BaseFeature {
         runSqlTest("features/general/databaseEncoding/readUTF8");
     }
 
+    @Step("Prepare readable external table")
     private void prepareReadableExternalTable(Gpdb database, String name, String path) throws Exception {
         exTable = new ReadableExternalTable(name, PARQUET_TYPES_COLUMNS,
                 protocol.getExternalTablePath(hdfs.getBasePath(), path), "custom");
@@ -120,6 +121,7 @@ public class DatabaseEncodingTest extends BaseFeature {
         createTable(database, exTable);
     }
 
+    @Step("Prepare writable external table")
     private void prepareWritableExternalTable(Gpdb database, String name, String path) throws Exception {
         exTable = new WritableExternalTable(name, PARQUET_TYPES_COLUMNS,
                 protocol.getExternalTablePath(hdfs.getBasePath(), path), "custom");
@@ -129,6 +131,7 @@ public class DatabaseEncodingTest extends BaseFeature {
         createTable(database, exTable);
     }
 
+    @Step("Create table")
     private void createTable(Gpdb database, ReadableExternalTable gpdbExternalTable) throws Exception {
         gpdbExternalTable.setHost(pxfHost);
         gpdbExternalTable.setPort(pxfPort);
