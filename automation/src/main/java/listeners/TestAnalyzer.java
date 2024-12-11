@@ -28,15 +28,18 @@ public class TestAnalyzer implements IInvokedMethodListener {
             return;
         }
         if (method.isAnnotationPresent(Test.class)) {
+            String feature = FDWUtils.useFDW && (method.isAnnotationPresent(WorksWithFDW.class) ||
+                    method.getDeclaringClass().isAnnotationPresent(WorksWithFDW.class)) ?
+                    "FDW" : "External Table";
             List<String> groups = Arrays.asList(invokedMethod.getTestMethod().getGroups());
             if (groups.contains("smoke")) {
-                Allure.suite("Smoke");
+                Allure.suite("Smoke: " + feature);
             } else if (groups.contains("gpdb")) {
-                Allure.suite("GPDB");
+                Allure.suite("GPDB" + feature);
             } else if (groups.contains("renadata")) {
-                Allure.suite("Arenadata");
+                Allure.suite("Arenadata" + feature);
             } else {
-                Allure.suite("Other");
+                Allure.suite("Other" + feature);
             }
         }
         // check only @Test annotated method, not @Before.. and @After.. ones
