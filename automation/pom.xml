@@ -65,6 +65,7 @@
                     </argLine>
                     <systemPropertyVariables>
                         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+                        <allure.testng.hide.disabled.tests>true</allure.testng.hide.disabled.tests>
                     </systemPropertyVariables>
                 </configuration>
                 <dependencies>
