@@ -187,7 +187,7 @@ ifneq "$(PROTOCOL)" ""
 		if [ $(PROTOCOL) = s3 ]; then \
 			if [ "$(MINIO)" = "true" ]; then \
 				cp $(TEMPLATES_DIR)/minio-site.xml $(PROTOCOL_HOME)/$(PROTOCOL)-site.xml; \
-				sed $(SED_OPTS) "s|YOUR_MINIO_URL|http://localhost:9000|" $(PROTOCOL_HOME)/$(PROTOCOL)-site.xml; \
+				sed $(SED_OPTS) "s|YOUR_MINIO_URL|http://minio.local:9000|" $(PROTOCOL_HOME)/$(PROTOCOL)-site.xml; \
 			fi; \
 			mkdir -p $(PROTOCOL_HOME)-invalid; \
 			cp $(TEMPLATES_DIR)/$(PROTOCOL)-site.xml $(PROTOCOL_HOME)-invalid/; \

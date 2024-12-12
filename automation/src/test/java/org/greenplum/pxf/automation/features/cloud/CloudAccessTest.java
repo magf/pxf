@@ -1,25 +1,21 @@
 package org.greenplum.pxf.automation.features.cloud;
 
 import annotations.WorksWithFDW;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.greenplum.pxf.automation.components.hdfs.Hdfs;
+import jsystem.framework.system.SystemManagerImpl;
+
+import org.greenplum.pxf.automation.components.minio.Minio;
 import org.greenplum.pxf.automation.features.BaseFeature;
-import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
 import org.testng.annotations.Test;
 
-import java.net.URI;
-import java.util.UUID;
+import java.nio.file.Paths;
 
 /**
  * Functional CloudAccess Test
  */
 @WorksWithFDW
 public class CloudAccessTest extends BaseFeature {
-
-    private static final String PROTOCOL_S3 = "s3a://";
 
     private static final String[] PXF_MULTISERVER_COLS = {
             "name text",
@@ -34,49 +30,23 @@ public class CloudAccessTest extends BaseFeature {
             "score integer"
     };
 
-    private Hdfs s3Server;
-    private String s3PathRead, s3PathWrite;
+    private static final String BUCKET_NAME = "pxf-s3";
+
+    private Minio minio;
 
     /**
      * Prepare all server configurations and components
      */
     @Override
     public void beforeClass() throws Exception {
-        // Initialize server objects
-        String random = UUID.randomUUID().toString();
-        s3PathRead  = String.format("gpdb-ud-scratch/tmp/pxf_automation_data_read/%s/" , random);
-        s3PathWrite = String.format("gpdb-ud-scratch/tmp/pxf_automation_data_write/%s/", random);
-
-        Configuration s3Configuration = new Configuration();
-        s3Configuration.set("fs.s3a.access.key", ProtocolUtils.getAccess());
-        s3Configuration.set("fs.s3a.secret.key", ProtocolUtils.getSecret());
-
-        FileSystem fs2 = FileSystem.get(URI.create(PROTOCOL_S3 + s3PathRead + fileName), s3Configuration);
-        s3Server = new Hdfs(fs2, s3Configuration, true);
+        minio = (Minio) SystemManagerImpl.getInstance().getSystemObject("minio");
+        cleanBucket();
     }
 
     @Override
-    protected void beforeMethod() throws Exception {
-        super.beforeMethod();
-        prepareData();
-    }
-
-    @Override
-    protected void afterMethod() throws Exception {
-        super.afterMethod();
-        if (s3Server != null) {
-            s3Server.removeDirectory(PROTOCOL_S3 + s3PathRead);
-            s3Server.removeDirectory(PROTOCOL_S3 + s3PathWrite);
-        }
-    }
-
-    protected void prepareData() throws Exception {
-        // Prepare data in table
-        Table dataTable = getSmallData();
-
-        // Create Data for s3Server
-        s3Server.writeTableToFile(PROTOCOL_S3 + s3PathRead + fileName, dataTable, ",");
-        s3Server.createDirectory(PROTOCOL_S3 + s3PathWrite);
+    protected void afterClass() throws Exception {
+        super.afterClass();
+        cleanBucket();
     }
 
     /*
@@ -130,7 +100,7 @@ public class CloudAccessTest extends BaseFeature {
         runTestScenario("server_no_credentials_valid_config_with_hdfs", "s3", false);
     }
 
-    @Test(groups = {"security"})
+    @Test(groups = {"security", "gpdb"})
     public void testCloudWriteWithHdfsOkWhenServerNoCredsValidConfigFileExists() throws Exception {
         runTestScenarioForWrite("server_no_credentials_valid_config_with_hdfs_write", "s3", false);
     }
@@ -157,12 +127,17 @@ public class CloudAccessTest extends BaseFeature {
 
     private void runTestScenario(String name, String server, boolean creds) throws Exception {
         String tableName = "cloudaccess_" + name;
-        exTable = TableFactory.getPxfReadableTextTable(tableName, PXF_MULTISERVER_COLS, s3PathRead + fileName, ",");
+        String locationPath =  BUCKET_NAME + "/" + tableName + "/" + fileName;
+
+        minio.createBucket(BUCKET_NAME);
+        minio.uploadFile(BUCKET_NAME, tableName + "/" + fileName, Paths.get(localDataResourcesFolder + "/cloud/" + fileName));
+
+        exTable = TableFactory.getPxfReadableTextTable(tableName, PXF_MULTISERVER_COLS, locationPath, ",");
         exTable.setProfile("s3:text");
         String serverParam = (server == null) ? null : "server=" + server;
         exTable.setServer(serverParam);
         if (creds) {
-            exTable.setUserParameters(new String[]{"accesskey=" + ProtocolUtils.getAccess(), "secretkey=" + ProtocolUtils.getSecret()});
+            exTable.setUserParameters(new String[]{"accesskey=" + minio.getAccessKeyId(), "secretkey=" + minio.getSecretKey()});
         }
         gpdb.createTableAndVerify(exTable);
 
@@ -172,18 +147,21 @@ public class CloudAccessTest extends BaseFeature {
     private void runTestScenarioForWrite(String name, String server, boolean creds) throws Exception {
         // create writable external table to write to S3
         String tableName = "cloudwrite_" + name;
-        exTable = TableFactory.getPxfWritableTextTable(tableName, PXF_WRITE_COLS, s3PathWrite, ",");
+        String locationPath = BUCKET_NAME + "/" + tableName;
+        minio.createBucket(BUCKET_NAME);
+
+        exTable = TableFactory.getPxfWritableTextTable(tableName, PXF_WRITE_COLS, locationPath, ",");
         exTable.setProfile("s3:text");
         String serverParam = (server == null) ? null : "server=" + server;
         exTable.setServer(serverParam);
         if (creds) {
-            exTable.setUserParameters(new String[]{"accesskey=" + ProtocolUtils.getAccess(), "secretkey=" + ProtocolUtils.getSecret()});
+            exTable.setUserParameters(new String[]{"accesskey=" + minio.getAccessKeyId(), "secretkey=" + minio.getSecretKey()});
         }
         gpdb.createTableAndVerify(exTable);
 
         // create readable external table to read back from S3, making sure previous insert made it all the way to S3
         tableName = "cloudaccess_" + name;
-        exTable = TableFactory.getPxfReadableTextTable(tableName, PXF_WRITE_COLS, s3PathWrite, ",");
+        exTable = TableFactory.getPxfReadableTextTable(tableName, PXF_WRITE_COLS, locationPath, ",");
         exTable.setProfile("s3:text");
         exTable.setServer(serverParam);
         if (creds) {
@@ -192,5 +170,11 @@ public class CloudAccessTest extends BaseFeature {
         gpdb.createTableAndVerify(exTable);
 
         runSqlTest("features/cloud_access/" + name);
+    }
+
+    private void cleanBucket() {
+        if (minio != null) {
+            minio.clean(BUCKET_NAME);
+        }
     }
 }
