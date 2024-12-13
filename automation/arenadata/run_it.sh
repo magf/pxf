@@ -68,11 +68,13 @@ start_copy_artifacts() {
   echo "Start copy artifacts for $test ($table_type)"
   echo "-------------------------------------"
   test_dir=artifacts/$test/$table_type
+  allure_dir=allure/$test/$table_type
   mkdir -p $test_dir
+  mkdir -p $allure_dir
   docker-compose cp $run_test_service_name:/home/gpadmin/workspace/pxf/automation/target/surefire-reports ./$test_dir
   docker-compose cp $run_test_service_name:/home/gpadmin/workspace/pxf/automation/sqlrepo ./$test_dir
   docker-compose cp $run_test_service_name:/home/gpadmin/workspace/pxf/automation/automation_logs ./$test_dir
-  docker-compose cp $run_test_service_name:/home/gpadmin/workspace/pxf/automation/target/allure-results ./$test_dir
+  docker-compose cp $run_test_service_name:/home/gpadmin/workspace/pxf/automation/target/allure-results ./$allure_dir
   if [ "$test" = "arenadata" ]; then
     docker-compose cp $run_test_service_name:/tmp/pxf ./$test_dir
   fi
