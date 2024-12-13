@@ -246,7 +246,7 @@ public class SingleCluster extends PhdCluster {
     }
 
     @Override
-    @Step("Fetch PXF configuration to targetDirectory")
+    @Step("Fetch PXF configuration to target directory")
     public void fetchConfiguration(String targetDirectory) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Fetch Configuration from Cluster to " + targetDirectory);
         // currently copy only the pxf-conf content to the temp directory
