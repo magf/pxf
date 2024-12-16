@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.multiserver;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.sut.SutFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -14,10 +16,7 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.util.UUID;
 
-/**
- * MultiServerTest verifies that multiple servers
- * can be accessed via PXF.
- */
+@Feature("PXF multiple servers access")
 public class MultiServerTest extends BaseFeature {
 
     private static final String PROTOCOL_S3 = "s3a://";
@@ -104,6 +103,7 @@ public class MultiServerTest extends BaseFeature {
         removeWorkingDirectory(hdfsIpa);
     }
 
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         // Prepare data in table
         Table dataTable = getSmallData("hdfs_data");
@@ -138,6 +138,7 @@ public class MultiServerTest extends BaseFeature {
         s3Server.writeTableToFile(PROTOCOL_S3 + s3Path + fileName, s3DataTable, ",");
     }
 
+    @Step("Create tables")
     protected void createTables() throws Exception {
         // Create GPDB external table directed to the HDFS file
         exTable =

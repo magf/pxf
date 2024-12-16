@@ -2,16 +2,15 @@ package org.greenplum.pxf.automation.features.hcfs;
 
 import annotations.SkipForFDW;
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.greenplum.pxf.automation.utils.system.ProtocolEnum;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
 import org.testng.annotations.Test;
 
-/**
- * Functional File as Row Test
- */
 @WorksWithFDW
+@Feature("File as Row")
 public class FileAsRowTest extends BaseFeature {
 
     private static final String emptyTextFile = "empty";

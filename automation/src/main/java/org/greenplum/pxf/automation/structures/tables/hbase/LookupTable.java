@@ -2,6 +2,7 @@ package org.greenplum.pxf.automation.structures.tables.hbase;
 
 import java.util.ArrayList;
 
+import io.qameta.allure.Step;
 import org.apache.hadoop.hbase.client.Put;
 
 public class LookupTable extends HBaseTable {
@@ -10,6 +11,7 @@ public class LookupTable extends HBaseTable {
 		super("pxflookup", new String[] { "mapping" });
 	}
 
+	@Step("Add mapping")
 	public void addMapping(String hbaseTable, String pxfAlias, String toQualifier) {
 
 		if (rowsToGenerate == null) {

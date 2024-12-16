@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.system.SystemManagerImpl;
 import org.greenplum.pxf.automation.components.mysql.Mysql;
 import org.greenplum.pxf.automation.features.BaseFeature;
@@ -15,6 +17,7 @@ import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FI
 import static org.greenplum.pxf.automation.PxfTestConstant.PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE;
 import static org.testng.Assert.assertEquals;
 
+@Feature("JDBC JSON features")
 public class JdbcJsonFeatureTest extends BaseFeature {
     private static final String PXF_MYSQL_SERVER_PROFILE = "mysql";
     private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/mysql/jdbc-site.xml";
@@ -45,6 +48,7 @@ public class JdbcJsonFeatureTest extends BaseFeature {
         }
     }
 
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         prepareGpdbJsonSourceTable();
         preparePostgresJsonTargetTable();
@@ -55,6 +59,7 @@ public class JdbcJsonFeatureTest extends BaseFeature {
         createMysqlJsonReadableTable();
     }
 
+    @Step("Prepare GPDB JSON source table")
     private void prepareGpdbJsonSourceTable() throws Exception {
         gpdbJsonSourceTable = new Table("json_source_table", POSTGRES_JSON_TABLE_FIELDS);
         gpdbJsonSourceTable.setDistributionFields(new String[]{"id"});
@@ -63,12 +68,14 @@ public class JdbcJsonFeatureTest extends BaseFeature {
                 + "/arenadata/" + JSON_FILE_NAME), null, null, false);
     }
 
+    @Step("Prepare Postgres JSON target table")
     private void preparePostgresJsonTargetTable() throws Exception {
         postgresJsonTargetTable = new Table("postgres_json_target_table", POSTGRES_JSON_TABLE_FIELDS);
         postgresJsonTargetTable.setDistributionFields(new String[]{"id"});
         gpdb.createTableAndVerify(postgresJsonTargetTable);
     }
 
+    @Step("Create Postgres JSON writable table")
     private void createPostgresJsonWritableTable() throws Exception {
         ExternalTable postgresJsonWritableTable = TableFactory.getPxfJdbcWritableTable(
                 "postgres_json_write_ext_table",
@@ -78,6 +85,7 @@ public class JdbcJsonFeatureTest extends BaseFeature {
         gpdb.createTableAndVerify(postgresJsonWritableTable);
     }
 
+    @Step("Create Postgres JSON readable table")
     private void createPostgresJsonReadableTable() throws Exception {
         ExternalTable postgresJsonReadableTable = TableFactory.getPxfJdbcReadableTable(
                 "postgres_json_read_ext_table",
@@ -87,11 +95,13 @@ public class JdbcJsonFeatureTest extends BaseFeature {
         gpdb.createTableAndVerify(postgresJsonReadableTable);
     }
 
+    @Step("Prepare MySql JSON target table")
     private void prepareMysqlJsonTargetTable() throws Exception {
         mysqlJsonTargetTable = new Table("mysql_json_target_table", MYSQL_JSON_TABLE_FIELDS);
         mysql.createTableAndVerify(mysqlJsonTargetTable);
     }
 
+    @Step("Create MySql JSON writable table")
     private void createMysqlJsonWritableTable() throws Exception {
         ExternalTable gpdbJsonMysqlWritableTable = TableFactory.getPxfJdbcWritableTable(
                 "mysql_json_write_ext_table",
@@ -101,6 +111,7 @@ public class JdbcJsonFeatureTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbJsonMysqlWritableTable);
     }
 
+    @Step("Create MySql JSON readable table")
     private void createMysqlJsonReadableTable() throws Exception {
         ExternalTable gpdbJsonMysqlReadableTable = TableFactory.getPxfJdbcReadableTable(
                 "mysql_json_read_ext_table",

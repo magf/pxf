@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.system.SystemManagerImpl;
 
 import org.greenplum.pxf.automation.components.oracle.Oracle;
@@ -12,6 +14,7 @@ import org.testng.annotations.Test;
 import static org.greenplum.pxf.automation.PxfTestConstant.*;
 import static org.testng.Assert.assertEquals;
 
+@Feature("Oracle parallel session")
 public class OracleParallelSessionTest extends BaseFeature {
     private static final String PXF_ORACLE_SERVER_PROFILE = "oracle-parallel";
     private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/oracle/jdbc-site.xml";
@@ -99,6 +102,7 @@ public class OracleParallelSessionTest extends BaseFeature {
         );
     }
 
+    @Step("Prepare Oracle source table")
     private Table prepareOracleSourceTable(String tableName) throws Exception {
         String schema = "system";
         Table oracleTableSource = new Table(tableName, ORACLE_SOURCE_TABLE_FIELDS);
@@ -109,6 +113,7 @@ public class OracleParallelSessionTest extends BaseFeature {
         return oracleTableSource;
     }
 
+    @Step("Create GPDB readable table")
     private void createGpdbReadableTable(String readableTableName, String dataSourcePath) throws Exception {
         Table gpdbReadableTable = TableFactory.getPxfJdbcReadableTable(
                 readableTableName,

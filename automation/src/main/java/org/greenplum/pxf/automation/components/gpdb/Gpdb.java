@@ -1,6 +1,7 @@
 package org.greenplum.pxf.automation.components.gpdb;
 
 import com.google.common.collect.Lists;
+import io.qameta.allure.Step;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.automation.components.common.DbSystemObject;
 import org.greenplum.pxf.automation.components.common.ShellSystemObject;
@@ -200,6 +201,7 @@ public class Gpdb extends DbSystemObject {
 	}
 
 	@Override
+	@Step("Create database")
 	public void createDataBase(String schemaName, boolean ignoreFail) throws Exception {
 
 		runQuery("CREATE DATABASE " + schemaName, ignoreFail, false);
@@ -207,6 +209,7 @@ public class Gpdb extends DbSystemObject {
 	}
 
 	@Override
+	@Step("Create database")
 	public void createDataBase(String schemaName, boolean ignoreFail, String encoding, String localeCollate, String localeCollateType) throws Exception {
 
 		String createStatement;
@@ -347,6 +350,7 @@ public class Gpdb extends DbSystemObject {
 	 * @return sql command's result
 	 * @throws Exception if an error occurs
 	 */
+	@Step("Run sql command in psql")
 	public String runSqlCmd(ShellSystemObject sso, String sql, boolean checkErrors) throws Exception {
 
 		if (sso == null)
@@ -411,6 +415,7 @@ public class Gpdb extends DbSystemObject {
 	 * @param csv is csv format - if it is, delimiter is not used.
 	 * @throws Exception if an error occurs
 	 */
+	@Step("Copy data from file to table")
 	public void copyFromFile(Table to, File path, String delim, boolean csv) throws Exception {
 		String from = "'" + path.getAbsolutePath() + "'";
 		copyLocalFileToRemoteGpdb(from);
@@ -454,6 +459,7 @@ public class Gpdb extends DbSystemObject {
      * @param csv is csv format - if it is, delimiter is not used.
      * @throws Exception if an error occurs
      */
+	@Step("Copy data from file to table")
 	public void copyFromFile(Table to, File path, String delim, String nullChar, boolean csv) throws Exception {
 		String from = "'" + path.getAbsolutePath() + "'";
 		copyLocalFileToRemoteGpdb(from);
@@ -526,6 +532,7 @@ public class Gpdb extends DbSystemObject {
 	 *            turned off by 'pxf_enable_stat_collection'</b>
 	 * @throws Exception if an error occurs
 	 */
+	@Step("Perform analyze over table")
 	public void analyze(Table table, boolean expectTurnedOffWarning) throws Exception {
 
 		String query = "ANALYZE " + table.getName();

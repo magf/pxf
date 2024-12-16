@@ -2,14 +2,14 @@ package org.greenplum.pxf.automation.features.filterpushdown;
 
 import annotations.SkipForFDW;
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
 
-/**
- * Functional PXF filter pushdown cases
- */
 @WorksWithFDW
+@Feature("Filter pushdown")
 public class FilterPushDownTest extends BaseFeature {
 
     private static final String COMMA = ",";
@@ -93,6 +93,7 @@ public class FilterPushDownTest extends BaseFeature {
      * @param delimiter delimiter
      * @throws Exception
      */
+    @Step("Prepare external text table with a given delimiter")
     private void preparePxfTable(String delimiter) throws Exception {
         // Create PXF external table for filter testing
         exTable = TableFactory.getPxfReadableTestCSVTable("test_filter", FIELDS, "dummy_path", delimiter);

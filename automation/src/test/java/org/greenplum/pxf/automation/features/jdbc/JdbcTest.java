@@ -4,6 +4,8 @@ import java.io.File;
 
 import annotations.FailsWithFDW;
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.apache.commons.lang3.ArrayUtils;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
@@ -15,6 +17,7 @@ import org.greenplum.pxf.automation.enums.EnumPartitionType;
 import org.greenplum.pxf.automation.features.BaseFeature;
 
 @WorksWithFDW
+@Feature("JDBC")
 public class JdbcTest extends BaseFeature {
 
     private static final String POSTGRES_DRIVER_CLASS = "org.postgresql.Driver";
@@ -75,6 +78,7 @@ public class JdbcTest extends BaseFeature {
         prepareData();
     }
 
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         prepareTypesData();
         prepareSingleFragment();
@@ -92,6 +96,7 @@ public class JdbcTest extends BaseFeature {
         prepareNamedQuery();
     }
 
+    @Step("Prepare types data")
     private void prepareTypesData() throws Exception {
         // create a table prepared for partitioning
         gpdbNativeTableTypes = new Table("gpdb_types", TYPES_TABLE_FIELDS);
@@ -161,6 +166,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.insertData(dataTable, gpdbEmpTable);
     }
 
+    @Step("Prepare single fragment")
     private void prepareSingleFragment() throws Exception {
         pxfJdbcSingleFragment = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_single_fragment",
@@ -174,6 +180,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcSingleFragment);
     }
 
+    @Step("Prepare multiple fragments by enum")
     private void prepareMultipleFragmentsByEnum() throws Exception {
         ExternalTable pxfJdbcMultipleFragmentsByEnum = TableFactory
                 .getPxfJdbcReadablePartitionedTable(
@@ -193,6 +200,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcMultipleFragmentsByEnum);
     }
 
+    @Step("Prepare multiple fragments by int")
     private void prepareMultipleFragmentsByInt() throws Exception {
         ExternalTable pxfJdbcMultipleFragmentsByInt = TableFactory
                 .getPxfJdbcReadablePartitionedTable(
@@ -212,6 +220,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcMultipleFragmentsByInt);
     }
 
+    @Step("Prepare multiple fragments by date")
     private void prepareMultipleFragmentsByDate() throws Exception {
         ExternalTable pxfJdbcMultipleFragmentsByDate = TableFactory
                 .getPxfJdbcReadablePartitionedTable(
@@ -231,6 +240,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcMultipleFragmentsByDate);
     }
 
+    @Step("Prepare server based multiple fragments by int")
     private void prepareServerBasedMultipleFragmentsByInt() throws Exception {
         // all server-based props coming from there, not DDL
         ExternalTable pxfJdbcReadServerConfigAll = TableFactory
@@ -251,6 +261,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcReadServerConfigAll);
     }
 
+    @Step("Prepare session params")
     private void prepareViewBasedForTestingSessionParams() throws Exception {
         ExternalTable pxfJdbcReadViewNoParams = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_read_view_no_params",
@@ -271,6 +282,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcReadViewSessionParams);
     }
 
+    @Step("Prepare writable table")
     private void prepareWritable() throws Exception {
         ExternalTable pxfJdbcWritable = TableFactory.getPxfJdbcWritableTable(
                 "pxf_jdbc_writable",
@@ -306,6 +318,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcWritablePool);
     }
 
+    @Step("Prepare columns")
     private void prepareColumns() throws Exception {
         ExternalTable pxfJdbcColumns = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_columns",
@@ -319,6 +332,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcColumns);
     }
 
+    @Step("Prepare column projection subset in different order")
     private void prepareColumnProjectionSubsetInDifferentOrder() throws Exception {
         ExternalTable pxfJdbcColumnProjectionSubset = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_subset_of_fields_diff_order",
@@ -332,6 +346,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcColumnProjectionSubset);
     }
 
+    @Step("Prepare column projection superset")
     private void prepareColumnProjectionSuperset() throws Exception {
         ExternalTable pxfJdbcColumnProjectionSuperset = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_superset_of_fields",
@@ -345,6 +360,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcColumnProjectionSuperset);
     }
 
+    @Step("Prepare fetch size zero")
     private void prepareFetchSizeZero() throws Exception {
         pxfJdbcSingleFragment = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_readable_nobatch",
@@ -358,6 +374,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcSingleFragment);
     }
 
+    @Step("Prepare date wide range")
     private void prepareDateWideRange() throws Exception {
         ExternalTable pxfJdbcDateWideRangeOn = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_readable_date_wide_range_on",
@@ -384,6 +401,7 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcDateWideRangeOff);
     }
 
+    @Step("Prepare named query")
     private void prepareNamedQuery() throws Exception {
         ExternalTable pxfJdbcNamedQuery = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_read_named_query",

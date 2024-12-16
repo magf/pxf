@@ -5,6 +5,7 @@ import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.qameta.allure.Step;
 import jsystem.framework.report.Reporter;
 
 import org.apache.commons.lang.StringUtils;
@@ -131,13 +132,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
         return tablesNames;
     }
 
-    /**
-     * Creates Data in HBase table from rowsToGenerate() in the hbaseTable
-     * object.
-     *
-     * @param hbaseTable - HBase table
-     * @throws Exception if an error occurs
-     */
+    @Step("Creates Data in HBase table from rowsToGenerate() in the hbaseTable")
     public void put(HBaseTable hbaseTable) throws Exception {
 
         ReportUtils.startLevel(report, getClass(), "Put data to Table: "
@@ -333,6 +328,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
     }
 
     @Override
+    @Step("Create HBase table")
     public void createTable(Table table)
             throws Exception {
 
@@ -359,6 +355,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
     }
 
     @Override
+    @Step("Drop HBase table")
     public void dropTable(Table table,
                           boolean cascade) throws Exception {
 
@@ -373,6 +370,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
         ReportUtils.stopLevel(report);
     }
 
+    @Step("Disable HBase table")
     public void disableTable(Table table)
             throws Exception {
         ReportUtils.startLevel(report, getClass(),
@@ -384,6 +382,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
         ReportUtils.stopLevel(report);
     }
 
+    @Step("Enable HBase table")
     public void enableTable(Table table)
             throws Exception {
         ReportUtils.startLevel(report, getClass(),
@@ -392,6 +391,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
         ReportUtils.stopLevel(report);
     }
 
+    @Step("Remove column")
     public void removeColumn(Table table,
                              String[] columns) throws Exception {
 
@@ -410,6 +410,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
         ReportUtils.stopLevel(report);
     }
 
+    @Step("Add column")
     public void addColumn(Table table,
                           String[] columns) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Add " + columns.length
@@ -461,6 +462,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
     }
 
     @Override
+    @Step("Create HBase table and verify")
     public void createTableAndVerify(Table table)
             throws Exception {
 
@@ -532,6 +534,7 @@ public class HBase extends BaseSystemObject implements IDbFunctionality {
         return hbaseRoot;
     }
 
+    @Step("Grant permissions for user")
     public void grantGlobalForUser(String user) throws Exception {
         this.grantPermissions(null, user, Action.CREATE, Action.READ,
                 Action.WRITE, Action.ADMIN);

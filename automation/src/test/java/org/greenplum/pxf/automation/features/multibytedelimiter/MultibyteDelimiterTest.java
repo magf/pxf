@@ -1,6 +1,8 @@
 package org.greenplum.pxf.automation.features.multibytedelimiter;
 
 import au.com.bytecode.opencsv.CSVWriter;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.compress.BZip2Codec;
 import org.greenplum.pxf.automation.datapreparer.CustomTextPreparer;
@@ -22,9 +24,7 @@ import java.util.Objects;
 
 import static java.lang.Thread.sleep;
 
-/**
- * Collection of Test cases for PXF ability to read Text/CSV files with pxfdelimited_import.
- */
+@Feature("Read Text/CSV files with pxfdelimited_import")
 public class MultibyteDelimiterTest extends BaseFeature {
     ProtocolEnum protocol;
 
@@ -599,6 +599,7 @@ public class MultibyteDelimiterTest extends BaseFeature {
         runSqlTest("features/multibyte_delimiter/no_profile");
     }
 
+    @Step("Create csv external table")
     private void createCsvExternalTable(String name, String[] cols, String path, String[] formatterOptions) throws Exception {
         exTable = TableFactory.getPxfReadableTextTable(name, cols, path, null);
         exTable.setFormat("CUSTOM");
@@ -609,6 +610,7 @@ public class MultibyteDelimiterTest extends BaseFeature {
         gpdb.createTableAndVerify(exTable);
     }
 
+    @Step("Write csv file to HDFS")
     private void writeCsvFileToHdfs(Table dataTable, CsvSpec spec) throws Exception {
         // create local CSV
         String tempLocalDataPath = dataTempFolder + "/data.csv";

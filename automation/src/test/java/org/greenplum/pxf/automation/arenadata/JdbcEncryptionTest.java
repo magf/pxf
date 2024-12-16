@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -9,6 +11,7 @@ import org.testng.annotations.Test;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.*;
 
+@Feature("JDBC encryption")
 public class JdbcEncryptionTest extends BaseFeature {
     private static final String PXF_ENCRYPTION_SERVER_PROFILE = "encryption";
     private static final String PASSWORD = "jdbc_user_password";
@@ -46,11 +49,13 @@ public class JdbcEncryptionTest extends BaseFeature {
         }
     }
 
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         prepareSourceTable();
         createGpdbReadableTable();
     }
 
+    @Step("Prepare source table")
     private void prepareSourceTable() throws Exception {
         gpdbEncryptionSourceTable = new Table("encryption_source_table", SOURCE_TABLE_FIELDS);
         gpdbEncryptionSourceTable.setDistributionFields(new String[]{"id"});
@@ -64,6 +69,7 @@ public class JdbcEncryptionTest extends BaseFeature {
         gpdb.insertData(dataTable, gpdbEncryptionSourceTable);
     }
 
+    @Step("Create GPDB readable table")
     private void createGpdbReadableTable() throws Exception {
         Table gpdbReadableTable = TableFactory.getPxfJdbcReadableTable(
                 "encryption_ext_table",

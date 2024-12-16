@@ -1,6 +1,7 @@
 package org.greenplum.pxf.automation.features.hcfs;
 
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
@@ -17,6 +18,7 @@ import java.util.List;
  * https://github.com/apache/hadoop/blob/rel/release-3.2.1/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/fs/TestGlobPaths.java
  */
 @WorksWithFDW
+@Feature("Globbing")
 public class HcfsGlobbingTest extends BaseFeature {
 
     public static final String[] FIELDS = {

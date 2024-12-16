@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.structures.tables.hive;
 
+import io.qameta.allure.Step;
 import org.apache.commons.lang.StringUtils;
 
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -40,6 +41,7 @@ public class HiveTable extends Table {
 		return format;
 	}
 
+	@Step("Set format")
 	public void setFormat(String format) {
 		this.format = format;
 	}
@@ -48,6 +50,7 @@ public class HiveTable extends Table {
 		return delimiterFieldsBy;
 	}
 
+	@Step("Set delimiter fields by")
 	public void setDelimiterFieldsBy(String delimiterFieldsBy) {
 		this.delimiterFieldsBy = delimiterFieldsBy;
 	}
@@ -125,6 +128,7 @@ public class HiveTable extends Table {
 		return storedAs;
 	}
 
+	@Step("Set stored as")
 	public void setStoredAs(String storedAs) {
 		this.storedAs = storedAs;
 	}
@@ -133,26 +137,32 @@ public class HiveTable extends Table {
 		return partitionedBy;
 	}
 
+	@Step("Set partitioned by")
 	public void setPartitionedBy(String[] partitionBy) {
 		this.partitionedBy = partitionBy;
 	}
 
+	@Step("Set clustered by")
 	public void setClusteredBy(String[] clusteredBy){
 		this.clusteredBy = clusteredBy;
 	}
 
+	@Step("Set cluster bucket count")
 	public void setClusterBucketCount(int count){
 		this.clusterBucketCount = count;
 	}
 
+	@Step("Set sorted by")
 	public void setSortedBy(String[] sortedBy) {
 		this.sortedBy = sortedBy;
 	}
 
+	@Step("Set skewed by")
 	public void setSkewedBy(String[] skewedBy) {
 		this.skewedBy = skewedBy;
 	}
 
+	@Step("Set skewed on ")
 	public void setSkewedOn(String[] skewedOn) {
 		this.skewedOn = skewedOn;
 	}
@@ -165,6 +175,7 @@ public class HiveTable extends Table {
 		return delimiterCollectionItemsBy;
 	}
 
+	@Step("Set delimiter collection items by")
 	public void setDelimiterCollectionItemsBy(String delimiterCollectionItemsBy) {
 		this.delimiterCollectionItemsBy = delimiterCollectionItemsBy;
 	}
@@ -173,6 +184,7 @@ public class HiveTable extends Table {
 		return delimiterMapKeysBy;
 	}
 
+	@Step("Set delimiter map keys by")
 	public void setDelimiterMapKeysBy(String delimiterMapKeysBy) {
 		this.delimiterMapKeysBy = delimiterMapKeysBy;
 	}
@@ -181,6 +193,7 @@ public class HiveTable extends Table {
 		return delimiterLinesBy;
 	}
 
+	@Step("Set delimiter lines by")
 	public void setDelimiterLinesBy(String delimiterLinesBy) {
 		this.delimiterLinesBy = delimiterLinesBy;
 	}
@@ -189,10 +202,12 @@ public class HiveTable extends Table {
 		return serde;
 	}
 
+	@Step("Set serde")
 	public void setSerde(String serde) {
 		this.serde = serde;
 	}
 
+	@Step("Set table properties")
 	public void setTableProperties(List<List<String>> tableProperties) {
 		this.tableProperties = tableProperties;
 	}

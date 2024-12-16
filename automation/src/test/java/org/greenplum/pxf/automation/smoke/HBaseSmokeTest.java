@@ -10,10 +10,12 @@ import org.greenplum.pxf.automation.structures.tables.hbase.HBaseTable;
 import org.greenplum.pxf.automation.structures.tables.hbase.LookupTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 
 import org.greenplum.pxf.automation.datapreparer.hbase.HBaseSmokeDataPreparer;
 
-/** Basic PXF on HBase table filled with small data. */
+@Feature("Basic PXF on HBase table filled with small data")
 public class HBaseSmokeTest extends BaseSmoke {
     HBase hbase;
     Table dataTable;
@@ -31,6 +33,7 @@ public class HBaseSmokeTest extends BaseSmoke {
     }
 
     @Override
+    @Step("Prepare data in HBase")
     protected void prepareData() throws Exception {
         // Create HBase Table
         hbaseTable = new HBaseTable("hbase_table", new String[] { "col" });
@@ -57,8 +60,8 @@ public class HBaseSmokeTest extends BaseSmoke {
     }
 
     @Override
+    @Step("Create GPDB external table and Lookup HBase table")
     protected void createTables() throws Exception {
-        // Create GPDB external table
         exTable = TableFactory.getPxfHBaseReadableTable("pxf_smoke_small_data",
                 new String[] {
                         "name text",

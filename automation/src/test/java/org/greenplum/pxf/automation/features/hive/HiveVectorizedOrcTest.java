@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.hive;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
@@ -8,6 +10,7 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.ArrayList;
 
+@Feature("Hive vectorized ORC")
 public class HiveVectorizedOrcTest extends HiveBaseTest {
 
     static final String[] HIVE_TYPES_NO_TIMESTAMP_COLS = {
@@ -51,6 +54,7 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
     ArrayList<String> hiveTypesNoTMCols = new ArrayList<>(Arrays.asList(HIVE_TYPES_COLS));
     ArrayList<String> gpdbTypesNoTMCols = new ArrayList<>(Arrays.asList(PXF_HIVE_TYPES_COLS));
 
+    @Step("Prepare types data")
     void prepareTypesData() throws Exception {
 
         hiveTypesTable = TableFactory.getHiveByRowCommaTable(HIVE_TYPES_TABLE,
@@ -60,6 +64,7 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
         loadDataIntoHive("hive_types_no_timestamp.txt", hiveTypesTable);
     }
 
+    @Step("Prepare ORC data")
     void prepareOrcData() throws Exception {
 
         hiveOrcTable = new HiveTable(HIVE_ORC_TABLE, HIVE_RC_COLS);
@@ -76,6 +81,7 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
         hive.runQuery("SET hive.vectorized.execution.enabled = true");
     }
 
+    @Step("Prepare Hive ORC types")
     private void preparePxfHiveOrcTypes() throws Exception {
         exTable = TableFactory.getPxfHiveOrcReadableTable(PXF_HIVE_ORC_TABLE,
                 gpdbTypesNoTMCols.toArray(new String[0]), hiveOrcAllTypes, true);
@@ -84,6 +90,7 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
         createTable(exTable);
     }
 
+    @Step("Prepare ORC with repeating data")
     private void prepareOrcDataWithRepeatingData() throws Exception {
         String dataFileName = "hive_types_all_columns_repeating.txt";
         // timestamp conversion is not supported by HiveORCVectorizedResolver
@@ -106,6 +113,7 @@ public class HiveVectorizedOrcTest extends HiveBaseTest {
     }
 
     @Override
+    @Step("Prepare data")
     void prepareData() throws Exception {
 
         // Remove timestamp column

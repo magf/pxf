@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.system.SystemManagerImpl;
 import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
@@ -20,6 +22,7 @@ import static org.greenplum.pxf.automation.PxfTestConstant.*;
 import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
 import static org.junit.Assert.assertEquals;
 
+@Feature("Pushdown predicate IN")
 public class PushdownPredicateInTest extends BaseFeature {
     private static final String SOURCE_TABLE_NAME = "predicate_in_source_table";
     private static final String SOURCE_TABLE_SCHEMA = "system";
@@ -79,6 +82,7 @@ public class PushdownPredicateInTest extends BaseFeature {
         }
     }
 
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         preparePostgresPredicateInSourceTable();
         prepareOraclePredicateInSourceTable();
@@ -86,6 +90,7 @@ public class PushdownPredicateInTest extends BaseFeature {
         createGpdbReadableOracleTable();
     }
 
+    @Step("Prepare Postgres source table")
     private void preparePostgresPredicateInSourceTable() throws Exception {
         gpdbPredicateInSourceTable = new Table(SOURCE_TABLE_NAME, POSTGRES_SOURCE_TABLE_FIELDS);
         gpdbPredicateInSourceTable.setDistributionFields(new String[]{"id"});
@@ -101,6 +106,7 @@ public class PushdownPredicateInTest extends BaseFeature {
         gpdb.insertData(dataTable, gpdbPredicateInSourceTable);
     }
 
+    @Step("Prepare Oracle source table")
     private void prepareOraclePredicateInSourceTable() throws Exception {
         oraclePredicateInSourceTable = new Table(SOURCE_TABLE_NAME, ORACLE_SOURCE_TABLE_FIELDS);
         oraclePredicateInSourceTable.setSchema("system");
@@ -108,6 +114,7 @@ public class PushdownPredicateInTest extends BaseFeature {
         oracle.runQuery(ORACLE_INSERT_QUERY);
     }
 
+    @Step("Create GPDB readable PG table")
     private void createGpdbReadablePgTable() throws Exception {
         ExternalTable gpdbReadablePgTable = TableFactory.getPxfJdbcReadableTable(
                 "predicate_in_pg_ext_table",
@@ -117,6 +124,7 @@ public class PushdownPredicateInTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbReadablePgTable);
     }
 
+    @Step("Create GPDB readable Oracle table")
     private void createGpdbReadableOracleTable() throws Exception {
         ExternalTable gpdbReadableOracleTable = TableFactory.getPxfJdbcReadableTable(
                 "predicate_in_oracle_ext_table",

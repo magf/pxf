@@ -1,11 +1,14 @@
 package org.greenplum.pxf.automation.features.extension;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.BaseFunctionality;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
 
+@Feature("PXF extension")
 public class PxfExtensionTest extends BaseFunctionality {
 
     public static final String[] FIELDS = {
@@ -116,6 +119,7 @@ public class PxfExtensionTest extends BaseFunctionality {
         runSqlTest("features/extension_tests/downgrade_then_upgrade/step_3_after_alter_extension_upgrade");
     }
 
+    @Step("Create readable PXF table")
     private void createReadablePxfTable(String serverName, String location, boolean multi) throws Exception {
         ReadableExternalTable externalTable;
         if (multi) {

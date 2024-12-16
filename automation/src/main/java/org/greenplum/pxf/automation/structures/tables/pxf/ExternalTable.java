@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.structures.tables.pxf;
 
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.utils.system.ProtocolEnum;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
@@ -260,6 +261,7 @@ public abstract class ExternalTable extends Table {
         return host;
     }
 
+    @Step("Set host")
     public void setHost(String host) {
         this.host = host;
     }
@@ -268,6 +270,7 @@ public abstract class ExternalTable extends Table {
         return encoding;
     }
 
+    @Step("Set encoding")
     public void setEncoding(String encoding) {
         this.encoding = encoding;
     }
@@ -280,14 +283,17 @@ public abstract class ExternalTable extends Table {
         return escape;
     }
 
+    @Step("Set delimiter")
     public void setDelimiter(String delimiter) {
         this.delimiter = delimiter;
     }
 
+    @Step("Set escape")
     public void setEscape(String escape) {
         this.escape = escape;
     }
 
+    @Step("Set new line")
     public void setNewLine(String newLine) {
         this.newLine = newLine;
     }
@@ -300,6 +306,7 @@ public abstract class ExternalTable extends Table {
         return profile;
     }
 
+    @Step("Set profile")
     public void setProfile(String profile) {
         this.profile = profile;
     }
@@ -308,6 +315,7 @@ public abstract class ExternalTable extends Table {
         return errorTable;
     }
 
+    @Step("Set error table")
     public void setErrorTable(String errorTable) {
         this.errorTable = errorTable;
     }
@@ -316,6 +324,7 @@ public abstract class ExternalTable extends Table {
         return segmentRejectLimit;
     }
 
+    @Step("Set segment reject limit")
     public void setSegmentRejectLimit(int segmentRejectLimit) {
         this.segmentRejectLimit = segmentRejectLimit;
     }
@@ -338,6 +347,7 @@ public abstract class ExternalTable extends Table {
         return fragmenter;
     }
 
+    @Step("Set fragmenter")
     public void setFragmenter(String fragmenter) {
         this.fragmenter = fragmenter;
     }
@@ -346,6 +356,7 @@ public abstract class ExternalTable extends Table {
         return accessor;
     }
 
+    @Step("Set accessor")
     public void setAccessor(String accessor) {
         this.accessor = accessor;
     }
@@ -354,6 +365,7 @@ public abstract class ExternalTable extends Table {
         return resolver;
     }
 
+    @Step("Set resolver")
     public void setResolver(String resolver) {
         this.resolver = resolver;
     }
@@ -362,6 +374,7 @@ public abstract class ExternalTable extends Table {
         return dataSchema;
     }
 
+    @Step("Set schema")
     public void setDataSchema(String dataSchema) {
         this.dataSchema = dataSchema;
     }
@@ -370,6 +383,7 @@ public abstract class ExternalTable extends Table {
         return format;
     }
 
+    @Step("Set format")
     public void setFormat(String format) {
         this.format = format;
     }
@@ -378,6 +392,7 @@ public abstract class ExternalTable extends Table {
         return formatter;
     }
 
+    @Step("Set formatter")
     public void setFormatter(String formatter) {
         this.formatter = formatter;
     }
@@ -386,6 +401,7 @@ public abstract class ExternalTable extends Table {
         return port;
     }
 
+    @Step("Set port")
     public void setPort(String port) {
         this.port = port;
     }
@@ -394,6 +410,7 @@ public abstract class ExternalTable extends Table {
         return path;
     }
 
+    @Step("Set path")
     public void setPath(String path) {
         this.path = path;
     }
@@ -403,6 +420,7 @@ public abstract class ExternalTable extends Table {
      *
      * @param userParameters - array of user parameters
      */
+    @Step("Set user parameters")
     public void setUserParameters(String[] userParameters) {
 
         this.userParameters = null;
@@ -413,6 +431,7 @@ public abstract class ExternalTable extends Table {
         }
     }
 
+    @Step("Add user parameter")
     public void addUserParameter(String userParameter) {
         if (userParameters == null) {
             userParameters = new String[] {userParameter};
@@ -426,6 +445,7 @@ public abstract class ExternalTable extends Table {
         return userParameters;
     }
 
+    @Step("Set server")
     public void setServer(String server) {
         this.server = server;
     }
@@ -438,20 +458,24 @@ public abstract class ExternalTable extends Table {
         return externalDataSchema;
     }
 
+    @Step("Set external data schema")
     public void setExternalDataSchema(String externalDataSchema) {
         this.externalDataSchema = externalDataSchema;
     }
 
+    @Step("Add formatter option")
     public void addFormatterOption(String formatterOption) {
         this.formatterOptions.add(formatterOption);
     }
 
+    @Step("Set formatter options")
     public void setFormatterOptions(String[] formatterOptions) {
         for (String option : formatterOptions) {
             addFormatterOption(option);
         }
     }
 
+    @Step("Set formatter mixed case")
     public boolean isFormatterMixedCase() {
         return formatterMixedCase;
     }

@@ -1,6 +1,8 @@
 package org.greenplum.pxf.automation.features.hdfs;
 
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.datapreparer.CustomSequencePreparer;
 import org.greenplum.pxf.automation.features.BaseFeature;
@@ -13,10 +15,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
-/**
- * Collection of Test cases for PXF ability to read SequenceFile.
- */
 @WorksWithFDW
+@Feature("Reading SequenceFile")
 public class HdfsReadableSequenceTest extends BaseFeature {
 
     private static final String SUFFIX_CLASS = ".class";
@@ -87,6 +87,7 @@ public class HdfsReadableSequenceTest extends BaseFeature {
         prepareData();
     }
 
+    @Step("Prepare data")
     private void prepareData() throws Exception {
 
         Table dataTable = new Table("dataTable", null);

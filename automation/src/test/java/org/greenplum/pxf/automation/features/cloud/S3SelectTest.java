@@ -1,5 +1,9 @@
 package org.greenplum.pxf.automation.features.cloud;
 
+import io.qameta.allure.Feature;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.greenplum.pxf.automation.components.hdfs.Hdfs;
 import jsystem.framework.system.SystemManagerImpl;
 import org.greenplum.pxf.automation.components.minio.Minio;
 import org.greenplum.pxf.automation.features.BaseFeature;
@@ -13,6 +17,7 @@ import static org.greenplum.pxf.automation.features.tpch.LineItem.LINEITEM_SCHEM
 /**
  * Functional S3 Select Test
  */
+@Feature("S3 Select")
 public class S3SelectTest extends BaseFeature {
 
     private static final String[] PXF_S3_SELECT_INVALID_COLS = {

@@ -1,6 +1,11 @@
 package org.greenplum.pxf.automation.features.cloud;
 
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.greenplum.pxf.automation.components.hdfs.Hdfs;
 import jsystem.framework.system.SystemManagerImpl;
 
 import org.greenplum.pxf.automation.components.minio.Minio;
@@ -11,10 +16,8 @@ import org.testng.annotations.Test;
 
 import java.nio.file.Paths;
 
-/**
- * Functional CloudAccess Test
- */
 @WorksWithFDW
+@Feature("S3 Cloud Access")
 public class CloudAccessTest extends BaseFeature {
 
     private static final String[] PXF_MULTISERVER_COLS = {
