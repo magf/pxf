@@ -57,6 +57,10 @@ dependencies {
     implementation("org.apache.commons:commons-compress")            { transitive = false }
     implementation("org.tukaani:xz")                                 { transitive = false }
 
+    // Dependencies for writing Parquet files with compression
+    implementation("com.github.luben:zstd-jni")                      { transitive = false }
+    implementation("org.lz4:lz4-java")                               { transitive = false }
+
     // Hadoop 2.10.1 uses log4j:1.2.17, but since we are using slf4j
     // we bring log4j-over-slf4j which provides compatibility for log4j
     // using underlying slf4j functionality (i.e MDC).
