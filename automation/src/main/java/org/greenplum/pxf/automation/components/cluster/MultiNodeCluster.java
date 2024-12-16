@@ -214,13 +214,12 @@ public class MultiNodeCluster extends PhdCluster {
     }
 
     @Override
-    @Step("Run command on all cluster nodes")
     public void runCommandOnAllNodes(String command) throws Exception {
         runCommandOnNodes(Arrays.asList(nodes), command);
     }
 
     @Override
-    @Step("Run command on all cluster nodes")
+    @Step("Run command on all cluster nodes from the list")
     public void runCommandOnNodes(List<Node> nodes, String command) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Run Command: " + command + " on " + nodes.toString());
         ParallelShellActions.runParallelCommand(nodes, command);

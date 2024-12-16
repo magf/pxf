@@ -130,13 +130,13 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	}
 
 	@Override
-	@Step("Drop table")
+	@Step("Drop table {table}")
 	public void dropTable(Table table, boolean cascade) throws Exception {
 		runQuery(table.constructDropStmt(cascade), true, false);
 	}
 
 	@Override
-	@Step("Drop database")
+	@Step("Drop database {schemaName}")
 	public void dropDataBase(String schemaName, boolean cascade, boolean ignoreFail) throws Exception {
 		runQuery("DROP SCHEMA " + schemaName + ((cascade) ? " CASCADE" : ""), ignoreFail, false);
 	}
