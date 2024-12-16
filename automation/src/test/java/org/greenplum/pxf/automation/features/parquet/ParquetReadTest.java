@@ -1,6 +1,8 @@
 package org.greenplum.pxf.automation.features.parquet;
 
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
@@ -8,6 +10,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 
 @WorksWithFDW
+@Feature("Read Parquet")
 public class ParquetReadTest extends BaseFeature {
     private static final String NUMERIC_TABLE = "numeric_precision";
     private static final String NUMERIC_UNDEFINED_PRECISION_TABLE = "numeric_undefined_precision";
@@ -182,6 +185,7 @@ public class ParquetReadTest extends BaseFeature {
         runSqlTest("features/parquet/timestamp_list");
     }
 
+    @Step("Prepare readable external table")
     private void prepareReadableExternalTable(String name, String[] fields, String path) throws Exception {
         exTable = TableFactory.getPxfHcfsReadableTable(name, fields, path, hdfs.getBasePath(), "parquet");
         createTable(exTable);

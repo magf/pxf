@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.hive;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
@@ -7,6 +9,7 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.List;
 
+@Feature("Hive ORC ACID")
 public class HiveOrcAcidTest extends HiveBaseTest {
 
     private HiveTable hiveOrcSmallDataTable;
@@ -17,12 +20,14 @@ public class HiveOrcAcidTest extends HiveBaseTest {
     private final List<String> defaultTransactionalProperties = Arrays.asList("transactional_properties", "default");
 
     @Override
+    @Step("Create external table")
     protected void createExternalTable(String tableName, String[] fields, HiveTable hiveTable) throws Exception {
 
         exTable = TableFactory.getPxfHiveOrcReadableTable(tableName, fields, hiveTable, true);
         createTable(exTable);
     }
 
+    @Step("Set ACID Hive session properties")
     private void setAcidHiveSessionProperties() throws Exception {
         hive.runQuery("SET hive.support.concurrency = true");
         hive.runQuery("SET hive.txn.manager = org.apache.hadoop.hive.ql.lockmgr.DbTxnManager");
@@ -39,6 +44,7 @@ public class HiveOrcAcidTest extends HiveBaseTest {
     }
 
     @Override
+    @Step("Prepare small data")
     void prepareSmallData() throws Exception {
 
         super.prepareSmallData();
@@ -55,6 +61,7 @@ public class HiveOrcAcidTest extends HiveBaseTest {
         hive.createTableAndVerify(hiveOrcSmallDataTable);
     }
 
+    @Step("Prepare partitioned data")
     private void preparePartitionedData() throws Exception {
 
         hiveOrcPartitionedTable = new HiveTable(HIVE_PARTITIONED_TABLE + ACID_POSTPEND, HIVE_RC_COLS);

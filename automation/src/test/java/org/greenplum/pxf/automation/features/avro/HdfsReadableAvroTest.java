@@ -1,6 +1,8 @@
 package org.greenplum.pxf.automation.features.avro;
 
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.datapreparer.CustomAvroPreparer;
 import org.greenplum.pxf.automation.features.BaseFeature;
@@ -21,6 +23,7 @@ import java.util.Objects;
  * Readable - Avro</a>
  */
 @WorksWithFDW
+@Feature("Read Avro from HDFS")
 public class HdfsReadableAvroTest extends BaseFeature {
 
     private String hdfsPath;
@@ -526,6 +529,7 @@ public class HdfsReadableAvroTest extends BaseFeature {
         runSqlTest("features/hdfs/readable/avro/errors/no_schema_file");
     }
 
+    @Step("Create Avro files from schema and json files")
     private void prepareData() throws Exception {
 
         // FILE_SCHEME is required here for MapR tests. MapR requires their
@@ -582,6 +586,7 @@ public class HdfsReadableAvroTest extends BaseFeature {
                 schemaName1, (IAvroSchema[]) data1);
     }
 
+    @Step("Prepare readable table")
     private void prepareReadableTable(String name, String[] fields, String path) {
         // default external table with common settings
         exTable = TableFactory.getPxfHcfsReadableTable(name, fields, path, hdfs.getBasePath(), "avro");

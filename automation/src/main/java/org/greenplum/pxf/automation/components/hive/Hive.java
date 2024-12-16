@@ -3,6 +3,7 @@ package org.greenplum.pxf.automation.components.hive;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import io.qameta.allure.Step;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -60,6 +61,7 @@ public class Hive extends DbSystemObject {
      *            HDFS
      * @throws Exception if an error occurs
      */
+    @Step("Load data")
     public void loadData(HiveTable table, String filePath, boolean isLocal)
             throws Exception {
         runQuery(createLoadDataStmt(table, filePath, isLocal));
@@ -100,6 +102,7 @@ public class Hive extends DbSystemObject {
      * @param partitions partition(s) to load to
      * @throws Exception if an error occurs
      */
+    @Step("Load data to partition")
     public void loadDataToPartition(HiveTable table, String filePath,
                                     boolean isLocal, String[] partitions)
             throws Exception {
@@ -112,6 +115,7 @@ public class Hive extends DbSystemObject {
         }
     }
 
+    @Step("Alter table add partition")
     public void alterTableAddPartition(HiveTable table, String[] partitions)
             throws Exception {
         runQuery("ALTER TABLE " + table.getName() + " ADD PARTITION ("
@@ -119,12 +123,14 @@ public class Hive extends DbSystemObject {
     }
 
     @Override
+    @Step("Drop Hive table")
     public void dropTable(Table table, boolean cascade) throws Exception {
         // no DROP ... CASCADE in Hive
         runQuery(table.constructDropStmt(false));
     }
 
     @Override
+    @Step("Set host")
     public void setHost(String host) {
 
         this.host = replaceUser(host);
@@ -141,6 +147,7 @@ public class Hive extends DbSystemObject {
     }
 
     @Override
+    @Step("Insert data")
     public void insertData(Table source, Table target) throws Exception {
 
         runQuery("INSERT INTO TABLE " + target.getName() + " SELECT * FROM "
@@ -152,6 +159,7 @@ public class Hive extends DbSystemObject {
         insertDataToPartition(source, target, partitions, columnsToSelect, null);
     }
 
+    @Step("Insert data to partition")
     public void insertDataToPartition(Table source, Table target,
                                       String[] partitions, String[] columnsToSelect, String filter) throws Exception {
         if (ArrayUtils.isEmpty(partitions)) {
@@ -168,6 +176,7 @@ public class Hive extends DbSystemObject {
      * Verifies table exists
      */
     @Override
+    @Step("Check table exists")
     public boolean checkTableExists(Table table) throws Exception {
 
         String query = "SHOW TABLES";

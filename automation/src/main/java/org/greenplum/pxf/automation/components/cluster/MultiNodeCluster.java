@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.qameta.allure.Step;
 import jsystem.framework.report.Reporter;
 
 import org.apache.commons.io.FileUtils;
@@ -69,16 +70,19 @@ public class MultiNodeCluster extends PhdCluster {
     }
 
     @Override
+    @Step("Start service")
     public void start(EnumClusterServices service) throws Exception {
         handleOperation("start", service);
     }
 
     @Override
+    @Step("Stop service")
     public void stop(EnumClusterServices service) throws Exception {
         handleOperation("stop", service);
     }
 
     @Override
+    @Step("Restart multi-node cluster")
     public void restart(EnumClusterServices service) throws Exception {
         handleOperation("restart", service);
     }
@@ -90,6 +94,7 @@ public class MultiNodeCluster extends PhdCluster {
      * @param service required cluster service
      * @throws Exception if an error occurs
      */
+    @Step("Handle operation")
     private void handleOperation(String operation, EnumClusterServices service) throws Exception {
         // not supporting null service or all services
         if (service == null || service.equals(EnumClusterServices.gphd)) {
@@ -142,6 +147,7 @@ public class MultiNodeCluster extends PhdCluster {
      * @throws Exception if fetching configuration had failed.
      */
     @Override
+    @Step("Fetch configuration")
     public void fetchConfiguration(String targetDirectory) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Fetch Configuration from Cluster to " + targetDirectory);
         // clean confDirectory in remote admin node before fetch into it
@@ -168,6 +174,7 @@ public class MultiNodeCluster extends PhdCluster {
      * Remotely copy the file to target in all machines
      */
     @Override
+    @Step("Copy file to all cluster nodes")
     public void copyFileToNodes(String file, String target, boolean createTargetDirectory, boolean sudo) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Copy File: " + file + " to nodes");
         String escapedFile = escapeSpaces(file);
@@ -195,10 +202,8 @@ public class MultiNodeCluster extends PhdCluster {
         copyFileToNodes(file, target, false, false);
     }
 
-    /**
-     * Deletes targetFile from cluster
-     */
     @Override
+    @Step("Delete file from all cluster nodes")
     public void deleteFileFromNodes(String targetFile, boolean sudo) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Delete File: " + targetFile + " from nodes");
         String escapedTargetFile = escapeSpaces(targetFile);
@@ -214,6 +219,7 @@ public class MultiNodeCluster extends PhdCluster {
     }
 
     @Override
+    @Step("Run command on all cluster nodes from the list")
     public void runCommandOnNodes(List<Node> nodes, String command) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Run Command: " + command + " on " + nodes.toString());
         ParallelShellActions.runParallelCommand(nodes, command);

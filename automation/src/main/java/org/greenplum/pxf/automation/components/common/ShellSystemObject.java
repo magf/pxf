@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import io.qameta.allure.Allure;
 import org.greenplum.pxf.automation.utils.curl.CurlUtils;
 import jsystem.framework.report.Reporter;
 
@@ -179,6 +180,7 @@ public class ShellSystemObject extends BaseSystemObject {
         lastCmdResult = cmd.getResult();
 
         ReportUtils.report(report, getClass(), lastCmdResult);
+        Allure.attachment("RESULT: Exit code " + lastCommandExitCode, lastCmdResult);
 
         // if expectedExitCode=EXIT_CODE_NOT_EXISTS it means no need to check
         // exit code

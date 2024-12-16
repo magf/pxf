@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
@@ -20,6 +22,7 @@ import static org.greenplum.pxf.automation.PxfTestConstant.PXF_LOG_RELATIVE_PATH
 import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
 import static org.junit.Assert.assertEquals;
 
+@Feature("Fragment distribution in HDFS")
 public class FragmentDistributionTest extends BaseFeature {
     private static final String PG_SOURCE_TABLE_NAME = "pg_fragment_distribution_source_table";
     private static final String JDBC_EXT_TABLE_NAME = "fragment_distribution_jdbc_ext_table";
@@ -68,7 +71,7 @@ public class FragmentDistributionTest extends BaseFeature {
             changeLogLevel("info");
         }
     }
-
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         preparePgSourceTable();
         prepareHdfsFiles();
@@ -79,6 +82,7 @@ public class FragmentDistributionTest extends BaseFeature {
         createGpdbReadableHdfsTableWithSegLimit();
     }
 
+    @Step("Prepare PG source table")
     private void preparePgSourceTable() throws Exception {
         postgresSourceTable = new Table(PG_SOURCE_TABLE_NAME, SOURCE_TABLE_FIELDS);
         postgresSourceTable.setDistributionFields(new String[]{"id"});
@@ -95,6 +99,7 @@ public class FragmentDistributionTest extends BaseFeature {
         gpdb.insertData(dataTable, postgresSourceTable);
     }
 
+    @Step("Prepare HDFS files")
     private void prepareHdfsFiles() {
         // Create 6 files to receive 6 fragments
         IntStream.rangeClosed(0, 5)
@@ -107,6 +112,7 @@ public class FragmentDistributionTest extends BaseFeature {
                 });
     }
 
+    @Step("Create GPDB readable JDBC table")
     private void createGpdbReadableJdbcTable() throws Exception {
         ExternalTable gpdbReadablePgTable = TableFactory.getPxfJdbcReadablePartitionedTable(
                 JDBC_EXT_TABLE_NAME,
@@ -121,6 +127,7 @@ public class FragmentDistributionTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbReadablePgTable);
     }
 
+    @Step("Create GPDB readable JDBC table with limit")
     private void createGpdbReadableJdbcTableWithLimit() throws Exception {
         ExternalTable gpdbReadablePgTable = TableFactory.getPxfJdbcReadablePartitionedTable(
                 JDBC_LIMIT_EXT_TABLE_NAME,
@@ -135,6 +142,7 @@ public class FragmentDistributionTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbReadablePgTable);
     }
 
+    @Step("Create GPDB readable HDFS table")
     private void createGpdbReadableHdfsTable() throws Exception {
         ReadableExternalTable gpdbReadableHdfsTable = TableFactory.getPxfReadableCSVTable(
                 HDFS_EXT_TABLE_NAME,
@@ -144,6 +152,7 @@ public class FragmentDistributionTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbReadableHdfsTable);
     }
 
+    @Step("Create GPDB readable HDFS table with limit")
     private void createGpdbReadableHdfsTableWithLimit() throws Exception {
         ReadableExternalTable gpdbReadableHdfsTable = TableFactory.getPxfReadableCSVTable(
                 HDFS_LIMIT_EXT_TABLE_NAME,
@@ -154,6 +163,7 @@ public class FragmentDistributionTest extends BaseFeature {
         gpdb.createTableAndVerify(gpdbReadableHdfsTable);
     }
 
+    @Step("Create GPDB readable HDFS table with seg limit")
     private void createGpdbReadableHdfsTableWithSegLimit() throws Exception {
         ReadableExternalTable gpdbReadableHdfsTable = TableFactory.getPxfReadableCSVTable(
                 HDFS_SEG_LIMIT_EXT_TABLE_NAME,

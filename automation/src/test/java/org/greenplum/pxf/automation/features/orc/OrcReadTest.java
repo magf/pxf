@@ -2,11 +2,14 @@ package org.greenplum.pxf.automation.features.orc;
 
 import annotations.FailsWithFDW;
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
 
 @WorksWithFDW
+@Feature("Read ORC")
 public class OrcReadTest extends BaseFeature {
 
     private static final String ORC_PRIMITIVE_TYPES = "orc_types.orc";
@@ -175,6 +178,7 @@ public class OrcReadTest extends BaseFeature {
         prepareReadableExternalTable(name, fields, path, false);
     }
 
+    @Step("Prepare readable external table")
     private void prepareReadableExternalTable(String name, String[] fields, String path, boolean mapByPosition) throws Exception {
         exTable = TableFactory.getPxfHcfsReadableTable(name, fields, path, hdfs.getBasePath(), "orc");
         if (mapByPosition) {

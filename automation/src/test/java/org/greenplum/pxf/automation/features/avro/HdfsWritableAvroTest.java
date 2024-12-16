@@ -4,6 +4,8 @@ import annotations.FailsWithFDW;
 import annotations.WorksWithFDW;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.features.BaseWritableFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
@@ -25,6 +27,7 @@ import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
 
 @WorksWithFDW
+@Feature("Write Avro to HDFS")
 public class HdfsWritableAvroTest extends BaseWritableFeature {
 
     private ArrayList<File> filesToDelete;
@@ -355,12 +358,14 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
         dropComplexTypes();
     }
 
+    @Step("Create complex types")
     private void createComplexTypes() throws Exception {
         dropComplexTypes();
         gpdb.runQuery("CREATE TYPE mood AS ENUM ('sad', 'happy')");
         gpdb.runQuery("CREATE TYPE struct AS (b boolean, i int)");
     }
 
+    @Step("Drop complex types")
     private void dropComplexTypes() throws Exception {
         if (gpdb != null) {
             gpdb.runQuery("DROP TYPE IF EXISTS struct CASCADE", true, false);
@@ -368,6 +373,7 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
         }
     }
 
+    @Step("Insert primitive types")
     private void insertPrimitives(Table exTable) throws Exception {
         gpdb.copyData("generate_series(1, 100) s(i)", exTable, new String[]{
                 "i",                                             // type_int
@@ -383,6 +389,7 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
         });
     }
 
+    @Step("Insert complex types")
     private void insertComplex(Table exTable) throws Exception {
         gpdb.copyData("generate_series(1, 100) s(i)", exTable, new String[]{
                 "i",
@@ -398,6 +405,7 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
         }, "SET TIMEZONE=-7;SET optimizer=off");
     }
 
+    @Step("Insert complex types with nulls")
     private void insertComplexWithNulls(Table exTable) throws Exception {
         gpdb.copyData("generate_series(1, 100) s(i)", exTable, new String[]{
                 "i",
@@ -413,8 +421,8 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
         }, "SET TIMEZONE=-7;SET optimizer=off");
     }
 
-    private void
-    insertComplexNullArrays(Table exTable) throws Exception {
+    @Step("Insert complex null arrays")
+    private void insertComplexNullArrays(Table exTable) throws Exception {
         String data = String.join(",", new String[] {
                 "(1, NULL,            '{1.0001,10.00001,100.000001}',  '{\"item 0\",\"item 10\",\"item 20\"}')",
                 "(2, '{2,20,200}',    NULL,                            '{\"item 0\",\"item 10\",\"item 20\"}')",
@@ -426,6 +434,7 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
         gpdb.insertData(data, exTable);
     }
 
+    @Step("Fetch and verify Avro HCFS files")
     private void fetchAndVerifyAvroHcfsFiles(String compareFile, String codec) throws Exception {
         int cnt = 0;
         Map<Integer, JsonNode> jsonFromHdfs = new HashMap<>();
@@ -494,11 +503,13 @@ public class HdfsWritableAvroTest extends BaseWritableFeature {
         }
     }
 
+    @Step("Prepare writable external table")
     private void prepareWritableExternalTable(String name, String[] fields, String path) {
         writableExTable = TableFactory.getPxfHcfsWritableTable(name + "_writable",
                 fields, path, hdfs.getBasePath(), "avro");
     }
 
+    @Step("Prepare readable external table")
     private void prepareReadableExternalTable(String name, String[] fields, String path) {
         readableExTable = TableFactory.getPxfHcfsReadableTable(name + "_readable",
                 fields, path, hdfs.getBasePath(),"avro");

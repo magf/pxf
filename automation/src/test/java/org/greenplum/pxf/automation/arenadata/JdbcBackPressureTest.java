@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.system.SystemManagerImpl;
 import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
@@ -19,6 +21,7 @@ import java.util.List;
 import static org.greenplum.pxf.automation.PxfTestConstant.*;
 import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
 
+@Feature("JDBC back pressure")
 public class JdbcBackPressureTest extends BaseFeature {
     private static final String PXF_SERVER_PROFILE = "backpressure";
     private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/backpressure/jdbc-site.xml";
@@ -96,6 +99,7 @@ public class JdbcBackPressureTest extends BaseFeature {
         }
     }
 
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         // Greenplum internal source table
         createGpdbSourceTable();
@@ -113,6 +117,7 @@ public class JdbcBackPressureTest extends BaseFeature {
         createGpdbWritableTable("jdbc_bp_write_batch_timeout_success", "POOL_SIZE=1,BATCH_SIZE=1000000,BATCH_TIMEOUT=120");
     }
 
+    @Step("Create GPDB source table")
     private void createGpdbSourceTable() throws Exception {
         Table gpdbSourceTable = new Table("gp_source_table", GPDB_SOURCE_TABLE_FIELDS);
         gpdbSourceTable.setDistributionFields(new String[]{"id1"});
@@ -120,12 +125,14 @@ public class JdbcBackPressureTest extends BaseFeature {
         gpdb.runQuery(INSERT_QUERY);
     }
 
+    @Step("Create Oracle target table")
     private void prepareOracleTargetTable() throws Exception {
         oracleTargetTable = new Table("oracle_target_table", ORACLE_TARGET_TABLE_FIELDS);
         oracleTargetTable.setSchema("system");
         oracle.createTableAndVerify(oracleTargetTable);
     }
 
+    @Step("Create GPDB writable table")
     private void createGpdbWritableTable(String tableName, String customParams) throws Exception {
         ExternalTable gpdbWritableTable = TableFactory.getPxfWritableCustomTable(
                 tableName,

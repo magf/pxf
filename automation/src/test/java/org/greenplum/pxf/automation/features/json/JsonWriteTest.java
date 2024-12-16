@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.features.json;
 
+import io.qameta.allure.Feature;
 import org.greenplum.pxf.automation.features.BaseWritableFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
@@ -17,6 +18,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * Test class for testing writing use cases of Json profiles.
  */
+@Feature("Write HDFS files in JSON format")
 public class JsonWriteTest extends BaseWritableFeature {
 
     public static final String[] PRIMITIVE_TYPES_FIELDS = {

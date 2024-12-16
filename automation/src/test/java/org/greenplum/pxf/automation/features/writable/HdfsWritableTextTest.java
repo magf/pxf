@@ -2,6 +2,8 @@ package org.greenplum.pxf.automation.features.writable;
 
 import annotations.SkipForFDW;
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.automation.datapreparer.writable.WritableDataPreparer;
 import org.greenplum.pxf.automation.enums.EnumCompressionTypes;
@@ -30,6 +32,7 @@ import static java.lang.Thread.sleep;
  * Testing cases for PXF Writable feature for Text formats (Text, CSV) and compressions.
  */
 @WorksWithFDW
+@Feature("Write text formats (Text, CSV)")
 public class HdfsWritableTextTest extends BaseWritableFeature {
 
     private static final String COMPRESSION_CODEC = "org.apache.hadoop.io.compress.DefaultCodec";
@@ -588,6 +591,7 @@ public class HdfsWritableTextTest extends BaseWritableFeature {
      * @param compressionType used compression for given HDFS file
      * @throws Exception if test fails to run
      */
+    @Step("Verify result file in HDFS")
     private void verifyResult(String hdfsPath, Table data, EnumCompressionTypes compressionType)
             throws Exception {
 
@@ -629,6 +633,7 @@ public class HdfsWritableTextTest extends BaseWritableFeature {
      * @param table to insert to
      * @throws Exception if test fails to run
      */
+    @Step("Insert data")
     private void insertData(Table data, WritableExternalTable table, InsertionMethod insertionMethod)
             throws Exception {
 
@@ -645,6 +650,7 @@ public class HdfsWritableTextTest extends BaseWritableFeature {
         }
     }
 
+    @Step("Prepare readable table")
     private ReadableExternalTable prepareReadableTable(String name, String path) throws Exception {
         ReadableExternalTable table = TableFactory.getPxfReadableTextTable(name, gpdbTableFields,
                 protocol.getExternalTablePath(hdfs.getBasePath(), path), ",");
@@ -660,6 +666,7 @@ public class HdfsWritableTextTest extends BaseWritableFeature {
         return prepareWritableTable(name, path, format, codec, null);
     }
 
+    @Step("Prepare writable table")
     private WritableExternalTable prepareWritableTable(String name, String path, String format, String codec, String[] userParameters) throws Exception {
         WritableExternalTable table = TableFactory.getPxfWritableTextTable(name, gpdbTableFields,
                 protocol.getExternalTablePath(hdfs.getBasePath(), path), ",");
@@ -680,6 +687,7 @@ public class HdfsWritableTextTest extends BaseWritableFeature {
         return prepareWritableBZip2Table(name, path, null);
     }
 
+    @Step("Prepare writable BZip2 table")
     private WritableExternalTable prepareWritableBZip2Table(String name, String path, String customCodecName) throws Exception {
         WritableExternalTable table = TableFactory.getPxfWritableBZip2Table(name, gpdbTableFields,
                 protocol.getExternalTablePath(hdfs.getBasePath(), path), ",");
@@ -693,6 +701,8 @@ public class HdfsWritableTextTest extends BaseWritableFeature {
     private WritableExternalTable prepareWritableGzipTable(String name, String path) throws Exception {
         return prepareWritableGzipTable(name, path, null);
     }
+
+    @Step("Prepare writable Gzip table")
     private WritableExternalTable prepareWritableGzipTable(String name, String path, String customCodecName) throws Exception {
         WritableExternalTable table = TableFactory.getPxfWritableGzipTable(name, gpdbTableFields,
                 protocol.getExternalTablePath(hdfs.getBasePath(), path), ",");

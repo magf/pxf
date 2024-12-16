@@ -4,7 +4,7 @@ import jsystem.framework.report.ListenerstManager;
 import jsystem.framework.system.SystemManagerImpl;
 import jsystem.utils.FileUtils;
 import listeners.CustomAutomationLogger;
-import listeners.FDWSkipTestAnalyzer;
+import listeners.TestAnalyzer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -33,7 +33,7 @@ import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY
  * PXF Automation tests Base class, using {@link CustomAutomationLogger} testNG listener for custom
  * logging
  */
-@Listeners({CustomAutomationLogger.class, CustomAutomationReport.class, FDWSkipTestAnalyzer.class})
+@Listeners({CustomAutomationLogger.class, CustomAutomationReport.class, TestAnalyzer.class})
 public abstract class BaseTestParent {
     // Objects used in the tests
     protected PhdCluster cluster;

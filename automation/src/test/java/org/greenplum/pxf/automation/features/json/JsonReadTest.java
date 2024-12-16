@@ -2,6 +2,8 @@ package org.greenplum.pxf.automation.features.json;
 
 import annotations.FailsWithFDW;
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
@@ -9,10 +11,8 @@ import org.greenplum.pxf.automation.utils.system.ProtocolEnum;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
 import org.testng.annotations.Test;
 
-/**
- * Tests for Json plugin to read HDFS files in JSON format.
- */
 @WorksWithFDW
+@Feature("Read HDFS files in JSON format")
 public class JsonReadTest extends BaseFeature {
 
     private String hdfsPath;
@@ -120,6 +120,7 @@ public class JsonReadTest extends BaseFeature {
         prepareData();
     }
 
+    @Step("Prepare data")
     private void prepareData() throws Exception {
 
         hdfs.copyFromLocal(resourcePath + FILENAME_SIMPLE + SUFFIX_JSON,
@@ -413,6 +414,7 @@ public class JsonReadTest extends BaseFeature {
         }
     }
 
+    @Step("Prepare external table")
     private void prepareExternalTable(String name, String[] fields, String path, String format) {
         ProtocolEnum protocol = ProtocolUtils.getProtocol();
         exTable = TableFactory.getPxfReadableJsonTable(name, fields,

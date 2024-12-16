@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.multiuser;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.components.gpdb.Gpdb;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
@@ -9,6 +11,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
+@Feature("Multiple users")
 public class MultiUserTest extends BaseFeature {
 
     private static final String GPDB_PXF_AUTOMATION_DB_JDBC = "jdbc:postgresql://";
@@ -39,12 +42,14 @@ public class MultiUserTest extends BaseFeature {
         prepareData();
     }
 
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         //CustomAutomationLogger.revertStdoutStream();
         prepareNative();
         prepareReadable();
     }
 
+    @Step("Prepare native tables with different users")
     private void prepareNative() throws Exception {
         gpdbNativeTable = new Table("gpdb_table", TYPES_TABLE_FIELDS);
         gpdbNativeTable.setDistributionFields(new String[]{"t1"});
@@ -66,6 +71,7 @@ public class MultiUserTest extends BaseFeature {
         gpdbEx.close();
     }
 
+    @Step("Prepare readable tables")
     private void prepareReadable() throws Exception {
         ExternalTable pxfJdbcReadable = TableFactory.getPxfJdbcReadableTable(
                 "pxf_jdbc_readable",
