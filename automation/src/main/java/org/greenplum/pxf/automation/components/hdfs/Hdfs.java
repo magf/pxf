@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.components.hdfs;
 
+import io.qameta.allure.Step;
 import org.apache.avro.Schema;
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
@@ -306,6 +307,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     }
 
     @Override
+    @Step("Copy from local file to HDFS")
     public void copyFromLocal(String srcPath, String destPath) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Copy from " + srcPath
                 + " to " + destPath);
@@ -314,6 +316,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     }
 
     @Override
+    @Step("Copy from HDFS to local file")
     public void copyToLocal(String srcPath, String destPath) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Copy to " + destPath
                 + " from " + srcPath);
@@ -350,6 +353,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     }
 
     @Override
+    @Step("Write data to sequence file")
     public void writeSequenceFile(Object[] writableData, String pathToFile)
             throws IOException {
         ReportUtils.startLevel(report, getClass(),
@@ -373,6 +377,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     }
 
     @Override
+    @Step("Write Avro in sequence file")
     public void writeAvroInSequenceFile(String pathToFile, String schemaName,
                                         IAvroSchema[] data) throws Exception {
         IntWritable key = new IntWritable();
@@ -396,6 +401,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     }
 
     @Override
+    @Step("Write data to Avro file")
     public void writeAvroFile(String pathToFile, String schemaName,
                               String codecName, IAvroSchema[] data)
             throws Exception {
@@ -421,6 +427,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     }
 
     @Override
+    @Step("Write Avro file from json")
     public void writeAvroFileFromJson(String pathToFile, String schemaName,
                                       String jsonFileName, String codecName)
             throws Exception {
@@ -447,6 +454,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         ReportUtils.stopLevel(report);
     }
 
+    @Step("Write json file from Avro")
     public void writeJsonFileFromAvro(String pathToFile, String pathToJson)
             throws Exception {
         Tool tool = new DataFileReadTool();
@@ -468,6 +476,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     }
 
     @Override
+    @Step("Write Protocol Buffer file")
     public void writeProtocolBufferFile(String filePath,
                                         com.google.protobuf.GeneratedMessage data)
             throws Exception {
@@ -525,6 +534,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     }
 
     @Override
+    @Step("Write table to file in HDFS")
     public void writeTableToFile(String destPath, Table dataTable,
                                  String delimiter, Charset encoding,
                                  CompressionCodec codec, String newLine) throws Exception {
@@ -550,6 +560,8 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         appendTableToFile(pathToFile, dataTable, delimiter, StandardCharsets.UTF_8);
     }
 
+
+    @Step("Append table to file in HDFS")
     private void appendTableToFile(String pathToFile, Table dataTable, String delimiter, Charset encoding) throws Exception {
         ReportUtils.startLevel(report, getClass(),
                 "Append Text File (Delimiter = '" + delimiter + "') to "
@@ -563,6 +575,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         ReportUtils.stopLevel(report);
     }
 
+    @Step("Write table to stream")
     private void writeTableToStream(DataOutputStream stream, Table dataTable,
                                     String delimiter, Charset encoding, String newLine) throws Exception {
         BufferedWriter bufferedWriter = new BufferedWriter(
@@ -603,6 +616,7 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         throw new IllegalStateException("Unknown status: " + fullResponse);
     }
 
+    @Step("Failover")
     public void failover(String from, String to) throws Exception {
         assertEquals("active", getNamenodeStatus(from));
         assertEquals("standby", getNamenodeStatus(to));

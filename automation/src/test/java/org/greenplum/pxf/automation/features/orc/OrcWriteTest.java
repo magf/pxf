@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.orc;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.system.SystemManagerImpl;
 import org.greenplum.pxf.automation.components.hive.Hive;
 import org.greenplum.pxf.automation.features.BaseFeature;
@@ -16,6 +18,7 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.StringJoiner;
 
+@Feature("Write ORC")
 public class OrcWriteTest extends BaseFeature {
 
     private static final String[] ORC_PRIMITIVE_TABLE_COLUMNS = {
@@ -419,6 +422,7 @@ public class OrcWriteTest extends BaseFeature {
         runSqlTest("features/orc/write/primitive_types_compress");
     }
 
+    @Step("Insert data without nulls")
     private void insertDataWithoutNulls(String exTable, int numRows) throws Exception {
         StringBuilder statementBuilder = new StringBuilder("INSERT INTO " + exTable + "_writable VALUES ");
         for (int i = 0; i < numRows; i++) {
@@ -428,6 +432,7 @@ public class OrcWriteTest extends BaseFeature {
         gpdb.runQuery(statementBuilder.toString());
     }
 
+    @Step("Insert data with nulls")
     private void insertDataWithNulls(String exTable, int numRows) throws Exception {
         StringBuilder statementBuilder = new StringBuilder("INSERT INTO " + exTable + "_writable VALUES ");
         int nullableColumnCount = ORC_PRIMITIVE_TABLE_COLUMNS.length - 1;
@@ -444,6 +449,7 @@ public class OrcWriteTest extends BaseFeature {
         gpdb.runQuery(statementBuilder.toString());
     }
 
+    @Step("Insert data with timestamps")
     private void insertDataWithTimestamps(String exTable, int numRows, int nullModulo) throws Exception {
         StringBuilder insertStatement = new StringBuilder("INSERT INTO " + exTable + "_writable VALUES ");
         for (int i = 0; i < numRows; i++) {
@@ -459,6 +465,7 @@ public class OrcWriteTest extends BaseFeature {
         gpdb.runQuery(insertStatement.toString());
     }
 
+    @Step("Insert array data with nulls")
     private void insertArrayDataWithNulls(String exTable, int numRows, int nullModulo) throws Exception {
         StringBuilder insertStatement = new StringBuilder("INSERT INTO " + exTable + "_writable VALUES ");
         for (int i = 0; i < numRows; i++) {
@@ -487,6 +494,7 @@ public class OrcWriteTest extends BaseFeature {
         gpdb.runQuery(insertStatement.toString());
     }
 
+    @Step("Insert array data with null elements")
     private void insertArrayDataWithNullElements(String exTable, int numRows, int nullModulo) throws Exception {
         StringBuilder insertStatement = new StringBuilder("INSERT INTO " + exTable + "_writable VALUES ");
         for (int i = 0; i < numRows; i++) {
@@ -515,6 +523,7 @@ public class OrcWriteTest extends BaseFeature {
         gpdb.runQuery(insertStatement.toString());
     }
 
+    @Step("Insert multi-dimentional array data")
     private void insertMultidimensionalArrayData(String exTable, int numRows, int nullModulo) throws Exception {
         StringBuilder insertStatement = new StringBuilder("INSERT INTO " + exTable + " VALUES ");
         for (int i = 0; i < numRows; i++) {
@@ -567,11 +576,13 @@ public class OrcWriteTest extends BaseFeature {
         return rowBuilder.toString();
     }
 
+    @Step("Prepare writable external table")
     private void prepareWritableExternalTable(String name, String[] fields, String path) throws Exception {
         exTable = TableFactory.getPxfHcfsWritableTable(name + "_writable", fields, path, hdfs.getBasePath(), "orc");
         createTable(exTable);
     }
 
+    @Step("Prepare writable external table")
     private void prepareWritableExternalTable(String name, String[] fields, String path, String[] userParameters) throws Exception {
         exTable = TableFactory.getPxfHcfsWritableTable(name + "_writable", fields, path, hdfs.getBasePath(), "orc");
         if (userParameters != null) {
@@ -580,6 +591,7 @@ public class OrcWriteTest extends BaseFeature {
         createTable(exTable);
     }
 
+    @Step("Prepare readable external table")
     private void prepareReadableExternalTable(String name, String[] fields, String path, boolean mapByPosition) throws Exception {
         exTable = TableFactory.getPxfHcfsReadableTable(name + "_readable", fields, path, hdfs.getBasePath(), "orc");
         if (mapByPosition) {
@@ -588,6 +600,7 @@ public class OrcWriteTest extends BaseFeature {
         createTable(exTable);
     }
 
+    @Step("Prepare view")
     private void prepareView(String name) throws Exception {
         gpdb.runQuery("CREATE OR REPLACE VIEW pxf_orc_view AS SELECT * FROM " + name);
     }

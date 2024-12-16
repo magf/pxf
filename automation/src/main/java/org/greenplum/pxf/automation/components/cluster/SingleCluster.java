@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.components.cluster;
 
+import io.qameta.allure.Step;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
@@ -45,6 +46,7 @@ public class SingleCluster extends PhdCluster {
     }
 
     @Override
+    @Step("Start Hive server")
     public void startHiveServer() throws Exception {
         ReportUtils.startLevel(report, getClass(), "Start Hive Server2");
         runCommand(getPhdRoot() + "/bin/hive-service.sh hiveserver2 start");
@@ -52,6 +54,7 @@ public class SingleCluster extends PhdCluster {
     }
 
     @Override
+    @Step("Start service")
     public void start(EnumClusterServices service) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Start " + service);
 
@@ -69,6 +72,7 @@ public class SingleCluster extends PhdCluster {
     }
 
     @Override
+    @Step("Stop service")
     public void stop(EnumClusterServices service) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Stop " + service);
 
@@ -88,6 +92,7 @@ public class SingleCluster extends PhdCluster {
      * Restart a SingleCluster service, afterwards check if up
      */
     @Override
+    @Step("Restart single cluster")
     public void restart(EnumClusterServices service) throws Exception {
         // currently singlecluster restart scripts supports only PXF and GPHD
         if ((!service.equals(EnumClusterServices.pxf)) && (!service.equals(EnumClusterServices.gphd))) {
@@ -233,16 +238,15 @@ public class SingleCluster extends PhdCluster {
     }
 
     @Override
+    @Step("Stop Hive server")
     public void stopHiveServer() throws Exception {
         ReportUtils.startLevel(report, getClass(), "Stop Hive Server2");
         runCommand(getPhdRoot() + "/bin/hive-service.sh hiveserver2 stop");
         ReportUtils.stopLevel(report);
     }
 
-    /**
-     * Fetch PXF configuration to targetDirectory
-     */
     @Override
+    @Step("Fetch PXF configuration to target directory")
     public void fetchConfiguration(String targetDirectory) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Fetch Configuration from Cluster to " + targetDirectory);
         // currently copy only the pxf-conf content to the temp directory
@@ -259,6 +263,7 @@ public class SingleCluster extends PhdCluster {
     }
 
     @Override
+    @Step("Copy file to single node")
     public void copyFileToNodes(String file, String target, boolean createTargetDirectory, boolean sudo) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Copy from " + file + " to Nodes: " + target);
         if (createTargetDirectory) {
@@ -277,6 +282,7 @@ public class SingleCluster extends PhdCluster {
      * Delete file from single cluster
      */
     @Override
+    @Step("Delete file from single node")
     public void deleteFileFromNodes(String targetFile, boolean sudo) throws Exception {
         ReportUtils.startLevel(report, getClass(), "Delete " + targetFile + " from Nodes");
         File file = new File(targetFile);

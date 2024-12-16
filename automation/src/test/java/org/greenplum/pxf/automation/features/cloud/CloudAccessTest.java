@@ -1,6 +1,8 @@
 package org.greenplum.pxf.automation.features.cloud;
 
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.greenplum.pxf.automation.components.hdfs.Hdfs;
@@ -13,10 +15,8 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.util.UUID;
 
-/**
- * Functional CloudAccess Test
- */
 @WorksWithFDW
+@Feature("S3 Cloud Access")
 public class CloudAccessTest extends BaseFeature {
 
     private static final String PROTOCOL_S3 = "s3a://";
@@ -70,6 +70,7 @@ public class CloudAccessTest extends BaseFeature {
         }
     }
 
+    @Step("Prepare data")
     protected void prepareData() throws Exception {
         // Prepare data in table
         Table dataTable = getSmallData();

@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.writable;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.SingleCluster;
@@ -29,6 +31,7 @@ import static java.lang.Thread.sleep;
 /**
  * Collection of Test cases for PXF ability to write SequenceFile.
  */
+@Feature("Write SequenceFile")
 public class HdfsWritableSequenceTest extends BaseWritableFeature {
 
     private String hdfsPath;
@@ -305,6 +308,7 @@ public class HdfsWritableSequenceTest extends BaseWritableFeature {
      * @param recordkey add recordkey data to the beginning of each row
      * @throws IOException if test fails to run
      */
+    @Step("Create data file based on CustomWritable schema")
     private void createCustomWritableDataFile(Table dataTable, File path, boolean recordkey)
             throws IOException {
 
@@ -328,6 +332,7 @@ public class HdfsWritableSequenceTest extends BaseWritableFeature {
         out.close();
     }
 
+    @Step("Prepare data")
     private void prepareData() throws Exception {
 
         String writableInsideSequenceFileName = "writable_inside_sequence.tbl";
@@ -340,6 +345,7 @@ public class HdfsWritableSequenceTest extends BaseWritableFeature {
         return prepareWritableSequenceTable(name, fields, path, schema, null, null);
     }
 
+    @Step("Prepare writable sequence table")
     private WritableExternalTable prepareWritableSequenceTable(String name, String[] fields, String path, String schema, String[] userParameters, String codec) throws Exception {
         WritableExternalTable table = TableFactory.getPxfWritableSequenceTable(
                 name, fields, protocol.getExternalTablePath(hdfs.getBasePath(), path), schema);
@@ -353,6 +359,7 @@ public class HdfsWritableSequenceTest extends BaseWritableFeature {
         return table;
     }
 
+    @Step("Prepare readable sequence table")
     private ReadableExternalTable prepareReadableSequenceTable(String name, String[] fields, String path, String schema) throws Exception {
         ReadableExternalTable table = TableFactory.getPxfReadableSequenceTable(
                 name, fields, protocol.getExternalTablePath(hdfs.getBasePath(), path), schema);

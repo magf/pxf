@@ -1,14 +1,17 @@
 package org.greenplum.pxf.automation.smoke;
 
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
 
-/** Basic PXF on HDFS small text file */
+@Feature("Basic PXF on HDFS small text file")
 public class HdfsSmokeTest extends BaseSmoke {
 
     @Override
+    @Step("Prepare data in HDFS")
     protected void prepareData() throws Exception {
         // Create Data and write it to HDFS
         Table dataTable = getSmallData();
@@ -16,8 +19,8 @@ public class HdfsSmokeTest extends BaseSmoke {
     }
 
     @Override
+    @Step("Create GPDB external table directed to the HDFS file")
     protected void createTables() throws Exception {
-        // Create GPDB external table directed to the HDFS file
         exTable =
                 TableFactory.getPxfReadableTextTable("pxf_smoke_small_data", new String[] {
                         "name text",

@@ -14,7 +14,7 @@ import org.greenplum.pxf.automation.features.BaseFeature;
 /**
  * Test class to test reading of multi block data from HDFS in TEXT format. The
  * class will read a json format list of table and data meta info and then in a
- * sequential order, will generate the external table and their HDFS data, then
+ * sequential order, will generate the external table and their HDFS @Feature("Write Parquet")data, then
  * will run a query and compare to verify the expected result. Data and table
  * will remain after test finish, on next run the corresponding table/data will
  * be dropped/deleted before each new table/data. The json list is read from a

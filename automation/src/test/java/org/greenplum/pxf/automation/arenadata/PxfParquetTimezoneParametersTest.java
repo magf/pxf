@@ -1,6 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
 import org.apache.hadoop.fs.Path;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
@@ -22,6 +23,7 @@ import static parquet.schema.PrimitiveType.PrimitiveTypeName.INT64;
 import static parquet.schema.PrimitiveType.PrimitiveTypeName.INT96;
 
 @WorksWithFDW
+@Feature("PXF Parquet timezone parameters")
 public class PxfParquetTimezoneParametersTest extends BaseFeature {
     private static final String PARQUET_FORMAT = "parquet";
     private static final String WRITABLE_EXTERNAL_TABLE_NAME = "writable_parquet_table";

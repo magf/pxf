@@ -1,6 +1,8 @@
 package org.greenplum.pxf.automation.smoke;
 
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.system.SystemManagerImpl;
 
 import org.greenplum.pxf.automation.components.hive.Hive;
@@ -9,7 +11,7 @@ import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.Test;
 
-/** Basic PXF on small Hive table */
+@Feature("Basic PXF on small Hive table")
 public class HiveSmokeTest extends BaseSmoke {
     Hive hive;
     Table dataTable;
@@ -30,6 +32,7 @@ public class HiveSmokeTest extends BaseSmoke {
     }
 
     @Override
+    @Step("Prepare data in HDFS and Hive")
     protected void prepareData() throws Exception {
         // Create Hive table
         hiveTable = TableFactory.getHiveByRowCommaTable("hive_table", new String[] {
@@ -50,8 +53,8 @@ public class HiveSmokeTest extends BaseSmoke {
     }
 
     @Override
+    @Step("Create GPDB external table directed to Hive")
     protected void createTables() throws Exception {
-        // Create GPDB external table
         exTable = TableFactory.getPxfHiveReadableTable("pxf_smoke_small_data", new String[] {
                 "name text",
                 "num integer",

@@ -1,6 +1,8 @@
 package org.greenplum.pxf.automation.smoke;
 
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.WritableExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
@@ -9,8 +11,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
-/** Write data to HDFS using Writable External table. Read it using PXF. */
 @WorksWithFDW
+@Feature("Write data to HDFS using Writable External table")
 public class WritableSmokeTest extends BaseSmoke {
     WritableExternalTable writableExTable;
     private final static String[] FIELDS = new String[]{
@@ -22,6 +24,7 @@ public class WritableSmokeTest extends BaseSmoke {
     };
 
     @Override
+    @Step("Generate Small data, write to File and copy to external table")
     protected void prepareData() throws Exception {
         // Generate Small data, write to File and copy to external table
         Table dataTable = getSmallData();
@@ -30,6 +33,7 @@ public class WritableSmokeTest extends BaseSmoke {
     }
 
     @Override
+    @Step("Create Writable and Readable GPDB external tables")
     protected void createTables() throws Exception {
         // Create Writable external table
         writableExTable = TableFactory.getPxfWritableTextTable("hdfs_writable_table", FIELDS,

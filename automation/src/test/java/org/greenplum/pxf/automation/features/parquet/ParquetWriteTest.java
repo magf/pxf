@@ -2,6 +2,8 @@ package org.greenplum.pxf.automation.features.parquet;
 
 import annotations.WorksWithFDW;
 import com.google.common.collect.Lists;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.system.SystemManagerImpl;
 import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.automation.components.hive.Hive;
@@ -25,6 +27,7 @@ import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
 
 @WorksWithFDW
+@Feature("Write Parquet")
 public class ParquetWriteTest extends BaseWritableFeature {
     private static final String NUMERIC_TABLE = "numeric_precision";
     private static final String NUMERIC_UNDEFINED_PRECISION_TABLE = "numeric_undefined_precision";
@@ -471,11 +474,13 @@ public class ParquetWriteTest extends BaseWritableFeature {
         runSqlTest("features/parquet/primitive_types");
     }
 
+    @Step("Prepare readable external table")
     private void prepareReadableExternalTable(String name, String[] fields, String path) throws Exception {
         readableExTable = TableFactory.getPxfHcfsReadableTable(name, fields, path, hdfs.getBasePath(), "parquet");
         createTable(readableExTable);
     }
 
+    @Step("Prepare writable external table")
     private void prepareWritableExternalTable(String name, String[] fields, String path, String[] userParameters) throws Exception {
         writableExTable = TableFactory.getPxfHcfsWritableTable(name, fields, path, hdfs.getBasePath(), "parquet");
         if (userParameters != null) {
@@ -499,6 +504,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
         }
     }
 
+    @Step("Insert array data without nulls")
     private void insertArrayDataWithoutNulls(Table exTable, int numRows) throws Exception {
         StringBuilder values = new StringBuilder();
         for (int i = 0; i < numRows; i++) {
@@ -522,6 +528,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
         gpdb.insertData(values.toString(), exTable);
     }
 
+    @Step("Assert Hive byte array data")
     private void assertHiveByteaArrayData(List<List<String>> queryResultData) {
         PgUtilities pgUtilities = new PgUtilities();
 
@@ -542,6 +549,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
         }
     }
 
+    @Step("Assert Hive date array data")
     private void assertHiveDateArrayData(List<List<String>> queryResultData) {
         for (int i = 0; i < queryResultData.size(); i++) {
             StringJoiner rowBuilder = new StringJoiner(", ", "[", "]")
@@ -585,6 +593,7 @@ public class ParquetWriteTest extends BaseWritableFeature {
         }
     }
 
+    @Step("Prepare numeric writable external table")
     private void prepareNumericWritableExtTable(String filePathName, String fileName, String writableExternalTableName, boolean isPrecisionDefined, boolean isLargePrecision) throws Exception {
         Table gpdbNumericTable;
         String[] numericTableColumns;

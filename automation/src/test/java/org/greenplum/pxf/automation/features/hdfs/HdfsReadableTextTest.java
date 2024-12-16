@@ -1,6 +1,8 @@
 package org.greenplum.pxf.automation.features.hdfs;
 
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.compress.BZip2Codec;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
@@ -27,13 +29,8 @@ import java.util.List;
 import static java.lang.Thread.sleep;
 import static org.greenplum.pxf.automation.features.tpch.LineItem.LINEITEM_SCHEMA;
 
-/**
- * Collection of Test cases for PXF ability to read Text/CSV files from HDFS.
- * Relates to cases located in "PXF Test Suite" in testrail:
- * https://testrail.greenplum.com/index.php?/suites/view/1099 in
- * "HDFS Readable - Text/CSV" section.
- */
 @WorksWithFDW
+@Feature("Reading Text/CSV files from HDFS")
 public class HdfsReadableTextTest extends BaseFeature {
 
     private static final String SUFFIX_CLASS = ".class";
@@ -747,6 +744,7 @@ public class HdfsReadableTextTest extends BaseFeature {
         runSqlTest("features/hdfs/readable/text/errors/middle_of_stream");
     }
 
+    @Step("Prepare readable table)")
     private void prepareReadableTable(String name, String[] fields, String path, String format) {
         exTable.setName(name);
         exTable.setFormat(format);

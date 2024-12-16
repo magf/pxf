@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.CoordinatorNode;
@@ -26,6 +28,7 @@ import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+@Feature("PXF reload")
 public class PxfReloadTest extends BaseFeature {
     private static final String SUFFIX_CLASS = ".class";
     private static final String INSERT_QUERY_PART = "INSERT INTO write_ext_table";
@@ -245,6 +248,7 @@ public class PxfReloadTest extends BaseFeature {
         checkSessionCount(INSERT_QUERY_PART, 1);
     }
 
+    @Step("Check session count")
     private void checkSessionCount(String text, int expectedCount) throws Exception {
         Table gpStatActivityResult = TableFactory.getPxfJdbcReadableTable("gpStatActivityResult",
                 null, null, null);
@@ -253,6 +257,7 @@ public class PxfReloadTest extends BaseFeature {
         Assert.assertEquals(countArrayListsWithField(gpStatActivityResult.getData(), text), expectedCount, String.format("Should be %s sessions with query", expectedCount));
     }
 
+    @Step("Prepare readable source tables")
     private String prepareReadTables(String tableName, String serverProfile) throws Exception {
         String extTableName = "read_ext_" + tableName;
         String sourceTableName = "gpdb_source_" + tableName;
@@ -264,6 +269,7 @@ public class PxfReloadTest extends BaseFeature {
         return extTableName;
     }
 
+    @Step("Prepare write source tables")
     private String prepareWriteTables(String tableName, String serverProfile) throws Exception {
         String extTableName = "write_ext_" + tableName;
         String sourceTableName = "gpdb_source_" + tableName;
@@ -274,6 +280,7 @@ public class PxfReloadTest extends BaseFeature {
         return extTableName;
     }
 
+    @Step("Create readable external table")
     private void createReadableExternalTable(String tableName, String dataSourcePath, String serverProfile) throws Exception {
         ExternalTable pxfJdbcNamedQuery = TableFactory.getPxfJdbcReadableTable(
                 tableName,
@@ -285,6 +292,7 @@ public class PxfReloadTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcNamedQuery);
     }
 
+    @Step("Create writable external table")
     private void createWritableExternalTable(String tableName, String dataSourcePath, String serverProfile) throws Exception {
         ExternalTable pxfJdbcNamedQuery = TableFactory.getPxfJdbcWritableTable(
                 tableName,
@@ -296,6 +304,7 @@ public class PxfReloadTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcNamedQuery);
     }
 
+    @Step("Prepare HDFS and external tables")
     private void prepareHdfsAndExtTable() throws Exception {
         super.beforeMethod();
         hdfsFilePath = hdfs.getWorkingDirectory() + "/data";

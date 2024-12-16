@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.features;
 
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.BaseFunctionality;
 import org.greenplum.pxf.automation.utils.jsystem.report.ReportUtils;
@@ -18,6 +19,7 @@ public abstract class BaseFeature extends BaseFunctionality {
         void accept() throws E;
     }
 
+    @Step("Attempt insert")
     public void attemptInsert(ThrowingConsumer operation, String path, Integer retryCount) throws Exception {
         boolean success = false;
         for (int i = retryCount; i > 0; i--) {

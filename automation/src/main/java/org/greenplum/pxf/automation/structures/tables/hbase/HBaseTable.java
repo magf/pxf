@@ -2,6 +2,7 @@ package org.greenplum.pxf.automation.structures.tables.hbase;
 
 import java.util.List;
 
+import io.qameta.allure.Step;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.FilterList;
@@ -40,6 +41,7 @@ public class HBaseTable extends Table {
 		return numberOfSplits;
 	}
 
+	@Step("Set number of splits")
 	public void setNumberOfSplits(int numberOfSplits) {
 		this.numberOfSplits = numberOfSplits;
 	}
@@ -48,6 +50,7 @@ public class HBaseTable extends Table {
 		return rowKeyPrefix;
 	}
 
+	@Step("Set row key prefix")
 	public void setRowKeyPrefix(String rowKeyPrefix) {
 		this.rowKeyPrefix = rowKeyPrefix;
 	}
@@ -56,6 +59,7 @@ public class HBaseTable extends Table {
 		return rowsPerSplit;
 	}
 
+	@Step("Set rows per split")
 	public void setRowsPerSplit(int rowsPerSplit) {
 		this.rowsPerSplit = rowsPerSplit;
 	}
@@ -64,6 +68,7 @@ public class HBaseTable extends Table {
 		return qualifiers;
 	}
 
+	@Step("Set qualifiers")
 	public void setQualifiers(String[] qualifiers) {
 		this.qualifiers = qualifiers;
 	}
@@ -80,6 +85,7 @@ public class HBaseTable extends Table {
 		return filters;
 	}
 
+	@Step("Set filters")
 	public void setFilters(FilterList filters) {
 		this.filters = filters;
 	}
@@ -96,6 +102,7 @@ public class HBaseTable extends Table {
 		return rowsToGenerate;
 	}
 
+	@Step("Set rows to generate")
 	public void setRowsToGenerate(List<Put> rowsToGenerate) {
 		this.rowsToGenerate = rowsToGenerate;
 	}

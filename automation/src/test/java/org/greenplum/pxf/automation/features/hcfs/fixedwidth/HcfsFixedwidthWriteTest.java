@@ -1,5 +1,7 @@
 package org.greenplum.pxf.automation.features.hcfs.fixedwidth;
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.features.BaseWritableFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
@@ -19,6 +21,7 @@ import static org.testng.Assert.*;
  * The dataset is based on a set of tests available in Greenplum
  * https://github.com/greenplum-db/gpdb/blob/main/contrib/formatter_fixedwidth/data/fixedwidth_small_correct.tbl
  */
+@Feature("Writing fixedwidth files in HCFS")
 public class HcfsFixedwidthWriteTest extends BaseWritableFeature {
 
     private static final String[] SMALL_DATA_FIELDS = new String[]{
@@ -161,6 +164,7 @@ public class HcfsFixedwidthWriteTest extends BaseWritableFeature {
     /**
      * Prepares a set of data with 9 rows from a row template to correspond to "fixedwidth_small_correct.txt" dataset
      */
+    @Step("Prepare data")
     private void prepareData() {
         for (int i = 0; i < 10; i++) {
             char letter = (char) ('a' + i);
@@ -172,10 +176,7 @@ public class HcfsFixedwidthWriteTest extends BaseWritableFeature {
         }
     }
 
-    /**
-     * Instructs GPDB to insert data from internal table into PXF external writable table.
-     * @throws Exception if the operation fails
-     */
+    @Step("Insert data from internal table into PXF external writable table")
     private void insertDataIntoWritableTable() throws Exception {
         gpdb.runQuery("INSERT INTO " + writableExTable.getName() + " SELECT * FROM " + dataTable.getName());
 
@@ -185,6 +186,7 @@ public class HcfsFixedwidthWriteTest extends BaseWritableFeature {
         }
     }
 
+    @Step("Prepare readable table")
     private void prepareReadableTable(String name, String[] fields, String[] formatterOptions, String path) {
         // default external table with common settings
         readableExTable = TableFactory.getPxfHcfsReadableTable(name, fields, path, hdfs.getBasePath(), "fixedwidth");
@@ -192,6 +194,7 @@ public class HcfsFixedwidthWriteTest extends BaseWritableFeature {
         readableExTable.setFormatterOptions(formatterOptions);
     }
 
+    @Step("Prepare writable table")
     private void prepareWritableTable(String name, String[] fields, String[] formatterOptions, String path) {
         // default external table with common settings
         writableExTable = TableFactory.getPxfHcfsWritableTable(name, fields, path, hdfs.getBasePath(), "fixedwidth");

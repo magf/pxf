@@ -2,6 +2,8 @@ package org.greenplum.pxf.automation.features.jdbc;
 
 import annotations.FailsWithFDW;
 import annotations.WorksWithFDW;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.sut.SutFactory;
 import jsystem.framework.system.SystemManagerImpl;
 import jsystem.framework.system.SystemObject;
@@ -18,6 +20,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 
 @WorksWithFDW
+@Feature("JDBC Hive")
 public class JdbcHiveTest extends BaseFeature {
 
     private static final String HIVE_JDBC_DRIVER_CLASS = "org.apache.hive.jdbc.HiveDriver";
@@ -153,6 +156,7 @@ public class JdbcHiveTest extends BaseFeature {
             removeWorkingDirectory(hdfs2);
     }
 
+    @Step("Prepare data")
     protected void prepareData(Hive hive, Hdfs hdfs, String hiveTypesFileName) throws Exception {
         // Create Hive table
         HiveTable hiveTypesTable = TableFactory.getHiveByRowCommaTable(HIVE_TYPES_TABLE_NAME, HIVE_TYPES_TABLE_FIELDS);
@@ -164,6 +168,7 @@ public class JdbcHiveTest extends BaseFeature {
         hive.loadData(hiveTypesTable, hdfs.getWorkingDirectory() + "/" + hiveTypesFileName, false);
     }
 
+    @Step("Create tables")
     protected void createTables(Hive hive, String serverName, String gpdbTypesTableName, String gpdbQueryTableName) throws Exception {
         String jdbcUrl = HIVE_JDBC_URL_PREFIX + hive.getHost() + ":10000/default";
         String user = null;
@@ -191,6 +196,7 @@ public class JdbcHiveTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcHiveTypesServerTable);
     }
 
+    @Step("Prepare data")
     protected void prepareDataForWriteTest() throws Exception {
         // create GPDB table with data for inserting into writable external table
         Table gpdbDataTable = new Table(GPDB_TABLE_HIVE_WRITE_SUPPORTED_TYPES_NAME, GPDB_WRITE_TYPES_TABLE_FIELDS);
@@ -199,6 +205,7 @@ public class JdbcHiveTest extends BaseFeature {
         gpdb.copyFromFile(gpdbDataTable, new File(localDataResourcesFolder + "/gpdb/jdbc_write_hive_supported_types.txt"), "E'\\t'", "E'\\\\N'", true);
     }
 
+    @Step("Create tables")
     protected void createTablesForWriteTest(Hive hive, String hiverServerName, String serverName) throws Exception {
         // create Hive table to write to via JDBC profile
         HiveTable targetHiveTable = TableFactory.getHiveByRowCommaTable(HIVE_WRITE_TYPES_TABLE_NAME, HIVE_WRITE_TYPES_TABLE_FIELDS);
