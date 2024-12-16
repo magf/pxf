@@ -2,10 +2,7 @@ package org.greenplum.pxf.automation.features.cloud;
 
 import annotations.WorksWithFDW;
 import io.qameta.allure.Feature;
-import io.qameta.allure.Step;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.greenplum.pxf.automation.components.hdfs.Hdfs;
+
 import jsystem.framework.system.SystemManagerImpl;
 
 import org.greenplum.pxf.automation.components.minio.Minio;
@@ -103,7 +100,7 @@ public class CloudAccessTest extends BaseFeature {
         runTestScenario("server_no_credentials_valid_config_with_hdfs", "s3", false);
     }
 
-    @Test(groups = {"security", "gpdb"})
+    @Test(groups = {"security"})
     public void testCloudWriteWithHdfsOkWhenServerNoCredsValidConfigFileExists() throws Exception {
         runTestScenarioForWrite("server_no_credentials_valid_config_with_hdfs_write", "s3", false);
     }

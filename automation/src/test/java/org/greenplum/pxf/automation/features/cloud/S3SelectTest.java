@@ -1,9 +1,6 @@
 package org.greenplum.pxf.automation.features.cloud;
 
 import io.qameta.allure.Feature;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.greenplum.pxf.automation.components.hdfs.Hdfs;
 import jsystem.framework.system.SystemManagerImpl;
 import org.greenplum.pxf.automation.components.minio.Minio;
 import org.greenplum.pxf.automation.features.BaseFeature;

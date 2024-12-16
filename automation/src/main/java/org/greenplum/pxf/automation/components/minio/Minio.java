@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.components.minio;
 
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.components.common.BaseSystemObject;
 
 import org.greenplum.pxf.automation.utils.jsystem.report.ReportUtils;
@@ -53,6 +54,7 @@ public class Minio extends BaseSystemObject {
                 .build();
     }
 
+    @Step("Create S3 bucket")
     public void createBucket(String bucketName) {
         if (!isBucketExists(bucketName)) {
             try {
@@ -67,6 +69,7 @@ public class Minio extends BaseSystemObject {
         }
     }
 
+    @Step("Upload file to S3 bucket")
     public void uploadFile(String bucketName, String key, Path path) {
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
@@ -80,6 +83,7 @@ public class Minio extends BaseSystemObject {
         }
     }
 
+    @Step("Clean S3 bucket")
     public void clean(String bucketName) {
         if (isBucketExists(bucketName)) {
             try {
@@ -108,6 +112,7 @@ public class Minio extends BaseSystemObject {
         }
     }
 
+    @Step("Delete S3 bucket")
     private void deleteBucket(String bucketName) {
         try {
             DeleteBucketRequest deleteBucketRequest = DeleteBucketRequest.builder()
