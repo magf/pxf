@@ -35,11 +35,11 @@ public class TestAnalyzer implements IInvokedMethodListener {
             if (groups.contains("smoke")) {
                 Allure.suite("Smoke: " + feature);
             } else if (groups.contains("gpdb")) {
-                Allure.suite("GPDB" + feature);
-            } else if (groups.contains("renadata")) {
-                Allure.suite("Arenadata" + feature);
+                Allure.suite("GPDB: " + feature);
+            } else if (groups.contains("arenadata")) {
+                Allure.suite("Arenadata: " + feature);
             } else {
-                Allure.suite("Other" + feature);
+                Allure.suite("Other: " + feature);
             }
         }
         // check only @Test annotated method, not @Before.. and @After.. ones

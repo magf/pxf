@@ -9,6 +9,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
@@ -17,11 +19,7 @@ import org.greenplum.pxf.automation.components.hdfs.Hdfs;
 import org.greenplum.pxf.automation.components.regress.Regress;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
+import org.testng.annotations.*;
 import reporters.CustomAutomationReport;
 
 import java.io.File;
@@ -60,6 +58,11 @@ public abstract class BaseTestParent {
         // alert not allowed annotations in test class children
         alertNotAllowedAnnotations();
         systemManager = SystemManagerImpl.getInstance();
+    }
+
+    @BeforeTest
+    public final void beforeAll() {
+        LogManager.getLogger("io.qameta.allure.AllureLifecycle").setLevel(Level.OFF);
     }
 
     @BeforeClass(alwaysRun = true)
