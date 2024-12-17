@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import io.qameta.allure.Allure;
 import io.qameta.allure.Step;
 import jsystem.framework.report.Reporter;
 
@@ -142,7 +143,6 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	}
 
 	@Override
-	@Step("Insert data into table")
 	public void insertData(Table source, Table target) throws Exception {
 		StringBuilder dataStringBuilder = new StringBuilder();
 		List<List<String>> data = source.getData();
@@ -175,7 +175,6 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param target table to insert data into, can be an internal, an external or a foreign table
 	 * @throws Exception is operation fails
 	 */
-	@Step("Inserts data from the provided string into the target Table")
 	public void insertData(String data, Table target) throws Exception {
 		if (!data.startsWith("(")) {
 			data = "(" + data;
@@ -242,7 +241,6 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param ignoreNoWarning if no warning returned at all
 	 * @throws Exception if an error occurs
 	 */
-	@Step("Run query which expected to get warning")
 	public void runQueryWithExpectedWarning(String query, String expectedWarning, boolean isRegex, boolean ignoreNoWarning) throws Exception {
 
 		runQuery(query, true, false);
@@ -272,35 +270,36 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 * @param fetchResultSet fetch the whole result set, iterate over all records.
 	 * @throws Exception if an error occurs
 	 */
-	@Step("Run query")
 	public void runQuery(String query, boolean ignoreFail, boolean fetchResultSet) throws Exception {
+		Allure.step("Run query", () -> {
+			ReportUtils.startLevel(report, getClass(), query);
+			Allure.attachment("Query", query);
+			try {
+				long startTimeInMillis = System.currentTimeMillis();
+				if (fetchResultSet) {
+					ResultSet rs = stmt.executeQuery(query);
+					while (rs.next()) {
+						// Empty loop to scan entire resultset
+					}
+				} else {
+					stmt.execute(query);
+				}
+				ReportUtils.report(report, getClass(), "Took " + (System.currentTimeMillis() - startTimeInMillis) + " milliseconds");
 
-		ReportUtils.startLevel(report, getClass(), query);
-
-		try {
-			long startTimeInMillis = System.currentTimeMillis();
-            if (fetchResultSet) {
-                ResultSet rs = stmt.executeQuery(query);
-                while (rs.next()) {
-                    // Empty loop to scan entire resultset
-                }
-            } else {
-                stmt.execute(query);
-            }
-			ReportUtils.report(report, getClass(), "Took " + (System.currentTimeMillis() - startTimeInMillis) + " milliseconds");
-
-			if (stmt.getWarnings() != null) {
-				throw stmt.getWarnings();
-			}
-		} catch (PSQLException e) {
-			throw e;
-		} catch (SQLException e) {
-			if (!ignoreFail) {
+				if (stmt.getWarnings() != null) {
+					throw stmt.getWarnings();
+				}
+			} catch (PSQLException e) {
 				throw e;
+			} catch (SQLException e) {
+				if (!ignoreFail) {
+					throw e;
+				}
+			} finally {
+				ReportUtils.stopLevel(report);
 			}
-		} finally {
-			ReportUtils.stopLevel(report);
-		}
+		});
+
 	}
 
 	/**
