@@ -19,7 +19,6 @@ import org.greenplum.pxf.automation.components.hdfs.Hdfs;
 import org.greenplum.pxf.automation.components.regress.Regress;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.*;
 import reporters.CustomAutomationReport;
 
@@ -61,12 +60,6 @@ public abstract class BaseTestParent {
         systemManager = SystemManagerImpl.getInstance();
     }
 
-    @BeforeTest
-    public final void beforeAll() {
-        LogManager.getLogger("io.qameta.allure.AllureLifecycle").setLevel(Level.OFF);
-        java.util.logging.Logger.getLogger("io.qameta.allure.AllureLifecycle").setLevel(java.util.logging.Level.OFF);
-    }
-
     @BeforeClass(alwaysRun = true)
     public final void doInit() throws Exception {
         // redirect "doInit" logs to log file
@@ -74,6 +67,7 @@ public abstract class BaseTestParent {
         // JSystem reporter is not alive because of running from TestNg,
         // silent it prevents Exceptions in the output
         ListenerstManager.getInstance().setSilent(true);
+        LogManager.getLogger("io.qameta.allure.AllureLifecycle").setLevel(Level.OFF);
 
         try {
 

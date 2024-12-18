@@ -67,6 +67,12 @@
                         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
                         <allure.testng.hide.disabled.tests>true</allure.testng.hide.disabled.tests>
                     </systemPropertyVariables>
+                    <properties>
+                        <property>
+                            <name>listener</name>
+                            <value>listeners.TestAnnotationTransformer</value>
+                        </property>
+                    </properties>
                 </configuration>
                 <dependencies>
                     <dependency>
