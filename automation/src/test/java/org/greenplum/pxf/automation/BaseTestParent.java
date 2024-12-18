@@ -19,6 +19,7 @@ import org.greenplum.pxf.automation.components.hdfs.Hdfs;
 import org.greenplum.pxf.automation.components.regress.Regress;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.*;
 import reporters.CustomAutomationReport;
 
@@ -63,6 +64,7 @@ public abstract class BaseTestParent {
     @BeforeTest
     public final void beforeAll() {
         LogManager.getLogger("io.qameta.allure.AllureLifecycle").setLevel(Level.OFF);
+        java.util.logging.Logger.getLogger("io.qameta.allure.AllureLifecycle").setLevel(java.util.logging.Level.OFF);
     }
 
     @BeforeClass(alwaysRun = true)
