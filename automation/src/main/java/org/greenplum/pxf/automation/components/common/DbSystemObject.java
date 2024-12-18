@@ -311,21 +311,24 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 	 */
 	@Override
 	public void queryResults(Table table, String query) throws Exception {
-		ReportUtils.startLevel(report, getClass(), "Query results: " + query);
-		try {
-			long startTimeInMillis = System.currentTimeMillis();
-			ResultSet res = stmt.executeQuery(query);
-			ReportUtils.report(report, getClass(), "Took " + (System.currentTimeMillis() - startTimeInMillis) + " milliseconds");
-			// if table exists store the data and meta data in it
-			if (table != null) {
-				table.initDataStructures();
-				loadMetadata(table, res);
-				loadData(table, res);
-				ReportUtils.reportHtml(report, getClass(), table.getDataHtml());
+		Allure.step("Query result", () -> {
+			Allure.attachment("Query", query);
+			ReportUtils.startLevel(report, getClass(), "Query results: " + query);
+			try {
+				long startTimeInMillis = System.currentTimeMillis();
+				ResultSet res = stmt.executeQuery(query);
+				ReportUtils.report(report, getClass(), "Took " + (System.currentTimeMillis() - startTimeInMillis) + " milliseconds");
+				// if table exists store the data and meta data in it
+				if (table != null) {
+					table.initDataStructures();
+					loadMetadata(table, res);
+					loadData(table, res);
+					ReportUtils.reportHtml(report, getClass(), table.getDataHtml());
+				}
+			} finally {
+				ReportUtils.stopLevel(report);
 			}
-		} finally {
-			ReportUtils.stopLevel(report);
-		}
+		});
 	}
 
 	@Override
