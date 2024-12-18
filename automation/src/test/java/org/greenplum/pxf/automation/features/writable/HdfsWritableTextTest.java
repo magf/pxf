@@ -594,7 +594,6 @@ public class HdfsWritableTextTest extends BaseWritableFeature {
      */
     private void verifyResult(String hdfsPath, Table data, EnumCompressionTypes compressionType) {
         Allure.step("Verify result file in HDFS", () -> {
-            Allure.parameter("hdfsPath", hdfsPath);
             String localResultFile = dataTempFolder + "/" + hdfsPath.replaceAll("/", "_");
             // wait a bit for async write in previous steps to finish
             hdfs.waitForFile(hdfsPath, 120);
