@@ -2,6 +2,7 @@ package org.greenplum.pxf.automation.features.writable;
 
 import annotations.SkipForFDW;
 import annotations.WorksWithFDW;
+import io.qameta.allure.Allure;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Step;
 import org.apache.commons.lang.StringUtils;
@@ -591,26 +592,25 @@ public class HdfsWritableTextTest extends BaseWritableFeature {
      * @param compressionType used compression for given HDFS file
      * @throws Exception if test fails to run
      */
-    @Step("Verify result file in HDFS")
-    private void verifyResult(String hdfsPath, Table data, EnumCompressionTypes compressionType)
-            throws Exception {
-
-        String localResultFile = dataTempFolder + "/" + hdfsPath.replaceAll("/", "_");
-        // wait a bit for async write in previous steps to finish
-        hdfs.waitForFile(hdfsPath, 120);
-        List<String> files = hdfs.list(hdfsPath);
-        Table resultTable = new Table("result_table", null);
-        int index = 0;
-        for (String file : files) {
-            String pathToLocalFile = localResultFile + "/_" + index;
-            hdfs.copyToLocal(file, pathToLocalFile);
-            sleep(250);
-            resultTable.loadDataFromFile(pathToLocalFile, ",", 1, "UTF-8",
-                    compressionType, true);
-            index++;
-        }
-        // compare and ignore '\' that returns from hdfs before comma for circle types
-        ComparisonUtils.compareTables(data, resultTable, null, "\\\\", "\"");
+    private void verifyResult(String hdfsPath, Table data, EnumCompressionTypes compressionType) {
+        Allure.step("Verify result file in HDFS", () -> {
+            String localResultFile = dataTempFolder + "/" + hdfsPath.replaceAll("/", "_");
+            // wait a bit for async write in previous steps to finish
+            hdfs.waitForFile(hdfsPath, 120);
+            List<String> files = hdfs.list(hdfsPath);
+            Table resultTable = new Table("result_table", null);
+            int index = 0;
+            for (String file : files) {
+                String pathToLocalFile = localResultFile + "/_" + index;
+                hdfs.copyToLocal(file, pathToLocalFile);
+                sleep(250);
+                resultTable.loadDataFromFile(pathToLocalFile, ",", 1, "UTF-8",
+                        compressionType, true);
+                index++;
+            }
+            // compare and ignore '\' that returns from hdfs before comma for circle types
+            ComparisonUtils.compareTables(data, resultTable, null, "\\\\", "\"");
+        });
     }
 
     /**
@@ -633,21 +633,20 @@ public class HdfsWritableTextTest extends BaseWritableFeature {
      * @param table to insert to
      * @throws Exception if test fails to run
      */
-    @Step("Insert data")
-    private void insertData(Table data, WritableExternalTable table, InsertionMethod insertionMethod)
-            throws Exception {
-
-        switch (insertionMethod) {
-            case INSERT:
-                gpdb.insertData(data, table);
-                break;
-            case COPY:
-                gpdb.copyFromStdin(data, table, ",", false);
-                break;
-            case INSERT_FROM_TABLE:
-                gpdb.copyData(data, table);
-                break;
-        }
+    private void insertData(Table data, WritableExternalTable table, InsertionMethod insertionMethod) {
+        Allure.step("Insert data into table", ()  -> {
+            switch (insertionMethod) {
+                case INSERT:
+                    gpdb.insertData(data, table);
+                    break;
+                case COPY:
+                    gpdb.copyFromStdin(data, table, ",", false);
+                    break;
+                case INSERT_FROM_TABLE:
+                    gpdb.copyData(data, table);
+                    break;
+            }
+        });
     }
 
     @Step("Prepare readable table")

@@ -102,7 +102,6 @@ public class HBaseTable extends Table {
 		return rowsToGenerate;
 	}
 
-	@Step("Set rows to generate")
 	public void setRowsToGenerate(List<Put> rowsToGenerate) {
 		this.rowsToGenerate = rowsToGenerate;
 	}
