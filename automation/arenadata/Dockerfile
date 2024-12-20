@@ -81,7 +81,14 @@ RUN mkdir workspace && ln -s /home/gpadmin/pxf_src /home/gpadmin/workspace/pxf &
 # Need to run automation tests
 ENV PXF_HOME=/usr/local/greenplum-db-devel/pxf
 RUN localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
-RUN cp ${PXF_HOME}/templates/*-site.xml ${PXF_HOME}/servers/default/
+RUN cp ${PXF_HOME}/templates/hbase-site.xml \
+    ${PXF_HOME}/templates/hdfs-site.xml \
+    ${PXF_HOME}/templates/hive-site.xml \
+    ${PXF_HOME}/templates/core-site.xml \
+    ${PXF_HOME}/templates/mapred-site.xml \
+    ${PXF_HOME}/templates/pxf-site.xml \
+    ${PXF_HOME}/templates/jdbc-site.xml \
+    ${PXF_HOME}/servers/default/
 
 # Copy pxf-application.properties
 COPY ./automation/arenadata/conf/pxf-application.properties ${PXF_HOME}/conf/pxf-application.properties

@@ -8,15 +8,17 @@
 -- while we can not prove here they have actually been pushed down to S3
 -- we can prove the query does not fail if they are used
 SELECT l_orderkey, l_quantity, l_shipmode, l_comment FROM s3select_csv
-WHERE  l_orderkey < 2000 AND (l_quantity = 15 AND l_shipmode = 'RAIL' OR l_comment = 'ideas doubt')
+WHERE  l_orderkey < 50 AND (l_shipmode = 'RAIL' OR l_comment = 'ideas doubt')
 ORDER BY l_orderkey;
- l_orderkey | l_quantity | l_shipmode |                  l_comment
-------------+------------+------------+---------------------------------------------
-        709 |      15.00 | RAIL       | ily regular deposits. sauternes was accor
-       1316 |      15.00 | RAIL       | fully express dugouts. furiously silent ide
-       1601 |      50.00 | FOB        | ideas doubt
-       1604 |      15.00 | RAIL       | ending realms along the special, p
-       1698 |      15.00 | RAIL       | final ideas. even, ironic
-       1857 |      15.00 | RAIL       | egular, regular inst
-       1927 |      15.00 | RAIL       |  carefully regular requests sleep car
-(7 rows)
+ l_orderkey | l_quantity | l_shipmode |            l_comment
+------------+------------+------------+---------------------------------
+          2 |      38.00 | RAIL       | ven requests. deposits breach a
+          3 |      49.00 | RAIL       |  unusual accounts. eve
+          3 |      26.00 | RAIL       | ges sleep after the caref
+         32 |       6.00 | RAIL       |  gifts cajole carefully.
+         35 |      34.00 | RAIL       | s are carefully against the f
+         35 |      28.00 | RAIL       | ly alongside of
+         37 |      39.00 | RAIL       | the final requests. ca
+         39 |      44.00 | RAIL       | eodolites. careful
+(8 rows)
+

@@ -88,6 +88,13 @@
         <password>mysqlpwd</password>
     </mysql>
 
+    <minio>
+        <class>org.greenplum.pxf.automation.components.minio.Minio</class>
+        <endpoint>http://minio.local:9000</endpoint>
+        <accessKeyId>minio</accessKeyId>
+        <secretKey>minio123</secretKey>
+    </minio>
+
     <file>
         <class>org.greenplum.pxf.automation.components.hdfs.Hdfs</class>
         <workingDirectory>${base.path}/tmp/pxf_automation_data/__UUID__</workingDirectory>

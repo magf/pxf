@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.qameta.allure.Allure;
+import io.qameta.allure.Step;
 import org.greenplum.pxf.automation.utils.curl.CurlUtils;
 import jsystem.framework.report.Reporter;
 
@@ -163,6 +164,7 @@ public class ShellSystemObject extends BaseSystemObject {
      * @throws IOException if I/O error occurs
      * @throws ShellCommandErrorException if shell command fails
      */
+    @Step("Execute command")
     public void runCommand(String command, int expectedExitCode)
             throws IOException, ShellCommandErrorException {
         String commandAddtionalMessage = "("
