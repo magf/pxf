@@ -1,5 +1,6 @@
 package org.greenplum.pxf.automation.components.hdfs;
 
+import io.qameta.allure.Allure;
 import io.qameta.allure.Step;
 import org.apache.avro.Schema;
 import org.apache.avro.file.CodecFactory;
@@ -401,7 +402,6 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     }
 
     @Override
-    @Step("Write data to Avro file")
     public void writeAvroFile(String pathToFile, String schemaName,
                               String codecName, IAvroSchema[] data)
             throws Exception {
@@ -534,34 +534,32 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
     }
 
     @Override
-    @Step("Write table to file in HDFS")
     public void writeTableToFile(String destPath, Table dataTable,
                                  String delimiter, Charset encoding,
                                  CompressionCodec codec, String newLine) throws Exception {
+        Allure.step("Write table to file in HDFS", () -> {
+            ReportUtils.startLevel(report, getClass(),
+                    "Write Text File (Delimiter = '" + delimiter + "', NewLine = '" + newLine + "') to "
+                            + destPath
+                            + ((encoding != null) ? " encoding: " + encoding : ""));
 
-        ReportUtils.startLevel(report, getClass(),
-                "Write Text File (Delimiter = '" + delimiter + "', NewLine = '" + newLine + "') to "
-                        + destPath
-                        + ((encoding != null) ? " encoding: " + encoding : ""));
+            FSDataOutputStream out = fs.create(getDatapath(destPath), true,
+                    bufferSize, replicationSize, blockSize);
 
-        FSDataOutputStream out = fs.create(getDatapath(destPath), true,
-                bufferSize, replicationSize, blockSize);
+            DataOutputStream dos = out;
+            if (codec != null) {
+                dos = new DataOutputStream(codec.createOutputStream(out));
+            }
 
-        DataOutputStream dos = out;
-        if (codec != null) {
-            dos = new DataOutputStream(codec.createOutputStream(out));
-        }
-
-        writeTableToStream(dos, dataTable, delimiter, encoding, newLine);
-        ReportUtils.stopLevel(report);
+            writeTableToStream(dos, dataTable, delimiter, encoding, newLine);
+            ReportUtils.stopLevel(report);
+        });
     }
 
     public void appendTableToFile(String pathToFile, Table dataTable, String delimiter) throws Exception {
         appendTableToFile(pathToFile, dataTable, delimiter, StandardCharsets.UTF_8);
     }
 
-
-    @Step("Append table to file in HDFS")
     private void appendTableToFile(String pathToFile, Table dataTable, String delimiter, Charset encoding) throws Exception {
         ReportUtils.startLevel(report, getClass(),
                 "Append Text File (Delimiter = '" + delimiter + "') to "
@@ -575,7 +573,6 @@ public class Hdfs extends BaseSystemObject implements IFSFunctionality {
         ReportUtils.stopLevel(report);
     }
 
-    @Step("Write table to stream")
     private void writeTableToStream(DataOutputStream stream, Table dataTable,
                                     String delimiter, Charset encoding, String newLine) throws Exception {
         BufferedWriter bufferedWriter = new BufferedWriter(
