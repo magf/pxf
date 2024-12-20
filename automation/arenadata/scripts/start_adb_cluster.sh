@@ -225,6 +225,7 @@ echo "------------------------------------"
 echo "Prepare configs for automation tests"
 echo "------------------------------------"
 sudo -H -u gpadmin bash -c -l "HIVE_SERVER_HOST=$HIVE_SERVER_HOST JDBC_HOST=$DOCKER_GP_MASTER_SERVER make -C ~/workspace/pxf/automation  sync_jdbc_config"
+sudo -H -u gpadmin bash -c -l "PROTOCOL=s3 MINIO=true ACCESS_KEY_ID=$MINIO_ACCESS_KEY SECRET_ACCESS_KEY=$MINIO_SECRET_KEY make -C ~/workspace/pxf/automation  sync_cloud_configs"
 
 # Start PXF
 for server in $DOCKER_GP_CLUSTER_HOSTS
