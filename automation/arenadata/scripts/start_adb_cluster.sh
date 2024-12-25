@@ -169,22 +169,49 @@ if [ "$HOSTNAME" == "$DOCKER_GP_MASTER_SERVER" ]; then
     echo "----------------------------------"
     echo "Run Greenplum cluster installation"
     echo "----------------------------------"
-    sudo -H -u gpadmin bash -c "source /home/gpadmin/.bash_profile &&
-        /usr/local/greenplum-db-devel/bin/gpinitsystem -a -I /home/gpadmin/gpdb_src/gpAux/gpdemo/create_cluster.conf -l /home/gpadmin/gpAdminLogs"
-    sudo -H -u gpadmin bash -c "source /home/gpadmin/.bash_profile &&
-        psql -d postgres -Atc 'CREATE EXTENSION IF NOT EXISTS pxf;' &&
-        psql -d postgres -Atc 'CREATE EXTENSION IF NOT EXISTS pxf_fdw;' &&
-        echo 'local all testuser trust' >> /data1/master/gpseg-1/pg_hba.conf &&
-        echo 'host all gpadmin 0.0.0.0/0 trust' >> /data1/master/gpseg-1/pg_hba.conf &&
-        echo 'host all all 0.0.0.0/0 md5' >> /data1/master/gpseg-1/pg_hba.conf &&
-        gpconfig -c gp_resource_manager -v group &&
-        gpstop -aM fast && gpstart -a"
 
-    # Check cluster
+    echo "---------------------------------"
+    echo "Check ssh connection to the hosts"
+    echo "---------------------------------"
+    max_iterations=20
+    wait_seconds=5
+    iterations=0
+    while true
+    do
+      ((iterations++))
+      echo "Check SSH connection. Attempt $iterations"
+      status=0
+      for server in $DOCKER_GP_CLUSTER_HOSTS
+      do
+          echo "Check SSH connection to the $server"
+          sudo -H -u gpadmin bash -c -l "ssh -o PasswordAuthentication=no $server 'exit'"
+          if ! [ $? -eq 0 ]; then
+            echo "Server $server is not available for ssh connection. We will try again..."
+            status=1
+            break
+          fi
+      done
+      if [ $status -eq 0 ]; then
+        echo "All Greenplum servers are available for SSH connection"
+        break
+      elif [ "$iterations" -ge "$max_iterations" ]; then
+        echo "Error to connect to some Greenplum server via SSH after $max_iterations tries. Exit from script!"
+        exit 1
+      else
+        echo "Wait $wait_seconds seconds and try again to connect to the servers"
+        sleep $wait_seconds
+      fi
+    done
+
+    echo "-------------------------"
+    echo "Install Greenplum cluster"
+    echo "-------------------------"
+    sudo -H -u gpadmin bash -c -l "/usr/local/greenplum-db-devel/bin/gpinitsystem -a -I /home/gpadmin/gpdb_src/gpAux/gpdemo/create_cluster.conf -l /home/gpadmin/gpAdminLogs"
+
     echo "-------------------------------------"
     echo "Check connection to Greenplum cluster"
     echo "-------------------------------------"
-    result="$( sudo -H -u gpadmin bash -c "source /home/gpadmin/.bash_profile && /usr/local/greenplum-db-devel/bin/psql -d postgres -Atc 'SELECT 1;'" )"
+    result="$( sudo -H -u gpadmin bash -c -l "psql -d postgres -Atc 'SELECT 1;'" )"
     if [ "${result}" == "1" ]; then
       echo "--------------------------------------------"
       echo "Fantastic!!! Greenplum cluster is available!"
@@ -194,7 +221,7 @@ if [ "$HOSTNAME" == "$DOCKER_GP_MASTER_SERVER" ]; then
             echo "------------------------------"
             echo "Activate standby master server"
             echo "------------------------------"
-            sudo -H -u gpadmin bash -c "source /home/gpadmin/.bash_profile && /usr/local/greenplum-db-devel/bin/gpinitstandby -a -s $DOCKER_GP_STANDBY_SERVER"
+            sudo -H -u gpadmin bash -c -l "/usr/local/greenplum-db-devel/bin/gpinitstandby -a -s $DOCKER_GP_STANDBY_SERVER"
       fi
     else
       echo "-------------------------------------"
@@ -202,12 +229,27 @@ if [ "$HOSTNAME" == "$DOCKER_GP_MASTER_SERVER" ]; then
       echo "-------------------------------------"
       exit 1;
     fi
+
+   echo "-------------------"
+   echo "Configure Greenplum"
+   echo "-------------------"
+   sudo -H -u gpadmin bash -c -l "psql -d postgres -Atc 'CREATE EXTENSION IF NOT EXISTS pxf;' &&
+       psql -d postgres -Atc 'CREATE EXTENSION IF NOT EXISTS pxf_fdw;' &&
+       echo 'local all testuser trust' >> /data1/master/gpseg-1/pg_hba.conf &&
+       echo 'host all gpadmin 0.0.0.0/0 trust' >> /data1/master/gpseg-1/pg_hba.conf &&
+       echo 'host all all 0.0.0.0/0 md5' >> /data1/master/gpseg-1/pg_hba.conf &&
+       gpconfig -c gp_resource_manager -v group"
+
+   echo "*******************"
+   echo "Restart ADB cluster"
+   echo "*******************"
+   sudo -H -u gpadmin bash -c -l "gpstop -aM fast && gpstart -a"
   else
     echo "-------------------------"
     echo "Starting Greenplum server"
     echo "-------------------------"
-    sudo -H -u gpadmin bash -c "source /home/gpadmin/.bash_profile && gpstart -a"
-    result="$( sudo -H -u gpadmin bash -c "source /home/gpadmin/.bash_profile && /usr/local/greenplum-db-devel/bin/psql -d postgres -Atc 'SELECT 1;'" )"
+    sudo -H -u gpadmin bash -c -l "gpstart -a"
+    result="$( sudo -H -u gpadmin bash -c -l "psql -d postgres -Atc 'SELECT 1;'" )"
     if [ "${result}" == "1" ]; then
       echo "--------------------------------------------"
       echo "Fantastic!!! Greenplum cluster is available!"
@@ -233,6 +275,23 @@ do
   echo "---------"
   echo "Start PXF"
   echo "---------"
+  # Init Vault environment
+  if [[ "$PXF_VAULT_ENABLED" = true ]]; then
+      echo "----------------------------------------"
+      echo "Init Vault env variables for PXF service"
+      echo "----------------------------------------"
+      ksh -c env | grep -E 'PXF_VAULT' | sed 's/^/export /' >> /home/gpadmin/.bash_profile
+      ksh -c env | grep -E 'PXF_VAULT' | sed 's/^/export /' >> /home/gpadmin/.bashrc
+  fi
+  # Init SSL environment
+  if [[ "$PXF_PROTOCOL" = "https" ]]; then
+    echo "--------------------------------------"
+    echo "Init SSL env variables for PXF service"
+    echo "--------------------------------------"
+    ksh -c env | grep -E 'PXF_SSL|PXF_HOST|PXF_PROTOCOL' | sed 's/^/export /' >> /home/gpadmin/.bash_profile
+    ksh -c env | grep -E 'PXF_SSL|PXF_HOST|PXF_PROTOCOL' | sed 's/^/export /' >> /home/gpadmin/.bashrc
+  fi
+
   if [ "$HOSTNAME" == "$DOCKER_GP_MASTER_SERVER" ]; then
     sudo -H -u gpadmin bash -c -l "pxf start && tail -f /data1/master/gpseg-1/pg_log/gpdb-*.csv"
   else

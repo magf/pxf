@@ -2,7 +2,11 @@
 
 set -eoux pipefail
 
-GPHOME=/usr/local/greenplum-db-devel
+if [ -d /usr/local/greengage-db-devel ]; then
+  GPHOME=/usr/local/greengage-db-devel
+else
+  GPHOME=/usr/local/greenplum-db-devel
+fi
 
 # use a login shell for setting environment
 bash --login -c "

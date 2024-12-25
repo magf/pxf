@@ -62,14 +62,16 @@ RUN mkdir -p /data1/master /data1/primary /data1/mirror && chmod -R 755 /data1 &
     chown -R gpadmin:gpadmin /home/gpadmin && \
     install_gpdb
 
+# Create symlinks if needed
+RUN if [ -d /usr/local/greengage-db-devel ]; then ln -s /usr/local/greengage-db-devel /usr/local/greenplum-db-devel; fi;
+RUN if [ -e /usr/local/greengage-db-devel/greengage_path.sh ]; then ln -s /usr/local/greengage-db-devel/greengage_path.sh /usr/local/greenplum-db-devel/greenplum_path.sh; fi;
+
 # Install PXF
 ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
 COPY . /home/gpadmin/pxf_src
 COPY ./automation/arenadata/scripts/compile_pxf_without_test.sh ./pxf_src/concourse/scripts/compile_pxf_without_test.sh
 RUN chmod +x ./pxf_src/concourse/scripts/compile_pxf_without_test.sh
 RUN source gpdb_src/concourse/scripts/common.bash && \
-    mkdir pxf_tarball && \
-    install_gpdb && \
     source '/usr/local/greenplum-db-devel/greenplum_path.sh' && \
     export SKIP_FDW_BUILD_REASON=0 && \
     pxf_src/concourse/scripts/compile_pxf_without_test.sh && \
@@ -106,5 +108,5 @@ RUN set -eux; \
 RUN cp /tmp/libs/* ${PXF_HOME}/lib/
 
 RUN chmod a+x ./pxf_src/automation/arenadata/scripts/start_adb_cluster.sh
-RUN chown -R gpadmin:gpadmin /usr/local/greenplum-db-devel
+RUN if [ -d /usr/local/greengage-db-devel ]; then chown -R gpadmin:gpadmin /usr/local/greengage-db-devel; else chown -R gpadmin:gpadmin /usr/local/greenplum-db-devel; fi;
 ENTRYPOINT ["/home/gpadmin/pxf_src/automation/arenadata/scripts/start_adb_cluster.sh"]
