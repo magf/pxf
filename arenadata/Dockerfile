@@ -59,7 +59,7 @@ ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
 SHELL ["bash", "-c"]
 RUN source gpdb_src/concourse/scripts/common.bash && \
     install_gpdb && \
-    source '/usr/local/greenplum-db-devel/greenplum_path.sh' && \
+    if [ -d /usr/local/greengage-db-devel ]; then source '/usr/local/greengage-db-devel/greengage_path.sh'; else source '/usr/local/greenplum-db-devel/greenplum_path.sh'; fi && \
     mkdir ${OUTPUT_ARTIFACT_DIR} && \
     export SKIP_FDW_BUILD_REASON=0 && \
     pxf_src/concourse/scripts/compile_pxf.bash

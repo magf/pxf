@@ -8,6 +8,7 @@ PG_REGRESS=${PG_REGRESS:-false}
 
 export GOOGLE_PROJECT_ID=${GOOGLE_PROJECT_ID:-data-gpdb-ud}
 export GPHOME=${GPHOME:-/usr/local/greenplum-db-devel}
+export GP_PATH_FILE=${GP_PATH_FILE:-greenplum_path.sh}
 export PXF_HOME=${GPHOME}/pxf
 export JAVA_HOME=${JAVA_HOME}
 export JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
@@ -22,7 +23,7 @@ function run_pg_regress() {
 		#!/usr/bin/env bash
 		set -euxo pipefail
 
-		source ${GPHOME}/greenplum_path.sh
+		source ${GPHOME}/${GP_PATH_FILE}
 
 		export GPHD_ROOT=${GPHD_ROOT}
 		export PXF_HOME=${PXF_HOME} PXF_CONF=${PXF_CONF_DIR}
@@ -66,14 +67,14 @@ function run_pxf_automation() {
 	find pxf_src/automation/sqlrepo -type d -exec chmod a+w {} \;
 
 	su gpadmin -c "
-		source '${GPHOME}/greenplum_path.sh' &&
+		source '${GPHOME}/${GP_PATH_FILE}' &&
 		psql -p ${PGPORT} -d template1 -c 'CREATE EXTENSION PXF'
 	"
 
 	cat > ~gpadmin/run_pxf_automation_test.sh <<-EOF
 		set -exo pipefail
 
-		source ${GPHOME}/greenplum_path.sh
+		source ${GPHOME}/${GP_PATH_FILE}
 
 		export PATH=\$PATH:${GPHD_ROOT}/bin
 		export GPHD_ROOT=${GPHD_ROOT}

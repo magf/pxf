@@ -1,6 +1,7 @@
 #!/bin/bash
 
 GPHOME=${GPHOME:=/usr/local/greenplum-db-devel}
+GP_PATH_FILE=${GP_PATH_FILE:-greenplum_path.sh}
 PXF_HOME=${PXF_HOME:=${GPHOME}/pxf}
 CDD_VALUE=/data/gpdata/coordinator/gpseg-1
 PXF_COMMON_SRC_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -97,7 +98,7 @@ function run_pxf_automation() {
 	fi
 
 	su gpadmin -c "
-		source '${GPHOME}/greenplum_path.sh' &&
+		source '${GPHOME}/${GP_PATH_FILE}' &&
 		psql -p ${PGPORT} -d template1 -c 'CREATE EXTENSION IF NOT EXISTS ${extension_name}'
 	"
 	# prepare certification output directory
@@ -120,7 +121,7 @@ function run_pxf_automation() {
 		time make GROUP=${GROUP} test
 
 		# if the test is successful, create certification file
-		gpdb_build_from_sql=\$(source \$GPHOME/greenplum_path.sh && psql -c 'select version()' | grep Greenplum | cut -d ' ' -f 6,8)
+		gpdb_build_from_sql=\$(source \$GPHOME/\$GP_PATH_FILE && psql -c 'select version()' | grep Greenplum | cut -d ' ' -f 6,8)
 		gpdb_build_clean=\${gpdb_build_from_sql%)}
 		pxf_version=\$(< ${PXF_HOME}/version)
 		echo "GPDB-\${gpdb_build_clean/ commit:/-}-PXF-\${pxf_version}" > "${PWD}/certification/certification.txt"
@@ -146,7 +147,7 @@ function run_regression_test() {
 	cat > ~gpadmin/run_regression_test.sh <<-EOF
 		#!/bin/bash
 		source /opt/gcc_env.sh || true
-		source ${GPHOME}/greenplum_path.sh
+		source ${GPHOME}/${GP_PATH_FILE}
 		source gpdb_src/gpAux/gpdemo/gpdemo-env.sh
 		export PATH=\$PATH:${GPHD_ROOT}/bin
 
@@ -167,7 +168,7 @@ function run_regression_test() {
 function run_load_test() {
 	local extension_name="pxf"
 	su gpadmin -c "
-		source '${GPHOME}/greenplum_path.sh' &&
+		source '${GPHOME}/${GP_PATH_FILE}' &&
 		psql -p ${PGPORT} -d template1 -c 'CREATE EXTENSION IF NOT EXISTS ${extension_name}'
 	"
 
@@ -176,7 +177,7 @@ function run_load_test() {
 		set -exo pipefail
 
 		source ~gpadmin/.pxfrc
-		source ${GPHOME}/greenplum_path.sh
+		source ${GPHOME}/${GP_PATH_FILE}
 		export PGPORT=${PGPORT}
 
 		cd pxf_src/load
@@ -306,7 +307,7 @@ function remote_access_to_gpdb() {
 	cp cluster_env_files/public_key.openssh /home/gpadmin/.ssh/authorized_keys
 	awk '{print "localhost", $1, $2; print "0.0.0.0", $1, $2}' /etc/ssh/ssh_host_rsa_key.pub >> /home/gpadmin/.ssh/known_hosts
 	ssh "${SSH_OPTS[@]}" gpadmin@cdw "
-		source ${GPHOME}/greenplum_path.sh &&
+		source ${GPHOME}/${GP_PATH_FILE} &&
 		export MASTER_DATA_DIRECTORY=${CDD_VALUE} &&
 		echo 'host all all 10.0.0.0/16 trust' >> ${CDD_VALUE}/pg_hba.conf &&
 		psql -d template1 <<-EOF && gpstop -u
@@ -318,7 +319,7 @@ function remote_access_to_gpdb() {
 }
 
 function create_gpdb_cluster() {
-	su gpadmin -c "source ${GPHOME}/greenplum_path.sh && make -C gpdb_src/gpAux/gpdemo create-demo-cluster"
+	su gpadmin -c "source ${GPHOME}/${GP_PATH_FILE} && make -C gpdb_src/gpAux/gpdemo create-demo-cluster"
 }
 
 function add_remote_user_access_for_gpdb() {
@@ -333,7 +334,7 @@ function add_remote_user_access_for_gpdb() {
 		    export MASTER_DATA_DIRECTORY=~gpadmin/data/master/gpseg-1
 		fi
 		echo 'local    all     ${username}     trust' >> \${MASTER_DATA_DIRECTORY}/pg_hba.conf
-		source ${GPHOME}/greenplum_path.sh
+		source ${GPHOME}/${GP_PATH_FILE}
 		gpstop -u
 	"
 }
@@ -375,7 +376,7 @@ function install_pxf_client() {
 	[[ ${TEST_ENV} == dev ]] || return 0
 	# recompile pxf.so file for dev environments only
 	bash -c "
-		source '${GPHOME}/greenplum_path.sh'
+		source '${GPHOME}/${GP_PATH_FILE}'
 		source /opt/gcc_env.sh || true
 		USE_PGXS=1 make -C '${PXF_EXTENSIONS_DIR}' install
 	"
