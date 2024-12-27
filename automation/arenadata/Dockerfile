@@ -1,4 +1,4 @@
-ARG GPDB_IMAGE=cloud-hub.adsw.io/library/gpdb6_u22:adb-6.x-dev
+ARG GPDB_IMAGE=hub.adsw.io/library/gg6_u22:it
 FROM $GPDB_IMAGE
 
 SHELL ["bash", "-c"]
