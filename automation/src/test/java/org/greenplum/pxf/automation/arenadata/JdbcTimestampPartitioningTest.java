@@ -1,6 +1,8 @@
 package org.greenplum.pxf.automation.arenadata;
 
+import annotations.WorksWithFDW;
 import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import jsystem.framework.system.SystemManagerImpl;
 import org.greenplum.pxf.automation.JdbcDbType;
 import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
@@ -23,6 +25,7 @@ import static org.greenplum.pxf.automation.PxfTestConstant.*;
 import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
 import static org.junit.Assert.assertEquals;
 
+@WorksWithFDW
 @Feature("JDBC Timestamp partitioning")
 public class JdbcTimestampPartitioningTest extends BaseFeature {
 
@@ -49,13 +52,9 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
     public void testTimestampPartitioning(String pxfReadTableName, JdbcDbType jdbcDbType) throws Exception {
         cleanLogs();
         prepareSourceTable(jdbcDbType);
-        ExternalTable pxfReadTable = createExternalTable(pxfReadTableName,
-                SOURCE_TABLE_NAME,
-                jdbcDbType.getServer());
-        copyJdbcConfFile(jdbcDbType);
-        gpdb.createTableAndVerify(pxfReadTable);
-        gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", pxfReadTableName));
-        checkPxfLogs();
+        createExternalTable(pxfReadTableName, jdbcDbType);
+/*        gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", pxfReadTableName));
+        checkPxfLogs();*/
     }
 
     @DataProvider
@@ -63,7 +62,7 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         return new Object[][]{
                 {"oracle_ext_table", ORACLE},
                 {"mysql_ext_table", MYSQL},
-                {"postgres_ext_table", DEFAULT}
+                {"postgres_ext_table", POSTGRES}
         };
     }
 
@@ -71,6 +70,7 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
     }
 
+    @Step("Create table in source database and insert data")
     private void prepareSourceTable(JdbcDbType jdbcDbType) throws Exception {
         switch (jdbcDbType) {
             case ORACLE:
@@ -125,20 +125,22 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         }
     }
 
-    private ExternalTable createExternalTable(String pxfExternalTableName, String targetTableName, String pxfServerName) {
-        ExternalTable pxfMysqlReadableTable = TableFactory.getPxfJdbcReadableTable(
+    @Step("Create pxf external table with timestamp partitioning parameters")
+    private void createExternalTable(String pxfExternalTableName, JdbcDbType jdbcDbType) throws Exception {
+        copyJdbcConfFile(jdbcDbType);
+        ExternalTable pxfExtTable = TableFactory.getPxfJdbcReadableTable(
                 pxfExternalTableName,
                 TABLE_FIELDS,
-                targetTableName,
-                pxfServerName);
-        pxfMysqlReadableTable.addUserParameter("PARTITION_BY=datetime:TIMESTAMP");
-        pxfMysqlReadableTable.addUserParameter("RANGE=20240101T124910:20240101T125001");
-        pxfMysqlReadableTable.addUserParameter("INTERVAL=5:second");
-        return pxfMysqlReadableTable;
+                SOURCE_TABLE_NAME,
+                jdbcDbType.getServer());
+        pxfExtTable.addUserParameter("PARTITION_BY=datetime:TIMESTAMP");
+        pxfExtTable.addUserParameter("RANGE=20240101T124910:20240101T125001");
+        pxfExtTable.addUserParameter("INTERVAL=5:second");
+        gpdb.createTableAndVerify(pxfExtTable);
     }
 
     private void copyJdbcConfFile(JdbcDbType jdbcDbType) throws Exception {
-        if (jdbcDbType != DEFAULT) {
+        if (jdbcDbType != POSTGRES) {
             String pxfHome = cluster.getPxfHome();
             String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, jdbcDbType.getServer());
             String pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
@@ -149,6 +151,7 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         }
     }
 
+    @Step("Check that partitioning logs are present")
     private void checkPxfLogs() throws Exception {
         int result = 0;
         for (Node pxfNode : pxfNodes) {

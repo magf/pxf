@@ -3,7 +3,7 @@ package org.greenplum.pxf.automation;
 public enum JdbcDbType {
     MYSQL("mysql"),
     ORACLE("oracle"),
-    DEFAULT("default");
+    POSTGRES("default");
 
     private final String server;
 
