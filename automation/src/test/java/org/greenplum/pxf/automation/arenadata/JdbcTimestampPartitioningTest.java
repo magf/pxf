@@ -95,7 +95,7 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
     private String getInsertQuery(JdbcDbType jdbcDbType) {
         if (jdbcDbType == ORACLE) {
             return "INSERT ALL " +
-                    "INTO source_table values(1, TIMESTAMP'2023-01-01 10:00:00') " +
+                    "INTO source_table VALUES(1, TIMESTAMP'2023-01-01 10:00:00') " +
                     "INTO source_table VALUES (1, TIMESTAMP'2023-01-01 10:00:00') " +
                     "INTO source_table VALUES (2, TIMESTAMP'2023-01-02 11:15:00') " +
                     "INTO source_table VALUES (3, TIMESTAMP'2023-01-03 12:30:00') " +
