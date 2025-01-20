@@ -79,16 +79,19 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
                 oracleSrcTable.setSchema("system");
                 oracle.createTableAndVerify(oracleSrcTable);
                 oracle.runQuery(getInsertQuery(jdbcDbType));
+                break;
             case MYSQL:
                 Mysql mysql = (Mysql) SystemManagerImpl.getInstance().getSystemObject(MYSQL.getServer());
                 Table mysqlSrcTable = new Table(SOURCE_TABLE_NAME, TABLE_FIELDS);
                 mysql.createTableAndVerify(mysqlSrcTable);
                 mysql.runQuery(getInsertQuery(jdbcDbType));
+                break;
             default:
                 Table gpdbSrcTable = new Table(SOURCE_TABLE_NAME, TABLE_FIELDS);
                 gpdbSrcTable.setDistributionFields(new String[]{"id"});
                 gpdb.createTableAndVerify(gpdbSrcTable);
                 gpdb.runQuery(getInsertQuery(jdbcDbType));
+                break;
         }
     }
 
