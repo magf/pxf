@@ -58,6 +58,19 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         checkPxfLogs();
     }
 
+    @DataProvider
+    private Object[][] useJdbcTimestampPartitioningProvider() {
+        return new Object[][]{
+                {"oracle_ext_table", ORACLE},
+                {"mysql_ext_table", MYSQL},
+                {"postgres_ext_table", DEFAULT}
+        };
+    }
+
+    private void cleanLogs() throws Exception {
+        cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
+    }
+
     private void prepareSourceTable(JdbcDbType jdbcDbType) throws Exception {
         switch (jdbcDbType) {
             case ORACLE:
@@ -109,14 +122,16 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         }
     }
 
-
-    @DataProvider
-    private Object[][] useJdbcTimestampPartitioningProvider() {
-        return new Object[][]{
-                {"oracle_ext_table", ORACLE},
-                {"mysql_ext_table", MYSQL},
-                {"postgres_ext_table", DEFAULT}
-        };
+    private ExternalTable createExternalTable(String pxfExternalTableName, String targetTableName, String pxfServerName) {
+        ExternalTable pxfMysqlReadableTable = TableFactory.getPxfJdbcReadableTable(
+                pxfExternalTableName,
+                TABLE_FIELDS,
+                targetTableName,
+                pxfServerName);
+        pxfMysqlReadableTable.addUserParameter("PARTITION_BY=datetime:TIMESTAMP");
+        pxfMysqlReadableTable.addUserParameter("RANGE=20240101T124910:20240101T125001");
+        pxfMysqlReadableTable.addUserParameter("INTERVAL=5:second");
+        return pxfMysqlReadableTable;
     }
 
     private void copyJdbcConfFile(JdbcDbType jdbcDbType) throws Exception {
@@ -131,6 +146,7 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         }
     }
 
+
     private void checkPxfLogs() throws Exception {
         int result = 0;
         for (Node pxfNode : pxfNodes) {
@@ -140,22 +156,5 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         }
         assertEquals(2, result);
     }
-
-    private void cleanLogs() throws Exception {
-        cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
-    }
-
-    private ExternalTable createExternalTable(String pxfExternalTableName, String targetTableName, String pxfServerName) {
-        ExternalTable pxfMysqlReadableTable = TableFactory.getPxfJdbcReadableTable(
-                pxfExternalTableName,
-                TABLE_FIELDS,
-                targetTableName,
-                pxfServerName);
-        pxfMysqlReadableTable.addUserParameter("PARTITION_BY=datetime:TIMESTAMP");
-        pxfMysqlReadableTable.addUserParameter("RANGE=20240101T124910:20240101T125001");
-        pxfMysqlReadableTable.addUserParameter("INTERVAL=5:second");
-        return pxfMysqlReadableTable;
-    }
-
 
 }
