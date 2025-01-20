@@ -146,7 +146,6 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         }
     }
 
-
     private void checkPxfLogs() throws Exception {
         int result = 0;
         for (Node pxfNode : pxfNodes) {
