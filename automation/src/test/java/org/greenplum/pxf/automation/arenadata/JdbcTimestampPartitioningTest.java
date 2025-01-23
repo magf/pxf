@@ -40,16 +40,6 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
     private static final String SOURCE_TABLE_NAME = "source_table";
     private static final String PXF_TABLE_NAME = "${db}_ext_table";
     private static final String FDW_SERVER = "${db}_jdbc";
-    private static final String CREATE_USER_MAPPING_FDW_QUERY = "CREATE USER MAPPING FOR gpadmin" +
-            "    SERVER ${fdw_server};";
-    private static final String CREATE_FDW_SERVER_QUERY = "CREATE SERVER ${fdw_server}" +
-            "    FOREIGN DATA WRAPPER jdbc_pxf_fdw" +
-            "    OPTIONS (" +
-            "        jdbc_driver '${driver}'," +
-            "        db_url '${url}'," +
-            "        batch_size '10000'," +
-            "        fetch_size '2000'" +
-            "        );";
     private ExternalTable externalTable;
     private List<Node> pxfNodes;
     private String pxfLogFile;
@@ -72,45 +62,33 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
 
     @Test(groups = {"arenadata"}, description = "Check timestamp partitioning for ORACLE database")
     public void testTimestampPartitioningOracle() throws Exception {
-        Oracle oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject(ORACLE.getServer());
+        Oracle oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject(ORACLE.getServerName());
         sourceTable.setSchema("system");
         oracle.createTableAndVerify(sourceTable);
         oracle.runQuery(getInsertQuery(ORACLE));
+        copyCustomJdbcConfFile(ORACLE);
         if (FDWUtils.useFDW) {
-            String fdwServer = FDW_SERVER.replace("${db}", ORACLE.getServer());
-            gpdb.runQuery(CREATE_FDW_SERVER_QUERY
-                    .replace("${fdw_server}", fdwServer)
-                    .replace("${driver}", oracle.getDriver())
-                    .replace("${url}", oracle.getAddress()));
-            gpdb.runQuery(CREATE_USER_MAPPING_FDW_QUERY.replace("${fdw_server}", fdwServer));
-        } else {
-            copyCustomJdbcConfFile(ORACLE);
+            gpdb.createCustomForeignServer(getServer(ORACLE));
         }
         externalTable = createPxfTable(ORACLE);
         gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", externalTable.getName()));
         checkPxfLogs();
-        clearDbs(oracle, ORACLE);
+        clearDbs(oracle);
     }
 
     @Test(groups = {"arenadata"}, description = "Check timestamp partitioning for MYSQL database")
     public void testTimestampPartitioningMysql() throws Exception {
-        Mysql mysql = (Mysql) SystemManagerImpl.getInstance().getSystemObject(MYSQL.getServer());
+        Mysql mysql = (Mysql) SystemManagerImpl.getInstance().getSystemObject(MYSQL.getServerName());
         mysql.createTableAndVerify(sourceTable);
         mysql.runQuery(getInsertQuery(MYSQL));
+        copyCustomJdbcConfFile(MYSQL);
         if (FDWUtils.useFDW) {
-            String fdwServer = FDW_SERVER.replace("${db}", MYSQL.getServer());
-            gpdb.runQuery(CREATE_FDW_SERVER_QUERY
-                    .replace("${fdw_server}", fdwServer)
-                    .replace("${driver}", mysql.getDriver())
-                    .replace("${url}", mysql.getAddress()));
-            gpdb.runQuery(CREATE_USER_MAPPING_FDW_QUERY.replace("${fdw_server}", fdwServer));
-        } else {
-            copyCustomJdbcConfFile(MYSQL);
+            gpdb.createCustomForeignServer(getServer(MYSQL));
         }
         externalTable = createPxfTable(MYSQL);
         gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", externalTable.getName()));
         checkPxfLogs();
-        clearDbs(mysql, MYSQL);
+        clearDbs(mysql);
     }
 
     @Test(groups = {"arenadata"}, description = "Check timestamp partitioning for POSTGRES database")
@@ -121,7 +99,11 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         externalTable = createPxfTable(POSTGRES);
         gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", externalTable.getName()));
         checkPxfLogs();
-        clearDbs(gpdb, POSTGRES);
+        clearDbs(gpdb);
+    }
+
+    private String getServer(JdbcDbType jdbcDbType) {
+        return jdbcDbType.getServerName() + "_jdbc";
     }
 
     private void cleanLogs() throws Exception {
@@ -161,10 +143,10 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
     @Step("Create pxf external table for {jdbcDbType}")
     private ExternalTable createPxfTable(JdbcDbType jdbcDbType) throws Exception {
         ExternalTable pxfExtTable = TableFactory.getPxfJdbcReadableTable(
-                PXF_TABLE_NAME.replace("${db}", jdbcDbType.getServer()),
+                PXF_TABLE_NAME.replace("${db}", jdbcDbType.getServerName()),
                 TABLE_FIELDS,
                 SOURCE_TABLE_NAME,
-                jdbcDbType.getServer());
+                jdbcDbType.getServerName());
         pxfExtTable.addUserParameter("PARTITION_BY=datetime:TIMESTAMP");
         pxfExtTable.addUserParameter("RANGE=20240101T124910:20240101T125001");
         pxfExtTable.addUserParameter("INTERVAL=5:second");
@@ -175,10 +157,10 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
     @Step("Prepare servers' config files")
     private void copyCustomJdbcConfFile(JdbcDbType jdbcDbType) throws Exception {
         String pxfHome = cluster.getPxfHome();
-        String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, jdbcDbType.getServer());
+        String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, jdbcDbType.getServerName());
         String pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
         String jdbcTemplatePath = "templates/${jdbcServer}/jdbc-site.xml";
-        String pxfJdbcSiteConfTemplate = pxfHome + "/" + jdbcTemplatePath.replace("${jdbcServer}", jdbcDbType.getServer());
+        String pxfJdbcSiteConfTemplate = pxfHome + "/" + jdbcTemplatePath.replace("${jdbcServer}", jdbcDbType.getServerName());
         cluster.deleteFileFromNodes(pxfJdbcSiteConfFile, false);
         cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
     }
@@ -196,12 +178,8 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
     }
 
     @Step("Clear source database and pxf")
-    private void clearDbs(DbSystemObject dbSystemObject, JdbcDbType jdbcDbType) throws Exception {
+    private void clearDbs(DbSystemObject dbSystemObject) throws Exception {
         dbSystemObject.dropTable(sourceTable, false);
         gpdb.dropTable(externalTable, false);
-        if (FDWUtils.useFDW && jdbcDbType != POSTGRES) {
-            gpdb.runQuery(String.format("DROP USER MAPPING FOR gpadmin SERVER %s_jdbc;", jdbcDbType.getServer()));
-            gpdb.runQuery(String.format("DROP SERVER %s_jdbc;", jdbcDbType.getServer()));
-        }
     }
 }

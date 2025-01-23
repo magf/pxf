@@ -295,6 +295,17 @@ public class Gpdb extends DbSystemObject {
 		}
 	}
 
+	public void createCustomForeignServer(String server) throws Exception {
+		if (!serverExists(server)) {
+			String pxfServerName = server.substring(0,server.lastIndexOf("_")); // strip protocol at the end
+			String option = (version < 7) ? "" : IF_NOT_EXISTS_OPTION;
+			String fdwName = server.substring(server.lastIndexOf("_") + 1) + "_pxf_fdw"; // strip protocol at the end
+			runQuery(String.format("CREATE SERVER %s %s FOREIGN DATA WRAPPER %s OPTIONS(config '%s')",
+					option, server, fdwName, pxfServerName));
+			runQuery(String.format("CREATE USER MAPPING %s FOR CURRENT_USER SERVER %s", option, server));
+		}
+	}
+
 	@Override
 	public void dropDataBase(String dbName, boolean cascade, boolean ignoreFail) throws Exception {
 

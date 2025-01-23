@@ -5,14 +5,14 @@ public enum JdbcDbType {
     ORACLE("oracle"),
     POSTGRES("default");
 
-    private final String server;
+    private final String serverName;
 
 
-    JdbcDbType(final String server) {
-        this.server = server;
+    JdbcDbType(final String serverName) {
+        this.serverName = serverName;
     }
 
-    public String getServer() {
-        return server;
+    public String getServerName() {
+        return serverName;
     }
 }
