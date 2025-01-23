@@ -39,7 +39,6 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
     private static final String SEGMENT_LOG_GREP_COMMAND = "cat " + PXF_TEMP_LOG_PATH + " | grep 'Returning 14 fragments' | wc -l";
     private static final String SOURCE_TABLE_NAME = "source_table";
     private static final String PXF_TABLE_NAME = "${db}_ext_table";
-    private static final String FDW_SERVER = "${db}_jdbc";
     private ExternalTable externalTable;
     private List<Node> pxfNodes;
     private String pxfLogFile;
