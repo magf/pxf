@@ -7,6 +7,7 @@ public enum JdbcDbType {
 
     private final String server;
 
+
     JdbcDbType(final String server) {
         this.server = server;
     }

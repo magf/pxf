@@ -29,6 +29,10 @@ public class Oracle extends DbSystemObject {
         return driver;
     }
 
+    public String getAddress() {
+        return address;
+    }
+
     @Override
     public void init() throws Exception {
         super.init();
