@@ -9,15 +9,14 @@ import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.SegmentNode;
-import org.greenplum.pxf.automation.components.common.DbSystemObject;
 import org.greenplum.pxf.automation.components.mysql.Mysql;
 import org.greenplum.pxf.automation.components.oracle.Oracle;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
-import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -43,6 +42,8 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
     private List<Node> pxfNodes;
     private String pxfLogFile;
     private Table sourceTable;
+    private Oracle oracle;
+    private Mysql mysql;
 
     @Override
     protected void beforeClass() throws Exception {
@@ -51,6 +52,8 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         String restartCommand = pxfHome + "/bin/pxf restart";
         cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_LOG_LEVEL=%s;%s", "trace", restartCommand));
         pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
+        oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject(ORACLE.getServerName());
+        mysql = (Mysql) SystemManagerImpl.getInstance().getSystemObject(MYSQL.getServerName());
     }
 
     @BeforeMethod
@@ -59,50 +62,40 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         cleanLogs();
     }
 
-    @Test(groups = {"arenadata"}, description = "Check timestamp partitioning for ORACLE database")
-    public void testTimestampPartitioningOracle() throws Exception {
-        Oracle oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject(ORACLE.getServerName());
-        sourceTable.setSchema("system");
-        oracle.createTableAndVerify(sourceTable);
-        oracle.runQuery(getInsertQuery(ORACLE));
-        copyCustomJdbcConfFile(ORACLE);
-        if (FDWUtils.useFDW) {
-            gpdb.createCustomForeignServer(getServer(ORACLE));
+    @Test(groups = {"arenadata"}, dataProvider = "jdbcDbProvider")
+    public void testTimestampPartitioning(JdbcDbType jdbcDbType) throws Exception {
+        prepareSourceTable(jdbcDbType);
+        externalTable = createPxfTable(jdbcDbType);
+        gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", externalTable.getName()));
+        checkPxfLogs();
+        clearDbs(jdbcDbType);
+    }
+
+    @DataProvider(name = "jdbcDbProvider")
+    private static Object[][] jdbcDbProvider() {
+        return new Object[][]{
+                {ORACLE},
+                {MYSQL},
+                {POSTGRES}
+        };
+    }
+
+    private void prepareSourceTable(JdbcDbType jdbcDbType) throws Exception {
+        switch (jdbcDbType) {
+            case ORACLE:
+                sourceTable.setSchema("system");
+                oracle.createTableAndVerify(sourceTable);
+                oracle.runQuery(getInsertQuery(jdbcDbType));
+                break;
+            case MYSQL:
+                mysql.createTableAndVerify(sourceTable);
+                mysql.runQuery(getInsertQuery(jdbcDbType));
+                break;
+            default:
+                sourceTable.setDistributionFields(new String[]{"id"});
+                gpdb.createTableAndVerify(sourceTable);
+                gpdb.runQuery(getInsertQuery(jdbcDbType));
         }
-        externalTable = createPxfTable(ORACLE);
-        gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", externalTable.getName()));
-        checkPxfLogs();
-        clearDbs(oracle);
-    }
-
-    @Test(groups = {"arenadata"}, description = "Check timestamp partitioning for MYSQL database")
-    public void testTimestampPartitioningMysql() throws Exception {
-        Mysql mysql = (Mysql) SystemManagerImpl.getInstance().getSystemObject(MYSQL.getServerName());
-        mysql.createTableAndVerify(sourceTable);
-        mysql.runQuery(getInsertQuery(MYSQL));
-        copyCustomJdbcConfFile(MYSQL);
-        if (FDWUtils.useFDW) {
-            gpdb.createCustomForeignServer(getServer(MYSQL));
-        }
-        externalTable = createPxfTable(MYSQL);
-        gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", externalTable.getName()));
-        checkPxfLogs();
-        clearDbs(mysql);
-    }
-
-    @Test(groups = {"arenadata"}, description = "Check timestamp partitioning for POSTGRES database")
-    public void testTimestampPartitioningPostgres() throws Exception {
-        sourceTable.setDistributionFields(new String[]{"id"});
-        gpdb.createTableAndVerify(sourceTable);
-        gpdb.runQuery(getInsertQuery(POSTGRES));
-        externalTable = createPxfTable(POSTGRES);
-        gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", externalTable.getName()));
-        checkPxfLogs();
-        clearDbs(gpdb);
-    }
-
-    private String getServer(JdbcDbType jdbcDbType) {
-        return jdbcDbType.getServerName() + "_jdbc";
     }
 
     private void cleanLogs() throws Exception {
@@ -153,18 +146,6 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         return pxfExtTable;
     }
 
-    @Step("Prepare servers' config files")
-    private void copyCustomJdbcConfFile(JdbcDbType jdbcDbType) throws Exception {
-        String pxfHome = cluster.getPxfHome();
-        String pxfJdbcSiteConfPath = String.format(PXF_JDBC_SITE_CONF_FILE_PATH_TEMPLATE, pxfHome, jdbcDbType.getServerName());
-        String pxfJdbcSiteConfFile = pxfJdbcSiteConfPath + "/" + PXF_JDBC_SITE_CONF_FILE_NAME;
-        String jdbcTemplatePath = "templates/${jdbcServer}/jdbc-site.xml";
-        String pxfJdbcSiteConfTemplate = pxfHome + "/" + jdbcTemplatePath.replace("${jdbcServer}", jdbcDbType.getServerName());
-        cluster.deleteFileFromNodes(pxfJdbcSiteConfFile, false);
-        cluster.copyFileToNodes(pxfJdbcSiteConfTemplate, pxfJdbcSiteConfPath, true, false);
-    }
-
-
     @Step("Check that partitioning logs are present")
     private void checkPxfLogs() throws Exception {
         int result = 0;
@@ -177,8 +158,17 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
     }
 
     @Step("Clear source database and pxf")
-    private void clearDbs(DbSystemObject dbSystemObject) throws Exception {
-        dbSystemObject.dropTable(sourceTable, false);
+    private void clearDbs(JdbcDbType jdbcDbType) throws Exception {
+        switch (jdbcDbType) {
+            case ORACLE:
+                oracle.dropTable(sourceTable, false);
+                break;
+            case MYSQL:
+                mysql.dropTable(sourceTable, false);
+                break;
+            default:
+                gpdb.dropTable(sourceTable, false);
+        }
         gpdb.dropTable(externalTable, false);
     }
 }
