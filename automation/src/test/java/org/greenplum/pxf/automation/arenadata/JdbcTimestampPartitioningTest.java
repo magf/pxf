@@ -80,6 +80,7 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         };
     }
 
+    @Step("Create source table")
     private void prepareSourceTable(JdbcDbType jdbcDbType) throws Exception {
         switch (jdbcDbType) {
             case ORACLE:
@@ -98,6 +99,7 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         }
     }
 
+    @Step("Clean logs")
     private void cleanLogs() throws Exception {
         cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
     }
