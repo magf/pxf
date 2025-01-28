@@ -64,7 +64,7 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
 
     @Test(groups = {"arenadata"}, dataProvider = "jdbcDbProvider")
     public void testTimestampPartitioning(JdbcDbType jdbcDbType) throws Exception {
-        createSourceTable(jdbcDbType);
+        prepareSourceTable(jdbcDbType);
         externalTable = createExternalTable(jdbcDbType);
         gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", externalTable.getName()));
         checkPxfLogs();
@@ -80,8 +80,8 @@ public class JdbcTimestampPartitioningTest extends BaseFeature {
         };
     }
 
-    @Step("Create source table")
-    private void createSourceTable(JdbcDbType jdbcDbType) throws Exception {
+    @Step("Prepare source table")
+    private void prepareSourceTable(JdbcDbType jdbcDbType) throws Exception {
         switch (jdbcDbType) {
             case ORACLE:
                 sourceTable.setSchema("system");
