@@ -256,27 +256,29 @@ public class Gpdb extends DbSystemObject {
 	}
 
 	private void createForeignServers(boolean ignoreFail) throws Exception {
-		List<String> servers = Lists.newArrayList(
-		"default_hdfs",
-		"default_hive",
-		"db-hive_jdbc", // Needed for JdbcHiveTest
-		"default_hbase",
-		"default_jdbc", // Needed for JdbcHiveTest and other JdbcTest which refers to the default server.
-		"database_jdbc",
-		"db-session-params_jdbc",
-		"default_file",
-		"default_s3",
-		"default_gs",
-		"default_adl",
-		"default_wasbs",
-		"s3_s3",
-		"s3-invalid_s3",
-		"s3-non-existent_s3",
-		"hdfs-non-secure_hdfs",
-		"hdfs-secure_hdfs",
-		"hdfs-ipa_hdfs",
-		"default_test",
-		"default_system");
+        List<String> servers = Lists.newArrayList(
+                "default_hdfs",
+                "default_hive",
+                "db-hive_jdbc", // Needed for JdbcHiveTest
+                "default_hbase",
+                "default_jdbc", // Needed for JdbcHiveTest and other JdbcTest which refers to the default server.
+                "database_jdbc",
+                "db-session-params_jdbc",
+                "default_file",
+                "default_s3",
+                "default_gs",
+                "default_adl",
+                "default_wasbs",
+                "s3_s3",
+                "s3-invalid_s3",
+                "s3-non-existent_s3",
+                "hdfs-non-secure_hdfs",
+                "hdfs-secure_hdfs",
+                "hdfs-ipa_hdfs",
+                "default_test",
+                "default_system",
+                "oracle_jdbc",
+                "mysql_jdbc");
 
 		// version below GP7 do not have IF EXISTS / IF NOT EXISTS command options for foreign SERVER creation
 		String option = (version < 7) ? "" : IF_NOT_EXISTS_OPTION;
@@ -294,7 +296,6 @@ public class Gpdb extends DbSystemObject {
 					ignoreFail, false);
 		}
 	}
-
 	@Override
 	public void dropDataBase(String dbName, boolean cascade, boolean ignoreFail) throws Exception {
 

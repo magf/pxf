@@ -89,6 +89,12 @@ RUN cp ${PXF_HOME}/templates/hbase-site.xml \
     ${PXF_HOME}/templates/jdbc-site.xml \
     ${PXF_HOME}/servers/default/
 
+RUN mkdir ${PXF_HOME}/servers/oracle
+COPY ./automation/arenadata/conf/oracle/jdbc-site.xml ${PXF_HOME}/servers/oracle/jdbc-site.xml
+
+RUN mkdir ${PXF_HOME}/servers/mysql
+COPY ./automation/arenadata/conf/mysql/jdbc-site.xml ${PXF_HOME}/servers/mysql/jdbc-site.xml
+
 # Need to change ssh key to RSA for automation tests with Ubuntu
 RUN set -eux; \
     . /etc/os-release; \
