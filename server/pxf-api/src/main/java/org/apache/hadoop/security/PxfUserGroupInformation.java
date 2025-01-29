@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
@@ -40,6 +41,18 @@ public class PxfUserGroupInformation {
     private static final Logger LOG = LoggerFactory.getLogger("org.greenplum.pxf.api.security.PxfUserGroupInformation");
     private static final String MUST_FIRST_LOGIN_FROM_KEYTAB = "loginUserFromKeyTab must be done first";
     private static final String OS_LOGIN_MODULE_NAME = getOSLoginModuleName();
+
+    /**
+     * If the Hadoop login context will be used to initialize UserGroupInformation for running operations in PXF.
+     * <p>
+     * There are two contexts: LoginContext and HadoopLoginContext.
+     * In PXF 6.11.0, the Hadoop library version was upgraded to 3.3.6.
+     * Some security features require HadoopLoginContext to function properly.
+     * By default, HadoopLoginContext will be used.
+     * LoginContext is retained for backward compatibility in case HadoopLoginContext fails.
+     */
+    public static final String HADOOP_LOGIN_CONTEXT_ENABLE = "pxf.service.kerberos.hadoop-login-context-enable";
+    public static final boolean DEFAULT_HADOOP_LOGIN_CONTEXT_ENABLE = true;
 
     /**
      * Percentage of the ticket window to use before we renew ticket.
@@ -71,13 +84,34 @@ public class PxfUserGroupInformation {
      * @param configDirectory the path to the configuration files for the external system
      * @param principal       the principal name to load from the keytab
      * @param keytabFilename  the path to the keytab file
-     * @throws IOException    when an IO error occurs.
+     * @throws IOException           when an IO error occurs.
      * @throws KerberosAuthException if it's a kerberos login exception.
      */
     public synchronized LoginSession loginUserFromKeytab(Configuration configuration, String serverName, String configDirectory, String principal, String keytabFilename) throws IOException {
 
         Preconditions.checkArgument(StringUtils.isNotBlank(keytabFilename), "Running in secure mode, but config doesn't have a keytab");
 
+        if (isHadoopLoginContextEnabled(serverName, configuration)) {
+            try {
+                UserGroupInformation loginUser = UserGroupInformation.loginUserFromKeytabAndReturnUGI(principal, keytabFilename);
+                LOG.info("Login successful for principal {} using keytab file {}", principal, keytabFilename);
+
+                // Keep track of the number of logins per server to make sure
+                // we are not logging in too often
+                trackEventPerServer(serverName, loginCountMap);
+                logStatistics(serverName);
+
+                // store all the relevant information in the login session and return it
+                return new LoginSession(configDirectory, principal, keytabFilename, loginUser, loginUser.getSubject(),
+                        getKerberosMinMillisBeforeRelogin(serverName, configuration),
+                        getKerberosTicketRenewWindow(serverName, configuration));
+            } catch (IOException ioe) {
+                KerberosAuthException kae = new KerberosAuthException(LOGIN_FAILURE, ioe);
+                kae.setPrincipal(principal);
+                kae.setKeytabFile(keytabFilename);
+                throw kae;
+            }
+        }
         try {
             // create a new Subject to use for login, so that we can remember reference to Subject in LoginSession
             Subject subject = subjectProvider.get();
@@ -134,9 +168,47 @@ public class PxfUserGroupInformation {
     public synchronized void reloginFromKeytab(String serverName, LoginSession loginSession) throws KerberosAuthException {
 
         UserGroupInformation ugi = loginSession.getLoginUser();
+        Subject subject = loginSession.getSubject();
+        String keytabFile = loginSession.getKeytabPath();
+        String keytabPrincipal = loginSession.getPrincipalName();
+
+        if (loginSession.isHadoopLoginContextEnable()) {
+            if (Objects.isNull(ugi) || StringUtils.isEmpty(keytabFile)) {
+                throw new KerberosAuthException(MUST_FIRST_LOGIN_FROM_KEYTAB);
+            }
+
+            if (!ugi.hasKerberosCredentials() || !ugi.isFromKeytab()) {
+                LOG.error("Did not attempt to relogin from keytab: auth={}, fromKeyTab={}", ugi.getAuthenticationMethod(), ugi.isFromKeytab());
+                return;
+            }
+
+            long now = Time.now();
+            KerberosTicket tgt = getTGT(subject);
+            if (!hasSufficientTimeElapsed(now, loginSession)
+                    || !needRefresh(tgt, now, loginSession.getKerberosTicketRenewWindow())) {
+                return;
+            }
+
+            try {
+                LOG.info("Initiating re-login for {} for server {}", keytabPrincipal, serverName);
+                ugi.reloginFromKeytab();
+            } catch (Exception e) {
+                KerberosAuthException kae = new KerberosAuthException(LOGIN_FAILURE, e);
+                kae.setPrincipal(keytabPrincipal);
+                kae.setKeytabFile(keytabFile);
+                throw kae;
+            }
+
+            // Keep track of the number of relogins per server to make sure
+            // we are not re-logging in too often
+            trackEventPerServer(serverName, reloginCountMap);
+
+            logStatistics(serverName);
+            return;
+        }
 
         if (ugi.getAuthenticationMethod() != UserGroupInformation.AuthenticationMethod.KERBEROS ||
-                !ugi.isFromKeytab()) {
+                !isFromKeytab(subject)) {
             LOG.error("Did not attempt to relogin from keytab: auth={}, fromKeyTab={}", ugi.getAuthenticationMethod(), ugi.isFromKeytab());
             return;
         }
@@ -146,7 +218,6 @@ public class PxfUserGroupInformation {
             return;
         }
 
-        Subject subject = loginSession.getSubject();
         KerberosTicket tgt = getTGT(subject);
         //Return if TGT is valid and is not going to expire soon.
         if (tgt != null && now < getRefreshTime(tgt, loginSession.getKerberosTicketRenewWindow())) {
@@ -155,8 +226,6 @@ public class PxfUserGroupInformation {
 
         User user = loginSession.getUser();
         LoginContext login = user.getLogin();
-        String keytabFile = loginSession.getKeytabPath();
-        String keytabPrincipal = loginSession.getPrincipalName();
 
         if (login == null || keytabFile == null) {
             throw new KerberosAuthException(MUST_FIRST_LOGIN_FROM_KEYTAB);
@@ -216,6 +285,46 @@ public class PxfUserGroupInformation {
                             serverName));
         }
         return ticketRenewWindow;
+    }
+
+    private boolean isHadoopLoginContextEnabled(String serverName, Configuration configuration) {
+        boolean isEnabled = configuration.getBoolean(HADOOP_LOGIN_CONTEXT_ENABLE, DEFAULT_HADOOP_LOGIN_CONTEXT_ENABLE);
+        if (isEnabled) {
+            LOG.info("Hadoop Login Context will be used for login process for server {}", serverName);
+            return true;
+        }
+        LOG.info("Login Context will be used for login process for server {}", serverName);
+        return false;
+    }
+
+    /**
+     * Check if the subject contains Kerberos keytab related objects.
+     * This method is used only if the internal login context is used.
+     * If the Hadoop login context is used we don't need this method because
+     * the UserGroupInformation#isFromKeytab method returns correct value.
+     *
+     * @param subject subject to be checked
+     * @return true if the subject contains Kerberos keytab
+     */
+    private boolean isFromKeytab(Subject subject) {
+        if (Objects.isNull(subject)) {
+            return false;
+        }
+        return KerberosUtil.hasKerberosKeyTab(subject);
+    }
+
+    private boolean needRefresh(KerberosTicket tgt, long now, float ticketRenewWindow) {
+        if (Objects.isNull(tgt)) {
+            return true;
+        }
+        long start = tgt.getStartTime().getTime();
+        long end = tgt.getEndTime().getTime();
+        long refreshTime = start + (long) ((end - start) * ticketRenewWindow);
+        if (now > refreshTime) {
+            return true;
+        }
+        LOG.debug("TGT is valid and is not going to expire soon");
+        return false;
     }
 
     // if the first kerberos ticket is not TGT, then remove and destroy it since

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import javax.security.auth.Subject;
 import javax.security.auth.kerberos.KerberosPrincipal;
@@ -13,23 +14,13 @@ import javax.security.auth.kerberos.KerberosTicket;
 import javax.security.auth.kerberos.KeyTab;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
+import java.io.IOException;
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class PxfUserGroupInformationTest {
 
@@ -104,8 +95,11 @@ public class PxfUserGroupInformationTest {
         doNothing().when(mockLoginContext).login();
     }
 
+    /* ---------- Tests with the context login process (pxf.service.kerberos.hadoop-login-context-enable = false) ---------- */
+
     @Test
     public void testLoginFromKeytabMinMillisFromConfig() throws Exception {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         configuration.set("hadoop.kerberos.min.seconds.before.relogin", "33");
         ugi = new UserGroupInformation(subject);
 
@@ -121,6 +115,7 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testLoginFromKeytabMinMillisFromDefault() throws Exception {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         ugi = new UserGroupInformation(subject);
 
         session = pxfUserGroupInformation.loginUserFromKeytab(configuration, "server", "config-dir", "principal/some.host.com@EXAMPLE.COM", "/path/to/keytab");
@@ -135,6 +130,7 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testLoginFromKeytabRenewWindowFromConfig() throws Exception {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         configuration.setFloat("pxf.service.kerberos.ticket-renew-window", 0.2f);
         ugi = new UserGroupInformation(subject);
 
@@ -150,6 +146,7 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testLoginFromKeytabRenewWindowDefault() throws Exception {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         ugi = new UserGroupInformation(subject);
 
         session = pxfUserGroupInformation.loginUserFromKeytab(configuration, "server", "config-dir", "principal/some.host.com@EXAMPLE.COM", "/path/to/keytab");
@@ -164,6 +161,7 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testLoginFromKeytabRenewWindowInvalidValue() throws Exception {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         configuration.set("pxf.service.kerberos.ticket-renew-window", "1.2");
         ugi = new UserGroupInformation(subject);
 
@@ -182,7 +180,8 @@ public class PxfUserGroupInformationTest {
         user.setLogin(mockLoginContext);
         ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
         // do NOT set authentication method of UGI to KERBEROS, will cause NOOP for relogin
-        session = new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f);
+        session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
+        doReturn(false).when(session).isHadoopLoginContextEnable();
 
         pxfUserGroupInformation.reloginFromKeytab(serverName, session);
 
@@ -191,10 +190,12 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testReloginFromKeytabNoopForNonKeytab() throws KerberosAuthException {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         user.setLogin(mockLoginContext);
         ugi = new UserGroupInformation(subject);
         ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
-        session = new LoginSession("config", "principal", "keytab", ugi, subject, 1, 0.8f);
+        session = spy(new LoginSession("config", "principal", "keytab", ugi, subject, 1, 0.8f));
+        doReturn(false).when(session).isHadoopLoginContextEnable();
 
         pxfUserGroupInformation.reloginFromKeytab(serverName, session);
 
@@ -203,12 +204,14 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testReloginFromKeytabNoopInsufficientTimeElapsed() throws KerberosAuthException {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         user.setLogin(mockLoginContext);
         ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
         ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
         user.setLastLogin(nowMs); // simulate just logged in
         // set 33 secs between re-login attempts
-        session = new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 55000L, 0.8f);
+        session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 55000L, 0.8f));
+        doReturn(false).when(session).isHadoopLoginContextEnable();
 
         pxfUserGroupInformation.reloginFromKeytab(serverName, session);
 
@@ -217,6 +220,7 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testReloginFromKeytabNoopTGTValidForLongTime() throws KerberosAuthException {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         user.setLogin(mockLoginContext);
         when(mockTGT.getServer()).thenReturn(tgtPrincipal);
 
@@ -227,7 +231,8 @@ public class PxfUserGroupInformationTest {
         ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
         ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
         // leave user.lastLogin at 0 to simulate old login
-        session = new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f);
+        session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
+        doReturn(false).when(session).isHadoopLoginContextEnable();
 
         pxfUserGroupInformation.reloginFromKeytab(serverName, session);
 
@@ -236,6 +241,7 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testReloginFromKeytabFailsNoLogin() {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         user.setLogin(null); // simulate missing login context for the user
         UserGroupInformation ugi = mock(UserGroupInformation.class);
         when(ugi.getAuthenticationMethod()).thenReturn(UserGroupInformation.AuthenticationMethod.KERBEROS);
@@ -243,6 +249,7 @@ public class PxfUserGroupInformationTest {
         // leave user.lastLogin at 0 to simulate old login
         session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
         doReturn(ugi).when(session).getLoginUser();
+        doReturn(false).when(session).isHadoopLoginContextEnable();
 
         Exception e = assertThrows(KerberosAuthException.class,
                 () -> pxfUserGroupInformation.reloginFromKeytab(serverName, session));
@@ -251,6 +258,7 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testReloginFromKeytabFailsNoKeytab() {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         user.setLogin(mockLoginContext);
         UserGroupInformation ugi = mock(UserGroupInformation.class);
         when(ugi.getAuthenticationMethod()).thenReturn(UserGroupInformation.AuthenticationMethod.KERBEROS);
@@ -258,6 +266,7 @@ public class PxfUserGroupInformationTest {
         // leave user.lastLogin at 0 to simulate old login
         session = spy(new LoginSession("config", "principal", null, ugi, subjectWithKerberosKeyTab, 1, 0.8f));
         doReturn(ugi).when(session).getLoginUser();
+        doReturn(false).when(session).isHadoopLoginContextEnable();
 
         Exception e = assertThrows(KerberosAuthException.class,
                 () -> pxfUserGroupInformation.reloginFromKeytab(serverName, session));
@@ -268,6 +277,7 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testReloginFromKeytabNoValidTGT() throws Exception {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
 
         assertEquals(2, subjectWithKerberosKeyTab.getPrivateCredentials().size()); // subject has 2 tickets
 
@@ -280,6 +290,7 @@ public class PxfUserGroupInformationTest {
         // leave user.lastLogin at 0 to simulate old login
         session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
         doReturn(ugi).when(session).getLoginUser();
+        doReturn(false).when(session).isHadoopLoginContextEnable();
 
         // train to return another LoginContext when it is constructed during re-login
         mockAnotherLoginContext = mock(LoginContext.class);
@@ -303,6 +314,7 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testReloginFromKeytabValidTGTWillExpireSoon() throws Exception {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         user.setLogin(mockLoginContext);
         when(mockTGT.getServer()).thenReturn(tgtPrincipal);
 
@@ -316,6 +328,7 @@ public class PxfUserGroupInformationTest {
         // leave user.lastLogin at 0 to simulate old login
         session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
         doReturn(ugi).when(session).getLoginUser();
+        doReturn(false).when(session).isHadoopLoginContextEnable();
 
         // train to return another LoginContext when it is constructed during re-login
         mockAnotherLoginContext = mock(LoginContext.class);
@@ -333,6 +346,7 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testReloginFromKeytabDifferentRenewWindow() throws Exception {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
         user.setLogin(mockLoginContext);
         when(mockTGT.getServer()).thenReturn(tgtPrincipal);
 
@@ -347,6 +361,7 @@ public class PxfUserGroupInformationTest {
         // leave user.lastLogin at 0 to simulate old login
         session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
         doReturn(ugi).when(session).getLoginUser();
+        doReturn(false).when(session).isHadoopLoginContextEnable();
 
         // with the default threshold, there should be no change to the login
         pxfUserGroupInformation.reloginFromKeytab(serverName, session);
@@ -359,7 +374,8 @@ public class PxfUserGroupInformationTest {
         when(mockLoginContextProvider.newLoginContext(anyString(), any(), any())).thenReturn(mockAnotherLoginContext);
 
         // change the renew threshold to 50%
-        session = new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.5f);
+        session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.5f));
+        doReturn(false).when(session).isHadoopLoginContextEnable();
         pxfUserGroupInformation.reloginFromKeytab(serverName, session);
 
         assertNotSame(mockLoginContext, user.getLogin());
@@ -372,6 +388,7 @@ public class PxfUserGroupInformationTest {
 
     @Test
     public void testReloginFromKeytabThrowsExceptionOnLoginFailure() throws Exception {
+        configuration.set("pxf.service.kerberos.hadoop-login-context-enable", "false");
 
         user.setLogin(mockLoginContext);
         when(mockTGT.getServer()).thenReturn(nonTgtPrincipal); // ticket is not from krbtgt, so not valid
@@ -381,6 +398,7 @@ public class PxfUserGroupInformationTest {
         // leave user.lastLogin at 0 to simulate old login
         session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
         doReturn(ugi).when(session).getLoginUser();
+        doReturn(false).when(session).isHadoopLoginContextEnable();
 
         // train to return another LoginContext when it is constructed during re-login
         mockAnotherLoginContext = mock(LoginContext.class);
@@ -392,6 +410,265 @@ public class PxfUserGroupInformationTest {
         assertEquals("Login failure for principal: principal from keytab keytab javax.security.auth.login.LoginException: foo", e.getMessage());
     }
 
+    /* ---------- Tests with the Hadoop context login process (pxf.service.kerberos.hadoop-login-context-enable = true) ---------- */
+    @Test
+    public void testHadoopContextLoginFromKeytabMinMillisFromConfigHadoopContext() throws Exception {
+        configuration.set("hadoop.kerberos.min.seconds.before.relogin", "33");
+
+        ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
+        ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+
+        try (MockedStatic<UserGroupInformation> ugiMockedStatic = mockStatic(UserGroupInformation.class)) {
+            ugiMockedStatic.when(() -> UserGroupInformation.loginUserFromKeytabAndReturnUGI(any(String.class), any(String.class)))
+                    .thenReturn(ugi);
+            session = pxfUserGroupInformation.loginUserFromKeytab(configuration, "server", "config-dir", "principal/some.host.com@EXAMPLE.COM", "/path/to/keytab");
+            // assert that the login session was created with properly wired up ugi/subject/user/loginContext
+            assertEquals(33000, session.getKerberosMinMillisBeforeRelogin()); // will pick from configuration
+            assertHadoopContextSessionInfo(session, ugi, subjectWithKerberosKeyTab, user);
+
+            ugiMockedStatic.verify(() -> UserGroupInformation.loginUserFromKeytabAndReturnUGI(any(String.class), any(String.class)));
+        }
+    }
+
+    @Test
+    public void testHadoopContextLoginFromKeytabMinMillisFromDefault() throws Exception {
+        ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
+        ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+
+        try (MockedStatic<UserGroupInformation> ugiMockedStatic = mockStatic(UserGroupInformation.class)) {
+            ugiMockedStatic.when(() -> UserGroupInformation.loginUserFromKeytabAndReturnUGI(any(String.class), any(String.class)))
+                    .thenReturn(ugi);
+            session = pxfUserGroupInformation.loginUserFromKeytab(configuration, "server", "config-dir", "principal/some.host.com@EXAMPLE.COM", "/path/to/keytab");
+            // assert that the login session was created with properly wired up ugi/subject/user/loginContext
+            assertEquals(60000, session.getKerberosMinMillisBeforeRelogin()); // will pick from configuration
+            assertHadoopContextSessionInfo(session, ugi, subjectWithKerberosKeyTab, user);
+
+            ugiMockedStatic.verify(() -> UserGroupInformation.loginUserFromKeytabAndReturnUGI(any(String.class), any(String.class)));
+        }
+    }
+
+    @Test
+    public void testHadoopContextLoginFromKeytabRenewWindowFromConfig() throws Exception {
+        configuration.setFloat("pxf.service.kerberos.ticket-renew-window", 0.2f);
+
+        ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
+        ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+
+        try (MockedStatic<UserGroupInformation> ugiMockedStatic = mockStatic(UserGroupInformation.class)) {
+            ugiMockedStatic.when(() -> UserGroupInformation.loginUserFromKeytabAndReturnUGI(any(String.class), any(String.class)))
+                    .thenReturn(ugi);
+            session = pxfUserGroupInformation.loginUserFromKeytab(configuration, "server", "config-dir", "principal/some.host.com@EXAMPLE.COM", "/path/to/keytab");
+            // assert that the login session was created with properly wired up ugi/subject/user/loginContext
+            assertEquals(0.2f, session.getKerberosTicketRenewWindow()); // will pick from configuration
+            assertHadoopContextSessionInfo(session, ugi, subjectWithKerberosKeyTab, user);
+
+            ugiMockedStatic.verify(() -> UserGroupInformation.loginUserFromKeytabAndReturnUGI(any(String.class), any(String.class)));
+        }
+    }
+
+    @Test
+    public void testHadoopContextLoginFromKeytabRenewWindowDefault() throws Exception {
+        ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
+        ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+
+        try (MockedStatic<UserGroupInformation> ugiMockedStatic = mockStatic(UserGroupInformation.class)) {
+            ugiMockedStatic.when(() -> UserGroupInformation.loginUserFromKeytabAndReturnUGI(any(String.class), any(String.class)))
+                    .thenReturn(ugi);
+            session = pxfUserGroupInformation.loginUserFromKeytab(configuration, "server", "config-dir", "principal/some.host.com@EXAMPLE.COM", "/path/to/keytab");
+            // assert that the login session was created with properly wired up ugi/subject/user/loginContext
+            assertEquals(0.8f, session.getKerberosTicketRenewWindow()); // will pick from configuration
+            assertHadoopContextSessionInfo(session, ugi, subjectWithKerberosKeyTab, user);
+
+            ugiMockedStatic.verify(() -> UserGroupInformation.loginUserFromKeytabAndReturnUGI(any(String.class), any(String.class)));
+        }
+    }
+
+    @Test
+    public void testHadoopContextLoginFromKeytabRenewWindowInvalidValue() {
+        configuration.set("pxf.service.kerberos.ticket-renew-window", "1.2");
+
+        ugi = new UserGroupInformation(subjectWithKerberosKeyTab);
+        ugi.setAuthenticationMethod(UserGroupInformation.AuthenticationMethod.KERBEROS);
+
+        try (MockedStatic<UserGroupInformation> ugiMockedStatic = mockStatic(UserGroupInformation.class)) {
+            ugiMockedStatic.when(() -> UserGroupInformation.loginUserFromKeytabAndReturnUGI(any(String.class), any(String.class)))
+                    .thenReturn(ugi);
+
+            Exception e = assertThrows(IllegalArgumentException.class,
+                    () -> pxfUserGroupInformation.loginUserFromKeytab(configuration, "server", "config-dir", "principal/some.host.com@EXAMPLE.COM", "/path/to/keytab"));
+            assertEquals("Invalid value for pxf.service.kerberos.ticket-renew-window of 1.200000 for server server. Please choose a value between 0 and 1.", e.getMessage());
+
+            ugiMockedStatic.verify(() -> UserGroupInformation.loginUserFromKeytabAndReturnUGI(any(String.class), any(String.class)));
+        }
+    }
+
+    /* ---------- Test below follow either cause no re-login (noop) or error out ---------- */
+
+    @Test
+    public void testHadoopContextReloginFromKeytabNoopForNonKerberos() throws IOException {
+        UserGroupInformation mockUgi = mock(UserGroupInformation.class);
+        when(mockUgi.getSubject()).thenReturn(subjectWithKerberosKeyTab);
+        when(mockUgi.hasKerberosCredentials()).thenReturn(false);
+        when(mockUgi.isFromKeytab()).thenReturn(true);
+        // do NOT set authentication method of UGI to KERBEROS, will cause NOOP for relogin
+        session = spy(new LoginSession("config", "principal", "keytab", mockUgi, subjectWithKerberosKeyTab, 1, 0.8f));
+        doReturn(true).when(session).isHadoopLoginContextEnable();
+
+        pxfUserGroupInformation.reloginFromKeytab(serverName, session);
+
+        verify(mockUgi, times(0)).reloginFromKeytab();
+    }
+
+    @Test
+    public void testHadoopContextReloginFromKeytabNoopForNonKeytab() throws IOException {
+        UserGroupInformation mockUgi = mock(UserGroupInformation.class);
+        when(mockUgi.getSubject()).thenReturn(subjectWithKerberosKeyTab);
+        when(mockUgi.isFromKeytab()).thenReturn(false);
+        when(mockUgi.hasKerberosCredentials()).thenReturn(true); // UserGroupInformation.AuthenticationMethod.KERBEROS;
+        session = spy(new LoginSession("config", "principal", "keytab", mockUgi, subject, 1, 0.8f));
+        doReturn(true).when(session).isHadoopLoginContextEnable();
+
+        pxfUserGroupInformation.reloginFromKeytab(serverName, session);
+
+        verify(mockUgi, times(0)).reloginFromKeytab(); // proves noop
+    }
+
+    @Test
+    public void testHadoopContextReloginFromKeytabNoopInsufficientTimeElapsed() throws IOException {
+        UserGroupInformation mockUgi = mock(UserGroupInformation.class);
+        when(mockUgi.getSubject()).thenReturn(subjectWithKerberosKeyTab);
+        when(mockUgi.isFromKeytab()).thenReturn(true);
+        when(mockUgi.hasKerberosCredentials()).thenReturn(true); // UserGroupInformation.AuthenticationMethod.KERBEROS
+        user.setLastLogin(nowMs);
+        session = new LoginSession("config", "principal", "keytab", mockUgi, subjectWithKerberosKeyTab, 55000L, 0.8f);
+
+        pxfUserGroupInformation.reloginFromKeytab(serverName, session);
+
+        verify(mockUgi, times(0)).reloginFromKeytab(); // proves noop
+    }
+
+    @Test
+    public void testHadoopContextReloginFromKeytabNoopTGTValidForLongTime() throws IOException {
+        UserGroupInformation mockUgi = mock(UserGroupInformation.class);
+        when(mockUgi.getSubject()).thenReturn(subjectWithKerberosKeyTab);
+        when(mockUgi.isFromKeytab()).thenReturn(true);
+        when(mockUgi.hasKerberosCredentials()).thenReturn(true); // UserGroupInformation.AuthenticationMethod.KERBEROS
+
+        when(mockTGT.getServer()).thenReturn(tgtPrincipal);
+
+        // TGT validity started 1 hr ago, valid for another 1 hr from now, we are at 50% of renew window
+        when(mockTGT.getStartTime()).thenReturn(new Date(nowMs - 3600 * 1000L));
+        when(mockTGT.getEndTime()).thenReturn(new Date(nowMs + 3600 * 1000L));
+
+        // leave user.lastLogin at 0 to simulate old login
+        session = new LoginSession("config", "principal", "keytab", mockUgi, subjectWithKerberosKeyTab, 1, 0.8f);
+
+        pxfUserGroupInformation.reloginFromKeytab(serverName, session);
+
+        verify(mockUgi, times(0)).reloginFromKeytab(); // proves noop
+    }
+
+    @Test
+    public void testHadoopContextReloginFromKeytabFailsNoLogin() {
+        UserGroupInformation ugi = null;
+        session = spy(new LoginSession("config", "principal", "keytab", ugi, subjectWithKerberosKeyTab, 1, 0.8f));
+        doReturn(true).when(session).isHadoopLoginContextEnable();
+
+        Exception e = assertThrows(KerberosAuthException.class,
+                () -> pxfUserGroupInformation.reloginFromKeytab(serverName, session));
+        assertEquals(" loginUserFromKeyTab must be done first", e.getMessage());
+    }
+
+    @Test
+    public void testHadoopContextReloginFromKeytabFailsNoKeytab() {
+        UserGroupInformation mockUgi = mock(UserGroupInformation.class);
+        when(mockUgi.getSubject()).thenReturn(subjectWithKerberosKeyTab);
+        when(mockUgi.isFromKeytab()).thenReturn(true);
+        when(mockUgi.hasKerberosCredentials()).thenReturn(true); // UserGroupInformation.AuthenticationMethod.KERBEROS
+        session = spy(new LoginSession("config", "principal", null, mockUgi, subjectWithKerberosKeyTab, 1, 0.8f));
+
+        Exception e = assertThrows(KerberosAuthException.class,
+                () -> pxfUserGroupInformation.reloginFromKeytab(serverName, session));
+        assertEquals(" loginUserFromKeyTab must be done first", e.getMessage());
+    }
+
+    /* ---------- Test below follow full login path via a few alternatives ---------- */
+
+    @Test
+    public void testHadoopContextReloginFromKeytabNoValidTGT() throws Exception {
+        UserGroupInformation mockUgi = mock(UserGroupInformation.class);
+        when(mockUgi.getSubject()).thenReturn(subjectWithKerberosKeyTab);
+        when(mockUgi.isFromKeytab()).thenReturn(true);
+        when(mockUgi.hasKerberosCredentials()).thenReturn(true); // UserGroupInformation.AuthenticationMethod.KERBEROS
+
+        when(mockTGT.getServer()).thenReturn(null);
+
+        session = new LoginSession("config", "principal", "keytab", mockUgi, subjectWithKerberosKeyTab, 1, 0.8f);
+        pxfUserGroupInformation.reloginFromKeytab(serverName, session);
+
+        verify(mockUgi, times(1)).reloginFromKeytab();
+    }
+
+    @Test
+    public void testHadoopContextReloginFromKeytabValidTGTWillExpireSoon() throws Exception {
+        UserGroupInformation mockUgi = mock(UserGroupInformation.class);
+        when(mockUgi.getSubject()).thenReturn(subjectWithKerberosKeyTab);
+        when(mockUgi.isFromKeytab()).thenReturn(true);
+        when(mockUgi.hasKerberosCredentials()).thenReturn(true);
+        when(mockTGT.getServer()).thenReturn(tgtPrincipal);
+
+        // TGT validity started 1 hr ago, valid for another 10 mins, we are at 6/7 or 85% > 80% of renew window
+        when(mockTGT.getStartTime()).thenReturn(new Date(nowMs - 3600 * 1000L));
+        when(mockTGT.getEndTime()).thenReturn(new Date(nowMs + 600 * 1000L));
+
+        session = new LoginSession("config", "principal", "keytab", mockUgi, subjectWithKerberosKeyTab, 1, 0.8f);
+        pxfUserGroupInformation.reloginFromKeytab(serverName, session);
+
+        verify(mockUgi, times(1)).reloginFromKeytab();
+    }
+
+    @Test
+    public void testHadoopContextReloginFromKeytabDifferentRenewWindow() throws Exception {
+        UserGroupInformation mockUgi = mock(UserGroupInformation.class);
+        when(mockUgi.getSubject()).thenReturn(subjectWithKerberosKeyTab);
+        when(mockUgi.isFromKeytab()).thenReturn(true);
+        when(mockUgi.hasKerberosCredentials()).thenReturn(true);
+        when(mockTGT.getServer()).thenReturn(tgtPrincipal);
+
+        // TGT validity started 1 hr ago, valid for another 1 hr, we are at 6/12 or 50% which is less
+        // than the default renew window of 80%
+        when(mockTGT.getStartTime()).thenReturn(new Date(nowMs - 3600 * 1000L));
+        when(mockTGT.getEndTime()).thenReturn(new Date(nowMs + 3600 * 1000L));
+
+        session = new LoginSession("config", "principal", "keytab", mockUgi, subjectWithKerberosKeyTab, 1, 0.8f);
+
+        // with the default threshold, there should be no change to the login
+        verify(mockUgi, times(0)).reloginFromKeytab();
+
+        // change the renew threshold to 50%
+        session = new LoginSession("config", "principal", "keytab", mockUgi, subjectWithKerberosKeyTab, 1, 0.5f);
+        pxfUserGroupInformation.reloginFromKeytab(serverName, session);
+
+        verify(mockUgi, times(1)).reloginFromKeytab();
+    }
+
+    @Test
+    public void testHadoopContextReloginFromKeytabThrowsExceptionOnLoginFailure() throws Exception {
+        when(mockTGT.getServer()).thenReturn(nonTgtPrincipal);
+        UserGroupInformation mockUgi = mock(UserGroupInformation.class);
+        when(mockUgi.hasKerberosCredentials()).thenReturn(true);
+        when(mockUgi.isFromKeytab()).thenReturn(true);
+        session = new LoginSession("config", "principal", "keytab", mockUgi, subjectWithKerberosKeyTab, 1, 0.8f);
+
+        doThrow(new KerberosAuthException("foo")).when(mockUgi).reloginFromKeytab(); // simulate login failure
+
+        Exception e = assertThrows(KerberosAuthException.class,
+                () -> pxfUserGroupInformation.reloginFromKeytab(serverName, session));
+        assertEquals("Login failure for principal: principal from keytab keytab org.apache.hadoop.security.KerberosAuthException:  foo", e.getMessage());
+    }
+
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+
     private static void assertSessionInfo(LoginSession session, LoginContext loginContext, UserGroupInformation ugi, Subject subject, User user) {
         assertEquals("/path/to/keytab", session.getKeytabPath());
         assertEquals("principal/some.host.com@EXAMPLE.COM", session.getPrincipalName());
@@ -400,6 +677,15 @@ public class PxfUserGroupInformationTest {
         assertSame(subject, session.getSubject());
         assertSame(user, session.getUser());
         assertSame(loginContext, session.getUser().getLogin());
+        assertEquals(UserGroupInformation.AuthenticationMethod.KERBEROS, session.getLoginUser().getAuthenticationMethod());
+    }
+
+    private static void assertHadoopContextSessionInfo(LoginSession session, UserGroupInformation ugi, Subject subject, User user) {
+        assertEquals("/path/to/keytab", session.getKeytabPath());
+        assertEquals("principal/some.host.com@EXAMPLE.COM", session.getPrincipalName());
+        assertEquals(ugi, session.getLoginUser()); // UGI equality only compares enclosed subjects
+        assertSame(subject, session.getSubject());
+        assertSame(user, session.getUser());
         assertEquals(UserGroupInformation.AuthenticationMethod.KERBEROS, session.getLoginUser().getAuthenticationMethod());
     }
 
