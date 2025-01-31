@@ -32,8 +32,10 @@ typedef struct PxfFdwCancelState
 	CHURL_HANDLE churl_handle;
 	ResourceOwner owner;
 	StringInfoData uri;
+	char       *pxf_protocol;
 	int			pxf_port;		/* port number for the PXF Service */
 	char	   *pxf_host;		/* hostname for the PXF Service */
+	churl_ssl_options *ssl_options; /* NULL if SSL not configured */
 } PxfFdwCancelState;
 
 /* helper function declarations */
@@ -46,6 +48,56 @@ static size_t FillBuffer(PxfFdwScanState *pxfsstate, char *start, int minlen, in
 #else
 static size_t FillBuffer(PxfFdwScanState *pxfsstate, char *start, size_t size);
 #endif
+
+static churl_ssl_options *churl_make_ssl_options(PxfOptions *options)
+{
+	churl_ssl_options *ssl_options = palloc0(sizeof(churl_ssl_options));
+
+	if (options->pxf_ssl_cacert)
+		ssl_options->pxf_ssl_cacert = pstrdup(options->pxf_ssl_cacert);
+
+	if (options->pxf_ssl_cert)
+		ssl_options->pxf_ssl_cert = pstrdup(options->pxf_ssl_cert);
+
+	if (options->pxf_ssl_cert_type)
+		ssl_options->pxf_ssl_cert_type = pstrdup(options->pxf_ssl_cert_type);
+
+	if (options->pxf_ssl_key)
+		ssl_options->pxf_ssl_key = pstrdup(options->pxf_ssl_key);
+
+	if (options->pxf_ssl_keypasswd)
+		ssl_options->pxf_ssl_keypasswd = pstrdup(options->pxf_ssl_keypasswd);
+
+	ssl_options->pxf_ssl_verify_peer = options->pxf_ssl_verify_peer;
+
+	return ssl_options;
+}
+
+static void free_churl_ssl_options(churl_ssl_options *ssl_options)
+{
+	if (ssl_options->pxf_ssl_cacert)
+		pfree(ssl_options->pxf_ssl_cacert);
+
+	if (ssl_options->pxf_ssl_cert)
+		pfree(ssl_options->pxf_ssl_cert);
+
+	if (ssl_options->pxf_ssl_cert_type)
+		pfree(ssl_options->pxf_ssl_cert_type);
+
+	if (ssl_options->pxf_ssl_key)
+		pfree(ssl_options->pxf_ssl_key);
+	
+	if (ssl_options->pxf_ssl_keypasswd)
+		pfree(ssl_options->pxf_ssl_keypasswd);
+
+	pfree(ssl_options);
+}
+
+static bool
+IsProtocolHttps(const char *protocol) 
+{
+	return protocol != NULL && (strcmp("https", protocol) == 0);	
+}
 
 static void
 PxfBridgeAbortCallback(ResourceReleasePhase phase,
@@ -84,7 +136,7 @@ PxfBridgeCancel(PxfFdwCancelState *pxfcstate)
 
 		initStringInfo(&pxfcstate->uri);
 		BuildUriForCancel(pxfcstate);
-		churl_handle = churl_init_upload_timeout(pxfcstate->uri.data, pxfcstate->churl_headers, 1L);
+		churl_handle = churl_init_upload_timeout(pxfcstate->uri.data, pxfcstate->churl_headers, pxfcstate->ssl_options, 1L);
 
 		churl_cleanup(churl_handle, false);
 	}
@@ -112,8 +164,15 @@ PxfBridgeCancelCleanup(PxfFdwCancelState *pxfcstate)
 	if (IsAbortInProgress())
 		PxfBridgeCancel(pxfcstate);
 
+	if (pxfcstate->pxf_protocol)
+		pfree(pxfcstate->pxf_protocol);
+
 	if (pxfcstate->pxf_host)
 		pfree(pxfcstate->pxf_host);
+
+	if (pxfcstate->ssl_options) {
+		free_churl_ssl_options(pxfcstate->ssl_options);
+	}
 
 	pfree(pxfcstate);
 }
@@ -181,6 +240,7 @@ PxfBridgeImportStart(PxfFdwScanState *pxfsstate)
 {
 	MemoryContext oldcontext;
 	PxfFdwCancelState *pxfcstate;
+	churl_ssl_options *ssl_options = NULL;
 
 	pxfsstate->churl_headers = churl_headers_init();
 
@@ -192,11 +252,23 @@ PxfBridgeImportStart(PxfFdwScanState *pxfsstate)
 					 pxfsstate->retrieved_attrs,
 					 pxfsstate->projectionInfo);
 
-	pxfsstate->churl_handle = churl_init_download(pxfsstate->uri.data, pxfsstate->churl_headers);
+	if (IsProtocolHttps(pxfsstate->options->pxf_protocol)) {
+		ssl_options = churl_make_ssl_options(pxfsstate->options);
+	}
+
+	pxfsstate->churl_handle = churl_init_download(pxfsstate->uri.data, pxfsstate->churl_headers, ssl_options);
+	if (ssl_options != NULL) {
+		free_churl_ssl_options(ssl_options);
+	}
 
 	oldcontext = MemoryContextSwitchTo(CurTransactionContext);
 	pxfcstate = palloc0(sizeof(PxfFdwCancelState));
+	pxfcstate->pxf_protocol = pstrdup(pxfsstate->options->pxf_protocol);
 	pxfcstate->pxf_host = pstrdup(pxfsstate->options->pxf_host);
+	if (ssl_options != NULL) {
+		/* make another copy for transaction context */
+		pxfcstate->ssl_options = churl_make_ssl_options(pxfsstate->options);
+	}
 	MemoryContextSwitchTo(oldcontext);
 	pxfsstate->pxfcstate = pxfcstate;
 	pxfcstate->churl_headers = pxfsstate->churl_headers;
@@ -215,6 +287,7 @@ PxfBridgeImportStart(PxfFdwScanState *pxfsstate)
 void
 PxfBridgeExportStart(PxfFdwModifyState *pxfmstate)
 {
+	churl_ssl_options *ssl_options = NULL; /* NULL if SSL not used */
 	BuildUriForWrite(pxfmstate);
 	pxfmstate->churl_headers = churl_headers_init();
 	BuildHttpHeaders(pxfmstate->churl_headers,
@@ -223,7 +296,16 @@ PxfBridgeExportStart(PxfFdwModifyState *pxfmstate)
 					 NULL,
 					 NULL,
 					 NULL);
-	pxfmstate->churl_handle = churl_init_upload(pxfmstate->uri.data, pxfmstate->churl_headers);
+
+	if (IsProtocolHttps(pxfmstate->options->pxf_protocol)) {
+		ssl_options = churl_make_ssl_options(pxfmstate->options);
+	}
+
+	pxfmstate->churl_handle = churl_init_upload(pxfmstate->uri.data, pxfmstate->churl_headers, ssl_options);
+
+	if (ssl_options != NULL) {
+		free_churl_ssl_options(ssl_options);
+	}
 }
 
 /*
@@ -280,8 +362,11 @@ PxfBridgeWrite(PxfFdwModifyState *pxfmstate, char *databuf, int datalen)
 static void
 BuildUriForCancel(PxfFdwCancelState *pxfcstate)
 {
+	const char *protocol = IsProtocolHttps(pxfcstate->pxf_protocol) ? "https" : "http";
+
 	resetStringInfo(&pxfcstate->uri);
-	appendStringInfo(&pxfcstate->uri, "http://%s:%d/%s/cancel", pxfcstate->pxf_host, pxfcstate->pxf_port, PXF_SERVICE_PREFIX);
+	appendStringInfo(&pxfcstate->uri, "%s://%s:%d/%s/cancel", 
+		protocol, pxfcstate->pxf_host, pxfcstate->pxf_port, PXF_SERVICE_PREFIX);
 	elog(DEBUG2, "pxf_fdw: uri %s for cancel", pxfcstate->uri.data);
 }
 
@@ -292,9 +377,11 @@ static void
 BuildUriForRead(PxfFdwScanState *pxfsstate)
 {
 	PxfOptions *options = pxfsstate->options;
+	const char *protocol = IsProtocolHttps(options->pxf_protocol) ? "https" : "http";
 
 	resetStringInfo(&pxfsstate->uri);
-	appendStringInfo(&pxfsstate->uri, "http://%s:%d/%s/read", options->pxf_host, options->pxf_port, PXF_SERVICE_PREFIX);
+	appendStringInfo(&pxfsstate->uri, "%s://%s:%d/%s/read", 
+		protocol, options->pxf_host, options->pxf_port, PXF_SERVICE_PREFIX);
 	elog(DEBUG2, "pxf_fdw: uri %s for read", pxfsstate->uri.data);
 }
 
@@ -305,9 +392,11 @@ static void
 BuildUriForWrite(PxfFdwModifyState *pxfmstate)
 {
 	PxfOptions *options = pxfmstate->options;
+	const char *protocol = IsProtocolHttps(options->pxf_protocol) ? "https" : "http";
 
 	resetStringInfo(&pxfmstate->uri);
-	appendStringInfo(&pxfmstate->uri, "http://%s:%d/%s/write", options->pxf_host, options->pxf_port, PXF_SERVICE_PREFIX);
+	appendStringInfo(&pxfmstate->uri, "%s://%s:%d/%s/write", 
+		protocol, options->pxf_host, options->pxf_port, PXF_SERVICE_PREFIX);
 	elog(DEBUG2, "pxf_fdw: uri %s with file name for write: %s", pxfmstate->uri.data, options->resource);
 }
 

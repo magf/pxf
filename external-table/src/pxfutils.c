@@ -8,6 +8,9 @@
 #include "utils/formatting.h"
 #include "utils/syscache.h"
 
+static const char *getenv_char(const char *name, const char *default_value);
+static long getenv_long(const char *name, long default_value);
+
 /*
  * Full name of the HEADER KEY expected by the PXF service
  * Converts input string to upper case and prepends "X-GP-OPTIONS-" string
@@ -69,11 +72,33 @@ concat(int num_args,...)
 	return str.data;
 }
 
+static const char*
+getenv_char(const char *name, const char *default_value)
+{
+	const char *value = getenv(name);
+
+	return value ? value : default_value;
+}
+
+static long 
+getenv_long(const char *name, long default_value)
+{
+	const char *value = getenv(name);
+
+	return value ? atol(value) : default_value;
+}
+
 /* Get authority (host:port) for the PXF server URL */
 char *
 get_authority(void)
 {
 	return psprintf("%s:%d", get_pxf_host(), get_pxf_port());
+}
+
+const char *
+get_pxf_protocol(void)
+{
+	return getenv_char(ENV_PXF_PROTOCOL, PXF_DEFAULT_PROTOCOL);
 }
 
 /* Returns the PXF Host defined in the PXF_HOST
@@ -114,6 +139,42 @@ get_pxf_port(void)
 	}
 
 	return port;
+}
+
+const char *
+get_pxf_ssl_keypasswd(void)
+{
+	return getenv_char(ENV_PXF_SSL_KEYPASSWD, PXF_DEFAULT_SSL_KEYPASSWD);
+}
+
+const char *
+get_pxf_ssl_cacert(void)
+{
+	return getenv_char(ENV_PXF_SSL_CACERT, PXF_DEFAULT_SSL_CACERT);
+}
+
+const char *
+get_pxf_ssl_cert(void)
+{
+	return getenv_char(ENV_PXF_SSL_CERT, PXF_DEFAULT_SSL_CERT);
+}
+
+const char *
+get_pxf_ssl_key(void)
+{
+	return getenv_char(ENV_PXF_SSL_KEY, PXF_DEFAULT_SSL_KEY);
+}
+
+const char *
+get_pxf_ssl_certtype(void)
+{
+	return getenv_char(ENV_PXF_SSL_CERT_TYPE, PXF_DEFAULT_SSL_CERT_TYPE);
+}
+
+long
+get_pxf_ssl_verifypeer(void)
+{
+	return getenv_long(ENV_PXF_SSL_VERIFY_PEER, PXF_DEFAULT_SSL_VERIFY_PEER);
 }
 
 /* Returns the namespace (schema) name for a given namespace oid */

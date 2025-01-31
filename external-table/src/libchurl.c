@@ -108,6 +108,7 @@ static JsonSemAction nullSemAction =
 churl_context *churl_new_context(void);
 static void		create_curl_handle(churl_context *context);
 static void		set_curl_option(churl_context *context, CURLoption option, const void *data);
+static void     set_curl_ssl_options(churl_context *context);
 static size_t	read_callback(void *ptr, size_t size, size_t nmemb, void *userdata);
 static void		setup_multi_handle(churl_context *context);
 static void		multi_perform(churl_context *context);
@@ -415,9 +416,36 @@ churl_init(const char *url, CHURL_HEADERS headers)
 	set_curl_option(context, CURLOPT_WRITEDATA, context);
 	set_curl_option(context, CURLOPT_HEADERFUNCTION, header_callback);
 	set_curl_option(context, CURLOPT_HEADERDATA, context);
+
+	set_curl_ssl_options(context);
+
 	churl_headers_set(context, headers);
 
 	return (CHURL_HANDLE) context;
+}
+
+static void
+set_curl_ssl_options(churl_context *context)
+{
+	const char *protocol = get_pxf_protocol();
+
+	if (protocol && strcmp(protocol, "https") == 0)
+	{
+		const char *cacert = get_pxf_ssl_cacert();
+
+		set_curl_option(context, CURLOPT_SSLCERT, get_pxf_ssl_cert());
+		set_curl_option(context, CURLOPT_SSLKEY, get_pxf_ssl_key());
+
+		set_curl_option(context, CURLOPT_SSLCERTTYPE, get_pxf_ssl_certtype());
+		set_curl_option(context, CURLOPT_KEYPASSWD, get_pxf_ssl_keypasswd());
+
+		if (cacert != NULL && cacert[0] != '\0')
+		{
+			set_curl_option(context, CURLOPT_CAINFO, cacert);
+		}
+
+		set_curl_option(context, CURLOPT_SSL_VERIFYPEER, (const void *) get_pxf_ssl_verifypeer());
+	}
 }
 
 CHURL_HANDLE
