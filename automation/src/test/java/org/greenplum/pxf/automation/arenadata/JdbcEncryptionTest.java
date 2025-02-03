@@ -18,7 +18,7 @@ public class JdbcEncryptionTest extends BaseFeature {
     private static final String ENCRYPTED_PASSWORD = "aes256:e77OEIQcMjH0nVS7dTGg4Ow00CVYE9jKxA+EPns5wfm1oA3sxY00pg0wCpWDQrobiysiFoB80GOxeLUd69WXhA==";
     private static final String WRONG_ENCRYPTED_PASSWORD = "aes256:wrong-password";
     private static final String ADD_ENCRYPTION_PROPERTIES_COMMAND_TEMPLATE = "cat <<EOT >> %s/conf/pxf-application.properties\n" +
-            "# Encryption\n" +
+            "\n# Encryption\n" +
             "pxf.ssl.jks-store.path=%s/conf/pxfkeystore.jks\n" +
             "pxf.ssl.jks-store.password=12345678\n" +
             "pxf.ssl.salt.key=PXF_PASS_KEY\n" +
