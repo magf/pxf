@@ -427,9 +427,9 @@ churl_init(const char *url, CHURL_HEADERS headers)
 static void
 set_curl_ssl_options(churl_context *context)
 {
-	const char *proto = get_pxf_protocol();
+	const char *protocol = get_pxf_protocol();
 
-	if (proto && strcmp(proto, "https") == 0)
+	if (protocol && strcmp(protocol, "https") == 0)
 	{
 		const char *cacert = get_pxf_ssl_cacert();
 

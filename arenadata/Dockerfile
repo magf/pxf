@@ -66,5 +66,39 @@ RUN source gpdb_src/concourse/scripts/common.bash && \
 
 # create test image which prepares base image and keeps only pxf artifacts from build image
 FROM base as test
+ENV GPHOME=/usr/local/greenplum-db-devel
+ENV PXF_HOME=/usr/local/greenplum-db-devel/pxf
+
 COPY --from=build /tmp/build/${OUTPUT_ARTIFACT_DIR}/pxf.tar.gz /tmp/build/${OUTPUT_ARTIFACT_DIR}/
 COPY --from=build /tmp/build/pxf_src /tmp/build/pxf_src
+
+FROM test as test_ssl
+
+COPY --from=build /tmp/build/pxf_src/automation/arenadata/conf/ssl/certs /opt/ssl/certs
+
+RUN mkdir -p ${GPHOME} && tar -xzf /tmp/build/${OUTPUT_ARTIFACT_DIR}/pxf.tar.gz -C ${GPHOME}
+
+# Copy pxf-application.properties
+COPY --from=build /tmp/build/pxf_src/automation/arenadata/conf/pxf-application.properties ${PXF_HOME}/conf/pxf-application.properties
+
+ENV HOSTNAME=mdw
+ENV DOCKER_GP_CLUSTER_HOSTS=mdw,sdw1,sdw2
+ENV DOCKER_GP_MASTER_SERVER=mdw
+ENV DOCKER_GP_SEGMENT_SERVERS=sdw1,sdw2
+ENV DOCKER_GP_PRIMARY_SEGMENTS_PER_HOST=3
+ENV DOCKER_GP_WITH_MIRROR=false
+ENV PXF_PROTOCOL=https
+ENV PXF_HOST=mdw
+ENV PXF_PORT=5888
+ENV PXF_VAULT_ENABLED=true
+ENV PXF_VAULT_SECRET_PATH=adb/adb-it/service/pxf
+ENV PXF_SSL_ENABLED=true
+ENV PXF_SSL_KEY_STORE_PATH=/opt/ssl/certs/pxf.jks
+ENV PXF_SSL_TRUST_STORE_PATH=/opt/ssl/certs/pxf.jks
+ENV PXF_SSL_CLIENT_AUTH=NEED
+ENV PXF_SSL_CACERT=/opt/ssl/certs/ca-cert
+ENV PXF_SSL_CERT=/opt/ssl/certs/pxf-client.pem
+ENV PXF_SSL_KEY=/opt/ssl/certs/pxf-client.key
+ENV PXF_SSL_CERT_TYPE=PEMCOPY 
+ENV PXF_SSL_KEY_STORE_PASSWORD=123456
+ENV PXF_SSL_TRUST_STORE_PASSWORD=123456
