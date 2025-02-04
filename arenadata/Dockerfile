@@ -72,6 +72,7 @@ ENV PXF_HOME=/usr/local/greenplum-db-devel/pxf
 COPY --from=build /tmp/build/${OUTPUT_ARTIFACT_DIR}/pxf.tar.gz /tmp/build/${OUTPUT_ARTIFACT_DIR}/
 COPY --from=build /tmp/build/pxf_src /tmp/build/pxf_src
 
+# create test image with full support of SSL 
 FROM test as test_ssl
 
 COPY --from=build /tmp/build/pxf_src/automation/arenadata/conf/ssl/certs /opt/ssl/certs
@@ -99,6 +100,6 @@ ENV PXF_SSL_CLIENT_AUTH=NEED
 ENV PXF_SSL_CACERT=/opt/ssl/certs/ca-cert
 ENV PXF_SSL_CERT=/opt/ssl/certs/pxf-client.pem
 ENV PXF_SSL_KEY=/opt/ssl/certs/pxf-client.key
-ENV PXF_SSL_CERT_TYPE=PEMCOPY 
+ENV PXF_SSL_CERT_TYPE=PEM
 ENV PXF_SSL_KEY_STORE_PASSWORD=123456
 ENV PXF_SSL_TRUST_STORE_PASSWORD=123456

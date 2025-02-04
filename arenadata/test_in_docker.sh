@@ -2,12 +2,15 @@
 # This script depends on hub.adsw.io/library/gpdb6_pxf_regress
 set -exo pipefail
 
+# Set hostname to make certificate valid and PXF server accessible
+hostname mdw
+echo "127.0.0.1    mdw" >> /etc/hosts
+
 # manually prepare gpadmin user; test_pxf.bash doesn't tweak gpadmin folder permissions and ssh keys
 ./gpdb_src/concourse/scripts/setup_gpadmin_user.bash
 
 # Pass through PXF environment variables to gpadmin user
 if [[ "$PXF_PROTOCOL" = "https" ]]; then
-    hostname $HOSTNAME
     echo "--------------------------------------"
     echo "Init SSL env variables for PXF service"
     echo "--------------------------------------"

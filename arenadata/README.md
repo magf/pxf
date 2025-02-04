@@ -18,6 +18,7 @@ docker run --rm -it \
   gpdb6_pxf_regress:latest /tmp/build/pxf_src/arenadata/test_in_docker.sh
 ```
 And the same for adb 7.x: 
+```bash
 docker run --rm -it \
   --privileged --sysctl kernel.sem="500 1024000 200 4096" \
   gpdb7_pxf_regress:latest /tmp/build/pxf_src/arenadata/test_in_docker.sh
@@ -25,14 +26,31 @@ docker run --rm -it \
 
 
 ## How to test PXF with TLS support
+
 To test PXF with TLS we build PXF with Dockerfile which has PXF set up with SSL support:
+
+For adb 6.x images:
+
 ```bash
-docker build --target test_ssl  -t gpdb6_pxf_regress_ssl:latest -f arenadata/Dockerfile .
+docker build -t gpdb6_pxf_regress_ssl:latest -f arenadata/Dockerfile .
 ```
 
 To additionally test `fdw` and `external-table` parts you may call:
 ```bash
-docker run --rm -it -h mdw \
+docker run --rm -it \
   --privileged --sysctl kernel.sem="500 1024000 200 4096" \
   gpdb6_pxf_regress_ssl:latest /tmp/build/pxf_src/arenadata/test_in_docker.sh
+```
+
+For adb 7.x images:
+
+```bash
+docker build -t gpdb7_pxf_regress_ssl:latest --build-arg GPDB_IMAGE="hub.adsw.io/library/gpdb7_u22:latest" -f arenadata/Dockerfile .
+```
+
+To additionally test `fdw` and `external-table` parts you may call:
+```bash
+docker run --rm -it \
+  --privileged --sysctl kernel.sem="500 1024000 200 4096" \
+  gpdb7_pxf_regress_ssl:latest /tmp/build/pxf_src/arenadata/test_in_docker.sh
 ```
