@@ -8,10 +8,9 @@ import org.junit.jupiter.api.Test;
 
 import javax.security.auth.Subject;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class LoginSessionTest {
 
@@ -135,6 +134,36 @@ public class LoginSessionTest {
     public void testToString() {
         session = new LoginSession("config", "principal", "keytab", ugiFoo, subjectFoo, 1, 0.8f);
         assertEquals("LoginSession[config=config,principal=principal,keytab=keytab,kerberosMinMillisBeforeRelogin=1,kerberosTicketRenewWindow=0.8]", session.toString());
+    }
+
+    @Test
+    public void testLoginSessionHadoopLoginContextEnable() {
+        UserGroupInformation mockUgi = mock(UserGroupInformation.class);
+        when(mockUgi.isFromKeytab()).thenReturn(true);
+        session = new LoginSession("config", "principal", "keytab", mockUgi, null, 0, 0.8f);
+        assertEquals(0, session.getKerberosMinMillisBeforeRelogin());
+        assertEquals(0.8f, session.getKerberosTicketRenewWindow());
+        assertEquals("keytab", session.getKeytabPath());
+        assertEquals("principal", session.getPrincipalName());
+        assertSame(mockUgi, session.getLoginUser());
+        assertNull(session.getSubject());
+        assertNull(session.getUser());
+        assertTrue(session.isHadoopLoginContextEnable());
+    }
+
+    @Test
+    public void testLoginSessionLoginContextEnable() {
+        UserGroupInformation mockUgi = mock(UserGroupInformation.class);
+        when(mockUgi.isFromKeytab()).thenReturn(false);
+        session = new LoginSession("config", "principal", "keytab", mockUgi, null, 0, 0.8f);
+        assertEquals(0, session.getKerberosMinMillisBeforeRelogin());
+        assertEquals(0.8f, session.getKerberosTicketRenewWindow());
+        assertEquals("keytab", session.getKeytabPath());
+        assertEquals("principal", session.getPrincipalName());
+        assertSame(mockUgi, session.getLoginUser());
+        assertNull(session.getSubject());
+        assertNull(session.getUser());
+        assertFalse(session.isHadoopLoginContextEnable());
     }
 
     private static void resetProperty(String key, String val) {
