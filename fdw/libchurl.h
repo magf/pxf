@@ -32,6 +32,18 @@ typedef void *CHURL_HEADERS;
 typedef void *CHURL_HANDLE;
 
 /*
+    SSL options
+*/
+typedef struct {
+    char *pxf_ssl_cacert;
+    char *pxf_ssl_cert;
+    char *pxf_ssl_cert_type;
+    char *pxf_ssl_key;
+    char *pxf_ssl_keypasswd;
+    long pxf_ssl_verify_peer;
+} churl_ssl_options;
+
+/*
  * PUT example
  * -----------
  *
@@ -39,7 +51,7 @@ typedef void *CHURL_HANDLE;
  * churl_headers_append(http_headers, "a", "b");
  * churl_headers_append(http_headers, "c", "d");
  *
- * CHURL_HANDLE churl = churl_init_upload("http://127.0.0.1:12345", http_headers);
+ * CHURL_HANDLE churl = churl_init_upload("http://127.0.0.1:12345", http_headers, NULL);
  * while(have_stuff_to_write())
  * {
  *     churl_write(churl);
@@ -55,7 +67,7 @@ typedef void *CHURL_HANDLE;
  * churl_headers_append(http_headers, "a", "b");
  * churl_headers_append(http_headers, "c", "d");
  *
- * CHURL_HANDLE churl = churl_init_download("http://127.0.0.1:12345", http_headers);
+ * CHURL_HANDLE churl = churl_init_download("http://127.0.0.1:12345", http_headers, NULL);
  *
  * char buf[64 * 1024];
  * size_t n = 0;
@@ -104,8 +116,10 @@ void		churl_headers_cleanup(CHURL_HEADERS headers);
  * Start an upload to url
  * returns a handle to churl transfer
  */
-CHURL_HANDLE churl_init_upload(const char *url, CHURL_HEADERS headers);
-CHURL_HANDLE churl_init_upload_timeout(const char *url, CHURL_HEADERS headers, long timeout);
+CHURL_HANDLE churl_init_upload(const char *url, CHURL_HEADERS headers,
+                churl_ssl_options *ssl_options);
+CHURL_HANDLE churl_init_upload_timeout(const char *url, CHURL_HEADERS headers,
+                churl_ssl_options *ssl_options, long timeout);
 
 /*
  * Returns local port of connected handle or 0
@@ -116,7 +130,8 @@ int			churl_get_local_port(CHURL_HANDLE handle);
  * Start a download to url
  * returns a handle to churl transfer
  */
-CHURL_HANDLE churl_init_download(const char *url, CHURL_HEADERS headers);
+CHURL_HANDLE churl_init_download(const char *url, CHURL_HEADERS headers,
+    churl_ssl_options *ssl_options);
 
 /*
  * Restart a session to a new URL
