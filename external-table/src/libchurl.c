@@ -432,12 +432,17 @@ set_curl_ssl_options(churl_context *context)
 	if (protocol && strcmp(protocol, "https") == 0)
 	{
 		const char *cacert = get_pxf_ssl_cacert();
+		const char *keypasswd = get_pxf_ssl_keypasswd();
 
 		set_curl_option(context, CURLOPT_SSLCERT, get_pxf_ssl_cert());
 		set_curl_option(context, CURLOPT_SSLKEY, get_pxf_ssl_key());
 
 		set_curl_option(context, CURLOPT_SSLCERTTYPE, get_pxf_ssl_certtype());
-		set_curl_option(context, CURLOPT_KEYPASSWD, get_pxf_ssl_keypasswd());
+
+		if (keypasswd != NULL && keypasswd[0] != '\0') 
+		{
+			set_curl_option(context, CURLOPT_KEYPASSWD, keypasswd);
+		}		
 
 		if (cacert != NULL && cacert[0] != '\0')
 		{
