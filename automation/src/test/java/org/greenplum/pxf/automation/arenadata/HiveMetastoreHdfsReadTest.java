@@ -80,6 +80,7 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
 
         ExternalTable externalTable = createExternalTable();
         gpdb.createTableAndVerify(externalTable);
+
         gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", PXF_TABLE_NAME));
         checkPxfLogs("Returning 1/1 fragment");
         checkPxfLogs("Creating accessor 'org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor' " +
@@ -95,10 +96,8 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
                 "default."+ SOURCE_PARQUET_TABLE_NAME,
                 "CUSTOM");
         pxfExtTable.setServer("server=default");
+        pxfExtTable.setProfile("hive_parquet_custom");
         pxfExtTable.setFormatter("pxfwritable_import");
-        pxfExtTable.setFragmenter("org.greenplum.pxf.plugins.hive.HiveDataFragmenter");
-        pxfExtTable.setAccessor("org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor");
-        pxfExtTable.setResolver("org.greenplum.pxf.plugins.hdfs.ParquetResolver");
         return pxfExtTable;
     }
 

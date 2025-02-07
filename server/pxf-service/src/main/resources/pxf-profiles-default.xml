@@ -1067,5 +1067,12 @@ under the License.
             <resolver>org.greenplum.pxf.plugins.hdfs.StringPassResolver</resolver>
         </plugins>
     </profile>
-
+    <profile>
+        <name>hive_parquet_custom</name>
+        <plugins>
+            <fragmenter>org.greenplum.pxf.plugins.hive.HiveDataFragmenter</fragmenter>
+            <accessor>org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor</accessor>
+            <resolver>org.greenplum.pxf.plugins.hdfs.ParquetResolver</resolver>
+        </plugins>
+    </profile>
 </profiles>
