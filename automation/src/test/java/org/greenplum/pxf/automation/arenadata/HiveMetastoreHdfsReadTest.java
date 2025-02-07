@@ -61,7 +61,7 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
     }
 
     @Test(groups = {"arenadata"}, description = "Check PXF support for reading HDFS files from Hive metastore")
-    public void testPxfSupportForReadingHDFSFilesFromHiveMetastore() throws Exception {
+    public void testPxfReadHDFSFilesHiveMetastore() throws Exception {
         String srcPath = "/tmp/test_data/hive/pxf_hive_datafile.txt";
         Hive hive = (Hive) SystemManagerImpl.getInstance().getSystemObject("hive");
 
