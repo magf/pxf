@@ -95,8 +95,11 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
                 EXT_TABLE_FIELDS,
                 "default."+ SOURCE_PARQUET_TABLE_NAME,
                 "CUSTOM");
-        pxfExtTable.setProfile("hive_parquet_custom");
         pxfExtTable.setFormatter("pxfwritable_import");
+        pxfExtTable.setProfile("hive_parquet_custom");
+        pxfExtTable.setServer("server=default");
+        pxfExtTable.setHost(pxfHost);
+        pxfExtTable.setPort(pxfPort);
         return pxfExtTable;
     }
 
