@@ -14,6 +14,7 @@ import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -59,6 +60,7 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
     protected void beforeMethod() throws Exception {
         cleanLogs();
     }
+
 
     @Test(groups = {"arenadata"}, description = "Check PXF support for reading HDFS files from Hive metastore")
     public void testPxfReadHDFSFilesHiveMetastore() throws Exception {
@@ -110,6 +112,7 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
             result += Integer.parseInt(getCmdResult(cluster, greppedLog));
+            cluster.runCommand("cp " + PXF_TEMP_LOG_PATH + " " + PXF_TEMP_LOG_PATH + "-" + getMethodName() + "-" + pxfNode.getHost());
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
         }
         assertTrue("Check that log is present at least once on one of segment hosts", result > 0);
@@ -117,5 +120,11 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
 
     private void cleanLogs() throws Exception {
         cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
+    }
+
+    private String getMethodName() throws Exception {
+        return Thread.currentThread()
+                .getStackTrace()[2]
+                .getMethodName();
     }
 }
