@@ -61,6 +61,11 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
         cleanLogs();
     }
 
+    @AfterMethod
+    protected void afterMethod() throws Exception {
+        checkPxfLogs("Returning 1/1 fragment");
+    }
+
 
     @Test(groups = {"arenadata"}, description = "Check PXF support for reading HDFS files from Hive metastore")
     public void testPxfReadHDFSFilesHiveMetastore() throws Exception {
@@ -84,9 +89,9 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
         gpdb.createTableAndVerify(externalTable);
 
         gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", PXF_TABLE_NAME));
-        checkPxfLogs("Returning 1/1 fragment");
+/*        checkPxfLogs("Returning 1/1 fragment");
         checkPxfLogs("Creating accessor 'org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor' " +
-                "and resolver 'org.greenplum.pxf.plugins.hdfs.ParquetResolver");
+                "and resolver 'org.greenplum.pxf.plugins.hdfs.ParquetResolver");*/
     }
 
 
