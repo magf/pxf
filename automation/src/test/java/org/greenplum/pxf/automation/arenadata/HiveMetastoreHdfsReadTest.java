@@ -43,7 +43,8 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
     private static final String SOURCE_TEXT_TABLE_NAME = "sales_info";
     private static final String SOURCE_PARQUET_TABLE_NAME = "hive_parquet_table";
     private static final String PXF_TABLE_NAME = SOURCE_PARQUET_TABLE_NAME + "_ext";
-    private static final String PXF_TEMP_LOG_PATH = "/tmp/pxf-service.log";
+    private static final String PXF_TEMP_LOG_PATH = "/tmp/pxf";
+    private static final String PXF_TEMP_LOG_FILE = PXF_TEMP_LOG_PATH + "/pxf-service.log";
     private List<Node> pxfNodes;
     private String pxfLogFile;
 
@@ -51,9 +52,10 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
     protected void beforeClass() throws Exception {
         pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
         String pxfHome = cluster.getPxfHome();
+        pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
         String restartCommand = pxfHome + "/bin/pxf restart";
         cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_LOG_LEVEL=%s;%s", "debug", restartCommand));
-        pxfLogFile = pxfHome + "/" + PXF_LOG_RELATIVE_PATH;
+        cluster.runCommand("mkdir -p " + PXF_TEMP_LOG_PATH);
     }
 
     @BeforeMethod
@@ -112,13 +114,13 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
 
     @Step("Check that partitioning logs are present")
     private void checkPxfLogs(String searchedLog) throws Exception {
-        String greppedLog = "cat " + PXF_TEMP_LOG_PATH + " | grep \"" + searchedLog + "\" | wc -l";
+        String greppedLog = "cat " + PXF_TEMP_LOG_FILE + " | grep \"" + searchedLog + "\" | wc -l";
         int result = 0;
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, PXF_TEMP_LOG_PATH);
-            cluster.runCommand("cp " + PXF_TEMP_LOG_PATH + " " + PXF_TEMP_LOG_PATH + "-" + getMethodName() + "-" + pxfNode.getHost());
+            cluster.runCommand("cp " + PXF_TEMP_LOG_FILE + " " + PXF_TEMP_LOG_FILE + "-" + getMethodName() + "-" + pxfNode.getHost());
             result += Integer.parseInt(getCmdResult(cluster, greppedLog));
-            cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
+            cluster.deleteFileFromNodes(PXF_TEMP_LOG_FILE, false);
         }
         //assertTrue("Check that log is present at least once on one of segment hosts", result > 0);
     }
