@@ -11,7 +11,6 @@ import org.greenplum.pxf.automation.components.cluster.installer.nodes.SegmentNo
 import org.greenplum.pxf.automation.components.hive.Hive;
 import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
-import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.AfterMethod;
@@ -96,7 +95,7 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
         checkPxfLogs();
     }
 
-    @Step("Create pxf external hive table")
+    @Step("Create pxf external table")
     private void createExternalTable() {
        pxfExternalTable = TableFactory.getPxfReadableCustomTable(
                 PXF_TABLE_NAME,
@@ -123,10 +122,12 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
         assertTrue("Check that log is present at least once on one of segment hosts", accessorLogCount > 0);
     }
 
+    @Step("Grep verifying log")
     private String grepLog(String searchedLog) {
         return "cat " + PXF_TEMP_LOG_FILE + " | grep \"" + searchedLog + "\" | wc -l";
     }
 
+    @Step("Cleaning logs before test run")
     private void cleanLogs() throws Exception {
         cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
     }
@@ -137,6 +138,7 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
                 .getMethodName();
     }
 
+    @Step("Cleaning tables created for test")
     private void clearDbs() throws Exception {
         hive.dropTable(sourceTextTable, false);
         hive.dropTable(sourceParquetTable, false);
