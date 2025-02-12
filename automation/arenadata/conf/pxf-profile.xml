@@ -12,4 +12,12 @@
             <metadata>Y</metadata>
         </plugins>
     </profile>
+    <profile>
+        <name>hive:parquet_custom</name>
+        <plugins>
+            <fragmenter>org.greenplum.pxf.plugins.hive.HiveDataFragmenter</fragmenter>
+            <accessor>org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor</accessor>
+            <resolver>org.greenplum.pxf.plugins.hdfs.ParquetResolver</resolver>
+        </plugins>
+    </profile>
 </profiles>

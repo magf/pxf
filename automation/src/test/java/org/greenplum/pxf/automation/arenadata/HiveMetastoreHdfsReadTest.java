@@ -47,6 +47,10 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
     private static final String PXF_TEMP_LOG_FILE = PXF_TEMP_LOG_PATH + "/pxf-service.log";
     private List<Node> pxfNodes;
     private String pxfLogFile;
+    private Hive hive;
+    private HiveTable sourceTextTable;
+    private HiveTable sourceParquetTable;
+    private ReadableExternalTable pxfExternalTable;
 
     @Override
     protected void beforeClass() throws Exception {
@@ -65,64 +69,62 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
 
     @AfterMethod
     protected void afterMethod() throws Exception {
-        checkPxfLogs("Returning 1/1 fragment");
+        clearDbs();
     }
 
 
     @Test(groups = {"arenadata"}, description = "Check PXF support for reading HDFS files from Hive metastore")
     public void testPxfReadHDFSFilesHiveMetastore() throws Exception {
         String srcPath = "/tmp/test_data/hive/pxf_hive_datafile.txt";
-        Hive hive = (Hive) SystemManagerImpl.getInstance().getSystemObject("hive");
+        hive = (Hive) SystemManagerImpl.getInstance().getSystemObject("hive");
 
-        HiveTable textHiveTable = TableFactory.getHiveByRowCommaTable(SOURCE_TEXT_TABLE_NAME, HIVE_TABLE_FIELDS);
-        textHiveTable.setStoredAs("textfile");
-        hive.dropTable(textHiveTable, false);
-        hive.createTableAndVerify(textHiveTable);
-        hive.loadData(textHiveTable, srcPath, true);
+        sourceTextTable = TableFactory.getHiveByRowCommaTable(SOURCE_TEXT_TABLE_NAME, HIVE_TABLE_FIELDS);
+        sourceTextTable.setStoredAs("textfile");
+        hive.createTableAndVerify(sourceTextTable);
+        hive.loadData(sourceTextTable, srcPath, true);
         hive.runQuery(SELECT_QUERY.replace("${pxf_read_table}", "default." + SOURCE_TEXT_TABLE_NAME));
 
-        HiveTable parquetHiveTable = TableFactory.getHiveByRowCommaTable(SOURCE_PARQUET_TABLE_NAME, HIVE_TABLE_FIELDS);
-        parquetHiveTable.setStoredAs("parquet");
-        hive.dropTable(parquetHiveTable, false);
-        hive.createTableAndVerify(parquetHiveTable);
-        hive.insertData(textHiveTable, parquetHiveTable);
+        sourceParquetTable = TableFactory.getHiveByRowCommaTable(SOURCE_PARQUET_TABLE_NAME, HIVE_TABLE_FIELDS);
+        sourceParquetTable.setStoredAs("parquet");
+        hive.createTableAndVerify(sourceParquetTable);
+        hive.insertData(sourceTextTable, sourceParquetTable);
 
-        ExternalTable externalTable = createExternalTable();
-        gpdb.createTableAndVerify(externalTable);
+        createExternalTable();
+        gpdb.createTableAndVerify(pxfExternalTable);
 
         gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", PXF_TABLE_NAME));
-/*        checkPxfLogs("Returning 1/1 fragment");
-        checkPxfLogs("Creating accessor 'org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor' " +
-                "and resolver 'org.greenplum.pxf.plugins.hdfs.ParquetResolver");*/
+        checkPxfLogs();
     }
 
-
     @Step("Create pxf external hive table")
-    private ExternalTable createExternalTable() {
-        ExternalTable pxfExtTable = new ReadableExternalTable(
+    private void createExternalTable() {
+       pxfExternalTable = TableFactory.getPxfReadableCustomTable(
                 PXF_TABLE_NAME,
                 EXT_TABLE_FIELDS,
                 "default."+ SOURCE_PARQUET_TABLE_NAME,
-                "CUSTOM");
-        pxfExtTable.setFormatter("pxfwritable_import");
-        pxfExtTable.setProfile("hive_parquet_custom");
-        pxfExtTable.setServer("server=default");
-        pxfExtTable.setHost(pxfHost);
-        pxfExtTable.setPort(pxfPort);
-        return pxfExtTable;
+                "");
+        pxfExternalTable.setProfile("hive:parquet_custom");
+        pxfExternalTable.setServer("server=default");
     }
 
     @Step("Check that partitioning logs are present")
-    private void checkPxfLogs(String searchedLog) throws Exception {
-        String greppedLog = "cat " + PXF_TEMP_LOG_FILE + " | grep \"" + searchedLog + "\" | wc -l";
-        int result = 0;
+    private void checkPxfLogs() throws Exception {
+        int fragmentLogCount = 0;
+        int accessorLogCount = 0;
         for (Node pxfNode : pxfNodes) {
             cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, PXF_TEMP_LOG_PATH);
             cluster.runCommand("cp " + PXF_TEMP_LOG_FILE + " " + PXF_TEMP_LOG_FILE + "-" + getMethodName() + "-" + pxfNode.getHost());
-            result += Integer.parseInt(getCmdResult(cluster, greppedLog));
+            fragmentLogCount += Integer.parseInt(getCmdResult(cluster, grepLog("Returning 1/1 fragment")));
+            accessorLogCount += Integer.parseInt(getCmdResult(cluster, grepLog("Creating accessor 'org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor' " +
+                    "and resolver 'org.greenplum.pxf.plugins.hdfs.ParquetResolver")));
             cluster.deleteFileFromNodes(PXF_TEMP_LOG_FILE, false);
         }
-        //assertTrue("Check that log is present at least once on one of segment hosts", result > 0);
+        assertTrue("Check that log is present at least once on one of segment hosts", fragmentLogCount > 0);
+        assertTrue("Check that log is present at least once on one of segment hosts", accessorLogCount > 0);
+    }
+
+    private String grepLog(String searchedLog) {
+        return "cat " + PXF_TEMP_LOG_FILE + " | grep \"" + searchedLog + "\" | wc -l";
     }
 
     private void cleanLogs() throws Exception {
@@ -133,5 +135,11 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
         return Thread.currentThread()
                 .getStackTrace()[2]
                 .getMethodName();
+    }
+
+    private void clearDbs() throws Exception {
+        hive.dropTable(sourceTextTable, false);
+        hive.dropTable(sourceParquetTable, false);
+        gpdb.dropTable(pxfExternalTable, false);
     }
 }
