@@ -40,14 +40,14 @@ public class ForeignTable extends WritableExternalTable {
         // getServer() might return a string "server=<..>", strip the prefix
         int index = serverParameters.length > 1 ? 1 : 0;
         // foreign server names will have underscores instead of dashes
-        return String.format(" SERVER %s_%s", serverParameters[index].replace("-","_"), getProtocol());
+        return String.format(" SERVER %s_%s", serverParameters[index].replace("-", "_"), getProtocol());
     }
 
     protected String createOptions() {
         // foreign tables do not have locations, parameters go into options
         // path (resource option for FDW) should always be present
         StringJoiner joiner = new StringJoiner(",", " OPTIONS (", ")");
-        appendOption(joiner,"resource ", getPath(), !getPath().startsWith("E"));
+        appendOption(joiner, "resource ", getPath(), !getPath().startsWith("E"));
 
         String formatOption = getFormatOption();
         if (formatOption != null) {
@@ -71,12 +71,12 @@ public class ForeignTable extends WritableExternalTable {
         // process copy options
         if (getDelimiter() != null) {
             // if Escape character, no need for "'"
-            appendOption(joiner,"delimiter", getDelimiter(), !getDelimiter().startsWith("E"));
+            appendOption(joiner, "delimiter", getDelimiter(), !getDelimiter().startsWith("E"));
         }
 
         if (getEscape() != null) {
             // if Escape character, no need for "'"
-            appendOption(joiner,"escape", getEscape(), !getEscape().startsWith("E"));
+            appendOption(joiner, "escape", getEscape(), !getEscape().startsWith("E"));
         }
 
         if (getNewLine() != null) {
@@ -134,27 +134,27 @@ public class ForeignTable extends WritableExternalTable {
         String format;
         if (profileParts.length == 1) {
             format = profileParts[0].toLowerCase();
-            if (format.equals("hive") || format.equals("hbase") || format.equals("jdbc") ) {
+            if (format.equals("hive") || format.equals("hbase") || format.equals("jdbc")) {
                 return null;
             } else // special case of old 1 word profiles that are basically formats (Parquet, Json, etc)
                 // just leave it as parsed for json / avro / parquet that are left
                 if (format.startsWith("hdfs") || format.startsWith("hive")) {
-                format = format.substring(4);
-            } else {
+                    format = format.substring(4);
+                } else {
                     switch (format) {
-                            case "textsimple":
-                                format = "text";
-                                break;
-                            case "textmulti":
-                                format = "text:multi";
-                                break;
-                            case "hivevectorizedorc":
-                                //TODO: vectorized becomes a separate option, how to handle this ?
-                                format = "orc";
-                                break;
-                            case "sequencewritable":
-                                format = "sequencefile";
-                                break;
+                        case "textsimple":
+                            format = "text";
+                            break;
+                        case "textmulti":
+                            format = "text:multi";
+                            break;
+                        case "hivevectorizedorc":
+                            //TODO: vectorized becomes a separate option, how to handle this ?
+                            format = "orc";
+                            break;
+                        case "sequencewritable":
+                            format = "sequencefile";
+                            break;
                         default:
                             throw new IllegalStateException("Unexpected format value: " + format);
                     }
