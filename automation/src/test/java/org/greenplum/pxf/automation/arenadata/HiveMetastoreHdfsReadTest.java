@@ -14,7 +14,6 @@ import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -61,12 +60,12 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
         cluster.runCommand("mkdir -p " + PXF_TEMP_LOG_PATH);
     }
 
-    @BeforeMethod
+    @Override
     protected void beforeMethod() throws Exception {
         cleanLogs();
     }
 
-    @AfterMethod
+    @Override
     protected void afterMethod() throws Exception {
         clearDbs();
     }
@@ -132,7 +131,7 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
         cluster.runCommandOnNodes(pxfNodes, "> " + pxfLogFile);
     }
 
-    private String getMethodName() throws Exception {
+    private String getMethodName() {
         return Thread.currentThread()
                 .getStackTrace()[2]
                 .getMethodName();
