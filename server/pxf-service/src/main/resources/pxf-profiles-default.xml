@@ -1067,4 +1067,5 @@ under the License.
             <resolver>org.greenplum.pxf.plugins.hdfs.StringPassResolver</resolver>
         </plugins>
     </profile>
+
 </profiles>
