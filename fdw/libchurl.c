@@ -459,13 +459,24 @@ set_curl_ssl_options(churl_context *context, churl_ssl_options *ssl_options)
 }
 
 CHURL_HANDLE
-churl_init_upload(const char *url, CHURL_HEADERS headers, churl_ssl_options *ssl_options)
+churl_init_upload(const char *url, CHURL_HEADERS headers)
 {
-	return churl_init_upload_timeout(url, headers, ssl_options, 0);
+	return churl_init_upload_timeout_ssl(url, headers, NULL, 0);
 }
 
 CHURL_HANDLE
-churl_init_upload_timeout(const char *url, CHURL_HEADERS headers, churl_ssl_options *ssl_options, long timeout)
+churl_init_upload_ssl(const char *url, CHURL_HEADERS headers, churl_ssl_options *ssl_options)
+{
+	return churl_init_upload_timeout_ssl(url, headers, ssl_options, 0);
+}
+
+CHURL_HANDLE churl_init_upload_timeout(const char *url, CHURL_HEADERS headers, long timeout)
+{
+	return churl_init_upload_timeout_ssl(url, headers, NULL, timeout);
+}
+
+CHURL_HANDLE
+churl_init_upload_timeout_ssl(const char *url, CHURL_HEADERS headers, churl_ssl_options *ssl_options, long timeout)
 {
 	churl_context *context = churl_init(url, headers, ssl_options);
 
@@ -484,7 +495,13 @@ churl_init_upload_timeout(const char *url, CHURL_HEADERS headers, churl_ssl_opti
 }
 
 CHURL_HANDLE
-churl_init_download(const char *url, CHURL_HEADERS headers, churl_ssl_options *ssl_options)
+churl_init_download(const char *url, CHURL_HEADERS headers)
+{
+	return churl_init_download_ssl(url, headers, NULL);
+}
+
+CHURL_HANDLE
+churl_init_download_ssl(const char *url, CHURL_HEADERS headers, churl_ssl_options *ssl_options)
 {
 	churl_context *context = churl_init(url, headers, ssl_options);
 

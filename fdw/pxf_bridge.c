@@ -136,7 +136,7 @@ PxfBridgeCancel(PxfFdwCancelState *pxfcstate)
 
 		initStringInfo(&pxfcstate->uri);
 		BuildUriForCancel(pxfcstate);
-		churl_handle = churl_init_upload_timeout(pxfcstate->uri.data, pxfcstate->churl_headers, pxfcstate->ssl_options, 1L);
+		churl_handle = churl_init_upload_timeout_ssl(pxfcstate->uri.data, pxfcstate->churl_headers, pxfcstate->ssl_options, 1L);
 
 		churl_cleanup(churl_handle, false);
 	}
@@ -256,7 +256,7 @@ PxfBridgeImportStart(PxfFdwScanState *pxfsstate)
 		ssl_options = churl_make_ssl_options(pxfsstate->options);
 	}
 
-	pxfsstate->churl_handle = churl_init_download(pxfsstate->uri.data, pxfsstate->churl_headers, ssl_options);
+	pxfsstate->churl_handle = churl_init_download_ssl(pxfsstate->uri.data, pxfsstate->churl_headers, ssl_options);
 	if (ssl_options != NULL) {
 		free_churl_ssl_options(ssl_options);
 	}
@@ -301,7 +301,7 @@ PxfBridgeExportStart(PxfFdwModifyState *pxfmstate)
 		ssl_options = churl_make_ssl_options(pxfmstate->options);
 	}
 
-	pxfmstate->churl_handle = churl_init_upload(pxfmstate->uri.data, pxfmstate->churl_headers, ssl_options);
+	pxfmstate->churl_handle = churl_init_upload_ssl(pxfmstate->uri.data, pxfmstate->churl_headers, ssl_options);
 
 	if (ssl_options != NULL) {
 		free_churl_ssl_options(ssl_options);
