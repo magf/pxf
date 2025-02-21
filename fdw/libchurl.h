@@ -51,7 +51,7 @@ typedef struct {
  * churl_headers_append(http_headers, "a", "b");
  * churl_headers_append(http_headers, "c", "d");
  *
- * CHURL_HANDLE churl = churl_init_upload("http://127.0.0.1:12345", http_headers, NULL);
+ * CHURL_HANDLE churl = churl_init_upload("http://127.0.0.1:12345", http_headers);
  * while(have_stuff_to_write())
  * {
  *     churl_write(churl);
@@ -67,7 +67,7 @@ typedef struct {
  * churl_headers_append(http_headers, "a", "b");
  * churl_headers_append(http_headers, "c", "d");
  *
- * CHURL_HANDLE churl = churl_init_download("http://127.0.0.1:12345", http_headers, NULL);
+ * CHURL_HANDLE churl = churl_init_download("http://127.0.0.1:12345", http_headers);
  *
  * char buf[64 * 1024];
  * size_t n = 0;
@@ -116,9 +116,15 @@ void		churl_headers_cleanup(CHURL_HEADERS headers);
  * Start an upload to url
  * returns a handle to churl transfer
  */
-CHURL_HANDLE churl_init_upload(const char *url, CHURL_HEADERS headers,
+CHURL_HANDLE churl_init_upload(const char *url, CHURL_HEADERS headers);
+CHURL_HANDLE churl_init_upload_timeout(const char *url, CHURL_HEADERS headers, long timeout);
+
+/*
+ *  SSL versions of upload functions
+ */
+CHURL_HANDLE churl_init_upload_ssl(const char *url, CHURL_HEADERS headers,
                 churl_ssl_options *ssl_options);
-CHURL_HANDLE churl_init_upload_timeout(const char *url, CHURL_HEADERS headers,
+CHURL_HANDLE churl_init_upload_timeout_ssl(const char *url, CHURL_HEADERS headers,
                 churl_ssl_options *ssl_options, long timeout);
 
 /*
@@ -130,7 +136,12 @@ int			churl_get_local_port(CHURL_HANDLE handle);
  * Start a download to url
  * returns a handle to churl transfer
  */
-CHURL_HANDLE churl_init_download(const char *url, CHURL_HEADERS headers,
+CHURL_HANDLE churl_init_download(const char *url, CHURL_HEADERS headers);
+
+/*
+ *  SSL version of download function
+ */
+CHURL_HANDLE churl_init_download_ssl(const char *url, CHURL_HEADERS headers,
     churl_ssl_options *ssl_options);
 
 /*
