@@ -20,6 +20,7 @@ import java.util.List;
 
 import static org.greenplum.pxf.automation.PxfTestConstant.PXF_LOG_RELATIVE_PATH;
 import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @WorksWithFDW
@@ -89,7 +90,7 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
 
         createExternalTable();
         gpdb.createTableAndVerify(pxfExternalTable);
-
+        assertEquals(gpdb.getValueFromQuery("SELECT COUNT(*) FROM " + pxfExternalTable), 10);
         gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", PXF_TABLE_NAME));
         checkPxfLogs();
     }

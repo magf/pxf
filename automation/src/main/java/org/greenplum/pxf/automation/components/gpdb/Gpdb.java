@@ -617,4 +617,16 @@ public class Gpdb extends DbSystemObject {
 		return table;
 	}
 
+	public int getValueFromQuery(String query) throws Exception {
+		ReportUtils.report(report, getClass(), "Get value - query: " + query);
+		ResultSet res = stmt.executeQuery(query);
+		if (res.next()) {
+			int value = res.getInt(1);
+			ReportUtils.report(report, getClass(), "Value: [" + value + "]");
+			return value;
+		} else {
+			throw new IllegalStateException("There is no any result of the query: " + query);
+		}
+	}
+
 }
