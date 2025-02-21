@@ -10,7 +10,6 @@ import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.automation.components.common.DbSystemObject;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
-import org.greenplum.pxf.automation.utils.jsystem.report.ReportUtils;
 
 /**
  * Hive System Object
@@ -203,5 +202,4 @@ public class Hive extends DbSystemObject {
     public void setSaslQop(String saslQop) {
         this.saslQop = saslQop;
     }
-
 }
