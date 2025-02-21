@@ -44,6 +44,7 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
     private static final String PXF_TABLE_NAME = SOURCE_PARQUET_TABLE_NAME + "_ext";
     private static final String PXF_TEMP_LOG_PATH = "/tmp/pxf";
     private static final String PXF_TEMP_LOG_FILE = PXF_TEMP_LOG_PATH + "/pxf-service.log";
+    private static final String SQL_COUNT_QUERY = "SELECT count(*) FROM ${table}";
     private List<Node> pxfNodes;
     private String pxfLogFile;
     private Hive hive;
@@ -90,7 +91,10 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
 
         createExternalTable();
         gpdb.createTableAndVerify(pxfExternalTable);
-        assertEquals(gpdb.getValueFromQuery("SELECT COUNT(*) FROM " + pxfExternalTable.getName()), 10);
+
+        assertEquals(hive.getValueFromQuery(SQL_COUNT_QUERY.replace("${table}", SOURCE_PARQUET_TABLE_NAME)),
+                gpdb.getValueFromQuery(SQL_COUNT_QUERY.replace("${table}", PXF_TABLE_NAME)));
+
         gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", PXF_TABLE_NAME));
         checkPxfLogs();
     }

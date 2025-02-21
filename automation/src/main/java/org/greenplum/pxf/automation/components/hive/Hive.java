@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.greenplum.pxf.automation.components.common.DbSystemObject;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
+import org.greenplum.pxf.automation.utils.jsystem.report.ReportUtils;
 
 /**
  * Hive System Object
@@ -201,5 +202,17 @@ public class Hive extends DbSystemObject {
 
     public void setSaslQop(String saslQop) {
         this.saslQop = saslQop;
+    }
+
+    public int getValueFromQuery(String query) throws Exception {
+        ReportUtils.report(report, getClass(), "Get value - query: " + query);
+        ResultSet res = stmt.executeQuery(query);
+        if (res.next()) {
+            int value = res.getInt(1);
+            ReportUtils.report(report, getClass(), "Value: [" + value + "]");
+            return value;
+        } else {
+            throw new IllegalStateException("There is no any result of the query: " + query);
+        }
     }
 }
