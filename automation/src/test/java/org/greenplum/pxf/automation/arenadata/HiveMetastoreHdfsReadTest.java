@@ -90,7 +90,7 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
 
         createExternalTable();
         gpdb.createTableAndVerify(pxfExternalTable);
-        assertEquals(gpdb.getValueFromQuery("SELECT COUNT(*) FROM " + pxfExternalTable), 10);
+        assertEquals(gpdb.getValueFromQuery("SELECT COUNT(*) FROM " + pxfExternalTable.getName()), 10);
         gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", PXF_TABLE_NAME));
         checkPxfLogs();
     }
