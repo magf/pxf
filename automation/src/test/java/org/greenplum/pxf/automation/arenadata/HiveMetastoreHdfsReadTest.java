@@ -13,7 +13,6 @@ import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.hive.HiveTable;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -92,8 +91,8 @@ public class HiveMetastoreHdfsReadTest extends BaseFeature {
         createExternalTable();
         gpdb.createTableAndVerify(pxfExternalTable);
 
-        assertEquals(hive.getValueFromQuery(SQL_COUNT_QUERY.replace("${table}", SOURCE_PARQUET_TABLE_NAME)),
-                gpdb.getValueFromQuery(SQL_COUNT_QUERY.replace("${table}", PXF_TABLE_NAME)));
+        assertEquals(hive.getIntValueFromQuery(SQL_COUNT_QUERY.replace("${table}", SOURCE_PARQUET_TABLE_NAME)),
+                gpdb.getIntValueFromQuery(SQL_COUNT_QUERY.replace("${table}", PXF_TABLE_NAME)));
 
         gpdb.runQuery(SELECT_QUERY.replace("${pxf_read_table}", PXF_TABLE_NAME));
         checkPxfLogs();

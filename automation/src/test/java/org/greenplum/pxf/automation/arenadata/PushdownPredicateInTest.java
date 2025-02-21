@@ -159,7 +159,7 @@ public class PushdownPredicateInTest extends BaseFeature {
     @Test(groups = {"arenadata"}, description = "Check pushdown predicate 'IN' for Oracle")
     public void testPredicateInOracle() throws Exception {
         runSqlTest("arenadata/predicate-in/oracle");
-        Assert.assertEquals(1, oracle.getValueFromQuery(GET_STATS_QUERY));
+        Assert.assertEquals(1, oracle.getIntValueFromQuery(GET_STATS_QUERY));
         cluster.deleteFileFromNodes(pxfJdbcSiteConfFile, false);
     }
 

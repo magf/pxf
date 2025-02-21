@@ -199,7 +199,7 @@ public abstract class DbSystemObject extends BaseSystemObject implements IDbFunc
 
 	}
 
-	public int getValueFromQuery(String query) throws Exception {
+	public int getIntValueFromQuery(String query) throws Exception {
 		ReportUtils.report(report, getClass(), "Get value - query: " + query);
 		ResultSet res = stmt.executeQuery(query);
 		if (res.next()) {
