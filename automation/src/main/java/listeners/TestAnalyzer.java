@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Method invocation listener that skips tests that are not annotated as working with FDW when ran in FDW context.
@@ -28,10 +29,12 @@ public class TestAnalyzer implements IInvokedMethodListener {
         if (method.isAnnotationPresent(Test.class)) {
             String feature = FDWUtils.useFDW ? "FDW" : "External Table";
             String featureId = FDWUtils.useFDW ? "fdw" : "external-table";
+
             Allure.getLifecycle().updateTestCase(allureResult -> {
+                UUID uuid = UUID.randomUUID();
                 Parameter parameter = new Parameter().setName("tableType").setValue(feature);
                 allureResult.setParameters(Collections.singletonList(parameter));
-                allureResult.setHistoryId(String.format("%s-%s-%s", allureResult.getHistoryId(), allureResult.getUuid(), featureId));
+                allureResult.setHistoryId(String.format("%s-%s-%s", allureResult.getHistoryId(), uuid, featureId));
             });
             List<String> groups = Arrays.asList(invokedMethod.getTestMethod().getGroups());
             if (groups.contains("smoke")) {
