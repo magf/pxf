@@ -2,7 +2,6 @@ package listeners;
 
 import io.qameta.allure.Allure;
 import io.qameta.allure.model.Parameter;
-import org.apache.commons.lang.ArrayUtils;
 import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.testng.IInvokedMethod;
 import org.testng.IInvokedMethodListener;
@@ -10,11 +9,9 @@ import org.testng.ITestResult;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Method invocation listener that skips tests that are not annotated as working with FDW when ran in FDW context.
@@ -32,16 +29,9 @@ public class TestAnalyzer implements IInvokedMethodListener {
             String feature = FDWUtils.useFDW ? "FDW" : "External Table";
             String featureId = FDWUtils.useFDW ? "fdw" : "external-table";
             Allure.getLifecycle().updateTestCase(allureResult -> {
-                List<Parameter> parameters = new ArrayList<>();
-                if (!ArrayUtils.isEmpty(method.getParameters())) {
-                    Arrays.stream(method.getParameters())
-                            .forEach(parameter ->
-                                    parameters.add(new Parameter().setName(parameter.getName()).setValue(parameter.toString())));
-                }
                 Parameter parameter = new Parameter().setName("tableType").setValue(feature);
-                parameters.add(parameter);
-                allureResult.setParameters(parameters);
-                allureResult.setHistoryId(String.format("%s-%s", allureResult.getHistoryId(), featureId));
+                allureResult.setParameters(Collections.singletonList(parameter));
+                allureResult.setHistoryId(String.format("%s-%s-%s", allureResult.getHistoryId(), allureResult.getUuid(), featureId));
             });
             List<String> groups = Arrays.asList(invokedMethod.getTestMethod().getGroups());
             if (groups.contains("smoke")) {
