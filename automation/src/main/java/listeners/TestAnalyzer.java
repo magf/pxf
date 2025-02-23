@@ -2,6 +2,7 @@ package listeners;
 
 import io.qameta.allure.Allure;
 import io.qameta.allure.model.Parameter;
+import jdk.internal.joptsimple.internal.Strings;
 import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.testng.IInvokedMethod;
 import org.testng.IInvokedMethodListener;
@@ -9,10 +10,7 @@ import org.testng.ITestResult;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Method invocation listener that skips tests that are not annotated as working with FDW when ran in FDW context.
@@ -31,10 +29,16 @@ public class TestAnalyzer implements IInvokedMethodListener {
             String featureId = FDWUtils.useFDW ? "fdw" : "external-table";
 
             Allure.getLifecycle().updateTestCase(allureResult -> {
-                UUID uuid = UUID.randomUUID();
-                Parameter parameter = new Parameter().setName("tableType").setValue(feature);
-                allureResult.setParameters(Collections.singletonList(parameter));
-                allureResult.setHistoryId(String.format("%s-%s-%s", allureResult.getHistoryId(), uuid, featureId));
+                List<Parameter> parameters = new ArrayList<>();
+                Parameter tableTypeParameter = new Parameter().setName("tableType").setValue(feature);
+                parameters.add(tableTypeParameter);
+                String dataProvider = method.getAnnotation(Test.class).dataProvider();
+                if (dataProvider != null && !dataProvider.isEmpty()) {
+                    Parameter idParameter = new Parameter().setName(dataProvider).setValue(UUID.randomUUID().toString());
+                    parameters.add(idParameter);
+                }
+                allureResult.setParameters(parameters);
+                allureResult.setHistoryId(String.format("%s-%s", allureResult.getHistoryId(), featureId));
             });
             List<String> groups = Arrays.asList(invokedMethod.getTestMethod().getGroups());
             if (groups.contains("smoke")) {
