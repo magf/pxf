@@ -71,7 +71,7 @@ public class OracleParallelSessionTest extends BaseFeature {
         createGpdbReadableTable("oracle_parallel_default_read_ext", dataSourcePath);
         copyAndModifyJdbcConfFile(pxfJdbcSiteConfTemplate, EMPTY_PROPERTY);
         runSqlTest("arenadata/oracle-parallel/default");
-        assertEquals(oracle.getValueFromQuery(
+        assertEquals(oracle.getIntValueFromQuery(
                 String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + dataSourcePath)), 0
         );
     }
@@ -84,7 +84,7 @@ public class OracleParallelSessionTest extends BaseFeature {
         createGpdbReadableTable("oracle_parallel_disable_query_read_ext", dataSourcePath);
         copyAndModifyJdbcConfFile(pxfJdbcSiteConfTemplate, DISABLE_QUERY_PROPERTY);
         runSqlTest("arenadata/oracle-parallel/disable-query");
-        assertEquals(oracle.getValueFromQuery(
+        assertEquals(oracle.getIntValueFromQuery(
                 String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + dataSourcePath)), 0
         );
     }
@@ -97,7 +97,7 @@ public class OracleParallelSessionTest extends BaseFeature {
         createGpdbReadableTable("oracle_parallel_force_query_3_read_ext", dataSourcePath);
         copyAndModifyJdbcConfFile(pxfJdbcSiteConfTemplate, FORCE_QUERY_3_PROPERTY);
         runSqlTest("arenadata/oracle-parallel/force-query");
-        assertEquals(oracle.getValueFromQuery(
+        assertEquals(oracle.getIntValueFromQuery(
                 String.format(GET_STATS_QUERY_TEMPLATE, "SELECT id, descr FROM " + dataSourcePath)), 3
         );
     }
