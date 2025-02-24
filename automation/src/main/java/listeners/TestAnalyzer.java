@@ -2,15 +2,18 @@ package listeners;
 
 import io.qameta.allure.Allure;
 import io.qameta.allure.model.Parameter;
-import jdk.internal.joptsimple.internal.Strings;
 import org.greenplum.pxf.automation.utils.system.FDWUtils;
 import org.testng.IInvokedMethod;
 import org.testng.IInvokedMethodListener;
 import org.testng.ITestResult;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Method invocation listener that skips tests that are not annotated as working with FDW when ran in FDW context.
@@ -34,7 +37,19 @@ public class TestAnalyzer implements IInvokedMethodListener {
                 parameters.add(tableTypeParameter);
                 String dataProvider = method.getAnnotation(Test.class).dataProvider();
                 if (dataProvider != null && !dataProvider.isEmpty()) {
-                    Parameter idParameter = new Parameter().setName(dataProvider).setValue(UUID.randomUUID().toString());
+                    Parameter idParameter = new Parameter().setName("parameters")
+                            .setValue(Arrays.stream(result.getParameters())
+                                    .map(param -> {
+                                        if (param.getClass().isArray()) {
+                                            List<Object> arrParamList = new ArrayList<>();
+                                            for (int i = 0; i < Array.getLength(param); i++) {
+                                                arrParamList.add(Array.get(param, i));
+                                            }
+                                            return arrParamList.toString();
+                                        } else {
+                                            return param.toString();
+                                        }
+                                    }).collect(Collectors.joining(", ")));
                     parameters.add(idParameter);
                 }
                 allureResult.setParameters(parameters);
