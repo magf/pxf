@@ -40,7 +40,9 @@ public class TestAnalyzer implements IInvokedMethodListener {
                     Parameter idParameter = new Parameter().setName("parameters")
                             .setValue(Arrays.stream(result.getParameters())
                                     .map(param -> {
-                                        if (param.getClass().isArray()) {
+                                        if (param == null) {
+                                            return "null";
+                                        } else if (param.getClass().isArray()) {
                                             List<Object> arrParamList = new ArrayList<>();
                                             for (int i = 0; i < Array.getLength(param); i++) {
                                                 arrParamList.add(Array.get(param, i));
