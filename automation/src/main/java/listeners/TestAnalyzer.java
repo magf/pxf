@@ -37,21 +37,7 @@ public class TestAnalyzer implements IInvokedMethodListener {
                 parameters.add(tableTypeParameter);
                 String dataProvider = method.getAnnotation(Test.class).dataProvider();
                 if (dataProvider != null && !dataProvider.isEmpty()) {
-                    Parameter idParameter = new Parameter().setName("parameters")
-                            .setValue(Arrays.stream(result.getParameters())
-                                    .map(param -> {
-                                        if (param == null) {
-                                            return "null";
-                                        } else if (param.getClass().isArray()) {
-                                            List<Object> arrParamList = new ArrayList<>();
-                                            for (int i = 0; i < Array.getLength(param); i++) {
-                                                arrParamList.add(Array.get(param, i));
-                                            }
-                                            return arrParamList.toString();
-                                        } else {
-                                            return param.toString();
-                                        }
-                                    }).collect(Collectors.joining(", ")));
+                    Parameter idParameter = new Parameter().setName("parametersHash").setValue(Arrays.hashCode(result.getParameters()));
                     parameters.add(idParameter);
                 }
                 allureResult.setParameters(parameters);
