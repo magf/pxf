@@ -35,7 +35,7 @@ public class TestAnalyzer implements IInvokedMethodListener {
                 parameters.add(tableTypeParameter);
                 String dataProvider = method.getAnnotation(Test.class).dataProvider();
                 if (dataProvider != null && !dataProvider.isEmpty()) {
-                    Parameter idParameter = new Parameter().setName("parameters' hash")
+                    Parameter idParameter = new Parameter().setName("parametersHash")
                             .setValue(String.valueOf(Arrays.hashCode(result.getParameters())));
                     parameters.add(idParameter);
                 }
