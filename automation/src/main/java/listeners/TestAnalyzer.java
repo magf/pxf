@@ -8,12 +8,10 @@ import org.testng.IInvokedMethodListener;
 import org.testng.ITestResult;
 import org.testng.annotations.Test;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Method invocation listener that skips tests that are not annotated as working with FDW when ran in FDW context.
@@ -37,7 +35,8 @@ public class TestAnalyzer implements IInvokedMethodListener {
                 parameters.add(tableTypeParameter);
                 String dataProvider = method.getAnnotation(Test.class).dataProvider();
                 if (dataProvider != null && !dataProvider.isEmpty()) {
-                    Parameter idParameter = new Parameter().setName("parametersHash").setValue(Arrays.hashCode(result.getParameters()));
+                    Parameter idParameter = new Parameter().setName("parameters")
+                            .setValue(String.valueOf(Arrays.hashCode(result.getParameters())));
                     parameters.add(idParameter);
                 }
                 allureResult.setParameters(parameters);
