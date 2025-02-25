@@ -8,6 +8,7 @@ import org.testng.IInvokedMethodListener;
 import org.testng.ITestResult;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,17 +31,17 @@ public class TestAnalyzer implements IInvokedMethodListener {
             String featureId = FDWUtils.useFDW ? "fdw" : "external-table";
 
             Allure.getLifecycle().updateTestCase(allureResult -> {
-                List<Parameter> parameters = new ArrayList<>();
-                Parameter tableTypeParameter = new Parameter().setName("tableType").setValue(feature);
+                List<io.qameta.allure.model.Parameter> parameters = new ArrayList<>();
+                io.qameta.allure.model.Parameter tableTypeParameter = new io.qameta.allure.model.Parameter().setName("tableType").setValue(feature);
                 parameters.add(tableTypeParameter);
+                io.qameta.allure.model.Parameter tableIdParameter = new io.qameta.allure.model.Parameter().setName("tableId").setValue(featureId);
+                parameters.add(tableIdParameter);
                 String dataProvider = method.getAnnotation(Test.class).dataProvider();
                 if (dataProvider != null && !dataProvider.isEmpty()) {
-                    Parameter idParameter = new Parameter().setName("parametersHash")
-                            .setValue(String.valueOf(Arrays.hashCode(result.getParameters())));
-                    parameters.add(idParameter);
+                    List<io.qameta.allure.model.Parameter> dataProviderParameters = getDataProviderParameters(method.getParameters(), result.getParameters());
+                    parameters.addAll(dataProviderParameters);
                 }
                 allureResult.setParameters(parameters);
-                allureResult.setHistoryId(String.format("%s-%s", allureResult.getHistoryId(), featureId));
             });
             List<String> groups = Arrays.asList(invokedMethod.getTestMethod().getGroups());
             if (groups.contains("smoke")) {
@@ -52,6 +53,28 @@ public class TestAnalyzer implements IInvokedMethodListener {
             } else {
                 Allure.suite("Other: " + feature);
             }
+        }
+    }
+
+    private List<io.qameta.allure.model.Parameter> getDataProviderParameters(java.lang.reflect.Parameter[] parametersNames, Object[] parametersValues) {
+        List<io.qameta.allure.model.Parameter> parameters = new ArrayList<>();
+        for (int i = 0; i < parametersNames.length; i++) {
+           parameters.add(new io.qameta.allure.model.Parameter().setName(parametersNames[i].getName()).setValue(extractParameterStringValue(parametersValues[i])));
+        }
+        return parameters;
+    }
+
+    private String extractParameterStringValue(Object param) {
+        if (param == null) {
+            return "null";
+        } else if (param.getClass().isArray()) {
+            List<Object> list = new ArrayList<>();
+            for (int i = 0; i < Array.getLength(param); i++) {
+                list.add(Array.get(param, i));
+            }
+            return list.toString();
+        } else {
+            return param.toString();
         }
     }
 
