@@ -28,14 +28,11 @@ public class TestAnalyzer implements IInvokedMethodListener {
         }
         if (method.isAnnotationPresent(Test.class)) {
             String feature = FDWUtils.useFDW ? "FDW" : "External Table";
-            String featureId = FDWUtils.useFDW ? "fdw" : "external-table";
 
             Allure.getLifecycle().updateTestCase(allureResult -> {
                 List<Parameter> parameters = new ArrayList<>();
                 Parameter tableTypeParameter = new Parameter().setName("tableType").setValue(feature);
                 parameters.add(tableTypeParameter);
-                Parameter tableIdParameter = new Parameter().setName("tableId").setValue(featureId);
-                parameters.add(tableIdParameter);
                 String dataProvider = method.getAnnotation(Test.class).dataProvider();
                 if (dataProvider != null && !dataProvider.isEmpty()) {
                     List<Parameter> dataProviderParameters = getDataProviderParameters(method.getParameters(), result.getParameters());
