@@ -8,9 +8,10 @@ import org.testng.IInvokedMethodListener;
 import org.testng.ITestResult;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -27,11 +28,17 @@ public class TestAnalyzer implements IInvokedMethodListener {
         }
         if (method.isAnnotationPresent(Test.class)) {
             String feature = FDWUtils.useFDW ? "FDW" : "External Table";
-            String featureId = FDWUtils.useFDW ? "fdw" : "external-table";
+
             Allure.getLifecycle().updateTestCase(allureResult -> {
-                Parameter parameter = new Parameter().setName("tableType").setValue(feature);
-                allureResult.setParameters(Collections.singletonList(parameter));
-                allureResult.setHistoryId(String.format("%s-%s", allureResult.getHistoryId(), featureId));
+                List<Parameter> parameters = new ArrayList<>();
+                Parameter tableTypeParameter = new Parameter().setName("tableType").setValue(feature);
+                parameters.add(tableTypeParameter);
+                String dataProvider = method.getAnnotation(Test.class).dataProvider();
+                if (dataProvider != null && !dataProvider.isEmpty()) {
+                    List<Parameter> dataProviderParameters = getDataProviderParameters(method.getParameters(), result.getParameters());
+                    parameters.addAll(dataProviderParameters);
+                }
+                allureResult.setParameters(parameters);
             });
             List<String> groups = Arrays.asList(invokedMethod.getTestMethod().getGroups());
             if (groups.contains("smoke")) {
@@ -43,6 +50,28 @@ public class TestAnalyzer implements IInvokedMethodListener {
             } else {
                 Allure.suite("Other: " + feature);
             }
+        }
+    }
+
+    private List<Parameter> getDataProviderParameters(java.lang.reflect.Parameter[] parametersNames, Object[] parametersValues) {
+        List<Parameter> parameters = new ArrayList<>();
+        for (int i = 0; i < parametersNames.length; i++) {
+           parameters.add(new Parameter().setName(parametersNames[i].getName()).setValue(extractParameterStringValue(parametersValues[i])));
+        }
+        return parameters;
+    }
+
+    private String extractParameterStringValue(Object param) {
+        if (param == null) {
+            return "null";
+        } else if (param.getClass().isArray()) {
+            List<Object> list = new ArrayList<>();
+            for (int i = 0; i < Array.getLength(param); i++) {
+                list.add(Array.get(param, i));
+            }
+            return list.toString();
+        } else {
+            return param.toString();
         }
     }
 
