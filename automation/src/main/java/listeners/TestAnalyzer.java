@@ -31,14 +31,14 @@ public class TestAnalyzer implements IInvokedMethodListener {
             String featureId = FDWUtils.useFDW ? "fdw" : "external-table";
 
             Allure.getLifecycle().updateTestCase(allureResult -> {
-                List<io.qameta.allure.model.Parameter> parameters = new ArrayList<>();
-                io.qameta.allure.model.Parameter tableTypeParameter = new io.qameta.allure.model.Parameter().setName("tableType").setValue(feature);
+                List<Parameter> parameters = new ArrayList<>();
+                Parameter tableTypeParameter = new Parameter().setName("tableType").setValue(feature);
                 parameters.add(tableTypeParameter);
-                io.qameta.allure.model.Parameter tableIdParameter = new io.qameta.allure.model.Parameter().setName("tableId").setValue(featureId);
+                Parameter tableIdParameter = new Parameter().setName("tableId").setValue(featureId);
                 parameters.add(tableIdParameter);
                 String dataProvider = method.getAnnotation(Test.class).dataProvider();
                 if (dataProvider != null && !dataProvider.isEmpty()) {
-                    List<io.qameta.allure.model.Parameter> dataProviderParameters = getDataProviderParameters(method.getParameters(), result.getParameters());
+                    List<Parameter> dataProviderParameters = getDataProviderParameters(method.getParameters(), result.getParameters());
                     parameters.addAll(dataProviderParameters);
                 }
                 allureResult.setParameters(parameters);
@@ -56,10 +56,10 @@ public class TestAnalyzer implements IInvokedMethodListener {
         }
     }
 
-    private List<io.qameta.allure.model.Parameter> getDataProviderParameters(java.lang.reflect.Parameter[] parametersNames, Object[] parametersValues) {
-        List<io.qameta.allure.model.Parameter> parameters = new ArrayList<>();
+    private List<Parameter> getDataProviderParameters(java.lang.reflect.Parameter[] parametersNames, Object[] parametersValues) {
+        List<Parameter> parameters = new ArrayList<>();
         for (int i = 0; i < parametersNames.length; i++) {
-           parameters.add(new io.qameta.allure.model.Parameter().setName(parametersNames[i].getName()).setValue(extractParameterStringValue(parametersValues[i])));
+           parameters.add(new Parameter().setName(parametersNames[i].getName()).setValue(extractParameterStringValue(parametersValues[i])));
         }
         return parameters;
     }
