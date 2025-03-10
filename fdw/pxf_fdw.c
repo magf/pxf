@@ -638,7 +638,9 @@ InitForeignModify(Relation relation)
 	Oid			foreigntableid;
 	PxfOptions *options = NULL;
 	PxfFdwModifyState *pxfmstate = NULL;
+#if PG_VERSION_NUM < 90600
 	TupleDesc	tupDesc;
+#endif
 
 	// TODO: do we need to care about this ?
 //	if (eflags & EXEC_FLAG_EXPLAIN_ONLY)
@@ -651,7 +653,9 @@ InitForeignModify(Relation relation)
 		/* master does not process any data when exec_location is all segments */
 		return NULL;
 
+#if PG_VERSION_NUM < 90600
 	tupDesc = RelationGetDescr(relation);
+#endif
 	options = PxfGetOptions(foreigntableid);
 	pxfmstate = palloc(sizeof(PxfFdwModifyState));
 
