@@ -10,7 +10,6 @@ import org.greenplum.pxf.automation.features.BaseFeature;
 import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ForeignTable;
 import org.greenplum.pxf.automation.structures.tables.utils.TableFactory;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Step;
@@ -52,7 +51,7 @@ public class VaultIntegrationTest extends BaseFeature {
     }
 
     @Test(groups = {"arenadatassl"})
-    public void testVault() throws Exception {
+    public void testVaultPxfSslEnabledFalse() throws Exception {
         cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_SSL_ENABLED=%s;export PXF_PROTOCOL=%s;%s", "false", "http", restartCommand));
         Table sourceTable = new Table(SOURCE_TABLE_NAME, TABLE_FIELDS);
         sourceTable.setDistributionFields(new String[]{"id"});
@@ -67,11 +66,10 @@ public class VaultIntegrationTest extends BaseFeature {
         pxfForeignTable.setUserParameters(new String[]{"date_wide_range=true"});
         gpdb.createTableAndVerify(pxfForeignTable);
         gpdb.runQuery("SELECT * FROM " + PXF_TABLE_NAME);
- //       gpdb.insertData(sourceTable, pxfForeignTable);
     }
 
     @Test(groups = {"arenadatassl"})
-    public void testVaultThree() throws Exception {
+    public void testVaultPxfSslEnabledTrue() throws Exception {
         cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_SSL_ENABLED=%s;export PXF_PROTOCOL=%s;%s", "true", "https", restartCommand));
         Table sourceTable = new Table(SOURCE_TABLE_NAME, TABLE_FIELDS);
         sourceTable.setDistributionFields(new String[]{"id"});
@@ -89,13 +87,41 @@ public class VaultIntegrationTest extends BaseFeature {
         gpdb.insertData(sourceTable, pxfForeignTable);
     }
 
+    @Test(groups = {"arenadatassl"})
+    public void testVaultPxfSslEnabledTrueNoSslWrapperError() throws Exception {
+        cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_SSL_ENABLED=%s;export PXF_PROTOCOL=%s;%s", "true", "https", restartCommand));
+        Table sourceTable = new Table(SOURCE_TABLE_NAME, TABLE_FIELDS);
+        sourceTable.setDistributionFields(new String[]{"id"});
+        gpdb.createTableAndVerify(sourceTable);
+        gpdb.runQuery(INSERT_QUERY);
+        ForeignTable pxfForeignTable = (ForeignTable) TableFactory.getPxfJdbcWritableTable(
+                PXF_TABLE_NAME,
+                TABLE_FIELDS,
+                SOURCE_TABLE_NAME,
+                "server=default_pxf_server_ssl"
+        );
+        pxfForeignTable.setUserParameters(new String[]{"date_wide_range=true"});
+        gpdb.createTableAndVerify(pxfForeignTable);
+        gpdb.runQuery("SELECT * FROM " + PXF_TABLE_NAME);
+        gpdb.insertData(sourceTable, pxfForeignTable);
+    }
 
-
-/*    @DataProvider
-    private Object[][] sslEnvProvider() {
-        return new Object[][]{
-                ()
-        }
-    }*/
-
+    @Test(groups = {"arenadatassl"})
+    public void testVaultPxfSslEnabledFalseWithSslWrapperError() throws Exception {
+        cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_SSL_ENABLED=%s;export PXF_PROTOCOL=%s;%s", "true", "https", restartCommand));
+        Table sourceTable = new Table(SOURCE_TABLE_NAME, TABLE_FIELDS);
+        sourceTable.setDistributionFields(new String[]{"id"});
+        gpdb.createTableAndVerify(sourceTable);
+        gpdb.runQuery(INSERT_QUERY);
+        ForeignTable pxfForeignTable = (ForeignTable) TableFactory.getPxfJdbcWritableTable(
+                PXF_TABLE_NAME,
+                TABLE_FIELDS,
+                SOURCE_TABLE_NAME,
+                "server=default_pxf_server_ssl"
+        );
+        pxfForeignTable.setUserParameters(new String[]{"date_wide_range=true"});
+        gpdb.createTableAndVerify(pxfForeignTable);
+        gpdb.runQuery("SELECT * FROM " + PXF_TABLE_NAME);
+        gpdb.insertData(sourceTable, pxfForeignTable);
+    }
 }
