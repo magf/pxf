@@ -19,6 +19,7 @@ import org.greenplum.pxf.automation.components.hdfs.Hdfs;
 import org.greenplum.pxf.automation.components.regress.Regress;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
+import org.greenplum.pxf.automation.utils.system.VaultIntegrationTools;
 import org.testng.annotations.*;
 import reporters.CustomAutomationReport;
 
@@ -33,6 +34,7 @@ import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY
  */
 @Listeners({CustomAutomationLogger.class, CustomAutomationReport.class, TestAnalyzer.class})
 public abstract class BaseTestParent {
+    protected static String test = "test";
     // Objects used in the tests
     protected PhdCluster cluster;
     protected Regress regress;
@@ -72,6 +74,12 @@ public abstract class BaseTestParent {
         try {
 
             cluster = (PhdCluster) systemManager.getSystemObjectByXPath("/sut/cluster");
+
+            cluster.runCommand("echo $PXF_VAULT_ENABLED");
+            String res = cluster.getLastCmdResult();
+            String envVal = res.substring(res.indexOf("\n")+1, res.lastIndexOf("\r"));
+            VaultIntegrationTools.isVaultEnabled = (!StringUtils.isEmpty(envVal))
+                    && Boolean.parseBoolean(envVal);
 
             // Initialize HDFS system object
             hdfs = (Hdfs) systemManager.getSystemObjectByXPath("/sut/hdfs");

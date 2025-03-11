@@ -78,12 +78,11 @@ public class Gpdb extends DbSystemObject {
 			createTestFDW(true);
 			createSystemFDW(true);
 			createForeignServers(true);
-			if (VaultIntegrationTools.IS_VAULT_ENABLED) {
+			if (VaultIntegrationTools.isVaultEnabled) {
 				createJdbcFDWVaultEnabled(true);
 				createVaultForeignServers(true);
 			}
 		}
-
 		ReportUtils.stopLevel(report);
 	}
 
