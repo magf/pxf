@@ -18,12 +18,13 @@ import io.qameta.allure.Step;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 @WorksWithFDW
 @Feature("PXF Vault Integration")
 public class VaultIntegrationTest extends BaseFeature {
-    private static final String SOURCE_TABLE_NAME = "source";
+    private static final String SOURCE_TABLE_NAME = "source_table";
     private static final String PXF_TABLE_NAME = "jdbc_fdw_table";
     private static final String[] TABLE_FIELDS = {
             "id INT",
@@ -39,6 +40,8 @@ public class VaultIntegrationTest extends BaseFeature {
             "(7, 'Greg'), " +
             "(8, 'Alex'), " +
             "(10, 'Sergio');";
+
+    private static final String SQL_COUNT_QUERY = "SELECT COUNT(*) FROM ${table}";
 
     private String pxfHome;
     private String restartCommand;
@@ -68,7 +71,10 @@ public class VaultIntegrationTest extends BaseFeature {
         );
         pxfForeignTable.setUserParameters(new String[]{"date_wide_range=true"});
         gpdb.createTableAndVerify(pxfForeignTable);
-        gpdb.runQuery("SELECT * FROM " + PXF_TABLE_NAME);
+        int sourceTableRowsCount = gpdb.getIntValueFromQuery(SQL_COUNT_QUERY.replace("${table}", SOURCE_TABLE_NAME));
+        assertEquals(sourceTableRowsCount, gpdb.getIntValueFromQuery(SQL_COUNT_QUERY.replace("${table}", PXF_TABLE_NAME)));
+        gpdb.copyData(sourceTable, pxfForeignTable);
+        assertEquals(sourceTableRowsCount * 2, gpdb.getIntValueFromQuery(SQL_COUNT_QUERY.replace("${table}", PXF_TABLE_NAME)));
     }
 
     @Test(groups = {"arenadatassl"})
@@ -87,7 +93,10 @@ public class VaultIntegrationTest extends BaseFeature {
         pxfForeignTable.setServer("default_pxf_server_ssl");
         pxfForeignTable.setUserParameters(new String[]{"date_wide_range=true"});
         gpdb.createTableAndVerify(pxfForeignTable);
-        gpdb.runQuery("SELECT * FROM " + PXF_TABLE_NAME);
+        int sourceTableRowsCount = gpdb.getIntValueFromQuery(SQL_COUNT_QUERY.replace("${table}", SOURCE_TABLE_NAME));
+        assertEquals(sourceTableRowsCount, gpdb.getIntValueFromQuery(SQL_COUNT_QUERY.replace("${table}", PXF_TABLE_NAME)));
+        gpdb.copyData(sourceTable, pxfForeignTable);
+        assertEquals(sourceTableRowsCount * 2, gpdb.getIntValueFromQuery(SQL_COUNT_QUERY.replace("${table}", PXF_TABLE_NAME)));
     }
 
     @Test(groups = {"arenadatassl"})

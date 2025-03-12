@@ -79,7 +79,7 @@ public class Gpdb extends DbSystemObject {
 			createSystemFDW(true);
 			createForeignServers(true);
 			if (VaultIntegrationTools.isVaultEnabled) {
-				createJdbcFDWVaultEnabled(true);
+				createJdbcFDWVault(true);
 				createJdbcVaultForeignServer(true);
 			}
 		}
@@ -252,7 +252,7 @@ public class Gpdb extends DbSystemObject {
 				ignoreFail, false);
 	}
 
-	private void createJdbcFDWVaultEnabled(boolean ignoreFail) throws Exception {
+	private void createJdbcFDWVault(boolean ignoreFail) throws Exception {
 		runQuery("DROP FOREIGN DATA WRAPPER IF EXISTS jdbc_pxf_fdw_ssl CASCADE", ignoreFail, false);
 		runQuery("CREATE FOREIGN DATA WRAPPER jdbc_pxf_fdw_ssl HANDLER pxf_fdw_handler " +
 						"VALIDATOR pxf_fdw_validator OPTIONS (protocol 'jdbc', mpp_execute 'all segments'," +
