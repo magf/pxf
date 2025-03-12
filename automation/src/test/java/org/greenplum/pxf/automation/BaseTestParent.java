@@ -14,6 +14,7 @@ import org.apache.log4j.LogManager;
 import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
+import org.greenplum.pxf.automation.components.common.cli.ShellCommandErrorException;
 import org.greenplum.pxf.automation.components.gpdb.Gpdb;
 import org.greenplum.pxf.automation.components.hdfs.Hdfs;
 import org.greenplum.pxf.automation.components.regress.Regress;
@@ -24,6 +25,7 @@ import org.testng.annotations.*;
 import reporters.CustomAutomationReport;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTH_TO_LOCAL;
@@ -75,11 +77,9 @@ public abstract class BaseTestParent {
 
             cluster = (PhdCluster) systemManager.getSystemObjectByXPath("/sut/cluster");
 
-            cluster.runCommand("echo $PXF_VAULT_ENABLED");
-            String res = cluster.getLastCmdResult();
-            String envVal = res.substring(res.indexOf("\n")+1, res.lastIndexOf("\r"));
-            VaultIntegrationTools.isVaultEnabled = (!StringUtils.isEmpty(envVal))
-                    && Boolean.parseBoolean(envVal);
+            String vaultEnvValue = getEnvValue("PXF_VAULT_ENABLED");
+            VaultIntegrationTools.isVaultEnabled = (!StringUtils.isEmpty(vaultEnvValue))
+                    && Boolean.parseBoolean(vaultEnvValue);
 
             // Initialize HDFS system object
             hdfs = (Hdfs) systemManager.getSystemObjectByXPath("/sut/hdfs");
@@ -138,6 +138,12 @@ public abstract class BaseTestParent {
             // anyways revert System.out to original stream
             CustomAutomationLogger.revertStdoutStream();
         }
+    }
+
+    private String getEnvValue(String env) throws ShellCommandErrorException, IOException {
+        cluster.runCommand(String.format("echo $%s", env));
+        String res = cluster.getLastCmdResult();
+        return res.substring(res.indexOf("\n")+1, res.lastIndexOf("\r"));
     }
 
     /**

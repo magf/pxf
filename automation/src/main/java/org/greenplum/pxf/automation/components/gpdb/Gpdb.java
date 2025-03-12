@@ -80,7 +80,7 @@ public class Gpdb extends DbSystemObject {
 			createForeignServers(true);
 			if (VaultIntegrationTools.isVaultEnabled) {
 				createJdbcFDWVaultEnabled(true);
-				createVaultForeignServers(true);
+				createJdbcVaultForeignServer(true);
 			}
 		}
 		ReportUtils.stopLevel(report);
@@ -313,23 +313,18 @@ public class Gpdb extends DbSystemObject {
 		}
 	}
 
-	private void createVaultForeignServers(boolean ignoreFail) throws Exception {
-		List<String> servers = Lists.newArrayList("default_pxf_server_ssl_jdbc");
-		for (String server : servers) {
-			String foreignServerName = server.replace("-", "_");
-			if (version < 7 && serverExists(foreignServerName)) {
-				continue;
-			}
-			String pxfServerName = server.substring(0, server.indexOf("_")); // strip protocol at the end
-			String fdwName = server.substring(server.lastIndexOf("_") + 1) + "_pxf_fdw_ssl"; // strip protocol at the end
-			String option = (version < 7) ? "" : IF_NOT_EXISTS_OPTION;
-			runQuery(String.format("CREATE SERVER %s %s FOREIGN DATA WRAPPER %s OPTIONS(config '%s')",
-					option, server, fdwName, pxfServerName), ignoreFail, false);
-			runQuery(String.format("CREATE USER MAPPING %s FOR CURRENT_USER SERVER %s", option, foreignServerName),
-					ignoreFail, false);
-		}
-
-	}
+    private void createJdbcVaultForeignServer(boolean ignoreFail) throws Exception {
+        String server = "default_pxf_server_ssl_jdbc";
+        if (!(version < 7 && serverExists(server))) {
+            String pxfServerName = server.substring(0, server.indexOf("_")); // strip protocol at the end
+            String fdwName = server.substring(server.lastIndexOf("_") + 1) + "_pxf_fdw_ssl"; // strip protocol at the end
+            String option = (version < 7) ? "" : IF_NOT_EXISTS_OPTION;
+            runQuery(String.format("CREATE SERVER %s %s FOREIGN DATA WRAPPER %s OPTIONS(config '%s')",
+                    option, server, fdwName, pxfServerName), ignoreFail, false);
+            runQuery(String.format("CREATE USER MAPPING %s FOR CURRENT_USER SERVER %s", option, server),
+                    ignoreFail, false);
+        }
+    }
 
 	@Override
 	public void dropDataBase(String dbName, boolean cascade, boolean ignoreFail) throws Exception {
