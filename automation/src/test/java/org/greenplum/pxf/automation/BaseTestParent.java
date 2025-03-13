@@ -78,7 +78,7 @@ public abstract class BaseTestParent {
             cluster = (PhdCluster) systemManager.getSystemObjectByXPath("/sut/cluster");
 
             String vaultEnvValue = getEnvValue("PXF_VAULT_ENABLED");
-            VaultIntegrationTools.isVaultEnabled = (!StringUtils.isEmpty(vaultEnvValue))
+            VaultIntegrationTools.IS_VAULT_ENABLED = (!StringUtils.isEmpty(vaultEnvValue))
                     && Boolean.parseBoolean(vaultEnvValue);
 
             // Initialize HDFS system object

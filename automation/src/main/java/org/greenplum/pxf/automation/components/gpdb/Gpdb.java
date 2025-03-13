@@ -78,7 +78,7 @@ public class Gpdb extends DbSystemObject {
 			createTestFDW(true);
 			createSystemFDW(true);
 			createForeignServers(true);
-			if (VaultIntegrationTools.isVaultEnabled) {
+			if (VaultIntegrationTools.IS_VAULT_ENABLED) {
 				createJdbcFDWVault(true);
 				createJdbcVaultForeignServer(true);
 			}
