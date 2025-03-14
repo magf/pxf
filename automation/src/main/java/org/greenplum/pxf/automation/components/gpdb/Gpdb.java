@@ -9,7 +9,6 @@ import org.greenplum.pxf.automation.structures.tables.basic.Table;
 import org.greenplum.pxf.automation.structures.tables.pxf.ExternalTable;
 import org.greenplum.pxf.automation.utils.jsystem.report.ReportUtils;
 import org.greenplum.pxf.automation.utils.system.FDWUtils;
-import org.greenplum.pxf.automation.utils.system.VaultIntegrationTools;
 import org.springframework.util.Assert;
 
 import java.io.File;
@@ -78,7 +77,8 @@ public class Gpdb extends DbSystemObject {
 			createTestFDW(true);
 			createSystemFDW(true);
 			createForeignServers(true);
-			if (VaultIntegrationTools.IS_VAULT_ENABLED) {
+			if (!StringUtils.isEmpty(System.getenv("PXF_VAULT_ENABLED"))
+					&& Boolean.parseBoolean(System.getenv("PXF_VAULT_ENABLED"))) {
 				createJdbcFDWVault(true);
 				createJdbcVaultForeignServer(true);
 			}

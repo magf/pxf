@@ -20,7 +20,6 @@ import org.greenplum.pxf.automation.components.hdfs.Hdfs;
 import org.greenplum.pxf.automation.components.regress.Regress;
 import org.greenplum.pxf.automation.structures.tables.pxf.ReadableExternalTable;
 import org.greenplum.pxf.automation.utils.system.ProtocolUtils;
-import org.greenplum.pxf.automation.utils.system.VaultIntegrationTools;
 import org.testng.annotations.*;
 import reporters.CustomAutomationReport;
 
@@ -36,7 +35,6 @@ import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY
  */
 @Listeners({CustomAutomationLogger.class, CustomAutomationReport.class, TestAnalyzer.class})
 public abstract class BaseTestParent {
-    protected static String test = "test";
     // Objects used in the tests
     protected PhdCluster cluster;
     protected Regress regress;
@@ -76,11 +74,6 @@ public abstract class BaseTestParent {
         try {
 
             cluster = (PhdCluster) systemManager.getSystemObjectByXPath("/sut/cluster");
-
-            String vaultEnvValue = getEnvValue("PXF_VAULT_ENABLED");
-            VaultIntegrationTools.IS_VAULT_ENABLED = (!StringUtils.isEmpty(vaultEnvValue))
-                    && Boolean.parseBoolean(vaultEnvValue);
-
             // Initialize HDFS system object
             hdfs = (Hdfs) systemManager.getSystemObjectByXPath("/sut/hdfs");
 
@@ -139,13 +132,6 @@ public abstract class BaseTestParent {
             CustomAutomationLogger.revertStdoutStream();
         }
     }
-
-    private String getEnvValue(String env) throws ShellCommandErrorException, IOException {
-        cluster.runCommand(String.format("echo $%s", env));
-        String res = cluster.getLastCmdResult();
-        return res.substring(res.indexOf("\n")+1, res.lastIndexOf("\r"));
-    }
-
     /**
      * will be called after Class run has ended
      *

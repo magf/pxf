@@ -153,15 +153,14 @@ echo "Stop containers and start containers with ssl"
 echo "------------------"
 docker-compose down
 docker-compose -f docker-compose-ssl.yaml up -d
-check_docker_container_status false # We don't need oracle service for FDW tests
+check_docker_container_status true # We don't need oracle service for FDW tests
 
 echo "------------------------------------------------------------------------"
 echo "Start running integration tests in 'arenadatassl' group with FDW"
 echo "------------------------------------------------------------------------"
-check_docker_container_status true # We need oracle service to be healthy for this group of tests
 docker-compose exec $run_test_service_name sudo -H -u gpadmin bash -l -c 'pushd $TEST_HOME && make GROUP=arenadatassl USE_FDW=true'
-check_test_result $? arenadata fdw
-start_copy_artifacts arenadata fdw
+check_test_result $? arenadatassl fdw
+start_copy_artifacts arenadatassl fdw
 
 echo "-------------------"
 echo "Shutdown containers"

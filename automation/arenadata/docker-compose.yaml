@@ -62,11 +62,7 @@ services:
       - MINIO_ACCESS_KEY=minio
       - MINIO_SECRET_KEY=minio123
     volumes:
-      - "./conf/core-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/core-site.xml:ro"
-      - "./conf/hdfs-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/hdfs-site.xml:ro"
-      - "./conf/hive-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/hive-site.xml:ro"
-      - "./conf/hbase-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/hbase-site.xml:ro"
-      - "./conf/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/jdbc-site.xml:ro"
+      - "./conf/servers:/usr/local/greenplum-db-devel/pxf/servers/default"
       - "./conf/pxf-profile.xml:/usr/local/greenplum-db-devel/pxf/conf/pxf-profiles.xml:ro"
       - "./conf/encryption/pxfkeystore.jks:/usr/local/greenplum-db-devel/pxf/conf/pxfkeystore.jks:ro"
     healthcheck:
@@ -96,11 +92,7 @@ services:
       - MINIO_ACCESS_KEY=minio
       - MINIO_SECRET_KEY=minio123
     volumes:
-      - "./conf/core-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/core-site.xml:ro"
-      - "./conf/hdfs-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/hdfs-site.xml:ro"
-      - "./conf/hive-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/hive-site.xml:ro"
-      - "./conf/hbase-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/hbase-site.xml:ro"
-      - "./conf/jdbc-site.xml:/usr/local/greenplum-db-devel/pxf/servers/default/jdbc-site.xml:ro"
+      - "./conf/servers:/usr/local/greenplum-db-devel/pxf/servers/default"
       - "./conf/pxf-profile.xml:/usr/local/greenplum-db-devel/pxf/conf/pxf-profiles.xml:ro"
       - "./conf/encryption/pxfkeystore.jks:/usr/local/greenplum-db-devel/pxf/conf/pxfkeystore.jks:ro"
     healthcheck:
