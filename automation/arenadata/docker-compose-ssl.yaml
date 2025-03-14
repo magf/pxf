@@ -98,7 +98,7 @@ services:
     volumes:
       - "vault-env:/vault/env:ro"
       - "./conf/ssl/certs:/opt/ssl/certs:ro"
-      - "./conf/servers:/usr/local/greenplum-db-devel/pxf/servers/default"
+      - "./conf/servers:/usr/local/greenplum-db-devel/pxf/servers/default/:ro"
       - "./conf/pxf-profile.xml:/usr/local/greenplum-db-devel/pxf/conf/pxf-profiles.xml:ro"
       - "./conf/encryption/pxfkeystore.jks:/usr/local/greenplum-db-devel/pxf/conf/pxfkeystore.jks:ro"
     healthcheck:
@@ -139,7 +139,7 @@ services:
     volumes:
       - "vault-env:/vault/env:ro"
       - "./conf/ssl/certs:/opt/ssl/certs:ro"
-      - "./conf/servers:/usr/local/greenplum-db-devel/pxf/servers/default"
+      - "./conf/servers:/usr/local/greenplum-db-devel/pxf/servers/default/:ro"
       - "./conf/pxf-profile.xml:/usr/local/greenplum-db-devel/pxf/conf/pxf-profiles.xml:ro"
       - "./conf/encryption/pxfkeystore.jks:/usr/local/greenplum-db-devel/pxf/conf/pxfkeystore.jks:ro"
     healthcheck:

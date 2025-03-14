@@ -62,7 +62,7 @@ services:
       - MINIO_ACCESS_KEY=minio
       - MINIO_SECRET_KEY=minio123
     volumes:
-      - "./conf/servers:/usr/local/greenplum-db-devel/pxf/servers/default"
+      - "./conf/servers:/usr/local/greenplum-db-devel/pxf/servers/default/:ro"
       - "./conf/pxf-profile.xml:/usr/local/greenplum-db-devel/pxf/conf/pxf-profiles.xml:ro"
       - "./conf/encryption/pxfkeystore.jks:/usr/local/greenplum-db-devel/pxf/conf/pxfkeystore.jks:ro"
     healthcheck:
@@ -92,7 +92,7 @@ services:
       - MINIO_ACCESS_KEY=minio
       - MINIO_SECRET_KEY=minio123
     volumes:
-      - "./conf/servers:/usr/local/greenplum-db-devel/pxf/servers/default"
+      - "./conf/servers:/usr/local/greenplum-db-devel/pxf/servers/default/:ro"
       - "./conf/pxf-profile.xml:/usr/local/greenplum-db-devel/pxf/conf/pxf-profiles.xml:ro"
       - "./conf/encryption/pxfkeystore.jks:/usr/local/greenplum-db-devel/pxf/conf/pxfkeystore.jks:ro"
     healthcheck:
