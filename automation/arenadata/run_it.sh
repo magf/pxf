@@ -153,7 +153,7 @@ echo "Stop containers and start containers with ssl"
 echo "------------------"
 docker-compose down
 docker-compose -f docker-compose-ssl.yaml up -d
-check_docker_container_status true # We don't need oracle service for FDW tests
+check_docker_container_status true # We need oracle service to be healthy for this group of tests
 
 echo "------------------------------------------------------------------------"
 echo "Start running integration tests in 'arenadatassl' group with FDW"

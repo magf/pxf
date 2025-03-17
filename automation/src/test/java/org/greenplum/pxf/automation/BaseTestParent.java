@@ -14,7 +14,6 @@ import org.apache.log4j.LogManager;
 import org.greenplum.pxf.automation.components.cluster.MultiNodeCluster;
 import org.greenplum.pxf.automation.components.cluster.PhdCluster;
 import org.greenplum.pxf.automation.components.cluster.installer.nodes.Node;
-import org.greenplum.pxf.automation.components.common.cli.ShellCommandErrorException;
 import org.greenplum.pxf.automation.components.gpdb.Gpdb;
 import org.greenplum.pxf.automation.components.hdfs.Hdfs;
 import org.greenplum.pxf.automation.components.regress.Regress;
@@ -24,7 +23,6 @@ import org.testng.annotations.*;
 import reporters.CustomAutomationReport;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTH_TO_LOCAL;
@@ -74,6 +72,7 @@ public abstract class BaseTestParent {
         try {
 
             cluster = (PhdCluster) systemManager.getSystemObjectByXPath("/sut/cluster");
+
             // Initialize HDFS system object
             hdfs = (Hdfs) systemManager.getSystemObjectByXPath("/sut/hdfs");
 
@@ -132,6 +131,7 @@ public abstract class BaseTestParent {
             CustomAutomationLogger.revertStdoutStream();
         }
     }
+
     /**
      * will be called after Class run has ended
      *
