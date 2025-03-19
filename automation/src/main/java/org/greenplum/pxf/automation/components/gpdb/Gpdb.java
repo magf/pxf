@@ -77,8 +77,12 @@ public class Gpdb extends DbSystemObject {
 			createTestFDW(true);
 			createSystemFDW(true);
 			createForeignServers(true);
+			if (!StringUtils.isEmpty(System.getenv("PXF_VAULT_ENABLED"))
+					&& Boolean.parseBoolean(System.getenv("PXF_VAULT_ENABLED"))) {
+				createJdbcFDWVault(true);
+				createJdbcVaultForeignServer(true);
+			}
 		}
-
 		ReportUtils.stopLevel(report);
 	}
 
@@ -248,6 +252,18 @@ public class Gpdb extends DbSystemObject {
 				ignoreFail, false);
 	}
 
+	private void createJdbcFDWVault(boolean ignoreFail) throws Exception {
+		runQuery("DROP FOREIGN DATA WRAPPER IF EXISTS jdbc_pxf_fdw_ssl CASCADE", ignoreFail, false);
+		runQuery("CREATE FOREIGN DATA WRAPPER jdbc_pxf_fdw_ssl HANDLER pxf_fdw_handler " +
+						"VALIDATOR pxf_fdw_validator OPTIONS (protocol 'jdbc', mpp_execute 'all segments'," +
+						"pxf_protocol 'https', " +
+						"pxf_ssl_cacert '/opt/ssl/certs/ca-cert', " +
+						"pxf_ssl_cert '/opt/ssl/certs/pxf-client.pem', " +
+						"pxf_ssl_cert_type 'PEM', " +
+						"pxf_ssl_key '/opt/ssl/certs/pxf-client.key')",
+				ignoreFail, false);
+	}
+
 	private void createSystemFDW(boolean ignoreFail) throws Exception {
 		runQuery("DROP FOREIGN DATA WRAPPER IF EXISTS system_pxf_fdw CASCADE", ignoreFail, false);
 		runQuery("CREATE FOREIGN DATA WRAPPER system_pxf_fdw HANDLER pxf_fdw_handler " +
@@ -296,6 +312,20 @@ public class Gpdb extends DbSystemObject {
 					ignoreFail, false);
 		}
 	}
+
+    private void createJdbcVaultForeignServer(boolean ignoreFail) throws Exception {
+        String server = "default_pxf_server_ssl_jdbc";
+        if (!(version < 7 && serverExists(server))) {
+            String pxfServerName = server.substring(0, server.indexOf("_")); // strip protocol at the end
+            String fdwName = server.substring(server.lastIndexOf("_") + 1) + "_pxf_fdw_ssl"; // strip protocol at the end
+            String option = (version < 7) ? "" : IF_NOT_EXISTS_OPTION;
+            runQuery(String.format("CREATE SERVER %s %s FOREIGN DATA WRAPPER %s OPTIONS(config '%s')",
+                    option, server, fdwName, pxfServerName), ignoreFail, false);
+            runQuery(String.format("CREATE USER MAPPING %s FOR CURRENT_USER SERVER %s", option, server),
+                    ignoreFail, false);
+        }
+    }
+
 	@Override
 	public void dropDataBase(String dbName, boolean cascade, boolean ignoreFail) throws Exception {
 
