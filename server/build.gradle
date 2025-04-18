@@ -183,20 +183,16 @@ configure(javaProjects) {
 
             // Hive dependencies
             dependency("org.apache.hive:hive-storage-api:${hiveStorageApiVersion}")
-            dependencySet(group:"org.apache.hive", version:"${hiveVersion}") {
+            dependencySet(group:"io.arenadata.hive", version:"${hiveVersion}") {
                 entry("hive-exec")
                 entry("hive-metastore")
                 entry("hive-serde")
                 entry("hive-common")
                 entry("hive-service")
                 entry("hive-service-rpc")
-            }
-            // 1.2.2 breaks on CDH-5.x
-            // We use custom hive-jdbc driver from Arenadata
-            dependencySet(group:"io.arenadata.hive", version:"2.3.8-arenadata-pxf-3") {
                 entry("hive-jdbc")
             }
-            dependencySet(group:"org.apache.hive.shims", version:"${hiveVersion}") {
+            dependencySet(group:"io.arenadata.hive.shims", version:"${hiveVersion}") {
                 entry("hive-shims-common")
                 entry("hive-shims-0.23")
             }
