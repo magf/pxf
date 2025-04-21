@@ -3,6 +3,8 @@ DATA        = pxf_fdw--1.0.sql
 MODULE_big  = pxf_fdw
 OBJS        = pxf_fdw.o pxf_bridge.o pxf_deparse.o pxf_filter.o pxf_header.o pxf_option.o libchurl.o
 
+with_llvm = no
+
 is_ssl_supported :=$(filter https,$(PXF_PROTOCOL))
 REGRESS_SSL := $(if $(is_ssl_supported), pxf_fdw_ssl)
 REGRESS     = pxf_fdw_wrapper pxf_fdw_server pxf_fdw_user_mapping pxf_fdw_foreign_table $(REGRESS_SSL)

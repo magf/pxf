@@ -5,6 +5,8 @@ OBJS        = src/pxfprotocol.o src/pxfbridge.o src/pxfuriparser.o src/libchurl.
 REGRESS     = setup pxf pxfinvalid
 SHLIB_LINK += -lcurl
 
+with_llvm = no
+
 PXF_API_VERSION := $(shell cat ../api_version)
 PG_CPPFLAGS     := -DPXF_API_VERSION=\"$(PXF_API_VERSION)\"
 
