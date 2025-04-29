@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HdfsUtilitiesTest {
 
@@ -51,5 +51,20 @@ public class HdfsUtilitiesTest {
         assertEquals(fileSplit.getStart(), 10);
         assertEquals(fileSplit.getLength(), 100);
         assertEquals(fileSplit.getPath().toString(), "/abc/path/to/data/source");
+    }
+
+    @Test
+    public void testIsS3Request() {
+        RequestContext context = new RequestContext();
+        context.setProtocol("s3a");
+        HdfsUtilities.isS3Request(context);
+        assertTrue(HdfsUtilities.isS3Request(context));
+    }
+
+    @Test
+    public void testIsS3RequestWithoutProtocolSet() {
+        RequestContext context = new RequestContext();
+        HdfsUtilities.isS3Request(context);
+        assertFalse(HdfsUtilities.isS3Request(context));
     }
 }
