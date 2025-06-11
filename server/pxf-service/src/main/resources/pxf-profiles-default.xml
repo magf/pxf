@@ -546,6 +546,14 @@ under the License.
             <accessor>org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor</accessor>
             <resolver>org.greenplum.pxf.plugins.hdfs.ParquetResolver</resolver>
         </plugins>
+        <optionMappings>
+            <mapping option="use_int64_timestamps" property="pxf.parquet.use.int64.timestamps"/>
+            <mapping option="use_local_pxf_timezone_write" property="pxf.parquet.use.local.pxf.timezone.write"/>
+            <mapping option="use_local_pxf_timezone_read" property="pxf.parquet.use.local.pxf.timezone.read"/>
+            <mapping option="use_logical_type_interval" property="pxf.parquet.use.logical.type.interval"/>
+            <mapping option="use_logical_type_time" property="pxf.parquet.use.logical.type.time"/>
+            <mapping option="use_logical_type_uuid" property="pxf.parquet.use.logical.type.uuid"/>
+        </optionMappings>
     </profile>
     <profile>
         <name>hdfs:parquet</name>
@@ -555,6 +563,14 @@ under the License.
             <accessor>org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor</accessor>
             <resolver>org.greenplum.pxf.plugins.hdfs.ParquetResolver</resolver>
         </plugins>
+        <optionMappings>
+            <mapping option="use_int64_timestamps" property="pxf.parquet.use.int64.timestamps"/>
+            <mapping option="use_local_pxf_timezone_write" property="pxf.parquet.use.local.pxf.timezone.write"/>
+            <mapping option="use_local_pxf_timezone_read" property="pxf.parquet.use.local.pxf.timezone.read"/>
+            <mapping option="use_logical_type_interval" property="pxf.parquet.use.logical.type.interval"/>
+            <mapping option="use_logical_type_time" property="pxf.parquet.use.logical.type.time"/>
+            <mapping option="use_logical_type_uuid" property="pxf.parquet.use.logical.type.uuid"/>
+        </optionMappings>
     </profile>
     <profile>
         <name>s3:parquet</name>
@@ -569,6 +585,12 @@ under the License.
         <optionMappings>
             <mapping option="accesskey" property="fs.s3a.access.key"/>
             <mapping option="secretkey" property="fs.s3a.secret.key"/>
+            <mapping option="use_int64_timestamps" property="pxf.parquet.use.int64.timestamps"/>
+            <mapping option="use_local_pxf_timezone_write" property="pxf.parquet.use.local.pxf.timezone.write"/>
+            <mapping option="use_local_pxf_timezone_read" property="pxf.parquet.use.local.pxf.timezone.read"/>
+            <mapping option="use_logical_type_interval" property="pxf.parquet.use.logical.type.interval"/>
+            <mapping option="use_logical_type_time" property="pxf.parquet.use.logical.type.time"/>
+            <mapping option="use_logical_type_uuid" property="pxf.parquet.use.logical.type.uuid"/>
         </optionMappings>
     </profile>
     <profile>
@@ -580,6 +602,14 @@ under the License.
             <accessor>org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor</accessor>
             <resolver>org.greenplum.pxf.plugins.hdfs.ParquetResolver</resolver>
         </plugins>
+        <optionMappings>
+            <mapping option="use_int64_timestamps" property="pxf.parquet.use.int64.timestamps"/>
+            <mapping option="use_local_pxf_timezone_write" property="pxf.parquet.use.local.pxf.timezone.write"/>
+            <mapping option="use_local_pxf_timezone_read" property="pxf.parquet.use.local.pxf.timezone.read"/>
+            <mapping option="use_logical_type_interval" property="pxf.parquet.use.logical.type.interval"/>
+            <mapping option="use_logical_type_time" property="pxf.parquet.use.logical.type.time"/>
+            <mapping option="use_logical_type_uuid" property="pxf.parquet.use.logical.type.uuid"/>
+        </optionMappings>
         <protocol>adl</protocol>
     </profile>
     <profile>
@@ -591,6 +621,14 @@ under the License.
             <accessor>org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor</accessor>
             <resolver>org.greenplum.pxf.plugins.hdfs.ParquetResolver</resolver>
         </plugins>
+        <optionMappings>
+            <mapping option="use_int64_timestamps" property="pxf.parquet.use.int64.timestamps"/>
+            <mapping option="use_local_pxf_timezone_write" property="pxf.parquet.use.local.pxf.timezone.write"/>
+            <mapping option="use_local_pxf_timezone_read" property="pxf.parquet.use.local.pxf.timezone.read"/>
+            <mapping option="use_logical_type_interval" property="pxf.parquet.use.logical.type.interval"/>
+            <mapping option="use_logical_type_time" property="pxf.parquet.use.logical.type.time"/>
+            <mapping option="use_logical_type_uuid" property="pxf.parquet.use.logical.type.uuid"/>
+        </optionMappings>
         <protocol>wasbs</protocol>
     </profile>
     <profile>
@@ -602,6 +640,14 @@ under the License.
             <accessor>org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor</accessor>
             <resolver>org.greenplum.pxf.plugins.hdfs.ParquetResolver</resolver>
         </plugins>
+        <optionMappings>
+            <mapping option="use_int64_timestamps" property="pxf.parquet.use.int64.timestamps"/>
+            <mapping option="use_local_pxf_timezone_write" property="pxf.parquet.use.local.pxf.timezone.write"/>
+            <mapping option="use_local_pxf_timezone_read" property="pxf.parquet.use.local.pxf.timezone.read"/>
+            <mapping option="use_logical_type_interval" property="pxf.parquet.use.logical.type.interval"/>
+            <mapping option="use_logical_type_time" property="pxf.parquet.use.logical.type.time"/>
+            <mapping option="use_logical_type_uuid" property="pxf.parquet.use.logical.type.uuid"/>
+        </optionMappings>
         <protocol>gs</protocol>
     </profile>
     <profile>
@@ -613,6 +659,14 @@ under the License.
             <accessor>org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor</accessor>
             <resolver>org.greenplum.pxf.plugins.hdfs.ParquetResolver</resolver>
         </plugins>
+        <optionMappings>
+            <mapping option="use_int64_timestamps" property="pxf.parquet.use.int64.timestamps"/>
+            <mapping option="use_local_pxf_timezone_write" property="pxf.parquet.use.local.pxf.timezone.write"/>
+            <mapping option="use_local_pxf_timezone_read" property="pxf.parquet.use.local.pxf.timezone.read"/>
+            <mapping option="use_logical_type_interval" property="pxf.parquet.use.logical.type.interval"/>
+            <mapping option="use_logical_type_time" property="pxf.parquet.use.logical.type.time"/>
+            <mapping option="use_logical_type_uuid" property="pxf.parquet.use.logical.type.uuid"/>
+        </optionMappings>
     </profile>
 
     <!-- ==================== ORC PROFILES ==================== -->

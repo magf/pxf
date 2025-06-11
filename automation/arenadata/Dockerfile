@@ -99,6 +99,9 @@ COPY ./automation/arenadata/conf/oracle/jdbc-site.xml ${PXF_HOME}/servers/oracle
 RUN mkdir ${PXF_HOME}/servers/mysql
 COPY ./automation/arenadata/conf/mysql/jdbc-site.xml ${PXF_HOME}/servers/mysql/jdbc-site.xml
 
+RUN mkdir ${PXF_HOME}/servers/parquet_config
+COPY ./automation/arenadata/conf/parquet/pxf-site.xml ${PXF_HOME}/servers/parquet_config/pxf-site.xml
+
 # Need to change ssh key to RSA for automation tests with Ubuntu
 RUN set -eux; \
     . /etc/os-release; \

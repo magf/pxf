@@ -1,0 +1,8 @@
+-- @description query01 for Checking Timestamp with session timezone.
+SET timezone = 'Europe/Moscow';
+SET
+SELECT * FROM readable_parquet_table;
+         tmp
+---------------------
+ 2022-06-22 19:10:25
+(1 row)

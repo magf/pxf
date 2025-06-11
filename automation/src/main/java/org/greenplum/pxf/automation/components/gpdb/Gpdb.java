@@ -294,7 +294,8 @@ public class Gpdb extends DbSystemObject {
                 "default_test",
                 "default_system",
                 "oracle_jdbc",
-                "mysql_jdbc");
+                "mysql_jdbc",
+				"parquet_config_hdfs");
 
 		// version below GP7 do not have IF EXISTS / IF NOT EXISTS command options for foreign SERVER creation
 		String option = (version < 7) ? "" : IF_NOT_EXISTS_OPTION;
