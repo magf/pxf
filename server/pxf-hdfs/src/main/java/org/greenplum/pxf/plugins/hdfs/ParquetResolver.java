@@ -53,7 +53,7 @@ public class ParquetResolver extends BasePlugin implements Resolver {
     // and type "timestamp with time zone" ("2019-03-14 14:10:28+07:30")
     public static final Pattern TIMESTAMP_PATTERN = Pattern.compile("[+-]\\d{2}(:\\d{2})?$");
     public static final String PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME = "pxf.parquet.write.decimal.overflow";
-    public static final String USE_LOCAL_PXF_TIMEZONE_READ_NAME = "USE_LOCAL_PXF_TIMEZONE_READ";
+    public static final String USE_LOCAL_PXF_TIMEZONE_READ_NAME = "pxf.parquet.use.local.pxf.timezone.read";
     public static final boolean DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ = true;
     private static final PgUtilities pgUtilities = new PgUtilities();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -70,8 +70,8 @@ public class ParquetResolver extends BasePlugin implements Resolver {
         columnDescriptors = context.getTupleDescription();
         DecimalOverflowOption decimalOverflowOption = DecimalOverflowOption.valueOf(configuration.get(PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME, DecimalOverflowOption.ROUND.name()).toUpperCase());
         DecimalUtilities decimalUtilities = new DecimalUtilities(decimalOverflowOption, true);
-        boolean useLocalPxfTimezoneWrite = context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
-        boolean useLocalPxfTimezoneRead = context.getOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
+        boolean useLocalPxfTimezoneWrite = configuration.getBoolean(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
+        boolean useLocalPxfTimezoneRead = configuration.getBoolean(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
         ParquetConfig parquetConfig = ParquetConfig.builder()
                 .useLocalPxfTimezoneWrite(useLocalPxfTimezoneWrite)
                 .useLocalPxfTimezoneRead(useLocalPxfTimezoneRead)

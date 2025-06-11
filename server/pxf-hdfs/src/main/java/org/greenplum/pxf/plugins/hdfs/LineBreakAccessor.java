@@ -126,7 +126,12 @@ public class LineBreakAccessor extends HdfsSplittableDataAccessor {
 
         file = new Path(fileName);
         fs = FileSystem.get(URI.create(fileName), configuration);
-        HdfsUtilities.validateFile(file, fs);
+
+        // We don't need neither to check file and folder neither create folder fos S3A protocol
+        // We will check the file during the creation of the output stream
+        if (!HdfsUtilities.isS3Request(context)) {
+            HdfsUtilities.validateFile(file, fs);
+        }
 
         // create output stream - do not allow overwriting existing file
         createOutputStream(file, codec);

@@ -36,7 +36,9 @@ public class PxfMetricsTest extends BaseFeature {
     protected void beforeClass() throws Exception {
         if (!FDWUtils.useFDW) {
             String pxfAppPropertiesFile = cluster.getPxfHome() + "/conf/pxf-application.properties";
-            cluster.runCommandOnAllNodes("sed -i 's/# server.address=localhost/server.address=0\\.0\\.0\\.0\\ncluster-name=" + CLUSTER_NAME + "/' " + pxfAppPropertiesFile);
+            cluster.runCommandOnAllNodes("cat <<EOT >> " + pxfAppPropertiesFile + "\n" +
+                            "\ncluster-name=" + CLUSTER_NAME + "\n" +
+                            "EOT");
             cluster.restart(PhdCluster.EnumClusterServices.pxf);
             Collection<String> pxfHostNames = getPxfHostNames();
             for (String pxfHostName : pxfHostNames) {

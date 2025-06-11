@@ -114,6 +114,7 @@ static JsonSemAction nullSemAction =
 churl_context *churl_new_context(void);
 static void		create_curl_handle(churl_context *context);
 static void		set_curl_option(churl_context *context, CURLoption option, const void *data);
+static void     set_curl_ssl_options(churl_context *context, churl_ssl_options *ssl_options);
 static size_t	read_callback(void *ptr, size_t size, size_t nmemb, void *userdata);
 static void		setup_multi_handle(churl_context *context);
 static void		multi_perform(churl_context *context);
@@ -388,7 +389,7 @@ log_curl_debug(CURL *handle, curl_infotype type, char *data, size_t size, void *
 }
 
 static CHURL_HANDLE
-churl_init(const char *url, CHURL_HEADERS headers)
+churl_init(const char *url, CHURL_HEADERS headers, churl_ssl_options *ssl_options /* = NULL*/)
 {
 	churl_context *context = churl_new_context();
 
@@ -422,21 +423,62 @@ churl_init(const char *url, CHURL_HEADERS headers)
 	set_curl_option(context, CURLOPT_WRITEDATA, context);
 	set_curl_option(context, CURLOPT_HEADERFUNCTION, header_callback);
 	set_curl_option(context, CURLOPT_HEADERDATA, context);
+
+	set_curl_ssl_options(context, ssl_options);
+
 	churl_headers_set(context, headers);
 
 	return (CHURL_HANDLE) context;
 }
 
-CHURL_HANDLE
-churl_init_upload(const char *url, CHURL_HEADERS headers)
+static void
+set_curl_ssl_options(churl_context *context, churl_ssl_options *ssl_options)
 {
-	return churl_init_upload_timeout(url, headers, 0);
+	if (ssl_options != NULL) {
+		const char *cacert = ssl_options->pxf_ssl_cacert; // PXF_SSL_CACERT
+
+		if (ssl_options->pxf_ssl_cert)
+			set_curl_option(context, CURLOPT_SSLCERT, ssl_options->pxf_ssl_cert);
+
+		if (ssl_options->pxf_ssl_key)
+			set_curl_option(context, CURLOPT_SSLKEY, ssl_options->pxf_ssl_key);
+
+		if (ssl_options->pxf_ssl_cert_type)
+			set_curl_option(context, CURLOPT_SSLCERTTYPE, ssl_options->pxf_ssl_cert_type);
+			
+		if (ssl_options->pxf_ssl_keypasswd != NULL) {
+			set_curl_option(context, CURLOPT_SSLKEYPASSWD, ssl_options->pxf_ssl_keypasswd);
+		}
+
+		if (cacert != NULL && cacert[0] != '\0') {
+			set_curl_option(context, CURLOPT_CAINFO, cacert);
+		}
+
+		set_curl_option(context, CURLOPT_SSL_VERIFYPEER, (const void *)ssl_options->pxf_ssl_verify_peer);
+	}
 }
 
 CHURL_HANDLE
-churl_init_upload_timeout(const char *url, CHURL_HEADERS headers, long timeout)
+churl_init_upload(const char *url, CHURL_HEADERS headers)
 {
-	churl_context *context = churl_init(url, headers);
+	return churl_init_upload_timeout_ssl(url, headers, NULL, 0);
+}
+
+CHURL_HANDLE
+churl_init_upload_ssl(const char *url, CHURL_HEADERS headers, churl_ssl_options *ssl_options)
+{
+	return churl_init_upload_timeout_ssl(url, headers, ssl_options, 0);
+}
+
+CHURL_HANDLE churl_init_upload_timeout(const char *url, CHURL_HEADERS headers, long timeout)
+{
+	return churl_init_upload_timeout_ssl(url, headers, NULL, timeout);
+}
+
+CHURL_HANDLE
+churl_init_upload_timeout_ssl(const char *url, CHURL_HEADERS headers, churl_ssl_options *ssl_options, long timeout)
+{
+	churl_context *context = churl_init(url, headers, ssl_options);
 
 	context->upload = true;
 
@@ -455,7 +497,13 @@ churl_init_upload_timeout(const char *url, CHURL_HEADERS headers, long timeout)
 CHURL_HANDLE
 churl_init_download(const char *url, CHURL_HEADERS headers)
 {
-	churl_context *context = churl_init(url, headers);
+	return churl_init_download_ssl(url, headers, NULL);
+}
+
+CHURL_HANDLE
+churl_init_download_ssl(const char *url, CHURL_HEADERS headers, churl_ssl_options *ssl_options)
+{
+	churl_context *context = churl_init(url, headers, ssl_options);
 
 	context->upload = false;
 
