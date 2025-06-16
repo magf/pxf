@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
-	"github.com/greenplum-db/gp-common-go-libs/dbconn"
-	"github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/GreengageDB/gp-common-go-libs/cluster"
+	"github.com/GreengageDB/gp-common-go-libs/dbconn"
+	"github.com/GreengageDB/gp-common-go-libs/gplog"
 	"github.com/spf13/cobra"
 )
 
@@ -146,7 +146,7 @@ func doSetup() (*ClusterData, error) {
 	err := connection.Connect(1)
 	if err != nil {
 		gplog.Error(fmt.Sprintf("ERROR: Could not connect to GPDB.\n%s\n"+
-			"Please make sure that your Greenplum database is running and you are on the coordinator node.", err.Error()))
+			"Please make sure that your Greengage database is running and you are on the coordinator node.", err.Error()))
 		return nil, err
 	}
 	segConfigs, err := cluster.GetSegmentConfiguration(connection, true)

@@ -289,7 +289,7 @@ test_sync_succeeds_no_standby() {
   #      : AND new file is created on coordinator host
   touch "${PXF_BASE_DIR}/conf/foo.jar"
   #      : AND the standby coordinator is no longer on scdw
-  source "${GPHOME}/greenplum_path.sh"
+  source "${GPHOME}/greengage_path.sh"
   if has_standby_coordinator; then
     gpinitstandby -ar >/dev/null
   fi

@@ -96,7 +96,7 @@ public class BinaryParquetTypeConverter implements ParquetTypeConverter {
         if (STRING_DATA_TYPES.contains(detectedDataType)) {
             String strVal = (String) fieldValue;
             /*
-             * We need to right trim the incoming value from Greenplum. This is
+             * We need to right trim the incoming value from Greengage. This is
              * consistent with the behaviour in Hive, where char fields are right
              * trimmed during write. Note that String and varchar Hive types are
              * not right trimmed. Hive does not trim tabs or newlines

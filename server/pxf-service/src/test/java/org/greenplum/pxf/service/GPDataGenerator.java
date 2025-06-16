@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * This is a utility class that has a main method and assertion functions to work with sample datasets.
  *
  * The main method generates a 'sample_data.sql' file in 'src/test/resources' directory. The file contains:
- * - a DDL statement for a definition of the Greenplum table 'sample_data' to hold sample data
+ * - a DDL statement for a definition of the Greengage table 'sample_data' to hold sample data
  * - DML statements to insert the sample dataset into the 'sample_data' table
  * - DML statements to COPY the sample dataset to a set of CSV and TEXT files in 'src/test/resources'
  *
@@ -43,7 +43,7 @@ public class GPDataGenerator {
     private static final String dir = System.getenv("HOME") + "/workspace/pxf/server/pxf-service/src/test/resources/data/";
 
     /**
-     * Enum representing different formats used to export the sample data set into a file using Greenplum COPY command.
+     * Enum representing different formats used to export the sample data set into a file using Greengage COPY command.
      */
     public enum FORMAT {
         CSV("sample_data.csv", ',', null, '"', '"'),
@@ -149,7 +149,7 @@ public class GPDataGenerator {
      * @param nullColumnIndex index of the column to set to NULL value
      */
     private void addRow(int rowIndex, int nullColumnIndex) {
-        // the values represent the result of CSV parsing of a row produced by Greenplum COPY command
+        // the values represent the result of CSV parsing of a row produced by Greengage COPY command
         // short/int/long/float/double and boolean values will be native Java types, bytea will be ByteBuffer
         // the rest including NUMERIC and all arrays will be Strings
         List<Object> row = new ArrayList<>(COLUMNS.length);
@@ -234,8 +234,8 @@ public class GPDataGenerator {
 
     /**
      * Main method that generates '$HOME/workspace/pxf/server/pxf-service/src/test/resources/data/sample_data.sql' file
-     * with DDL and DML statements to create the sample dataset in a Greenplum table and copy it to a set of files
-     * in different formats using the Greenplum COPY command.
+     * with DDL and DML statements to create the sample dataset in a Greengage table and copy it to a set of files
+     * in different formats using the Greengage COPY command.
      * @param args program arguments, not used
      */
     public static void main(String[] args) {

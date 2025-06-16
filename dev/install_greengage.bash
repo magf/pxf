@@ -8,10 +8,10 @@ pushd ${CWDIR}/../downloads > /dev/null
 if [[ -f /etc/redhat-release ]]; then
     major_version=$(cat /etc/redhat-release | tr -dc '0-9.'|cut -d \. -f1)
     ARTIFACT_OS="rhel${major_version}"
-    LATEST_RPM=$(ls greenplum*${ARTIFACT_OS}*.rpm | sort -r | head -1)
+    LATEST_RPM=$(ls greengage*${ARTIFACT_OS}*.rpm | sort -r | head -1)
 
     if [[ -z $LATEST_RPM ]]; then
-        echo "ERROR: No greenplum RPM found in ${PWD}"
+        echo "ERROR: No greengage RPM found in ${PWD}"
         popd > /dev/null
         exit 1
     fi
@@ -21,10 +21,10 @@ if [[ -f /etc/redhat-release ]]; then
 
 elif [[ -f /etc/debian_version ]]; then
     ARTIFACT_OS="ubuntu"
-    LATEST_DEB=$(ls *greenplum*ubuntu*.deb | sort -r | head -1)
+    LATEST_DEB=$(ls *greengage*ubuntu*.deb | sort -r | head -1)
 
     if [[ -z $LATEST_DEB ]]; then
-        echo "ERROR: No greenplum DEB found in ${PWD}"
+        echo "ERROR: No greengage DEB found in ${PWD}"
         popd > /dev/null
         exit 1
     fi

@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 
 /**
- * Provides formatters for Greenplum DateTime
+ * Provides formatters for Greengage DateTime
  */
 public class GreenplumDateTime {
     public static final int NANOS_IN_MICROS = 1000;
@@ -16,7 +16,7 @@ public class GreenplumDateTime {
     public static final String DATETIME_FORMATTER_BASE_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
     /**
-     * The date formatter for Greenplum values
+     * The date formatter for Greengage values
      */
     public static final DateTimeFormatter DATE_FORMATTER =
             new DateTimeFormatterBuilder()
@@ -53,7 +53,7 @@ public class GreenplumDateTime {
             new DateTimeFormatterBuilder()
                     .parseCaseInsensitive()
                     .append(DATETIME_FORMATTER)
-                    // Make the mm optional since Greenplum will only send HH if mm == 00
+                    // Make the mm optional since Greengage will only send HH if mm == 00
                     .appendOptional(optionalFormatter)
                     .toFormatter();
 }

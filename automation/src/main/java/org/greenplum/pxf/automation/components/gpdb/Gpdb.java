@@ -218,8 +218,8 @@ public class Gpdb extends DbSystemObject {
 
 		String createStatement;
 		if (version == 5) {
-			// Greenplum 5
-			ReportUtils.startLevel(report, getClass(), "Unable to create database with encoding that does not match server's locale in Greenplum 5");
+			// Greengage 5
+			ReportUtils.startLevel(report, getClass(), "Unable to create database with encoding that does not match server's locale in Greengage 5");
 			createStatement = String.format("CREATE DATABASE %s", schemaName);
 		} else {
 			createStatement = String.format("CREATE DATABASE %s TEMPLATE = template0 ENCODING = '%s' LC_COLLATE = '%s' LC_CTYPE = '%s'",
@@ -354,7 +354,7 @@ public class Gpdb extends DbSystemObject {
 
 		sso.init();
 
-		sso.runCommand("source $GPHOME/greenplum_path.sh");
+		sso.runCommand("source $GPHOME/greengage_path.sh");
 		// psql do not return error code so use EXIT_CODE_NOT_EXISTS
 		sso.runCommand("psql " + getDb(), ShellSystemObject.EXIT_CODE_NOT_EXISTS);
 
@@ -595,17 +595,17 @@ public class Gpdb extends DbSystemObject {
 
 	private int determineVersion() throws Exception {
 		String query = "SELECT version()";
-		ReportUtils.report(report, getClass(), "Determining Greenplum version - query: " + query);
+		ReportUtils.report(report, getClass(), "Determining Greengage version - query: " + query);
 
 		ResultSet res = stmt.executeQuery(query);
 		res.next();
 		String fullVersion = res.getString(1);
-		ReportUtils.report(report, getClass(), "Retrieved from Greenplum: [" + fullVersion + "]");
+		ReportUtils.report(report, getClass(), "Retrieved from Greengage: [" + fullVersion + "]");
 		int gpIndex = fullVersion.indexOf(GREENPLUM_DATABASE_PREFIX); // where the version prefix starts
 		int dotIndex = fullVersion.indexOf(".", gpIndex);             // where the first dot of GP version starts
 		String versionStr = fullVersion.substring(gpIndex + GREENPLUM_DATABASE_PREFIX.length(), dotIndex);
 		int versionInt = Integer.parseInt(versionStr);
-		ReportUtils.report(report, getClass(), "Determined Greenplum version: " + versionInt);
+		ReportUtils.report(report, getClass(), "Determined Greengage version: " + versionInt);
 		return versionInt;
 	}
 
@@ -623,7 +623,7 @@ public class Gpdb extends DbSystemObject {
 		ResultSet res = stmt.executeQuery(query);
 		res.next();
 		int count = res.getInt(1);
-		ReportUtils.report(report, getClass(), "Retrieved from Greenplum: [" + count + "] servers");
+		ReportUtils.report(report, getClass(), "Retrieved from Greengage: [" + count + "] servers");
 		return count > 0;
 	}
 

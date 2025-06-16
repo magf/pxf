@@ -12,15 +12,15 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * Class for building an ORC schema from a Greenplum table definition.
+ * Class for building an ORC schema from a Greengage table definition.
  */
 public abstract class ORCSchemaBuilder {
 
     public static final Logger LOG = LoggerFactory.getLogger(ORCSchemaBuilder.class);
 
     /**
-     * Builds an ORC schema from Greenplum table description
-     * @param columnDescriptors list of column descriptors of a Greenplum table
+     * Builds an ORC schema from Greengage table description
+     * @param columnDescriptors list of column descriptors of a Greengage table
      * @return an ORC schema
      */
     public static TypeDescription buildSchema(List<ColumnDescriptor> columnDescriptors) {
@@ -31,7 +31,7 @@ public abstract class ORCSchemaBuilder {
         TypeDescription writeSchema = TypeDescription.createStruct();
         for (ColumnDescriptor columnDescriptor : columnDescriptors) {
             String columnName = columnDescriptor.columnName();
-            TypeDescription orcType = orcTypeFromGreenplumType(columnDescriptor);
+            TypeDescription orcType = orcTypeFromGreengageType(columnDescriptor);
             LOG.debug("Mapped column {} of type {} to ORC type {}", columnName, columnDescriptor.getDataType().getOID(), orcType);
             writeSchema.addField(columnName, orcType);
         }
@@ -40,14 +40,14 @@ public abstract class ORCSchemaBuilder {
     }
 
     /**
-     * Maps Greenplum type to ORC logical type, including handling for arrays.
-     * @param columnDescriptor the Greenplum column descriptor
-     * @return ORC logical type to use when storing the values of provided Greenplum type
+     * Maps Greengage type to ORC logical type, including handling for arrays.
+     * @param columnDescriptor the Greengage column descriptor
+     * @return ORC logical type to use when storing the values of provided Greengage type
      */
-    private static TypeDescription orcTypeFromGreenplumType(ColumnDescriptor columnDescriptor) {
+    private static TypeDescription orcTypeFromGreengageType(ColumnDescriptor columnDescriptor) {
         DataType dataType = columnDescriptor.getDataType();
 
-        // Greenplum does not report dimensionality of arrays, so for auto-generated schema we assume only 1-dim arrays
+        // Greengage does not report dimensionality of arrays, so for auto-generated schema we assume only 1-dim arrays
         // are supported. Once we allow a user to provide a schema, this might change.
         DataType scalarDataType = dataType.isArrayType() ? dataType.getTypeElem() : dataType;
         TypeDescription typeDescription;
@@ -108,22 +108,22 @@ public abstract class ORCSchemaBuilder {
                 typeDescription = setPrecisionAndScale(TypeDescription.createDecimal(), columnDescriptor.columnTypeModifiers(), columnDescriptor.columnName());
                 break;
             default:
-                throw new PxfRuntimeException(String.format("Unsupported Greenplum type %d for column %s",
+                throw new PxfRuntimeException(String.format("Unsupported Greengage type %d for column %s",
                         dataType.getOID(), columnDescriptor.columnName()));
         }
-        // wrap a primitive ORC TypeDescription into an list if Greenplum type was an array
+        // wrap a primitive ORC TypeDescription into an list if Greengage type was an array
         return dataType.isArrayType() ? TypeDescription.createList(typeDescription) : typeDescription;
     }
 
     /**
-     * Sets precision and scale for NUMERIC ORC type if a corresponding Greenplum column had modifiers
+     * Sets precision and scale for NUMERIC ORC type if a corresponding Greengage column had modifiers
      * @param typeDescription ORC type description
-     * @param columnTypeModifiers Greenplum type modifiers
-     * @param columnName Greenplum column name
+     * @param columnTypeModifiers Greengage type modifiers
+     * @param columnName Greengage column name
      * @return type description object with the specified precision and scale, if any
      */
     private static TypeDescription setPrecisionAndScale(TypeDescription typeDescription, Integer[] columnTypeModifiers, String columnName) {
-        // if precision is not defined in Greenplum for a column, columnTypeModifiers will be null
+        // if precision is not defined in Greengage for a column, columnTypeModifiers will be null
         if (ArrayUtils.isNotEmpty(columnTypeModifiers)) {
             Integer precision = columnTypeModifiers[0];
             if (precision != null) {

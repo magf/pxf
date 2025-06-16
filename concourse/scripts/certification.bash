@@ -16,7 +16,7 @@ function authenticate() {
 function list_certifications() {
     echo
     echo "******************************************************************************"
-    echo "*****************  Available certifications for Greenplum-${GP_VER}  *****************"
+    echo "*****************  Available certifications for Greengage-${GP_VER}  *****************"
     echo "******************************************************************************"
     echo
 

@@ -204,7 +204,7 @@ public class HiveTest extends HiveBaseTest {
     }
 
     /**
-     * Create a Greenplum table with a subset of columns from the original
+     * Create a Greengage table with a subset of columns from the original
      * Hive table
      *
      * @throws Exception if test fails to run
@@ -219,7 +219,7 @@ public class HiveTest extends HiveBaseTest {
     }
 
     /**
-     * Create a Greenplum table with a subset of columns from the original
+     * Create a Greengage table with a subset of columns from the original
      * partitioned Hive table
      *
      * @throws Exception if test fails to run
@@ -615,7 +615,7 @@ public class HiveTest extends HiveBaseTest {
 
     /**
      * Tests when the column name doesn't match any of the columns defined at
-     * the Greenplum table definition
+     * the Greengage table definition
      *
      * @throws Exception if test fails to run
      */

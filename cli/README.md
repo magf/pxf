@@ -26,7 +26,7 @@ To make iteration times faster, feel free to comment out the task `Test PXF-GP[[
 
 ## Debugging the CLI on a live system
 
-Because it's hard to mock out a Greenplum cluster, it's useful to debug on a real live cluster. We can do this using the [`delve`](https://github.com/go-delve/delve) project.
+Because it's hard to mock out a Greengage cluster, it's useful to debug on a real live cluster. We can do this using the [`delve`](https://github.com/go-delve/delve) project.
 
 1. Install `dlv` command, see [here](https://github.com/go-delve/delve/blob/master/Documentation/installation/linux/install.md) for more details:
 
@@ -38,7 +38,7 @@ go install github.com/go-delve/delve/cmd/dlv@latest
 
 ```
 config max-string-len 1000
-break vendor/github.com/greenplum-db/gp-common-go-libs/cluster/cluster.go:351
+break vendor/github.com/greengage-db/gp-common-go-libs/cluster/cluster.go:351
 continue
 print commandList
 ```
@@ -47,7 +47,7 @@ print commandList
 
 ```bash
 cd ~/workspace/pxf/cli
-GPHOME=/usr/local/greenplum-db dlv debug pxf-cli -- cluster restart
+GPHOME=/usr/local/greengage-db dlv debug pxf-cli -- cluster restart
 ```
 
 The [help page for dlv](https://github.com/go-delve/delve/tree/master/Documentation/cli) is useful.

@@ -87,7 +87,7 @@ public class AvroFileAccessor extends HdfsSplittableDataAccessor {
      *
      * for WRITE:
      * We get the schema either from a user-provided path to an
-     * avro file or by generating it on the fly from the Greenplum schema.
+     * avro file or by generating it on the fly from the Greengage schema.
      */
     @Override
     public void afterPropertiesSet() {

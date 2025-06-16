@@ -187,7 +187,7 @@ public class HiveRcTest extends HiveBaseTest {
 
     /**
      * Tests when the column name or partition name doesn't match any of the
-     * column names on the Greenplum definition
+     * column names on the Greengage definition
      *
      * @throws Exception if test fails to run
      */
@@ -205,7 +205,7 @@ public class HiveRcTest extends HiveBaseTest {
     }
 
     /**
-     * Create a Greenplum table with a subset of columns from the original
+     * Create a Greengage table with a subset of columns from the original
      * Hive table
      *
      * @throws Exception if test fails to run
@@ -221,7 +221,7 @@ public class HiveRcTest extends HiveBaseTest {
     }
 
     /**
-     * Create a Greenplum table with a subset of columns from the original
+     * Create a Greengage table with a subset of columns from the original
      * partitioned Hive table.
      *
      * @throws Exception if test fails to run

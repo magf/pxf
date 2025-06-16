@@ -71,7 +71,7 @@ The GPDB7 artifacts are:
 * ${pxf_gp7_osl_releng_url}
 * ${pxf_gp7_odp_releng_url}
 
-Can you please upload the artifacts and the OSL / ODP files to the Greenplum Tanzu Network Release for our product, PXF?
+Can you please upload the artifacts and the OSL / ODP files to the Greengage Tanzu Network Release for our product, PXF?
 The OSL file should appear as \"Open Source Licenses for PXF ${version}\".
 
 Once the artifacts are published to the Tanzu Network site, please post a message in the ${PXF_GCHAT_SPACE_NAME} Google Chat Space:

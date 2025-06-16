@@ -17,10 +17,7 @@ import java.io.File;
 import java.util.Objects;
 
 /**
- * Collection of Test cases for PXF ability to read AvroFile or Avro serialized
- * files from HDFS. Relates to cases located in "PXF Test Suite" in testrail.
- * See <a href="https://testrail.greenplum.com/index.php?/suites/view/1099">HDFS
- * Readable - Avro</a>
+ * Collection of Test cases for PXF ability to read AvroFile or Avro serialized files from HDFS.
  */
 @WorksWithFDW
 @Feature("Read Avro from HDFS")

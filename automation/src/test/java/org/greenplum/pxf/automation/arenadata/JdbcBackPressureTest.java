@@ -101,7 +101,7 @@ public class JdbcBackPressureTest extends BaseFeature {
 
     @Step("Prepare data")
     protected void prepareData() throws Exception {
-        // Greenplum internal source table
+        // Greengage internal source table
         createGpdbSourceTable();
         // Oracle internal target table
         prepareOracleTargetTable();

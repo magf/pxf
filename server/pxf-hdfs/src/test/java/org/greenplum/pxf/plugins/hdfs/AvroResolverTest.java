@@ -277,7 +277,7 @@ public class AvroResolverTest {
         assertField(fields, 0, false, DataType.BOOLEAN);
         assertField(fields, 1, new byte[]{'B', 'Y', 'T', 'E'}, DataType.BYTEA);
         assertField(fields, 2, 23456789L, DataType.BIGINT);
-        assertField(fields, 3, 1, DataType.INTEGER); // shorts should become integers in Greenplum
+        assertField(fields, 3, 1, DataType.INTEGER); // shorts should become integers in Greengage
         assertField(fields, 4, (float) 7.7, DataType.REAL);
         assertField(fields, 5, 6.0, DataType.FLOAT8);
         assertField(fields, 6, "row1", DataType.TEXT);
@@ -305,7 +305,7 @@ public class AvroResolverTest {
         assertField(fields, 0, null, DataType.BOOLEAN);
         assertField(fields, 1, null, DataType.BYTEA);
         assertField(fields, 2, null, DataType.BIGINT);
-        assertField(fields, 3, null, DataType.INTEGER); // shorts should become integers in Greenplum
+        assertField(fields, 3, null, DataType.INTEGER); // shorts should become integers in Greengage
         assertField(fields, 4, null, DataType.REAL);
         assertField(fields, 5, null, DataType.FLOAT8);
         assertField(fields, 6, null, DataType.TEXT);
@@ -859,7 +859,7 @@ public class AvroResolverTest {
     }
 
     // we can only support Unions that have 2 elements, and one has to be NULL
-    // otherwise we won't know which Greenplum type to use
+    // otherwise we won't know which Greengage type to use
     private Schema createUnion() {
         List<Schema> unionList = new ArrayList<>();
         unionList.add(Schema.create(Schema.Type.NULL));

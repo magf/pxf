@@ -1,6 +1,6 @@
 -- start_ignore
 -- end_ignore
--- @description query01 for Parquet with Greenplum table as a subset of the parquet file
+-- @description query01 for Parquet with Greengage table as a subset of the parquet file
 SELECT * FROM pxf_parquet_subset ORDER BY s1;
           s1          | n1 | d1 |  f   | b |  vc1  | bin
 ----------------------+----+----+------+---+-------+-----

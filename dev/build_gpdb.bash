@@ -8,6 +8,6 @@ make clean
   --with-python \
   --with-libxml \
   --disable-orca \
-  --prefix=/usr/local/greenplum-db-devel
+  --prefix=/usr/local/greengage-db-devel
 make -j8
 popd

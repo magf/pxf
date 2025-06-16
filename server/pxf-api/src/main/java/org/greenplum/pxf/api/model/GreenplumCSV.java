@@ -4,12 +4,12 @@ import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Greenplum CSV Default
+ * Greengage CSV Default
  */
 public class GreenplumCSV {
 
     /**
-     * Greenplum CSV Defaults
+     * Greengage CSV Defaults
      */
     private static final char QUOTE = '"';
     private static final char ESCAPE = '"';
@@ -31,7 +31,7 @@ public class GreenplumCSV {
     private int newlineLength;
 
     /**
-     * Initialize with Greenplum CSV defaults
+     * Initialize with Greengage CSV defaults
      */
     public GreenplumCSV() {
         withQuoteChar(QUOTE);
@@ -121,7 +121,7 @@ public class GreenplumCSV {
     public GreenplumCSV withNewline(String newline) {
         if (StringUtils.isNotEmpty(newline)) {
             // translate literal representation (CR. LF, CRLF) for (\r , \n , \r\n)
-            // Greenplum TEXT / CSV formatter only supports CR (Carriage return, 0x0D), LF (Line feed, 0x0A), or
+            // Greengage TEXT / CSV formatter only supports CR (Carriage return, 0x0D), LF (Line feed, 0x0A), or
             // CRLF (Carriage return plus line feed, 0x0D 0x0A) as newline characters
             // but the "fixedwidth" formatter supports custom line delimiters
 

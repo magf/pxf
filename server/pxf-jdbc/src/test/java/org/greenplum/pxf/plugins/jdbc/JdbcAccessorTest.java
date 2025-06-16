@@ -307,7 +307,7 @@ public class JdbcAccessorTest {
     private void wireMocksForReadWithCreateStatement() throws SQLException {
         wireMocksForRead();
         when(mockConnection.createStatement()).thenReturn(mockStatement);
-        when(mockMetaData.getDatabaseProductName()).thenReturn("Greenplum");
+        when(mockMetaData.getDatabaseProductName()).thenReturn("Greengage");
         when(mockMetaData.getExtraNameCharacters()).thenReturn("");
     }
 
@@ -315,7 +315,7 @@ public class JdbcAccessorTest {
         wireMocksForRead();
         ArgumentCaptor<String> queryPassed = ArgumentCaptor.forClass(String.class);
         when(mockConnection.prepareStatement(queryPassed.capture())).thenReturn(mockPreparedStatement);
-        when(mockMetaData.getDatabaseProductName()).thenReturn("Greenplum");
+        when(mockMetaData.getDatabaseProductName()).thenReturn("Greengage");
         when(mockMetaData.getExtraNameCharacters()).thenReturn("");
 
         return queryPassed;

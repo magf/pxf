@@ -291,7 +291,7 @@ public class JsonAccessor extends LineBreakAccessor {
      * a PxfRuntimeException if the effective encoding is not UTF8.
      */
     private void validateUTF8Encoding() {
-        // make sure for write case Greenplum sends data in UTF8 encoding according to the Json standard
+        // make sure for write case Greengage sends data in UTF8 encoding according to the Json standard
         // in the case of an external table with pxfwritable_export formatter the formatter itself will enforce that
         // the encoding is UTF8, but this check will still be relevant for FDW that is not using the formatter
         if (context.getRequestType().equals(RequestContext.RequestType.WRITE_BRIDGE)) {

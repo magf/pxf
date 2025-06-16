@@ -15,7 +15,7 @@ sudo locale-gen
 After generating the locale, restart your GPDB cluster
 
 ```sh
-source $GPHOME/greenplum_path.sh
+source $GPHOME/greengage_path.sh
 gpstop -a
 gpstart -a
 ```

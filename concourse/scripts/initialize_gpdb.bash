@@ -2,8 +2,8 @@
 
 set -exuo pipefail
 
-GPHOME=${GPHOME:=/usr/local/greenplum-db}
-PYTHONHOME='' source "${GPHOME}/greenplum_path.sh"
+GPHOME=${GPHOME:=/usr/local/greengage-db}
+PYTHONHOME='' source "${GPHOME}/greengage_path.sh"
 
 # Create config and data dirs.
 data_dirs=(~gpadmin/data{1..3}/primary)

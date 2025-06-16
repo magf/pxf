@@ -197,7 +197,7 @@ public class HiveOrcTest extends HiveBaseTest {
     }
 
     /**
-     * Create a Greenplum table with a subset of columns from the original
+     * Create a Greengage table with a subset of columns from the original
      * Hive table
      *
      * @throws Exception if test fails to run
@@ -212,7 +212,7 @@ public class HiveOrcTest extends HiveBaseTest {
     }
 
     /**
-     * Create a Greenplum table with a subset of columns from the original
+     * Create a Greengage table with a subset of columns from the original
      * partitioned Hive table
      *
      * @throws Exception if test fails to run
