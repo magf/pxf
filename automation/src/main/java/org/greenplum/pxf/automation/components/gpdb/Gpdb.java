@@ -23,7 +23,7 @@ import java.util.List;
 public class Gpdb extends DbSystemObject {
 
 	private static final String DEFAULT_PORT = "5432";
-	private static final String GREENPLUM_DATABASE_PREFIX = "Database ";
+	private static final String GREENGAGE_DATABASE_PREFIX = "Database ";
 	private static final String IF_NOT_EXISTS_OPTION = "IF NOT EXISTS";
 
 	private String sshUserName;
@@ -601,9 +601,9 @@ public class Gpdb extends DbSystemObject {
 		res.next();
 		String fullVersion = res.getString(1);
 		ReportUtils.report(report, getClass(), "Retrieved from Greengage: [" + fullVersion + "]");
-		int gpIndex = fullVersion.indexOf(GREENPLUM_DATABASE_PREFIX); // where the version prefix starts
+		int gpIndex = fullVersion.indexOf(GREENGAGE_DATABASE_PREFIX); // where the version prefix starts
 		int dotIndex = fullVersion.indexOf(".", gpIndex);             // where the first dot of GP version starts
-		String versionStr = fullVersion.substring(gpIndex + GREENPLUM_DATABASE_PREFIX.length(), dotIndex);
+		String versionStr = fullVersion.substring(gpIndex + GREENGAGE_DATABASE_PREFIX.length(), dotIndex);
 		int versionInt = Integer.parseInt(versionStr);
 		ReportUtils.report(report, getClass(), "Determined Greengage version: " + versionInt);
 		return versionInt;
