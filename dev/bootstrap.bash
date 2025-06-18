@@ -10,14 +10,14 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export JAVA_HOME=/etc/alternatives/java_sdk
 
-# install and init Greenplum as gpadmin user
-su - gpadmin -c ${SCRIPT_DIR}/install_greenplum.bash
+# install and init Greengage as gpadmin user
+su - gpadmin -c ${SCRIPT_DIR}/install_greengage.bash
 
 # now GPHOME should be discoverable by .pxfrc
 source ~gpadmin/.pxfrc
 chown -R gpadmin:gpadmin ${GPHOME}
 
-# remove existing PXF, if any, that could come pre-installed with Greenplum RPM
+# remove existing PXF, if any, that could come pre-installed with Greengage RPM
 if [[ -d ${GPHOME}/pxf ]]; then
     echo; echo "=====> Removing PXF installed with GPDB <====="; echo
     rm -rf ${GPHOME}/pxf
@@ -37,6 +37,6 @@ SLAVES=1 ${SCRIPT_DIR}/init_hadoop.bash
 su - gpadmin -c "
 		source ~/.pxfrc &&
 		env &&
-		${SCRIPT_DIR}/init_greenplum.bash &&
+		${SCRIPT_DIR}/init_greengage.bash &&
 		${SCRIPT_DIR}/install_pxf.bash
 	"

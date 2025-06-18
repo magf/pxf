@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<profiles>
+    <profile>
+        <name>test:text</name>
+        <plugins>
+            <metadata>Y</metadata>
+        </plugins>
+    </profile>
+    <profile>
+        <name>test:csv</name>
+        <plugins>
+            <metadata>Y</metadata>
+        </plugins>
+    </profile>
+    <profile>
+        <name>hive:parquet_custom</name>
+        <plugins>
+            <fragmenter>org.greenplum.pxf.plugins.hive.HiveDataFragmenter</fragmenter>
+            <accessor>org.greenplum.pxf.plugins.hdfs.ParquetFileAccessor</accessor>
+            <resolver>org.greenplum.pxf.plugins.hdfs.ParquetResolver</resolver>
+        </plugins>
+    </profile>
+</profiles>

@@ -4,7 +4,7 @@
             org.greenplum.pxf.automation.components.cluster.MultiNodeCluster
         </class>
         <host>localhost</host>
-        <phdRoot>/usr/local/greenplum-db-devel</phdRoot>
+        <phdRoot>/usr/local/greengage-db-devel</phdRoot>
         <hiveBaseHdfsDirectory>/hive/warehouse/</hiveBaseHdfsDirectory>
         <nodes index="0">
             <class>

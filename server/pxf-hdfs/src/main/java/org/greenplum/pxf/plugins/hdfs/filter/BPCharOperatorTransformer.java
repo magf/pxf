@@ -79,7 +79,7 @@ public class BPCharOperatorTransformer implements TreeVisitor {
 
         if (width != null && value.length() < width) {
             // Supports the case where the predicate has not been
-            // right padded by Greenplum during the filter 
+            // right padded by Greengage during the filter
             needsPadding = true;
         }
 
@@ -88,7 +88,7 @@ public class BPCharOperatorTransformer implements TreeVisitor {
             // Supports the case where the the BPChar has been
             // right trimmed during the store operation. The
             // predicate has to account for the trimmed case
-            // and the unmodified filter we receive from Greenplum
+            // and the unmodified filter we receive from Greengage
             needsTrimming = true;
         }
 

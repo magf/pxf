@@ -45,7 +45,7 @@ public class ColumnDescriptorCache {
 
 	public ColumnDescriptorCache(ColumnDescriptor columnDescriptor) {
 
-		// Greenplum column type
+		// Greengage column type
 		this.columnType = columnDescriptor.getDataType();
 
 		this.columnName = columnDescriptor.columnName();

@@ -59,11 +59,11 @@ public class HiveInputFormatFragmenter extends HiveDataFragmenter {
     }
 
     /**
-     * Checks that hive fields and partitions match the Greenplum schema.
+     * Checks that hive fields and partitions match the Greengage schema.
      * Throws an exception if:
-     * - A Greenplum column does not match any columns or partitions on the
+     * - A Greengage column does not match any columns or partitions on the
      * Hive table definition
-     * - The hive fields types do not match the Greenplum fields.
+     * - The hive fields types do not match the Greengage fields.
      *
      * @param tbl the hive table
      */

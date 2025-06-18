@@ -171,7 +171,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         // Get a map of the column name to Types for the given schema
         Map<String, Type> originalFieldsMap = getOriginalFieldsMap(originalSchema);
         // Get the read schema. This is either the full set or a subset (in
-        // case of column projection) of the greenplum schema.
+        // case of column projection) of the greengage schema.
         MessageType readSchema = buildReadSchema(originalFieldsMap, originalSchema);
         // Get the record filter in case of predicate push-down
         FilterCompat.Filter recordFilter = getRecordFilter(context.getFilterString(), originalFieldsMap);
@@ -481,7 +481,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
      * Validate parquet schema parsed from user provided schema file
      *
      * @param schema  the schema parsed from user provided schema file
-     * @param columns contains Greenplum column type information of a row
+     * @param columns contains Greengage column type information of a row
      */
     private void validateParsedSchema(MessageType schema, List<ColumnDescriptor> columns) {
         if (schema.getFieldCount() != columns.size()) {
@@ -525,7 +525,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     /**
      * Generate parquet schema for all the supported types using column descriptors
      *
-     * @param columns contains Greenplum data type and column name
+     * @param columns contains Greengage data type and column name
      * @return the generated parquet schema used for write
      */
     private MessageType generateParquetSchema(List<ColumnDescriptor> columns) {
@@ -535,13 +535,13 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 .stream()
                 .map(this::getTypeForColumnDescriptor)
                 .collect(Collectors.toList());
-        return new MessageType("greenplum_pxf_schema", fields);
+        return new MessageType("greengage_pxf_schema", fields);
     }
 
     /**
      * Generate parquet schema type based on each columnDescriptor
      *
-     * @param columnDescriptor contains Greenplum data type information
+     * @param columnDescriptor contains Greengage data type information
      * @return the generated parquet type schema
      */
     private Type getTypeForColumnDescriptor(ColumnDescriptor columnDescriptor) {

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export GPHOME=/usr/local/greenplum-db
+export GPHOME=/usr/local/greengage-db
 export PXF_HOME=$(find /usr/local/ -name "pxf-gp*" -type d)
 export PATH=$PATH:${PXF_HOME}/bin
 

@@ -499,14 +499,14 @@ public class HiveResolver extends BasePlugin implements Resolver {
                 // i is the index of the projected column, this will match j in most
                 // cases, but in some cases where projection information is not passed
                 // to the deserializer, this will not hold true. Let's consider the case
-                // where the hive table is defined as a,b,c,d. The greenplum table
+                // where the hive table is defined as a,b,c,d. The greengage table
                 // contains a subset of the columns and is defined as c,a. Then fields
                 // will only have two entries, whereas structFields will still have
-                // 4 entries. In this case i will be 0, for the first greenplum column.
+                // 4 entries. In this case i will be 0, for the first greengage column.
                 Integer i = columnNameToStructIndexMap.get(lowercaseColumnName);
                 // structIndex corresponds to the index of the column on hive
                 // for example if the hive table has columns a, b, c, but
-                // Greenplum defines them as c, b, a, hiveIndexes will have values
+                // Greengage defines them as c, b, a, hiveIndexes will have values
                 // 2,1,0. And the value of structIndex for the first greenplum
                 // column will be 2
                 Integer structIndex = hiveIndexes.get(j);

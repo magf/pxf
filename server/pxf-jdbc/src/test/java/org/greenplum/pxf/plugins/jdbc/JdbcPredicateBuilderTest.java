@@ -138,7 +138,7 @@ public class JdbcPredicateBuilderTest {
 
     /**
      * Runs a scenario where a given filter is parsed and used by the JdbcPredicateBuilder to create a WHERE SQL statement
-     * @param filterString filter string passed from Greenplum
+     * @param filterString filter string passed from Greengage
      * @param dbProduct database flavor
      * @param expectedQuery expected SQL query fragment without the leading space
      * @param quoteString a quote string to use, null if default

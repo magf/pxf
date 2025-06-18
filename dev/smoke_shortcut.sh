@@ -3,9 +3,11 @@ set -e
 
 ~/workspace/pxf/dev/install_gpdb.bash
 
-source /usr/local/greenplum-db-devel/greenplum_path.sh
+source /usr/local/greengage-db-devel/greengage_path.sh
 make -C ~/workspace/gpdb create-demo-cluster
-source ~/workspace/gpdb/gpAux/gpdemo/gpdemo-env.sh
+if [[ -f ~/workspace/gpdb/gpAux/gpdemo/gpdemo-env.sh ]]; then
+    source ~/workspace/gpdb/gpAux/gpdemo/gpdemo-env.sh
+fi
 
 ~/workspace/pxf/dev/configure_singlecluster.bash
 

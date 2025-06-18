@@ -327,7 +327,7 @@ public class JsonResolver extends BasePlugin implements Resolver {
      * Format the given JSON array in Postgres array syntax
      *
      * @param jsonNode the {@link JsonNode} to serialize in Postgres array syntax
-     * @param type Greenplum datatype that the value represents
+     * @param type Greengage datatype that the value represents
      * @return a {@link String} containing the array elements in Postgre array syntax
      * @throws JsonProcessingException if error occurs
      */
@@ -341,7 +341,7 @@ public class JsonResolver extends BasePlugin implements Resolver {
                     stringJoiner.add(pgUtilities.escapeArrayElement(null));
                     break;
                 case ARRAY:
-                    // we assume this will be a multi-dimensional array of a given Greenplum array type
+                    // we assume this will be a multi-dimensional array of a given Greengage array type
                     stringJoiner.add(addAllFromJsonArray(element, type));
                     break;
                 case BINARY:

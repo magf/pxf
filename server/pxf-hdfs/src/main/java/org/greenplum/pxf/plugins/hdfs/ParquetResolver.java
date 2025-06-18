@@ -84,7 +84,7 @@ public class ParquetResolver extends BasePlugin implements Resolver {
      * Get fields based on the row
      *
      * @param row the row to get the fields from
-     * @return a list of fields containing Greenplum data type and data value
+     * @return a list of fields containing Greengage data type and data value
      */
     @Override
     public List<OneField> getFields(OneRow row) {
@@ -166,11 +166,11 @@ public class ParquetResolver extends BasePlugin implements Resolver {
     }
 
     /**
-     * Resolve the Parquet data at the columnIndex into Greenplum representation
+     * Resolve the Parquet data at the columnIndex into Greengage representation
      *
      * @param group       contains parquet schema and data for a row
      * @param columnIndex is the index of the column in the row that needs to be resolved
-     * @return a field containing Greenplum data type and data value
+     * @return a field containing Greengage data type and data value
      */
     private OneField resolveField(Group group, int columnIndex) {
         OneField field = new OneField();

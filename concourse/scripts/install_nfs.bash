@@ -2,7 +2,7 @@
 
 set -euxo pipefail
 
-GPHOME=/usr/local/greenplum-db-devel
+GPHOME=/usr/local/greengage-db-devel
 # we need word boundary in case of standby coordinator (scdw)
 COORDINATOR_HOSTNAME="cdw"
 BASE_PATH=${BASE_PATH:-/mnt/nfs/var/nfsshare}
@@ -68,7 +68,7 @@ function run_nfs_installation() {
 
   # install and configure the NFS clients on sdw1 and sdw2
   ssh "${COORDINATOR_HOSTNAME}" "
-    source ${GPHOME}/greenplum_path.sh &&
+    source ${GPHOME}/greengage_path.sh &&
     gpscp -f ~gpadmin/hostfile_init -v -u centos ~gpadmin/install_and_configure_nfs_client.sh centos@=: &&
     gpssh -f ~gpadmin/hostfile_init -v -u centos -s -e 'sudo ~centos/install_and_configure_nfs_client.sh'
   "

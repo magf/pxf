@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Test class for regression tests.
  * The only thing this class does is to take received filter string from
- * Greenplum (FILTER) and return it in UserData back to Greenplum for later
+ * Greengage (FILTER) and return it in UserData back to Greengage for later
  * validation in Resolver/Accessor
  */
 public class FilterVerifyFragmenter extends BaseFragmenter {

@@ -63,7 +63,7 @@ import static org.greenplum.pxf.plugins.hdfs.orc.ORCVectorizedAccessor.MAP_BY_PO
  * scalar mapping is as follows:
  * <p>
  * ---------------------------------------------------------------------------
- * | ORC Physical Type | ORC Logical Type   | Greenplum Type | Greenplum OID |
+ * | ORC Physical Type | ORC Logical Type   | Greengage Type | Greengage OID |
  * ---------------------------------------------------------------------------
  * |  Long             |  boolean  (1 bit)  |  BOOLEAN       |  16           |
  * |  Long             |  tinyint  (8 bit)  |  SMALLINT      |  21           |
@@ -85,7 +85,7 @@ import static org.greenplum.pxf.plugins.hdfs.orc.ORCVectorizedAccessor.MAP_BY_PO
  * types are supported. The supported compound mapping is as follows:
  * <p>
  * ------------------------------------------------------
- * | ORC Compound Type | Greenplum Type | Greenplum OID |
+ * | ORC Compound Type | Greengage Type | Greengage OID |
  * ------------------------------------------------------
  * | array<boolean>    | BOOLEAN[]      | 1000          |
  * | array<tinyint>    | SMALLINT[]     | 1005          |
@@ -122,7 +122,7 @@ public class ORCVectorizedResolver extends BasePlugin implements ReadVectorizedR
     private PentaConsumer<String, ColumnVector, Integer, Object, DecimalUtilities>[] writeFunctions;
 
     /**
-     * An array of types that map from the readSchema types to Greenplum OIDs.
+     * An array of types that map from the readSchema types to Greengage OIDs.
      */
     private int[] typeOidMappings;
 
@@ -130,7 +130,7 @@ public class ORCVectorizedResolver extends BasePlugin implements ReadVectorizedR
 
     /**
      * True if the resolver resolves the columns defined in the
-     * ORC file in the same order they were defined in the Greenplum table,
+     * ORC file in the same order they were defined in the Greengage table,
      * otherwise the columns are matches by name. (Defaults to false)
      */
     private boolean positionalAccess;
@@ -164,7 +164,7 @@ public class ORCVectorizedResolver extends BasePlugin implements ReadVectorizedR
      * VectorizedRowBatch
      *
      * @param batch unresolved batch
-     * @return the resolved batch mapped to the Greenplum type
+     * @return the resolved batch mapped to the Greengage type
      */
     @Override
     public List<List<OneField>> getFieldsForBatch(OneRow batch) {
@@ -190,7 +190,7 @@ public class ORCVectorizedResolver extends BasePlugin implements ReadVectorizedR
                         : readFields.get(columnDescriptor.columnName());
                 if (orcColumn == null) {
                     // this column is missing in the underlying ORC file, but
-                    // it is defined in the Greenplum table. This can happen
+                    // it is defined in the Greengage table. This can happen
                     // when a schema evolves, for example the original
                     // ORC-backed table had 4 columns, and at a later point in
                     // time a fifth column was added. Files written before the
@@ -286,7 +286,7 @@ public class ORCVectorizedResolver extends BasePlugin implements ReadVectorizedR
     /**
      * Ensures that functions is initialized. If not initialized, it will
      * initialize the functions and typeOidMappings by iterating over the
-     * readSchema, and building the mapping between ORC types to Greenplum
+     * readSchema, and building the mapping between ORC types to Greengage
      * types.
      */
     @SuppressWarnings("unchecked")

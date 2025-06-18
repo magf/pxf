@@ -46,7 +46,7 @@ public enum DbProduct {
         /**
          * Convert Postgres timestamp with time zone string to the appropriate Microsoft SQL Server DATETIMEOFFSET string format.
          * The Microsoft SQL Server DATETIMEOFFSET type supports only the `+|-hh:mm` format or the literal `Z` for time zones.
-         * Greenplum may send a timestamp with a time zone that contains only hours, for example, +03.
+         * Greengage may send a timestamp with a time zone that contains only hours, for example, +03.
          * We use the OffsetDateTime#toString method to convert time zones without minutes to those with minutes or to Z.
          * In case of a parsing error, we will avoid pushdown and send the query without the WHERE clause.
          */

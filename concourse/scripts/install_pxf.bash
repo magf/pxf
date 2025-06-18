@@ -4,7 +4,7 @@ set -euxo pipefail
 
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-GPHOME=/usr/local/greenplum-db-devel
+GPHOME=/usr/local/greengage-db-devel
 # whether PXF is being installed from a new component-based packaging
 PXF_COMPONENT=${PXF_COMPONENT:=false}
 if [[ ${PXF_COMPONENT} == "true" ]]; then
@@ -237,7 +237,7 @@ function create_pxf_installer_scripts() {
 
 function run_pxf_installer_scripts() {
 	ssh "${COORDINATOR_HOSTNAME}" "
-		source ${GPHOME}/greenplum_path.sh &&
+		source ${GPHOME}/greengage_path.sh &&
 		export JAVA_HOME=/usr/lib/jvm/jre &&
 		export MASTER_DATA_DIRECTORY=/data/gpdata/master/gpseg-1/ &&
 		export PXF_COMPONENT=${PXF_COMPONENT} &&
@@ -275,7 +275,7 @@ function run_pxf_installer_scripts() {
 	# Create a database for PXF extension upgrade testing
 	if [[ ${PXF_VERSION} == 5 ]]; then
 		ssh "${COORDINATOR_HOSTNAME}" "
-			source ${GPHOME}/greenplum_path.sh &&
+			source ${GPHOME}/greengage_path.sh &&
 			createdb testupgrade &&
 			psql -d testupgrade -c 'CREATE EXTENSION IF NOT EXISTS pxf'
 		"

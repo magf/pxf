@@ -4,7 +4,7 @@
 
 `pxf_regress` is a PSQL test runner written in Go that is heavily inspired by
 `pg_regress`. PXF's automation test framework sets up data in external data
-storage (e.g., Hadoop, Amazon S3, etc), creates Greenplum external tables to
+storage (e.g., Hadoop, Amazon S3, etc), creates Greengage external tables to
 work with these data sets, and then invokes `pxf_regress` to run SQL test cases
 via `psql` and compare the results with expected output. Instead of matching
 the features of `pg_regress` exactly, this utility currently implements the
@@ -50,9 +50,9 @@ actual test output with expected test output. From the description of
 [`gpdiff.pl`][2]:
 
 > gpdiff compares files using diff after processing them with atmsort.pm.
-> This comparison is designed to ignore certain Greenplum-specific
+> This comparison is designed to ignore certain Greengage-specific
 > informational messages, as well as handle the cases where query output
-> order may differ for a multi-segment Greenplum database versus a
+> order may differ for a multi-segment Greengage database versus a
 > single PostgreSQL instance.
 
 When `pg_regress` runs `gpdiff.pl`, it runs the version of `gpdiff.pl` that is
@@ -119,4 +119,4 @@ $ tree smoke/small_data
     ```
 
 [1]: https://www.postgresql.org/docs/12/libpq-envars.html
-[2]: https://github.com/greenplum-db/gpdb/blob/main/src/test/regress/gpdiff.pl
+[2]: https://github.com/GreengageDB/greengage/blob/main/src/test/regress/gpdiff.pl

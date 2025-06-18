@@ -53,10 +53,10 @@ static int  getNumSimpleVars(ProjectionInfo *projInfo);
 
 #if PG_VERSION_NUM < 90400
 /*
- * this function is copied from Greenplum 6 (6X_STABLE branch) code
- * it is defined here for compilation with Greenplum 5 only
- * for compilation with Greenplum 6 it is defined in included fileam.h
- * in Greenplum 7 we do not need to define and call it as all options (copy or custom)
+ * this function is copied from Greengage 6 (6X_STABLE branch) code
+ * it is defined here for compilation with Greengage 5 only
+ * for compilation with Greengage 6 it is defined in included fileam.h
+ * in Greengage 7 we do not need to define and call it as all options (copy or custom)
  * are added to ExtTableEntry.options list by external.c::GetExtFromForeignTableOptions()
  */
 static List *parseCopyFormatString(Relation rel, char *fmtstr, char fmttype);

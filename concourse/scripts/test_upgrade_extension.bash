@@ -12,7 +12,7 @@ CWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 : "${SECOND_GROUP:?SECOND_GROUP must be set}"
 
 # set our own GPHOME for RPM-based installs before sourcing common script
-export GPHOME=/usr/local/greenplum-db
+export GPHOME=/usr/local/greengage-db
 export PXF_HOME=/usr/local/pxf-gp${GP_VER}
 export PXF_BASE_DIR=${PXF_BASE_DIR:-$PXF_HOME}
 
@@ -36,7 +36,7 @@ function upgrade_pxf() {
 	echo "Check the PXF 6 version"
 	su gpadmin -c "${PXF_HOME}/bin/pxf version"
 
-	echo "Register the PXF extension into Greenplum"
+	echo "Register the PXF extension into Greengage"
 	su gpadmin -c "GPHOME=${GPHOME} ${PXF_HOME}/bin/pxf cluster register"
 
 	if [[ "${PXF_BASE_DIR}" != "${PXF_HOME}" ]]; then
@@ -59,7 +59,7 @@ function upgrade_pxf() {
 	echo "ALTER EXTENSION pxf UPDATE - for multibyte delimiter tests"
 
 	su gpadmin <<'EOSU'
-  source ${GPHOME}/greenplum_path.sh &&
+  source ${GPHOME}/greengage_path.sh &&
   psql --no-align --tuples-only --command "SELECT datname FROM pg_catalog.pg_database WHERE datname != 'template0';" | while read -r dbname; do
       echo -n "checking if database '${dbname}' has PXF extension installed... "
       if ! psql --dbname="${dbname}" --no-align --tuples-only --command "SELECT extname FROM pg_catalog.pg_extension WHERE extname = 'pxf'" | grep . &>/dev/null; then

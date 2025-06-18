@@ -93,7 +93,7 @@ class ORCVectorizedAccessorTest extends ORCVectorizedBaseTest {
 
     /**
      * This test case is effectively as if testing column projection. Your
-     * Greenplum table definition can be a subset of the number of columns of
+     * Greengage table definition can be a subset of the number of columns of
      * your ORC file.
      *
      * @throws IOException when a read error occurs
@@ -115,7 +115,7 @@ class ORCVectorizedAccessorTest extends ORCVectorizedBaseTest {
 
     /**
      * This test case is effectively as if testing column projection. Your
-     * Greenplum table definition can be a subset of the columns in the ORC
+     * Greengage table definition can be a subset of the columns in the ORC
      * file, specified in different order.
      *
      * @throws IOException when a read error occurs

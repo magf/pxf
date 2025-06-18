@@ -6,9 +6,9 @@ import java.io.DataInput;
 import java.util.List;
 
 /**
- * Interface for deserialization of an input stream with data from Greenplum into a List of OneField objects
+ * Interface for deserialization of an input stream with data from Greengage into a List of OneField objects
  * for downstream consumption by resolvers. The implementations of this interface deal with the actual
- * specifics of how data is serialized by Greenplum PXF extension for different formatting specifications.
+ * specifics of how data is serialized by Greengage PXF extension for different formatting specifications.
  */
 public interface RecordReader {
 

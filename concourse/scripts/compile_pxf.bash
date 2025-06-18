@@ -2,7 +2,7 @@
 
 set -eoux pipefail
 
-GPHOME=/usr/local/greenplum-db-devel
+GPHOME=/usr/local/greengage-db-devel
 PXF_ARTIFACTS_DIR=${PWD}/${OUTPUT_ARTIFACT_DIR}
 
 # use a login shell for setting environment

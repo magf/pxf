@@ -67,7 +67,7 @@ public class ParquetTimestampUtilities {
                 nanoseconds = (value % SECOND_IN_MICROS) * NANOS_IN_MICROS;
                 break;
             case NANOS:
-                // Greenplum timestamp type has a minimum resolution 1 microsecond
+                // Greengage timestamp type has a minimum resolution 1 microsecond
                 seconds = value / SECOND_IN_NANOS;
                 nanoseconds = (value % SECOND_IN_NANOS);
                 break;
@@ -97,7 +97,7 @@ public class ParquetTimestampUtilities {
      * Converts a "timestamp with time zone" string to a INT96 byte array.
      * Supports microseconds for timestamps
      *
-     * @param timestampWithTimeZoneString the greenplum string of the timestamp with the time zone
+     * @param timestampWithTimeZoneString the greengage string of the timestamp with the time zone
      * @return Binary format of the timestamp with time zone string
      */
     public static Binary getBinaryFromTimestampWithTimeZone(String timestampWithTimeZoneString) {

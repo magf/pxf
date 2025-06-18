@@ -1,6 +1,0 @@
--- start_ignore
--- end_ignore
--- @description query01 for PXF test back-pressure with the parameter BATCH_TIMEOUT = 2
-INSERT INTO jdbc_bp_write_batch_timeout_error SELECT * FROM gp_source_table;
-ERROR:  PXF server error : java.sql.SQLRecoverableException: Closed Connection
-HINT:  Check the PXF logs located in the '/usr/local/greenplum-db-devel/pxf/logs' directory on host 'localhost' or 'set client_min_messages=LOG' for additional details.

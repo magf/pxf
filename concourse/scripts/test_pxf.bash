@@ -7,8 +7,8 @@ source "${CWDIR}/pxf_common.bash"
 PG_REGRESS=${PG_REGRESS:-false}
 
 export GOOGLE_PROJECT_ID=${GOOGLE_PROJECT_ID:-data-gpdb-ud}
-export GPHOME=${GPHOME:-/usr/local/greenplum-db-devel}
-export GP_PATH_FILE=${GP_PATH_FILE:-greenplum_path.sh}
+export GPHOME=${GPHOME:-/usr/local/greengage-db-devel}
+export GP_PATH_FILE=${GP_PATH_FILE:-greengage_path.sh}
 export PXF_HOME=${GPHOME}/pxf
 export JAVA_HOME=${JAVA_HOME}
 export JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8

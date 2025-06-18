@@ -510,9 +510,9 @@ Any property that you specify with `jdbc.connection.property.` prefix will also 
 
 Using connection pool feature will ensure you will not exceed the connection limit to the target database for a given server configuration. However, be mindful, that connection pool is established per configuration server based on combination of values for `jdbc.url`, `jdbc.user`, `jdbc.password`, set of connection properties and set of pool properties. If you use user impersonation feature you will end up using a separate connection pool per each user.
 
-You should tune your server configuration not to exceed the maximum number of connections allowed by the target database. To come up with the maximum value for `maximumPoolSize` parameter, take the overall number of connection allowed by the external database and divide it by the number of Greenplum hosts. For example, if your Greenplum cluster has 16 nodes and your target database allows 160 concurrent connections, set `maximumPoolSize` to no more than 160 / 16 = 10. That will be the maximum value to ensure each PXF JVM can get a fair share of JDBC connections.
+You should tune your server configuration not to exceed the maximum number of connections allowed by the target database. To come up with the maximum value for `maximumPoolSize` parameter, take the overall number of connection allowed by the external database and divide it by the number of Greengage hosts. For example, if your Greengage cluster has 16 nodes and your target database allows 160 concurrent connections, set `maximumPoolSize` to no more than 160 / 16 = 10. That will be the maximum value to ensure each PXF JVM can get a fair share of JDBC connections.
 
-However, in practice, you might want to set this number to a lower value, since the number of concurrent connections per JDBC query will depend on the number of partitions for the query. If the query is not using any partitions, then only 1 JDBC connection on 1 PXF JVM will be used to run the query. If, for example, the query will be using 12 partitions (e.g. 1 per month of a year), then 12 JDBC connections will be used concurrently across all the Greenplum segment hosts and PXF JVMs. Ideally, these connections would be distributed among PXF JVMs, but it is not guaranteed by the system.
+However, in practice, you might want to set this number to a lower value, since the number of concurrent connections per JDBC query will depend on the number of partitions for the query. If the query is not using any partitions, then only 1 JDBC connection on 1 PXF JVM will be used to run the query. If, for example, the query will be using 12 partitions (e.g. 1 per month of a year), then 12 JDBC connections will be used concurrently across all the Greengage segment hosts and PXF JVMs. Ideally, these connections would be distributed among PXF JVMs, but it is not guaranteed by the system.
 
 ## Partitioning and external database sessions
 When [partitioning](#partitioning) is used, each fragment requires its own external database session.
@@ -595,7 +595,7 @@ Follow these steps to enable connectivity to Hive:
                 <value>gpadmin</value>
             </property>
             ```
-            2) enable PXF JDBC impersonation so that PXF will automatically use Greenplum's user name to connect to Hive:
+            2) enable PXF JDBC impersonation so that PXF will automatically use Greengage's user name to connect to Hive:
             ```
             <property>
                 <name>pxf.service.user.impersonation</name>
@@ -641,7 +641,7 @@ Follow these steps to enable connectivity to Hive:
             ```$xslt
             jdbc:hive2://hs2server:10000/default;principal=hive/hs2server@REALM;saslQop=auth-conf;hive.server2.proxy.user=integration
             ```
-        3) enable PXF JDBC impersonation in `jdbc-site.xml` so that PXF will automatically use Greenplum's user name to connect to Hive:
+        3) enable PXF JDBC impersonation in `jdbc-site.xml` so that PXF will automatically use Greengage's user name to connect to Hive:
             ```
             <property>
                 <name>pxf.service.user.impersonation</name>

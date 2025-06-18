@@ -7,7 +7,7 @@ import org.greenplum.pxf.api.model.BasePlugin;
 import java.util.StringJoiner;
 
 /**
- * Test class for regression tests that generates rows of data and includes a filter provided by Greenplum.
+ * Test class for regression tests that generates rows of data and includes a filter provided by Greengage.
  * The returned data has 7 columns delimited with DELIMITER property value: 6 columns of different types
  * and the last column with the value of the filter.
  */
