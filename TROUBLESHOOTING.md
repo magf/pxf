@@ -40,7 +40,7 @@ This would result in reduced number of PXF worker threads and if there are more 
 
 You may see the following error:
 
-`ERROR: pxf cluster commands should only be run from Greenplum master.`
+`ERROR: pxf cluster commands should only be run from Greengage master.`
 
 You will either need to change the hostname to match the `gp_segment_configuration` table entry for the master node
 or change the master hostname to match the `gp_segment_configuration` entry. Both locations need to match for

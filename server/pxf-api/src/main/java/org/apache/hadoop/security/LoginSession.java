@@ -26,6 +26,7 @@ public class LoginSession {
     private final float kerberosTicketRenewWindow;
     private final UserGroupInformation loginUser;
     private final Subject subject;
+    private final boolean hadoopLoginContextEnable;
     private User user;
 
     /**
@@ -82,6 +83,21 @@ public class LoginSession {
         }
         this.kerberosMinMillisBeforeRelogin = kerberosMinMillisBeforeRelogin;
         this.kerberosTicketRenewWindow = kerberosTicketRenewWindow;
+        this.hadoopLoginContextEnable = isHadoopLoginContextEnabled(loginUser);
+    }
+
+    /**
+     * Check if the loginUser was created with HadoopLoginContext
+     * The method UserGroupInformation#isFromKeytab() checks under the hood
+     * if the loginUser is instance  of the HadoopLoginContext class.
+     * @param loginUser   the login user
+     * @return true if the loginUser was created with HadoopLoginContext
+     */
+    private boolean isHadoopLoginContextEnabled(UserGroupInformation loginUser) {
+        if (Objects.isNull(loginUser)) {
+            return false;
+        }
+        return loginUser.isFromKeytab();
     }
 
     @Override

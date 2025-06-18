@@ -136,7 +136,7 @@ result to STDOUT.  This change to the log facilitates diff comparison,
 since unORDERed query output does not have a guaranteed order.  Note
 that for diff to work correctly, statements that do use ORDER BY must
 have a fully-specified order.  The utility gpdiff.pl invokes atmsort
-in order to compare the Greenplum test results against standard
+in order to compare the Greengage test results against standard
 Postgresql.
 
 The log content must look something like:
@@ -595,7 +595,7 @@ BEGIN
 
     $here_matchsubs = << 'EOF_matchsubs';
 
-# some cleanup of greenplum-specific messages
+# some cleanup of greengage-specific messages
 m/\s+(\W)?(\W)?\(seg.*pid.*\)/
 s/\s+(\W)?(\W)?\(seg.*pid.*\)//
 
@@ -767,7 +767,7 @@ m/NOTICE:\s+Table has parent\, setting distribution columns to match parent tabl
 
 m/HINT:\s+The \'DISTRIBUTED BY\' clause determines the distribution of data/
 
-m/WARNING:\s+Referential integrity \(.*\) constraints are not supported in Greenplum Database/
+m/WARNING:\s+Referential integrity \(.*\) constraints are not supported in Greengage Database/
 
 
 m/^\s*Distributed by:\s+\(.*\)\s*$/

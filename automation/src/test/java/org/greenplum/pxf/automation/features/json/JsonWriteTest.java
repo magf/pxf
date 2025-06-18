@@ -190,7 +190,7 @@ public class JsonWriteTest extends BaseWritableFeature {
      *
      * @param scenario         name of the scenario, gets factored into the names of tables
      * @param fields           schema for the external tables
-     * @param source           a string with data or a Table object for existing Greenplum table that serves as the source of data
+     * @param source           a string with data or a Table object for existing Greengage table that serves as the source of data
      * @param writeOptions     options to add to the writable table, null if no additional options are needed
      * @param readOptions      options to add to the readable table, null if no additional options are needed
      * @param filenameAsserter a function that asserts names of produced files

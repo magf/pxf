@@ -6,17 +6,17 @@
 Introduction
 ============
 
-PXF is an extensible framework that allows a distributed database like Greenplum to query external data files, whose metadata is not managed by the database.
+PXF is an extensible framework that allows a distributed database like Greengage to query external data files, whose metadata is not managed by the database.
 PXF includes built-in connectors for accessing data that exists inside HDFS files, Hive tables, HBase tables, JDBC-accessible databases and more.
 Users can also create their own connectors to other data storage or processing engines.
 
 Repository Contents
 ================
 ## external-table/
-Contains the Greenplum extension implementing an External Table protocol handler
+Contains the Greengage extension implementing an External Table protocol handler
 
 ## fdw/
-Contains the Greenplum extension implementing a Foreign Data Wrapper (FDW) for PXF
+Contains the Greengage extension implementing a Foreign Data Wrapper (FDW) for PXF
 
 ## server/
 Contains the server side code of PXF along with the PXF Service and all the Plugins
@@ -37,11 +37,11 @@ Resources for PXF's Continuous Integration pipelines
 Contains the end-to-end (integration) tests for PXF against the various datasources, utilizing the PostgreSQL testing framework `pg_regress`
 
 ## downloads/
-An empty directory that serves as a staging location for Greenplum RPMs for the development Docker image
+An empty directory that serves as a staging location for Greengage RPMs for the development Docker image
 
 PXF Development
 =================
-Below are the steps to build and install PXF along with its dependencies including Greenplum and Hadoop.
+Below are the steps to build and install PXF along with its dependencies including Greengage and Hadoop.
 
 To start, ensure you have a `~/workspace` directory and have cloned the `pxf` and its prerequisites (shown below) under it.
 (The name `workspace` is not strictly required but will be used throughout this guide.)
@@ -49,7 +49,7 @@ To start, ensure you have a `~/workspace` directory and have cloned the `pxf` an
 mkdir -p ~/workspace
 cd ~/workspace
 
-git clone https://github.com/greenplum-db/pxf.git
+git clone https://github.com/GreengageDB/pxf.git
 ```
 Alternatively, you may create a symlink to your existing repo folder.
 ```bash
@@ -61,13 +61,13 @@ ln -s ~/<git_repos_root> ~/workspace
 To build PXF, you must have:
 
 1. GCC compiler, `make` system, `unzip` package, `maven` for running integration tests
-2. Installed Greenplum DB
+2. Installed Greengage DB
 
-    Either download and install Greenplum RPM or build Greenplum from the source by following instructions in the [GPDB README](https://github.com/greenplum-db/gpdb).
+    Either download and install Greengage RPM or build Greengage from the source by following instructions in the [GPDB README](https://github.com/GreengageDB/greengage).
 
-    Assuming you have installed Greenplum into `/usr/local/greenplum-db` directory, run its environment script:
+    Assuming you have installed Greengage into `/usr/local/greengage-db` directory, run its environment script:
     ```
-    source /usr/local/greenplum-db/greenplum_path.sh
+    source /usr/local/greengage-db/greengage_path.sh
     ```
 
 3. JDK 17 to compile/run
@@ -121,10 +121,10 @@ make test
 
 ## How to Install PXF
 
-To install PXF, first make sure that the user has sufficient permissions in the `$GPHOME` and `$PXF_HOME` directories to perform the installation. It's recommended to change ownership to match the installing user. For example, when installing PXF as user `gpadmin` under `/usr/local/greenplum-db`:
+To install PXF, first make sure that the user has sufficient permissions in the `$GPHOME` and `$PXF_HOME` directories to perform the installation. It's recommended to change ownership to match the installing user. For example, when installing PXF as user `gpadmin` under `/usr/local/greengage-db`:
 
 ```bash
-export GPHOME=/usr/local/greenplum-db
+export GPHOME=/usr/local/greengage-db
 export PXF_HOME=/usr/local/pxf
 export PXF_BASE=${HOME}/pxf-base
 chown -R gpadmin:gpadmin "${GPHOME}" "${PXF_HOME}"
@@ -148,7 +148,7 @@ pxf start
 If `${HOME}/pxf-base` does not exist, `pxf prepare` will create the directory for you. This command should only need to be run once.
 
 ## Re-installing PXF after making changes
-Note: Local development with PXF requires a running Greenplum cluster.
+Note: Local development with PXF requires a running Greengage cluster.
 
 Once the desired changes have been made, there are 2 options to re-install PXF:
 
@@ -185,7 +185,7 @@ cp ${PXF_HOME}/templates/*-site.xml ${PXF_BASE}/servers/default
 ```
 
 # Development With Docker
-NOTE: Since the docker container will house all Single cluster Hadoop, Greenplum and PXF, we recommend that you have at least 4 cpus and 6GB memory allocated to Docker. These settings are available under docker preferences.
+NOTE: Since the docker container will house all Single cluster Hadoop, Greengage and PXF, we recommend that you have at least 4 cpus and 6GB memory allocated to Docker. These settings are available under docker preferences.
 
 <!-- TODO: Understand why this only works for 6.6 RPM and not latest GPDB6 -->
 The quick and easy is to download the GPDB 6.6 RPM from Github and move it into the `/downloads` folder. Then run `./dev/start.bash` to get a docker image with a running GPDB6, Hadoop cluster and an installed PXF.
@@ -218,11 +218,11 @@ docker run --rm -it \
 
 Configure, build and install GPDB. This will be needed only when you use the container for the first time with GPDB source.
 
-<!-- TODO: This may be because we no longer use greenplum-db-devel?-->
+<!-- TODO: This may be because we no longer use greengage-db-devel?-->
 ```bash
 ~/workspace/pxf/dev/build_gpdb.bash
-sudo mkdir /usr/local/greenplum-db-devel
-sudo chown gpadmin:gpadmin /usr/local/greenplum-db-devel
+sudo mkdir /usr/local/greengage-db-devel
+sudo chown gpadmin:gpadmin /usr/local/greengage-db-devel
 ~/workspace/pxf/dev/install_gpdb.bash
 ```
 
@@ -236,9 +236,9 @@ Run all the instructions below and run GROUP=smoke (in one script):
 ~/workspace/pxf/dev/smoke_shortcut.sh
 ```
 
-Create Greenplum Cluster
+Create Greengage Cluster
 ```bash
-source /usr/local/greenplum-db-devel/greenplum_path.sh
+source /usr/local/greengage-db-devel/greengage_path.sh
 make -C ~/workspace/gpdb create-demo-cluster
 source ~/workspace/gpdb/gpAux/gpdemo/gpdemo-env.sh
 ```

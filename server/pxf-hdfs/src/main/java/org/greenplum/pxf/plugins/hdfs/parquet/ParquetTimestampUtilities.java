@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 
 import static org.greenplum.pxf.plugins.hdfs.parquet.ParquetConstant.*;
@@ -66,7 +67,7 @@ public class ParquetTimestampUtilities {
                 nanoseconds = (value % SECOND_IN_MICROS) * NANOS_IN_MICROS;
                 break;
             case NANOS:
-                // Greenplum timestamp type has a minimum resolution 1 microsecond
+                // Greengage timestamp type has a minimum resolution 1 microsecond
                 seconds = value / SECOND_IN_NANOS;
                 nanoseconds = (value % SECOND_IN_NANOS);
                 break;
@@ -96,7 +97,7 @@ public class ParquetTimestampUtilities {
      * Converts a "timestamp with time zone" string to a INT96 byte array.
      * Supports microseconds for timestamps
      *
-     * @param timestampWithTimeZoneString the greenplum string of the timestamp with the time zone
+     * @param timestampWithTimeZoneString the greengage string of the timestamp with the time zone
      * @return Binary format of the timestamp with time zone string
      */
     public static Binary getBinaryFromTimestampWithTimeZone(String timestampWithTimeZoneString) {
@@ -106,7 +107,7 @@ public class ParquetTimestampUtilities {
     }
 
     // Convert parquet byte array to java timestamp IN LOCAL SERVER'S TIME ZONE
-    public static String bytesToTimestamp(byte[] bytes, boolean useLocalTimezone) {
+    public static String bytesToTimestamp(byte[] bytes, boolean useLocalTimezone, boolean isTimestampWithTimeZone) {
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
         byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
         long timeOfDayNanos = byteBuffer.getLong();
@@ -119,7 +120,9 @@ public class ParquetTimestampUtilities {
         // If useLocalTimezone = true we convert timestamp to an instant of the current PXF server timezone
         // If useLocalTimezone = false we send timestamp to GP as is
         ZoneId zoneId = useLocalTimezone ? ZoneId.systemDefault() : ZoneOffset.UTC;
-        String timestamp = instant.atZone(zoneId).format(GreenplumDateTime.DATETIME_FORMATTER);
+        DateTimeFormatter formatter = isTimestampWithTimeZone ?
+                GreenplumDateTime.DATETIME_WITH_TIMEZONE_FORMATTER : GreenplumDateTime.DATETIME_FORMATTER;
+        String timestamp = instant.atZone(zoneId).format(formatter);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Converted bytes: {} to date: {} from: julianDays {}, timeOfDayNanos {}, unixTimeMs {}",

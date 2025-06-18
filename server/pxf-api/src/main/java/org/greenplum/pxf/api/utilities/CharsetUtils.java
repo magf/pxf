@@ -66,7 +66,7 @@ public class CharsetUtils {
 
     /**
      * Return the java {@link Charset} for a given database encoding
-     * {@code name}. Greenplum supports a list of well-known encodings that
+     * {@code name}. Greengage supports a list of well-known encodings that
      * we map to a java charset
      *
      * @param name the database encoding name

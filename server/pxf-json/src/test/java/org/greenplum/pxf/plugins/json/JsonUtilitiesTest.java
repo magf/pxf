@@ -226,7 +226,7 @@ public class JsonUtilitiesTest {
 
     @Test
     public void testMultiDimensionalArrayError() {
-        // we do not really support multidimensional arrays as Greenplum does not have metadata about array dimensionality,
+        // we do not really support multidimensional arrays as Greengage does not have metadata about array dimensionality,
         // but we can error out only on non-string types
 
         // test all types in the same test case not to blow out the number of individual test cases, the actual value
@@ -261,11 +261,11 @@ public class JsonUtilitiesTest {
     }
 
     /**
-     * Runs a scenario of writing a field of a given Greenplum type with a given serde type with a given value
+     * Runs a scenario of writing a field of a given Greengage type with a given serde type with a given value
      * into Json format with a given expected value being a string.
      *
-     * @param columnType    Greenplum column type
-     * @param serdeType     Greenplum type reported in OneField object, basically a serde type for a given Greenplum type
+     * @param columnType    Greengage column type
+     * @param serdeType     Greengage type reported in OneField object, basically a serde type for a given Greengage type
      * @param value         value to write
      * @param expectedValue expected value that should be written to Json
      * @throws IOException if I/O error occurs
@@ -275,11 +275,11 @@ public class JsonUtilitiesTest {
     }
 
     /**
-     * Runs a scenario of writing a field of a given Greenplum type with a given serde type with a given value
+     * Runs a scenario of writing a field of a given Greengage type with a given serde type with a given value
      * into Json format with a given expected value.
      *
-     * @param columnType    Greenplum column type
-     * @param serdeType     Greenplum type reported in OneField object, basically a serde type for a given Greenplum type
+     * @param columnType    Greengage column type
+     * @param serdeType     Greengage type reported in OneField object, basically a serde type for a given Greengage type
      * @param value         value to write
      * @param expectedValue expected value that should be written to Json
      * @throws IOException if I/O error occurs

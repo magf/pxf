@@ -230,8 +230,8 @@ static void
 build_uri_for_cancel(pxfbridge_cancel *cancel)
 {
 	resetStringInfo(&cancel->uri);
-	appendStringInfo(&cancel->uri, "http://%s/%s/cancel",
-					 get_authority(), PXF_SERVICE_PREFIX);
+	appendStringInfo(&cancel->uri, "%s://%s/%s/cancel",
+					 get_pxf_protocol(), get_authority(), PXF_SERVICE_PREFIX);
 
 	if ((LOG >= log_min_messages) || (LOG >= client_min_messages))
 	{
@@ -248,8 +248,8 @@ static void
 build_uri_for_read(gphadoop_context *context)
 {
 	resetStringInfo(&context->uri);
-	appendStringInfo(&context->uri, "http://%s/%s/read",
-					 get_authority(), PXF_SERVICE_PREFIX);
+	appendStringInfo(&context->uri, "%s://%s/%s/read",
+					 get_pxf_protocol(), get_authority(), PXF_SERVICE_PREFIX);
 
 	if ((LOG >= log_min_messages) || (LOG >= client_min_messages))
 	{
@@ -265,8 +265,8 @@ build_uri_for_read(gphadoop_context *context)
 static void
 build_uri_for_write(gphadoop_context *context)
 {
-	appendStringInfo(&context->uri, "http://%s/%s/write",
-					 get_authority(), PXF_SERVICE_PREFIX);
+	appendStringInfo(&context->uri, "%s://%s/%s/write",
+					 get_pxf_protocol(), get_authority(), PXF_SERVICE_PREFIX);
 
 	if ((LOG >= log_min_messages) || (LOG >= client_min_messages))
 	{

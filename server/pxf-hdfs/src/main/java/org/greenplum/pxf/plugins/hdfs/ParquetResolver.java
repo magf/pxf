@@ -53,7 +53,7 @@ public class ParquetResolver extends BasePlugin implements Resolver {
     // and type "timestamp with time zone" ("2019-03-14 14:10:28+07:30")
     public static final Pattern TIMESTAMP_PATTERN = Pattern.compile("[+-]\\d{2}(:\\d{2})?$");
     public static final String PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME = "pxf.parquet.write.decimal.overflow";
-    public static final String USE_LOCAL_PXF_TIMEZONE_READ_NAME = "USE_LOCAL_PXF_TIMEZONE_READ";
+    public static final String USE_LOCAL_PXF_TIMEZONE_READ_NAME = "pxf.parquet.use.local.pxf.timezone.read";
     public static final boolean DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ = true;
     private static final PgUtilities pgUtilities = new PgUtilities();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -70,8 +70,8 @@ public class ParquetResolver extends BasePlugin implements Resolver {
         columnDescriptors = context.getTupleDescription();
         DecimalOverflowOption decimalOverflowOption = DecimalOverflowOption.valueOf(configuration.get(PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME, DecimalOverflowOption.ROUND.name()).toUpperCase());
         DecimalUtilities decimalUtilities = new DecimalUtilities(decimalOverflowOption, true);
-        boolean useLocalPxfTimezoneWrite = context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
-        boolean useLocalPxfTimezoneRead = context.getOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
+        boolean useLocalPxfTimezoneWrite = configuration.getBoolean(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
+        boolean useLocalPxfTimezoneRead = configuration.getBoolean(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
         ParquetConfig parquetConfig = ParquetConfig.builder()
                 .useLocalPxfTimezoneWrite(useLocalPxfTimezoneWrite)
                 .useLocalPxfTimezoneRead(useLocalPxfTimezoneRead)
@@ -84,7 +84,7 @@ public class ParquetResolver extends BasePlugin implements Resolver {
      * Get fields based on the row
      *
      * @param row the row to get the fields from
-     * @return a list of fields containing Greenplum data type and data value
+     * @return a list of fields containing Greengage data type and data value
      */
     @Override
     public List<OneField> getFields(OneRow row) {
@@ -166,11 +166,11 @@ public class ParquetResolver extends BasePlugin implements Resolver {
     }
 
     /**
-     * Resolve the Parquet data at the columnIndex into Greenplum representation
+     * Resolve the Parquet data at the columnIndex into Greengage representation
      *
      * @param group       contains parquet schema and data for a row
      * @param columnIndex is the index of the column in the row that needs to be resolved
-     * @return a field containing Greenplum data type and data value
+     * @return a field containing Greengage data type and data value
      */
     private OneField resolveField(Group group, int columnIndex) {
         OneField field = new OneField();

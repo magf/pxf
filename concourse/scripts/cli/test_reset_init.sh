@@ -133,11 +133,11 @@ run_test test_init_extension_exists_succeeds "pxf cluster init (extension exists
 expected_register_error_message=\
 "Installing PXF extension on coordinator host and 2 segment hosts...
 ERROR: Failed to install PXF extension on 3 out of 3 hosts
-cdw ==> install: cannot create regular file '/usr/local/greenplum-db/share/postgresql/extension/pxf.control': Permission denied
+cdw ==> install: cannot create regular file '/usr/local/greengage-db/share/postgresql/extension/pxf.control': Permission denied
 
-sdw1 ==> install: cannot create regular file '/usr/local/greenplum-db/share/postgresql/extension/pxf.control': Permission denied
+sdw1 ==> install: cannot create regular file '/usr/local/greengage-db/share/postgresql/extension/pxf.control': Permission denied
 
-sdw2 ==> install: cannot create regular file '/usr/local/greenplum-db/share/postgresql/extension/pxf.control': Permission denied"
+sdw2 ==> install: cannot create regular file '/usr/local/greengage-db/share/postgresql/extension/pxf.control': Permission denied"
 
 test_register_gphome_not_writable() {
   # given: extension files do not exist under GPHOME

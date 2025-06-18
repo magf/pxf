@@ -1,0 +1,7 @@
+-- start_ignore
+-- end_ignore
+-- @description query01 for PXF to check wrong encrypted password
+SELECT * FROM encryption_ext_table ORDER BY 1;
+ERROR:  PXF server error : Failed to decrypt jdbc password. null
+HINT:  Check the PXF logs located in the '/usr/local/greengage-db-devel/pxf/logs' directory on host 'localhost' or 'set client_min_messages=LOG' for additional details.
+CONTEXT:  External table encryption_ext_table

@@ -4,7 +4,7 @@ set -exuo pipefail
 
 CWDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-export GPHOME=/usr/local/greenplum-db-devel
+export GPHOME=/usr/local/greengage-db-devel
 # whether PXF is being installed from a new component-based packaging
 PXF_COMPONENT=${PXF_COMPONENT:=false}
 if [[ ${PXF_COMPONENT} == "true" ]]; then
@@ -58,7 +58,7 @@ function run_multinode_smoke_test() {
 	expected_output=$((3 * NO_OF_FILES))
 
 	time ssh "${SSH_OPTS[@]}" gpadmin@cdw "
-		source ${GPHOME}/greenplum_path.sh
+		source ${GPHOME}/greengage_path.sh
 		psql -d template1 -c \"
 			CREATE EXTERNAL TABLE pxf_multifile_test (b TEXT)
 				LOCATION ('pxf://tmp/pxf_test?PROFILE=HdfsTextSimple')
@@ -85,10 +85,10 @@ function update_pghba_conf() {
 }
 
 function add_testing_encoding() {
-	# install new encoding and restart Greenplum so that the new encoding is picked up by Greenplum
+	# install new encoding and restart Greengage so that the new encoding is picked up by Greengage
 	# TODO: Remove the glibc-locale-source installation from here once available in CCP
 	ssh "${SSH_OPTS[@]}" gpadmin@cdw "
-		source ${GPHOME}/greenplum_path.sh &&
+		source ${GPHOME}/greengage_path.sh &&
 		gpssh -f ~gpadmin/hostfile_all -v -u ${CCP_OS_USER} -s -e 'if ! rpm -q glibc-locale-source >/dev/null 2>&1; then sudo yum install -y glibc-locale-source; fi; sudo localedef -c -i ru_RU -f CP1251 ru_RU.CP1251' &&
 		export MASTER_DATA_DIRECTORY=/data/gpdata/coordinator/gpseg-1 &&
 		gpstop -air
@@ -101,7 +101,7 @@ function update_crypto_policy() {
 	# update-crypto-policies is only available for Rocky9
 	if grep -i el9 /etc/os-release; then
 		ssh "${SSH_OPTS[@]}" gpadmin@cdw "
-			source ${GPHOME}/greenplum_path.sh &&
+			source ${GPHOME}/greengage_path.sh &&
 			gpssh -f ~gpadmin/hostfile_all -v -u ${CCP_OS_USER} -s -e 'sudo update-crypto-policies --set DEFAULT:SHA1 && sudo systemctl restart sshd'
 			"
 		if [ $? -eq 0 ]; then
@@ -148,7 +148,7 @@ EOF
 
 	# configure PXF on coordinator, sync configs and start pxf
 	ssh "${SSH_OPTS[@]}" gpadmin@cdw "
-		source ${GPHOME}/greenplum_path.sh &&
+		source ${GPHOME}/greengage_path.sh &&
 		${PXF_HOME}/bin/pxf cluster register
 		if [[ ! -d ${BASE_DIR} ]]; then
 			if [[ ${PXF_VERSION} == 5 ]]; then
@@ -312,7 +312,7 @@ function setup_pxf_kerberos_on_cluster() {
 
 		# Add foreign dataproc hostfile to /etc/hosts on all nodes and copy keytab
 		ssh gpadmin@cdw "
-			source ${GPHOME}/greenplum_path.sh &&
+			source ${GPHOME}/greengage_path.sh &&
 			${GP_SCP_CMD} -f ~gpadmin/hostfile_all -v -r -u ${CCP_OS_USER} ~/dataproc_2_env_files/etc_hostfile =:/tmp/etc_hostfile &&
 			gpssh -f ~gpadmin/hostfile_all -v -u ${CCP_OS_USER} -s -e 'sudo tee --append /etc/hosts < /tmp/etc_hostfile' &&
 			${GP_SCP_CMD} -h cdw -v -r -u gpadmin ~/dataproc_2_env_files/pxf.service-cdw.keytab =:${BASE_DIR}/keytabs/pxf.service.2.keytab &&
@@ -383,7 +383,7 @@ function setup_pxf_kerberos_on_cluster() {
 
 		# add foreign Hadoop and IPA KDC hostfile to /etc/hosts on all nodes
 		ssh gpadmin@cdw "
-			source ${GPHOME}/greenplum_path.sh &&
+			source ${GPHOME}/greengage_path.sh &&
 			${GP_SCP_CMD} -f ~gpadmin/hostfile_all -v -r -u ${CCP_OS_USER} ~/ipa_env_files/etc_hostfile =:/tmp/etc_hostfile &&
 			gpssh -f ~gpadmin/hostfile_all -v -u ${CCP_OS_USER} -s -e 'sudo tee --append /etc/hosts < /tmp/etc_hostfile' &&
 			${GP_SCP_CMD} -f ~gpadmin/hostfile_all -v -r -u gpadmin ~/ipa_env_files/pxf.service.keytab =:${BASE_DIR}/keytabs/pxf.service.3.keytab
@@ -486,7 +486,7 @@ function run_pxf_automation() {
 
 	# adjust GPHOME in SUT files
 	if [[ ${PXF_COMPONENT} == "true" ]]; then
-		sed -i "s/greenplum-db-devel/greenplum-db/g" "$multiNodesCluster"
+		sed -i "s/greengage-db-devel/greengage-db/g" "$multiNodesCluster"
 	fi
 
 	# point the tests at remote Hadoop and GPDB
@@ -505,7 +505,7 @@ function run_pxf_automation() {
 		#!/usr/bin/env bash
 		set -exuo pipefail
 
-		source ${GPHOME}/greenplum_path.sh
+		source ${GPHOME}/greengage_path.sh
 
 		# set explicit GPHOME here for consistency across container / CCP
 		export GPHOME=${GPHOME}

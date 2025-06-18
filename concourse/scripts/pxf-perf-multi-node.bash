@@ -5,7 +5,7 @@ set -eo pipefail
 export PGHOST=cdw
 export PGUSER=gpadmin
 export PGDATABASE=tpch
-GPHOME="/usr/local/greenplum-db-devel"
+GPHOME="/usr/local/greengage-db-devel"
 CWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HADOOP_HOSTNAME="ccp-$(cat terraform_dataproc/name)-m"
 SCALE=${SCALE:-10}
@@ -441,7 +441,7 @@ function main() {
     echo "PXF Process Details:"
     echo "$(ps aux | grep tomcat)"
 
-    source ${GPHOME}/greenplum_path.sh
+    source ${GPHOME}/greengage_path.sh
     create_database_and_schema
     initial_data_load
 

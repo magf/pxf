@@ -19,7 +19,7 @@ num_gpdb_versions="$(pivnet --format=json releases --product-slug="${PRODUCT_SLU
 echo "Found ${num_gpdb_versions} on PivNet for GPDB ${GPDB_VERSION}"
 
 if ((VERSIONS_BEFORE_LATEST >= num_gpdb_versions)); then
-	echo "VERSION_BEFORE_LATEST (${VERSIONS_BEFORE_LATEST}) exceeds number of versions (${num_gpdb_versions}) on PivNet for Greenplum ${GPDB_VERSION}"
+	echo "VERSION_BEFORE_LATEST (${VERSIONS_BEFORE_LATEST}) exceeds number of versions (${num_gpdb_versions}) on PivNet for Greengage ${GPDB_VERSION}"
 	VERSIONS_BEFORE_LATEST=$((num_gpdb_versions - 1))
 	echo "Update VERSIONS_BEFORE_LATEST to ${VERSIONS_BEFORE_LATEST}"
 fi
@@ -37,7 +37,7 @@ echo -e "Latest - ${VERSIONS_BEFORE_LATEST} GPDB version found:\n${GPDB_VERSION}
 # get the string of product names and turn it into list with correct gpdb_version found above
 IFS=, read -ra product_files_GPDB_VERSION <<<"${LIST_OF_PRODUCTS}"
 for file in "${product_files_GPDB_VERSION[@]}"; do
-	: "product_files/Pivotal-Greenplum/${file/GPDB_VERSION/${gpdb_version}}" # replace with version we are set to grab
+	: "product_files/Pivotal-Greengage/${file/GPDB_VERSION/${gpdb_version}}" # replace with version we are set to grab
 	product_files+=("${_}")
 done
 

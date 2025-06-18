@@ -18,8 +18,8 @@ import static org.testng.Assert.*;
 
 /**
  * Functional Test for writing fixedwidth data format text files to HCFS
- * The dataset is based on a set of tests available in Greenplum
- * https://github.com/greenplum-db/gpdb/blob/main/contrib/formatter_fixedwidth/data/fixedwidth_small_correct.tbl
+ * The dataset is based on a set of tests available in Greengage
+ * https://github.com/GreengageDB/greengage/blob/main/contrib/formatter_fixedwidth/data/fixedwidth_small_correct.tbl
  */
 @Feature("Writing fixedwidth files in HCFS")
 public class HcfsFixedwidthWriteTest extends BaseWritableFeature {
@@ -118,7 +118,7 @@ public class HcfsFixedwidthWriteTest extends BaseWritableFeature {
     }
 
     /**
-     * Runs a test scenario of inserting data from Greenplum internal table into a PXF writable external table
+     * Runs a test scenario of inserting data from Greengage internal table into a PXF writable external table
      * and then reading it back using PXF readable external table in the SQL test
      * @param name name of the scenario, used by convention in names of external tables and SQL tests
      * @param formatterDelimiter delimiter value to specify for fixedwidth formatter

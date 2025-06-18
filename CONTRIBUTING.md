@@ -1,7 +1,7 @@
 # Contributing
 
 We warmly welcome and appreciate contributions from the community!
-By participating you agree to the [code of conduct](https://github.com/greenplum-db/pxf/blob/main/CODE-OF-CONDUCT.md).
+By participating you agree to the [code of conduct](https://github.com/GreengageDB/pxf/blob/main/CODE-OF-CONDUCT.md).
 To contribute:
 
 - Sign our [Contributor License Agreement](https://cla.vmware.com/cla/1/preview).
@@ -41,9 +41,3 @@ To contribute:
     - Once the PR is approved, project committers will merge it to main
       branch according to the product release schedule. They might further
       squash the commits in the PR if they deem necessary.
-
-# Community
-
-Connect with PXF and Greenplum on:
-- [Slack](https://greenplum.slack.com/)
-- [Dev Google Group mailing list](https://groups.google.com/a/greenplum.org/forum/#!forum/gpdb-dev/join)

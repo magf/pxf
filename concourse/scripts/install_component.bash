@@ -9,8 +9,8 @@ function check_gphome() {
         exit 1
     fi
 
-    if [[ ! -f ${GPHOME}/greenplum_path.sh ]]; then
-        echo "Error: environment variable GPHOME must be set to a valid Greenplum installation"
+    if [[ ! -f ${GPHOME}/greengage_path.sh ]]; then
+        echo "Error: environment variable GPHOME must be set to a valid Greengage installation"
         exit 1
     fi
 }

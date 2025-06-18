@@ -408,7 +408,7 @@ public class JsonReadTest extends BaseFeature {
 
         runSqlTest("features/hdfs/readable/json/array_as_text");
 
-        // test using JSON functions (available in Greenplum 6+) to convert from TEXT fields into native arrays
+        // test using JSON functions (available in Greengage 6+) to convert from TEXT fields into native arrays
         if (gpdb.getVersion() >= 6) {
             runSqlTest("features/hdfs/readable/json/json_functions");
         }

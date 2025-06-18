@@ -9,11 +9,11 @@ CWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # set our own GPHOME for binary or RPM-based installs before sourcing common script
 if [[ -d bin_gpdb ]]; then
-	# forward compatibility pipeline works with Greenplum binary tarballs
-	export GPHOME=/usr/local/greenplum-db-devel
+	# forward compatibility pipeline works with Greengage binary tarballs
+	export GPHOME=/usr/local/greengage-db-devel
 else
-	# build pipeline works with Greenplum RPMs
-	export GPHOME=/usr/local/greenplum-db
+	# build pipeline works with Greengage RPMs
+	export GPHOME=/usr/local/greengage-db
 fi
 export PXF_HOME=/usr/local/pxf-gp${GP_VER}
 
@@ -27,7 +27,7 @@ export YARN_HEAPSIZE=512
 export GPHD_ROOT=/singlecluster
 export PGPORT=${PGPORT:-5432}
 
-PXF_GIT_URL="https://github.com/greenplum-db/pxf.git"
+PXF_GIT_URL="https://github.com/GreengageDB/pxf.git"
 
 function run_pg_regress() {
 	# run desired groups (below we replace commas with spaces in $GROUPS)
@@ -36,7 +36,7 @@ function run_pg_regress() {
 		set -euxo pipefail
 
 		source ~gpadmin/.pxfrc
-		source "\${GPHOME}/greenplum_path.sh"
+		source "\${GPHOME}/greengage_path.sh"
 
 		export GPHD_ROOT=${GPHD_ROOT}
 		export PXF_HOME=${PXF_HOME} PXF_BASE=${BASE_DIR}
@@ -124,7 +124,7 @@ function _main() {
 
 	# Install GPDB
 	if [[ -d bin_gpdb ]]; then
-		# forward compatibility pipeline works with Greenplum binary tarballs, not RPMs
+		# forward compatibility pipeline works with Greengage binary tarballs, not RPMs
 		install_gpdb_binary
 		chown -R gpadmin:gpadmin "${GPHOME}"
 	else

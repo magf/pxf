@@ -84,7 +84,7 @@ public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
 
     /**
      * True if the accessor accesses the columns defined in the
-     * ORC file in the same order they were defined in the Greenplum table,
+     * ORC file in the same order they were defined in the Greengage table,
      * otherwise the columns are matches by name. (Defaults to false)
      */
     private boolean positionalAccess;
@@ -289,7 +289,7 @@ public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
     }
 
     /**
-     * Given the column descriptors that we receive from Greenplum, builds
+     * Given the column descriptors that we receive from Greengage, builds
      * the read schema that will perform column projection
      *
      * @param originalSchema the original schema for the ORC file
@@ -309,9 +309,9 @@ public class ORCVectorizedAccessor extends BasePlugin implements Accessor {
             int schemaSize = originalSchema.getFieldNames().size();
             // Build a map of column names to TypeDescription
             // We need to add the original name and lower cased name to
-            // the map to support mixed case where in Greenplum the column name
+            // the map to support mixed case where in Greengage the column name
             // was created with quotes i.e "mIxEd CaSe". When quotes are not
-            // used to create a table in Greenplum, the name of the column will
+            // used to create a table in Greengage, the name of the column will
             // always come in lower-case
             Map<String, TypeDescription> originalFields = new HashMap<>(schemaSize);
             IntStream.range(0, schemaSize).forEach(idx -> {

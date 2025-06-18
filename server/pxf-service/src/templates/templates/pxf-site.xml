@@ -51,7 +51,7 @@
               and you don't want to add gpadmin (the default) as a proxy user.
 
             - user impersonation is disabled and you want queries from all
-              Greenplum users to appear on the Hadoop side as coming from the
+              Greengage users to appear on the Hadoop side as coming from the
               specified user.
 
         </description>
@@ -113,6 +113,79 @@
             If set to error, PXF will report an error, potentially leaving an incomplete dataset in the external system.
             If set to round, PXF will try to round the value to meet both precision and scale requirements, or report an error if the value cannot be rounded, potentially leaving an incomplete dataset in the external system.
             If set to ignore, PXF will try to round the value to meet both precision and scale requirements; otherwise PXF will write NULL if the value cannot be rounded (as in previous PXF versions).
+        </description>
+    </property>
+
+    <property>
+        <name>pxf.parquet.use.int64.timestamps</name>
+        <value>false</value>
+        <description>
+            If the parameter is set to false, timestamps will be written to Parquet as INT96.
+            If the parameter is set to true, both TIMESTAMP and TIMESTAMPZ values will be written as INT64 with TimestampLogicalTypeAnnotation.
+            This parameter is equivalent to the USE_INT64_TIMESTAMPS parameter, which is used when creating external tables.
+            If the parameter is specified in both places, the external table setting has higher priority.
+            Default value is false.
+        </description>
+    </property>
+
+    <property>
+        <name>pxf.parquet.use.local.pxf.timezone.write</name>
+        <value>true</value>
+        <description>
+            If the parameter is set to true, the TIMESTAMP value will be converted to UTC based on the local time zone of the JVM running the PXF service.
+            For example, if the local JVM time zone is +03:00, and a timestamp 2005-10-03 15:05:15.123 is received from Greengage, it will be converted to UTC as 2005-10-03 12:05:15.123 (- 3 hours).
+            This converted value will then be written to the Parquet file.
+            This parameter is equivalent to the USE_LOCAL_PXF_TIMEZONE_WRITE parameter, which is used when creating external tables.
+            If the parameter is specified in both places, the external table setting has higher priority.
+            Default value is true.
+        </description>
+    </property>
+
+    <property>
+        <name>pxf.parquet.use.local.pxf.timezone.read</name>
+        <value>true</value>
+        <description>
+            If the parameter is set to true, the TIMESTAMP value from the Parquet file will be converted to the local time zone of the JVM running the PXF service, and then sent to Greengage.
+            For example, if the local time zone of the JVM is +03:00 and the Parquet file contains the timestamp 2005-10-03 12:00:00.000, it will be converted to 2005-10-03 15:00:00.000 (+3 hours) before being sent to Greengage.
+            This parameter is equivalent to the USE_LOCAL_PXF_TIMEZONE_READ parameter, which is used when creating external tables.
+            If the parameter is specified in both places, the external table setting has higher priority.
+            Default value is true.
+        </description>
+    </property>
+
+    <property>
+        <name>pxf.parquet.use.logical.type.interval</name>
+        <value>false</value>
+        <description>
+            If the parameter is set to false, INTERVAL data type will be written to Parquet as FIXED_LEN_BYTE_ARRAY.
+            If the parameter is set to true, INTERVAL data type will be written to Parquet as FIXED_LEN_BYTE_ARRAY with IntervalLogicalTypeAnnotation.
+            This parameter is equivalent to the USE_LOGICAL_TYPE_INTERVAL parameter, which is used when creating external tables.
+            If the parameter is specified in both places, the external table setting has higher priority.
+            Default value is false.
+        </description>
+    </property>
+
+    <property>
+        <name>pxf.parquet.use.logical.type.time</name>
+        <value>false</value>
+        <description>
+            If the parameter is set to false, TIME data type will be written to Parquet as INT64.
+            If the parameter is set to true, TIME data type will be written to Parquet as INT64 with TimeLogicalTypeAnnotation.
+            This parameter is equivalent to the USE_LOGICAL_TYPE_TIME parameter, which is used when creating external tables.
+            If the parameter is specified in both places, the external table setting has higher priority.
+            Default value is false.
+        </description>
+    </property>
+
+    <property>
+        <name>pxf.parquet.use.logical.type.uuid</name>
+        <value>false</value>
+        <description>
+            If the parameter is set to false, UUID data type will be written to Parquet as FIXED_LEN_BYTE_ARRAY.
+            If the parameter is set to true, UUID data type will be written to Parquet as FIXED_LEN_BYTE_ARRAY with UUIDLogicalTypeAnnotation.
+            This parameter is equivalent to the USE_LOGICAL_TYPE_UUID parameter, which is used when creating external tables.
+            If the parameter is specified in both places, the external table setting has higher priority.
+            Default value is false.
         </description>
     </property>
 
