@@ -45,10 +45,10 @@ public class TestAnalyzer implements IInvokedMethodListener {
                 Allure.suite("Smoke: " + feature);
             } else if (groups.contains("gpdb")) {
                 Allure.suite("GPDB: " + feature);
-            } else if (groups.contains("arenadata")) {
-                Allure.suite("Arenadata: " + feature);
-            } else if (groups.contains("arenadatassl")) {
-                Allure.suite("ArenadataSsl: " + feature);
+            } else if (groups.contains("jdbc")) {
+                Allure.suite("Jdbc: " + feature);
+            } else if (groups.contains("ggdbssl")) {
+                Allure.suite("GreengageSsl: " + feature);
             } else {
                 Allure.suite("Other: " + feature);
             }

@@ -429,22 +429,22 @@ public class JdbcTest extends BaseFeature {
         gpdb.createTableAndVerify(pxfJdbcNamedQuery);
     }
 
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void singleFragmentTable() throws Exception {
         runSqlTest("features/jdbc/single_fragment");
     }
 
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void multipleFragmentsTables() throws Exception {
         runSqlTest("features/jdbc/multiple_fragments");
     }
 
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void readServerConfig() throws Exception {
         runSqlTest("features/jdbc/server_config");
     }
 
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void readViewSessionParams() throws Exception {
         runSqlTest("features/jdbc/session_params");
     }
@@ -453,44 +453,44 @@ public class JdbcTest extends BaseFeature {
     // All the Writable Tests are failing with this Error:
     // ERROR:  PXF server error : class java.io.DataInputStream cannot be cast to class
     // [B (java.io.DataInputStream and [B are in module java.base of loader 'bootstrap')
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void jdbcWritableTable() throws Exception {
         runSqlTest("features/jdbc/writable");
     }
 
     @FailsWithFDW
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void jdbcWritableTableNoBatch() throws Exception {
         runSqlTest("features/jdbc/writable_nobatch");
     }
 
     @FailsWithFDW
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void jdbcWritableTablePool() throws Exception {
         runSqlTest("features/jdbc/writable_pool");
     }
 
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void jdbcColumns() throws Exception {
         runSqlTest("features/jdbc/columns");
     }
 
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void jdbcColumnProjection() throws Exception {
         runSqlTest("features/jdbc/column_projection");
     }
 
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void jdbcReadableTableNoBatch() throws Exception {
         runSqlTest("features/jdbc/readable_nobatch");
     }
 
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void jdbcReadableTableWithDateWideRange() throws Exception {
         runSqlTest("features/jdbc/readable_date_wide_range");
     }
 
-    @Test(groups = {"features", "gpdb", "security", "jdbc"})
+    @Test(groups = {"features", "jdbc"})
     public void jdbcNamedQuery() throws Exception {
         runSqlTest("features/jdbc/named_query");
     }
