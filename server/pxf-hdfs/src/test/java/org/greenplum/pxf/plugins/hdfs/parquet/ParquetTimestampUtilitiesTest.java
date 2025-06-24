@@ -5,6 +5,7 @@ import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.Type;
 import org.greenplum.pxf.api.GreenplumDateTime;
+import org.greenplum.pxf.api.error.UnsupportedTypeException;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.plugins.hdfs.parquet.converters.Int64ParquetTypeConverter;
 import org.greenplum.pxf.plugins.hdfs.parquet.converters.ParquetTypeConverter;
@@ -116,9 +117,10 @@ class ParquetTimestampUtilitiesTest {
         String timestamp = "1977-12-11 10:01:02.354795+03";
         TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
-        boolean isAdjustedToUTC = false;
+        boolean useLocalPxfTimezone = false;
         boolean isTimestampWithTimeZone = true;
-        long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, isAdjustedToUTC, isTimestampWithTimeZone);
+        LogicalTypeAnnotation.TimeUnit timeUnit = LogicalTypeAnnotation.TimeUnit.MICROS;
+        long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, timeUnit, useLocalPxfTimezone, isTimestampWithTimeZone);
         assertEquals(250671662354795L, epoch);
         TimeZone.setDefault(defaultTimeZone);
     }
@@ -129,39 +131,95 @@ class ParquetTimestampUtilitiesTest {
         String timestamp = "1977-12-11 10:01:02.354+03";
         TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
-        boolean isAdjustedToUTC = true;
+        boolean useLocalPxfTimezone = true;
         boolean isTimestampWithTimeZone = true;
-        long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, isAdjustedToUTC, isTimestampWithTimeZone);
+        LogicalTypeAnnotation.TimeUnit timeUnit = LogicalTypeAnnotation.TimeUnit.MICROS;
+        long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, timeUnit, useLocalPxfTimezone, isTimestampWithTimeZone);
         assertEquals(250671662354000L, epoch);
         TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
     public void getLongFromTimestampWithoutTimeZoneWithoutConvertToUtc() {
-        // epoch time with micro seconds converted to UTC based on the Default timezone: 250671662030000L (1977-12-11 07:01:02.03) (Europe/Moscow)
+        // epoch time with micro seconds converted to UTC based on the PXF timezone (Europe/Moscow): 250671662030000L (1977-12-11 07:01:02.03)
         // epoch time with micro seconds without conversion: 250682462030000L (1977-12-11 10:01:02.03)
         String timestamp = "1977-12-11 10:01:02.03";
         TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow")); // +03:00
-        boolean isAdjustedToUTC = false;
+        boolean useLocalPxfTimezone = false;
         boolean isTimestampWithTimeZone = false;
-        long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, isAdjustedToUTC, isTimestampWithTimeZone);
+        LogicalTypeAnnotation.TimeUnit timeUnit = LogicalTypeAnnotation.TimeUnit.MICROS;
+        long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, timeUnit, useLocalPxfTimezone, isTimestampWithTimeZone);
         assertEquals(250682462030000L, epoch);
         TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
     public void getLongFromTimestampWithoutTimeZoneWithConvertToUtc() {
-        // epoch time with micro seconds converted to UTC based on the Default timezone: 250671662354500L (1977-12-11 07:01:02.3545) (Europe/Moscow)
+        // epoch time with micro seconds converted to UTC based on the PXF timezone (Europe/Moscow): 250671662354500L (1977-12-11 07:01:02.3545)
         // epoch time with micro seconds without conversion: 25068246235400L (1977-12-11 10:01:02.3545)
         String timestamp = "1977-12-11 10:01:02.3545";
         TimeZone defaultTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow")); // +03:00
-        boolean isAdjustedToUTC = true;
+        boolean useLocalPxfTimezone = true;
         boolean isTimestampWithTimeZone = false;
-        long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, isAdjustedToUTC, isTimestampWithTimeZone);
+        LogicalTypeAnnotation.TimeUnit timeUnit = LogicalTypeAnnotation.TimeUnit.MICROS;
+        long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, timeUnit, useLocalPxfTimezone, isTimestampWithTimeZone);
         assertEquals(250671662354500L, epoch);
         TimeZone.setDefault(defaultTimeZone);
+    }
+
+    @Test
+    public void getLongFromTimestampWithMillisForPushdownFilter() {
+        // epoch time with millis seconds converted to UTC based on the PXF timezone (Europe/Moscow): 250671662123L (1977-12-11 07:01:02.123)
+        String timestamp = "1977-12-11 10:01:02.123";
+        TimeZone defaultTimeZone = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
+        boolean useLocalPxfTimezone = true;
+        boolean isTimestampWithTimeZone = false;
+        LogicalTypeAnnotation.TimeUnit timeUnit = LogicalTypeAnnotation.TimeUnit.MILLIS;
+        long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, timeUnit, useLocalPxfTimezone, isTimestampWithTimeZone);
+        assertEquals(250671662123L, epoch);
+        TimeZone.setDefault(defaultTimeZone);
+    }
+
+    @Test
+    public void getLongFromTimestampWithMillisForPushdownFilterWithoutConvertToUtc() {
+        // epoch time with millis seconds converted to UTC: 250682462123L (1977-12-11 10:01:02.123) (UTC)
+        String timestamp = "1977-12-11 10:01:02.123";
+        TimeZone defaultTimeZone = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
+        boolean useLocalPxfTimezone = false;
+        boolean isTimestampWithTimeZone = false;
+        LogicalTypeAnnotation.TimeUnit timeUnit = LogicalTypeAnnotation.TimeUnit.MILLIS;
+        long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, timeUnit, useLocalPxfTimezone, isTimestampWithTimeZone);
+        assertEquals(250682462123L, epoch);
+        TimeZone.setDefault(defaultTimeZone);
+    }
+
+    @Test
+    public void getLongFromTimestampWithMicrosForPushdownFilter() {
+        // epoch time with micro seconds converted to UTC based on the PXF timezone (Europe/Moscow): 250671662123456L (1977-12-11 07:01:02.123456)
+        String timestamp = "1977-12-11 10:01:02.123456";
+        TimeZone defaultTimeZone = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
+        boolean useLocalPxfTimezone = true;
+        boolean isTimestampWithTimeZone = false;
+        LogicalTypeAnnotation.TimeUnit timeUnit = LogicalTypeAnnotation.TimeUnit.MICROS;
+        long epoch = ParquetTimestampUtilities.getLongFromTimestamp(timestamp, timeUnit, useLocalPxfTimezone, isTimestampWithTimeZone);
+        assertEquals(250671662123456L, epoch);
+        TimeZone.setDefault(defaultTimeZone);
+    }
+
+    @Test
+    public void getLongFromTimestampWithNanosForPushdownFilter() {
+        // epoch time with nanos is not supported because postgres supports only microsecond precision out of the box
+        String timestamp = "1977-12-11 10:01:02.123456";
+        LogicalTypeAnnotation.TimeUnit timeUnit = LogicalTypeAnnotation.TimeUnit.NANOS;
+        Exception e = assertThrows(UnsupportedTypeException.class,
+                () -> ParquetTimestampUtilities.getLongFromTimestamp(timestamp, timeUnit, true, false));
+        String expectedMessage = "Time unit 'NANOS' for parquet timestamp logical type annotation is not supported";
+        assertEquals(expectedMessage, e.getMessage());
     }
 
     @Test

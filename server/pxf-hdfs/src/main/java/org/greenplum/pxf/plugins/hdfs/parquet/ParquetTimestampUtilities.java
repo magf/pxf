@@ -4,6 +4,7 @@ import org.apache.parquet.example.data.simple.NanoTime;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.greenplum.pxf.api.GreenplumDateTime;
+import org.greenplum.pxf.api.error.UnsupportedTypeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,12 +28,17 @@ public class ParquetTimestampUtilities {
         return (int) date.toEpochDay();
     }
 
-    public static long getLongFromTimestamp(String timestampString, boolean useLocalPxfTimezone, boolean isTimestampWithTimeZone) {
+    public static long getLongFromTimestamp(
+            String timestampString,
+            LogicalTypeAnnotation.TimeUnit timeUnit,
+            boolean useLocalPxfTimezone,
+            boolean isTimestampWithTimeZone
+    ) {
         if (isTimestampWithTimeZone) {
             // We receive a timestamp string with time zone offset from GPDB
             OffsetDateTime date = OffsetDateTime.parse(timestampString, GreenplumDateTime.DATETIME_WITH_TIMEZONE_FORMATTER);
             ZonedDateTime zdt = date.toZonedDateTime();
-            return getEpochWithMicroSeconds(zdt, date.getNano());
+            return getEpochTime(zdt, timeUnit);
         } else {
             // We receive a timestamp string from GPDB in the server timezone
             // If useLocalPxfTimezone = true we convert it to the UTC using local pxf server timezone and save it in the parquet as UTC
@@ -40,7 +46,7 @@ public class ParquetTimestampUtilities {
             ZoneId zoneId = useLocalPxfTimezone ? ZoneId.systemDefault() : ZoneOffset.UTC;
             LocalDateTime date = LocalDateTime.parse(timestampString, GreenplumDateTime.DATETIME_FORMATTER);
             ZonedDateTime zdt = ZonedDateTime.of(date, zoneId);
-            return getEpochWithMicroSeconds(zdt, date.getNano());
+            return getEpochTime(zdt, timeUnit);
         }
     }
 
@@ -132,10 +138,20 @@ public class ParquetTimestampUtilities {
         return timestamp;
     }
 
-    // Helper method that takes a ZonedDateTime object and return it as nano time as long type
-    private static long getEpochWithMicroSeconds(ZonedDateTime zdt, int nanoOfSecond) {
-        long microSeconds = zdt.toEpochSecond() * SECOND_IN_MICROS;
-        return microSeconds + nanoOfSecond / NANOS_IN_MICROS;
+    // Helper method that takes a ZonedDateTime object and return epoch time
+    private static long getEpochTime(ZonedDateTime zdt, LogicalTypeAnnotation.TimeUnit timeUnit) {
+        switch (timeUnit) {
+            case MILLIS:
+                return zdt.toInstant().toEpochMilli();
+            case MICROS:
+                long microSeconds = zdt.toEpochSecond() * SECOND_IN_MICROS;
+                return microSeconds + zdt.getNano() / NANOS_IN_MICROS;
+            // We don't support NANOS, because postgres supports only microsecond precision out of the box
+            default:
+                throw new UnsupportedTypeException(
+                        String.format("Time unit '%s' for parquet timestamp logical type annotation is not supported", timeUnit)
+                );
+        }
     }
 
     // Helper method that takes a ZonedDateTime object and return it as nano time in binary form (UTC)

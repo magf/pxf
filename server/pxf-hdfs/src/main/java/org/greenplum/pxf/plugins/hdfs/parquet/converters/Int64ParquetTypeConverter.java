@@ -80,8 +80,9 @@ public class Int64ParquetTypeConverter implements ParquetTypeConverter {
         if (detectedDataType == DataType.TIMESTAMP || detectedDataType == DataType.TIMESTAMP_WITH_TIME_ZONE) {
             String timestamp = (String) fieldValue;
             boolean isTimestampWithTimeZone = TIMESTAMP_PATTERN.matcher(timestamp).find();
+            LogicalTypeAnnotation.TimestampLogicalTypeAnnotation tsAnno = (LogicalTypeAnnotation.TimestampLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
             return ParquetTimestampUtilities
-                    .getLongFromTimestamp(timestamp, useLocalPxfTimezoneWrite, isTimestampWithTimeZone);
+                    .getLongFromTimestamp(timestamp, tsAnno.getUnit(), useLocalPxfTimezoneWrite, isTimestampWithTimeZone);
         } else if (detectedDataType == DataType.NUMERIC) {
             String decimalValue = (String) fieldValue;
             LogicalTypeAnnotation.DecimalLogicalTypeAnnotation decimalAnno = (LogicalTypeAnnotation.DecimalLogicalTypeAnnotation) type.getLogicalTypeAnnotation();

@@ -45,11 +45,12 @@ public class PxfParquetTimezoneParametersTest extends BaseFeature {
     private static final String TIME_VALUE = "('18:15:30.123456')";
     private static final String UUID_VALUE = "('4e8d9b02-6d6a-4b49-9537-8f4b0d750f0e')";
     private static final String INTERVAL_VALUE = "('3 days 4 hours 15 minutes 30 seconds')";
-    private static final String[] TIMESTAMP_TABLE_SCHEMA = new String[]{"tmp        TIMESTAMP"};
-    private static final String[] TIMESTAMP_TABLE_SCHEMA_WITH_TIMEZONE = new String[]{"tmp        TIMESTAMP WITH TIME ZONE"};
-    private static final String[] TIME_TABLE_SCHEMA = new String[]{"tmp        TIME"};
-    private static final String[] UUID_TABLE_SCHEMA = new String[]{"tmp        UUID"};
-    private static final String[] INTERVAL_TABLE_SCHEMA = new String[]{"tmp        INTERVAL"};
+    private static final String[] TIMESTAMP_TABLE_SCHEMA = new String[]{"tmp TIMESTAMP"};
+    private static final String[] TIMESTAMP_TABLE_SCHEMA_WITH_TIMEZONE = new String[]{"tmp TIMESTAMP WITH TIME ZONE"};
+    private static final String[] TIME_TABLE_SCHEMA = new String[]{"tmp TIME"};
+    private static final String[] UUID_TABLE_SCHEMA = new String[]{"tmp UUID"};
+    private static final String[] INTERVAL_TABLE_SCHEMA = new String[]{"tmp INTERVAL"};
+    private static final String[] TIMESTAMP_TYPES_TABLE_SCHEMA_WITH_TIMEZONE = new String[]{"ts_millis TIMESTAMP", "ts_micros TIMESTAMP", "ts_nanos TIMESTAMP"};
     private static final String TIMESTAMP_PARQUET_FILE_NAME = "tmp_no_timezone.parquet";
     private static final String TIMESTAMP_WITH_TIMEZONE_PARQUET_FILE_NAME = "tmp_with_timezone.parquet";
     private static final String PXF_PARQUET_SERVER_PROFILE = "parquet_config";
@@ -190,6 +191,19 @@ public class PxfParquetTimezoneParametersTest extends BaseFeature {
         exTable.setUserParameters(new String[]{useLocalPxfTimezoneRead});
         createTable(exTable);
         runSqlTest(sqlPath);
+    }
+
+    @Test(groups = {"arenadata"})
+    public void testParquetTimestampTypes() throws Exception {
+        String fullTestPath = hdfsPath + "parquet_timestamp_types/";
+        // The file timestamps_type.parquet contains: {"ts_millis":1748736000123,"ts_micros":1748736000123456,"ts_nanos":1748736000123456789}
+        String resourcePath = localDataResourcesFolder + "/parquet/timestamps_type.parquet";
+        hdfs.copyFromLocal(resourcePath, fullTestPath);
+        String useLocalPxfTimezoneRead = USE_LOCAL_PXF_TIMEZONE_READ_PARAM + false;
+        exTable = TableFactory.getPxfHcfsReadableTable(READABLE_EXTERNAL_TABLE_NAME, TIMESTAMP_TYPES_TABLE_SCHEMA_WITH_TIMEZONE, fullTestPath, hdfs.getBasePath(), PARQUET_FORMAT);
+        exTable.setUserParameters(new String[]{useLocalPxfTimezoneRead});
+        createTable(exTable);
+        runSqlTest("arenadata/parquet/check-readable-tables/timestamp-types");
     }
 
     private void assertParquetFile(
