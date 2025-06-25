@@ -360,7 +360,8 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
             TRAVERSER.traverse(root, IN_OPERATOR_TRANSFORMER, pruner, bpCharTransformer, filterBuilder);
             return filterBuilder.getRecordFilter();
         } catch (Exception e) {
-            LOG.error("{}-{}: {}--{} Unable to generate Parquet Record Filter for filter",
+            // We don't need to log this exception as an error, because the Greengage will filter the record anyway.
+            LOG.debug("{}-{}: {}--{} Unable to generate Parquet Record Filter for filter",
                     context.getTransactionId(),
                     context.getSegmentId(),
                     context.getDataSource(),
