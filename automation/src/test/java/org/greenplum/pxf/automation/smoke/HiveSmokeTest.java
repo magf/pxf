@@ -73,7 +73,7 @@ public class HiveSmokeTest extends BaseSmoke {
         runSqlTest("smoke/hcatalog_small_data");
     }
 
-    @Test(groups = { "smoke", "gpdb", "security" })
+    @Test(groups = { "smoke" })
     @WorksWithFDW
     public void test() throws Exception {
         runTest();
