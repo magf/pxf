@@ -25,5 +25,5 @@ echo "Build PXF image for automation"
 echo "=============================="
 # GGDB_IMAGE is from https://github.com/GreengageDB/greengage/tree/main/ci
 pushd ../..
-docker build -t ggdb6_pxf_automation:it --build-arg "GGDB_IMAGE=${GGDB_IMAGE:-ggdb6_u22:latest}" -f automation/env/Dockerfile .
+docker build -t ggdb6_pxf_automation:it --build-arg "GGDB_IMAGE=${GGDB_IMAGE:-greengagedb/ggdb6_ubuntu:latest}" -f automation/env/Dockerfile .
 popd

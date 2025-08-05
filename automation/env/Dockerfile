@@ -1,13 +1,13 @@
 # https://github.com/GreengageDB/greengage/tree/main/ci
-ARG GGDB_IMAGE=ggdb6_u22:latest
+ARG GGDB_IMAGE=greengagedb/ggdb6_ubuntu:latest
 FROM $GGDB_IMAGE
 
 SHELL ["bash", "-c"]
 
 # install maven
-RUN curl -fSL https://dlcdn.apache.org/maven/maven-3/3.9.10/binaries/apache-maven-3.9.10-bin.tar.gz -o /tmp/apache-maven-3.9.10-bin.tar.gz \
-    && tar -xf /tmp/apache-maven-3.9.10-bin.tar.gz -C /opt \
-    && ln -s /opt/apache-maven-3.9.10 /opt/maven
+RUN curl -fSL https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz -o /tmp/apache-maven-3.9.11-bin.tar.gz \
+    && tar -xf /tmp/apache-maven-3.9.11-bin.tar.gz -C /opt \
+    && ln -s /opt/apache-maven-3.9.11 /opt/maven
 
 # Download jar files
 RUN mkdir -p /tmp/libs
