@@ -209,13 +209,10 @@ function build_install_gpdb() {
 }
 
 function install_gpdb_binary() {
-	# TODO Remove the chown once the ownership of /home/gpadmin is correctly set
-	# In concourse 7.8.x, even though the base pxf dev image correctly gave
-	# gpadmin permissions to /home/gpadmin, the change is not respected
-	# So we have added this chown here to ensure gpadmin owns its home directory
-	chown -R gpadmin:gpadmin /home/gpadmin
-
-	if [[ -d bin_gpdb ]]; then
+	if [[ -d gpdb_src ]]; then
+		source gpdb_src/concourse/scripts/common.bash
+		install_gpdb
+	elif [[ -d bin_gpdb ]]; then
 		mkdir -p ${GPHOME}
 		tar -xzf bin_gpdb/*.tar.gz -C ${GPHOME}
 	else
@@ -339,27 +336,8 @@ function add_remote_user_access_for_gpdb() {
 }
 
 function setup_gpadmin_user() {
-
-	# Don't create gpadmin user if already exists
-	if ! id -u gpadmin; then
-		groupadd -g 1000 gpadmin && useradd -u 1000 -g 1000 -M gpadmin
-		echo "gpadmin  ALL=(ALL)	   NOPASSWD: ALL" > /etc/sudoers.d/gpadmin
-		groupadd supergroup && usermod -a -G supergroup gpadmin
-		mkdir -p ~gpadmin/.ssh
-		ssh-keygen -t rsa -N "" -f ~gpadmin/.ssh/id_rsa
-		cat /home/gpadmin/.ssh/id_rsa.pub >> ~gpadmin/.ssh/authorized_keys
-		chmod 0600 /home/gpadmin/.ssh/authorized_keys
-		awk '{print "localhost", $1, $2; print "0.0.0.0", $1, $2}' /etc/ssh/ssh_host_rsa_key.pub >> ~gpadmin/.ssh/known_hosts
-		chown -R gpadmin:gpadmin ${GPHOME} ~gpadmin/.ssh # don't chown cached dirs ~/.m2, etc.
-		echo -e "password\npassword" | passwd gpadmin 2> /dev/null
-	fi
-	cat <<-EOF >> /etc/security/limits.d/gpadmin-limits.conf
-		gpadmin soft core unlimited
-		gpadmin soft nproc 131072
-		gpadmin soft nofile 65536
-	EOF
-	if [[ -d gpdb_src/gpAux/gpdemo ]]; then
-		chown -R gpadmin:gpadmin gpdb_src/gpAux/gpdemo
+	if [[ -d gpdb_src ]]; then
+		gpdb_src/concourse/scripts/setup_gpadmin_user.bash
 	fi
 
 	if grep -i ubuntu /etc/os-release; then
