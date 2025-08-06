@@ -254,9 +254,9 @@ if [ "$HOSTNAME" == "$DOCKER_GG_MASTER_SERVER" ]; then
        psql -d postgres -Atc 'CREATE EXTENSION IF NOT EXISTS pxf_fdw;' &&
        echo 'local all testuser trust' >> /data1/master/gpseg-1/pg_hba.conf &&
        echo 'host all gpadmin 0.0.0.0/0 trust' >> /data1/master/gpseg-1/pg_hba.conf &&
-       echo 'host all all 0.0.0.0/0 md5' >> /data1/master/gpseg-1/pg_hba.conf &&
-       gpconfig -c gp_resource_manager -v group &&
-       gpstop -aM fast && gpstart -a"
+       echo 'host all all 0.0.0.0/0 md5' >> /data1/master/gpseg-1/pg_hba.conf"
+   sudo -H -u gpadmin bash -c -l "gpconfig -c gp_resource_manager -v group"
+   sudo -H -u gpadmin bash -c -l "gpstop -aM fast && gpstart -a"
   else
     echo "-------------------------"
     echo "Starting Greengage server"
