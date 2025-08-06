@@ -122,6 +122,7 @@ configure(javaProjects) {
 
             // revert once springboot provided postgresql is upgraded to bundle postgresql:42.7.2+
             dependency("org.postgresql:postgresql:42.7.2")
+            dependency("io.arenadata.tools:sslprops-spring-boot-starter:1.0.0")
 
             dependency("org.mongodb:bson:5.1.1")
 
