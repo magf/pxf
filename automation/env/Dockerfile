@@ -1,5 +1,5 @@
 # https://github.com/GreengageDB/greengage/tree/main/ci
-ARG GGDB_IMAGE=greengagedb/ggdb6_ubuntu:latest
+ARG GGDB_IMAGE=greengagedb/ggdb6_ubuntu:6.29.0
 FROM $GGDB_IMAGE
 
 SHELL ["bash", "-c"]
@@ -72,7 +72,6 @@ COPY . /home/gpadmin/pxf_src
 COPY ./automation/env/scripts/compile_pxf_without_test.sh ./pxf_src/concourse/scripts/compile_pxf_without_test.sh
 RUN chmod +x ./pxf_src/concourse/scripts/compile_pxf_without_test.sh
 RUN source gpdb_src/concourse/scripts/common.bash && \
-    install_gpdb && \
     source ${GPHOME}/greengage_path.sh && \
     export SKIP_FDW_BUILD_REASON=0 && \
     pxf_src/concourse/scripts/compile_pxf_without_test.sh && \
