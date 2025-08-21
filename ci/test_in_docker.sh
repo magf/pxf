@@ -6,9 +6,6 @@ set -exo pipefail
 hostname mdw
 echo "127.0.0.1    mdw" >> /etc/hosts
 
-# manually prepare gpadmin user; test_pxf.bash doesn't tweak gpadmin folder permissions and ssh keys
-./gpdb_src/concourse/scripts/setup_gpadmin_user.bash
-
 # Pass through PXF environment variables to gpadmin user
 if [[ "$PXF_PROTOCOL" = "https" ]]; then
     echo "--------------------------------------"
@@ -29,7 +26,6 @@ if [[ "$PXF_PROTOCOL" = "https" ]]; then
 fi
 
 # tweak necessary folders to run regression tests later
-chown gpadmin:gpadmin -R /usr/local/greengage-db-devel
 chown gpadmin:gpadmin -R /tmp/build/pxf_src
 
 # Display the diff if we fail
