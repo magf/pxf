@@ -1,4 +1,4 @@
-ARG GPDB_IMAGE=cloud-hub.adsw.io/library/gpdb6_u22:adb-6.x-dev
+ARG GPDB_IMAGE=cloud-hub.adsw.io/library/gpdb6_u22:latest
 FROM $GPDB_IMAGE
 
 SHELL ["bash", "-c"]
@@ -70,13 +70,12 @@ COPY ./automation/arenadata/scripts/compile_pxf_without_test.sh ./pxf_src/concou
 RUN chmod +x ./pxf_src/concourse/scripts/compile_pxf_without_test.sh
 RUN source gpdb_src/concourse/scripts/common.bash && \
     mkdir pxf_tarball && \
-    install_gpdb && \
     source '/usr/local/greenplum-db-devel/greenplum_path.sh' && \
     export SKIP_FDW_BUILD_REASON=0 && \
     pxf_src/concourse/scripts/compile_pxf_without_test.sh && \
-    chown -R gpadmin:gpadmin /home/gpadmin/pxf_src
+    chown -R gpadmin:gpadmin /home/gpadmin/pxf_src/
 
-RUN mkdir workspace && ln -s /home/gpadmin/pxf_src /home/gpadmin/workspace/pxf && chown -R gpadmin:gpadmin /home/gpadmin/workspace
+RUN mkdir workspace && ln -s /home/gpadmin/pxf_src /home/gpadmin/workspace/pxf && chown -R gpadmin:gpadmin /home/gpadmin/workspace/
 
 # Need to run automation tests
 ENV PXF_HOME=/usr/local/greenplum-db-devel/pxf
@@ -119,5 +118,5 @@ RUN set -eux; \
 RUN cp /tmp/libs/* ${PXF_HOME}/lib/
 
 RUN chmod -R a+x ./pxf_src/automation/arenadata/scripts
-RUN chown -R gpadmin:gpadmin /usr/local/greenplum-db-devel
+RUN chown -R gpadmin:gpadmin /usr/local/greenplum-db-devel/
 ENTRYPOINT ["/home/gpadmin/pxf_src/automation/arenadata/scripts/start_adb_cluster.sh"]
