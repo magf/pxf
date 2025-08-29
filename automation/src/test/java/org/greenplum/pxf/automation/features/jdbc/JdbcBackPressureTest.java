@@ -25,7 +25,8 @@ import static org.greenplum.pxf.automation.PxfTestUtil.getCmdResult;
 public class JdbcBackPressureTest extends BaseFeature {
     private static final String PXF_SERVER_PROFILE = "backpressure";
     private static final String PXF_JDBC_SITE_CONF_TEMPLATE_RELATIVE_PATH = "templates/backpressure/jdbc-site.xml";
-    private static final String PXF_TEMP_LOG_PATH = "/tmp/pxf-service.log";
+    private static final String PXF_TEMP_LOG_PATH = "/tmp/pxf";
+    private static final String PXF_TEMP_LOG_FILE = PXF_TEMP_LOG_PATH + "/pxf-service.log";
     private static final String[] ORACLE_TARGET_TABLE_FIELDS = new String[]{
             "id1    NUMBER",
             "id2    NUMBER",
@@ -42,23 +43,23 @@ public class JdbcBackPressureTest extends BaseFeature {
             "SELECT gen, gen, 'text' || gen::text, now() FROM generate_series (1,8000000) gen;";
 
     // The output of the command is the number of lines with the information about thread pool active tasks. Should be more than 0.
-    private static final String POOL_USED_GREP_COMMAND = "cat " + PXF_TEMP_LOG_PATH + " | grep 'Current thread pool active task' | wc -l";
+    private static final String POOL_USED_GREP_COMMAND = "cat " + PXF_TEMP_LOG_FILE + " | grep 'Current thread pool active task' | wc -l";
 
     // Sometimes the queue in the thread pool might be more than 0 for some reason:
     // 1. The semaphore is released a slightly early then the task is removed from the active tasks in the pool;
     // 2. The logging is not atomic operation
     // The output of the grep command is the number of lines with the queue greater than 3. Should be 0.
-    private static final String QUEUE_USED_GREP_COMMAND = "cat " + PXF_TEMP_LOG_PATH + " | grep 'Current thread pool active task' " +
+    private static final String QUEUE_USED_GREP_COMMAND = "cat " + PXF_TEMP_LOG_FILE + " | grep 'Current thread pool active task' " +
             "| awk -F 'Queue used: ' '{print $2}' | awk -F ';' '{ if ( $1+0 > 3 ) print $1 }' | wc -l";
 
     // Current thread pool active task cannot be more than POOL_SIZE value
     // The output of the grep command is the number of lines with the active task greater than %d. Should be 0.
-    private static final String POOL_ACTIVE_TASK_GREP_COMMAND_TEMPLATE = "cat " + PXF_TEMP_LOG_PATH + " | grep 'Current thread pool active task' " +
+    private static final String POOL_ACTIVE_TASK_GREP_COMMAND_TEMPLATE = "cat " + PXF_TEMP_LOG_FILE + " | grep 'Current thread pool active task' " +
             "| awk -F 'Current thread pool active task: ' '{print $2}' | awk -F ';' '{ if ( $1+0 > %d ) print $1 }' | wc -l";
 
     // Semaphore remains cannot be more than POOL_SIZE value
     // The output of the grep command is the number of lines with the semaphore remains greater than %d. Should be 0.
-    private static final String SEMAPHORE_REMAINS_GREP_COMMAND_TEMPLATE = "cat " + PXF_TEMP_LOG_PATH + " | grep 'Current thread pool active task' " +
+    private static final String SEMAPHORE_REMAINS_GREP_COMMAND_TEMPLATE = "cat " + PXF_TEMP_LOG_FILE + " | grep 'Current thread pool active task' " +
             "| awk -F 'Semaphore remains: ' '{print $2}' | awk -F ';' '{ if ( $1+0 > %d ) print $1 }' | wc -l";
 
     private Table oracleTargetTable;
@@ -82,9 +83,10 @@ public class JdbcBackPressureTest extends BaseFeature {
                 pxfNodes = ((MultiNodeCluster) cluster).getNode(SegmentNode.class, PhdCluster.EnumClusterServices.pxf);
             }
             restartCommand = pxfHome + "/bin/pxf restart";
+            cluster.runCommand("mkdir -p " + PXF_TEMP_LOG_PATH);
             oracle = (Oracle) SystemManagerImpl.getInstance().getSystemObject("oracle");
             prepareData();
-            changeLogLevel("trace");
+            restartWithChangeLogLevel("trace");
         }
     }
 
@@ -95,7 +97,7 @@ public class JdbcBackPressureTest extends BaseFeature {
     @Override
     public void afterClass() throws Exception {
         if (!FDWUtils.useFDW) {
-            changeLogLevel("info");
+            restartWithChangeLogLevel("info");
         }
     }
 
@@ -106,7 +108,7 @@ public class JdbcBackPressureTest extends BaseFeature {
         // Oracle internal target table
         prepareOracleTargetTable();
         // External writable table to run query when jdbc.pool.property.maximumPoolSize = 1
-        createGpdbWritableTable("jdbc_bp_write_connection_max_pool_size_1", "POOL_SIZE=4,BATCH_SIZE=1000");
+        createGpdbWritableTable("jdbc_bp_write_connection_max_pool_size_1", "POOL_SIZE=2,BATCH_SIZE=1000");
         // External writable table to run query when POOL_SIZE = 1
         createGpdbWritableTable("jdbc_bp_write_pool_size_1", "POOL_SIZE=1,BATCH_SIZE=20000");
         // External writable table to run query when POOL_SIZE = 10
@@ -147,9 +149,15 @@ public class JdbcBackPressureTest extends BaseFeature {
 
     @Test(groups = {"features", "jdbc"}, description = "Check that jdbc.pool.property.maximumPoolSize = 1 is enough for success query")
     public void checkConnectionPoolWithMaxPoolSizeIs1() throws Exception {
+        restartWithChangeLogLevel("trace");
+        cleanPxfLog();
         copyJdbcConfFile(pxfJdbcSiteConfTemplate);
         modifyJdbcConfFile("'s/<value>10<\\/value>/<value>1<\\/value>/g'");
         runSqlTest("features/jdbc/backpressure/connection-max-poolsize-1");
+        for (Node pxfNode : pxfNodes) {
+            copyPxfLog(pxfNode);
+            saveLogs(getMethodName(), pxfNode.getHost());
+        }
     }
 
     @Test(groups = {"features", "jdbc"}, description = "Check back-pressure when POOL_SIZE=1")
@@ -159,6 +167,7 @@ public class JdbcBackPressureTest extends BaseFeature {
         runSqlTest("features/jdbc/backpressure/poolsize-1");
         for (Node pxfNode : pxfNodes) {
             copyPxfLog(pxfNode);
+            saveLogs(getMethodName(), pxfNode.getHost());
             Assert.assertTrue("Check that information about pool is present in the log",
                     Integer.parseInt(getCmdResult(cluster, POOL_USED_GREP_COMMAND)) > 3);
             Assert.assertEquals("Check queue used when POOL_SIZE=1",
@@ -167,7 +176,7 @@ public class JdbcBackPressureTest extends BaseFeature {
                     "0", getCmdResult(cluster, String.format(POOL_ACTIVE_TASK_GREP_COMMAND_TEMPLATE, 1)));
             Assert.assertEquals("Check semaphore remains when POOL_SIZE=1",
                     "0", getCmdResult(cluster, String.format(SEMAPHORE_REMAINS_GREP_COMMAND_TEMPLATE, 1)));
-            cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
+            cluster.deleteFileFromNodes(PXF_TEMP_LOG_FILE, false);
         }
     }
 
@@ -175,10 +184,11 @@ public class JdbcBackPressureTest extends BaseFeature {
     public void checkBackPressureWhenPoolSizeIs10() throws Exception {
         cleanPxfLog();
         copyJdbcConfFile(pxfJdbcSiteConfTemplate);
-        modifyJdbcConfFile("'s/<value>10<\\/value>/<value>2<\\/value>/g'");
+        modifyJdbcConfFile("'s/<value>10<\\/value>/<value>3<\\/value>/g'");
         runSqlTest("features/jdbc/backpressure/poolsize-10");
         for (Node pxfNode : pxfNodes) {
             copyPxfLog(pxfNode);
+            saveLogs(getMethodName(), pxfNode.getHost());
             Assert.assertTrue("Check that information about pool is present in the log",
                     Integer.parseInt(getCmdResult(cluster, POOL_USED_GREP_COMMAND)) > 3);
             Assert.assertEquals("Check queue used when POOL_SIZE=10",
@@ -187,7 +197,7 @@ public class JdbcBackPressureTest extends BaseFeature {
                     "0", getCmdResult(cluster, String.format(POOL_ACTIVE_TASK_GREP_COMMAND_TEMPLATE, 10)));
             Assert.assertEquals("Check semaphore remains when POOL_SIZE=10",
                     "0", getCmdResult(cluster, String.format(SEMAPHORE_REMAINS_GREP_COMMAND_TEMPLATE, 10)));
-            cluster.deleteFileFromNodes(PXF_TEMP_LOG_PATH, false);
+            cluster.deleteFileFromNodes(PXF_TEMP_LOG_FILE, false);
         }
     }
 
@@ -203,7 +213,7 @@ public class JdbcBackPressureTest extends BaseFeature {
         runSqlTest("features/jdbc/backpressure/batch-timeout/success");
     }
 
-    private void changeLogLevel(String level) throws Exception {
+    private void restartWithChangeLogLevel(String level) throws Exception {
         cluster.runCommandOnNodes(pxfNodes, String.format("export PXF_LOG_LEVEL=%s;%s", level, restartCommand));
     }
 
@@ -212,7 +222,7 @@ public class JdbcBackPressureTest extends BaseFeature {
     }
 
     private void copyPxfLog(Node pxfNode) throws Exception {
-        cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, "/tmp/");
+        cluster.copyFromRemoteMachine(pxfNode.getUserName(), pxfNode.getPassword(), pxfNode.getHost(), pxfLogFile, PXF_TEMP_LOG_PATH);
     }
 
     private void copyJdbcConfFile(String templateSource) throws Exception {
@@ -222,5 +232,16 @@ public class JdbcBackPressureTest extends BaseFeature {
 
     private void modifyJdbcConfFile(String sedExpression) throws Exception {
         cluster.runCommandOnAllNodes("sed -i " + sedExpression + " " + pxfJdbcSiteConfFile);
+    }
+
+    private String getMethodName() throws Exception {
+        return Thread.currentThread()
+                .getStackTrace()[2]
+                .getMethodName();
+    }
+
+    @Step("Save pxf logs")
+    private void saveLogs(String methodName, String host) throws Exception {
+        cluster.runCommand("cp " + PXF_TEMP_LOG_FILE + " " + PXF_TEMP_LOG_FILE + "-" + methodName + "-" + host);
     }
 }

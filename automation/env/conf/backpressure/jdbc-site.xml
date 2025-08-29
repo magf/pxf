@@ -26,7 +26,7 @@
     </property>
     <property>
         <name>jdbc.pool.property.connectionTimeout</name>
-        <value>5000</value>
+        <value>10000</value>
     </property>
     <property>
         <name>jdbc.pool.property.idleTimeout</name>
