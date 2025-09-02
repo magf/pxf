@@ -68,10 +68,6 @@ public class FileAsRowTest extends BaseFeature {
     /*
      * This test fails for only GP6 with the Error:
      *   ERROR:  set-valued function called in context that cannot accept a set  (seg2 slice1 10.254.0.190:6002 pid=12873)
-     *
-     * Logged a BUG with GPDB:
-     * https://github.com/greenplum-db/gpdb/issues/15762
-     * Once this is fixed, we can remove the "SkipForFDW" annotation
      */
     @SkipForFDW
     @Test(groups = {"gpdb", "hcfs", "security"})

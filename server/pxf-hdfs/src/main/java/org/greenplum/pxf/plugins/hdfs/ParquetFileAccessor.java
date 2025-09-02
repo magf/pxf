@@ -100,11 +100,11 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
 
     private static final int DEFAULT_ROWGROUP_SIZE = 8 * 1024 * 1024;
     private static final CompressionCodecName DEFAULT_COMPRESSION = CompressionCodecName.SNAPPY;
-    public static final String USE_INT64_TIMESTAMPS_NAME = "USE_INT64_TIMESTAMPS";
-    public static final String USE_LOCAL_PXF_TIMEZONE_WRITE_NAME = "USE_LOCAL_PXF_TIMEZONE_WRITE";
-    public static final String USE_LOGICAL_TYPE_INTERVAL = "USE_LOGICAL_TYPE_INTERVAL";
-    public static final String USE_LOGICAL_TYPE_TIME = "USE_LOGICAL_TYPE_TIME";
-    public static final String USE_LOGICAL_TYPE_UUID = "USE_LOGICAL_TYPE_UUID";
+    public static final String USE_INT64_TIMESTAMPS_NAME = "pxf.parquet.use.int64.timestamps";
+    public static final String USE_LOCAL_PXF_TIMEZONE_WRITE_NAME = "pxf.parquet.use.local.pxf.timezone.write";
+    public static final String USE_LOGICAL_TYPE_INTERVAL = "pxf.parquet.use.logical.type.interval";
+    public static final String USE_LOGICAL_TYPE_TIME = "pxf.parquet.use.logical.type.time";
+    public static final String USE_LOGICAL_TYPE_UUID = "pxf.parquet.use.logical.type.uuid";
     public static final boolean DEFAULT_USE_INT64_TIMESTAMPS = false;
     public static final boolean DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE = true;
     public static final boolean DEFAULT_USE_NEW_ANNOTATIONS = false;
@@ -171,7 +171,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         // Get a map of the column name to Types for the given schema
         Map<String, Type> originalFieldsMap = getOriginalFieldsMap(originalSchema);
         // Get the read schema. This is either the full set or a subset (in
-        // case of column projection) of the greenplum schema.
+        // case of column projection) of the greengage schema.
         MessageType readSchema = buildReadSchema(originalFieldsMap, originalSchema);
         // Get the record filter in case of predicate push-down
         FilterCompat.Filter recordFilter = getRecordFilter(context.getFilterString(), originalFieldsMap);
@@ -249,15 +249,17 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         dictionarySize = context.getOption("DICTIONARY_PAGE_SIZE", DEFAULT_DICTIONARY_PAGE_SIZE);
         String parquetVerStr = context.getOption("PARQUET_VERSION");
         parquetVersion = parquetVerStr != null ? WriterVersion.fromString(parquetVerStr.toLowerCase()) : DEFAULT_WRITER_VERSION;
-        useInt64Timestamps = context.getOption(USE_INT64_TIMESTAMPS_NAME, DEFAULT_USE_INT64_TIMESTAMPS);
-        useLocalPxfTimezoneWrite = context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
-        useLogicalTypeInterval = context.getOption(USE_LOGICAL_TYPE_INTERVAL, DEFAULT_USE_NEW_ANNOTATIONS);
-        useLogicalTypeTime = context.getOption(USE_LOGICAL_TYPE_TIME, DEFAULT_USE_NEW_ANNOTATIONS);
-        useLogicalTypeUUID = context.getOption(USE_LOGICAL_TYPE_UUID, DEFAULT_USE_NEW_ANNOTATIONS);
+        useInt64Timestamps = configuration.getBoolean(USE_INT64_TIMESTAMPS_NAME, DEFAULT_USE_INT64_TIMESTAMPS);
+        useLocalPxfTimezoneWrite = configuration.getBoolean(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE);
+        useLogicalTypeInterval = configuration.getBoolean(USE_LOGICAL_TYPE_INTERVAL, DEFAULT_USE_NEW_ANNOTATIONS);
+        useLogicalTypeTime = configuration.getBoolean(USE_LOGICAL_TYPE_TIME, DEFAULT_USE_NEW_ANNOTATIONS);
+        useLogicalTypeUUID = configuration.getBoolean(USE_LOGICAL_TYPE_UUID, DEFAULT_USE_NEW_ANNOTATIONS);
         LOG.debug("{}-{}: Parquet options: PAGE_SIZE = {}, ROWGROUP_SIZE = {}, DICTIONARY_PAGE_SIZE = {}, " +
-                        "PARQUET_VERSION = {}, ENABLE_DICTIONARY = {}, USE_INT64_TIMESTAMPS = {}, USE_LOCAL_PXF_TIMEZONE_WRITE = {}",
+                        "PARQUET_VERSION = {}, ENABLE_DICTIONARY = {}, USE_INT64_TIMESTAMPS = {}, USE_LOCAL_PXF_TIMEZONE_WRITE = {}, " +
+                        "USE_LOGICAL_TYPE_INTERVAL = {}, USE_LOGICAL_TYPE_TIME = {}, USE_LOGICAL_TYPE_UUID = {}",
                 context.getTransactionId(), context.getSegmentId(), pageSize, rowGroupSize, dictionarySize,
-                parquetVersion, enableDictionary, useInt64Timestamps, useLocalPxfTimezoneWrite);
+                parquetVersion, enableDictionary, useInt64Timestamps, useLocalPxfTimezoneWrite, useLogicalTypeInterval,
+                useLogicalTypeTime, useLogicalTypeUUID);
 
         // fs is the dependency for both readSchemaFile and createParquetWriter
         String fileName = filePrefix + codecName.getExtension() + ".parquet";
@@ -265,7 +267,12 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 context.getSegmentId(), fileName);
         file = new Path(fileName);
         fs = FileSystem.get(URI.create(fileName), configuration);
-        HdfsUtilities.validateFile(file, fs);
+
+        // We don't need neither to check file and folder neither create folder fos S3A protocol
+        // We will check the file during the creation of the Parquet Writer
+        if (!HdfsUtilities.isS3Request(context)) {
+            HdfsUtilities.validateFile(file, fs);
+        }
 
         // Read schema file, if given
         String schemaFile = context.getOption("SCHEMA");
@@ -330,7 +337,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
 
         List<ColumnDescriptor> tupleDescription = context.getTupleDescription();
         DecimalOverflowOption decimalOverflowOption = DecimalOverflowOption.valueOf(configuration.get(ParquetResolver.PXF_PARQUET_WRITE_DECIMAL_OVERFLOW_PROPERTY_NAME, DecimalOverflowOption.ROUND.name()).toUpperCase());
-        boolean useLocalPxfTimezoneRead = context.getOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
+        boolean useLocalPxfTimezoneRead = configuration.getBoolean(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ);
         ParquetConfig parquetConfig = ParquetConfig.builder()
                 .useLocalPxfTimezoneWrite(useLocalPxfTimezoneRead)
                 .useLocalPxfTimezoneRead(useLocalPxfTimezoneRead)
@@ -353,7 +360,8 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
             TRAVERSER.traverse(root, IN_OPERATOR_TRANSFORMER, pruner, bpCharTransformer, filterBuilder);
             return filterBuilder.getRecordFilter();
         } catch (Exception e) {
-            LOG.error("{}-{}: {}--{} Unable to generate Parquet Record Filter for filter",
+            // We don't need to log this exception as an error, because the Greengage will filter the record anyway.
+            LOG.debug("{}-{}: {}--{} Unable to generate Parquet Record Filter for filter",
                     context.getTransactionId(),
                     context.getSegmentId(),
                     context.getDataSource(),
@@ -474,7 +482,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
      * Validate parquet schema parsed from user provided schema file
      *
      * @param schema  the schema parsed from user provided schema file
-     * @param columns contains Greenplum column type information of a row
+     * @param columns contains Greengage column type information of a row
      */
     private void validateParsedSchema(MessageType schema, List<ColumnDescriptor> columns) {
         if (schema.getFieldCount() != columns.size()) {
@@ -518,7 +526,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     /**
      * Generate parquet schema for all the supported types using column descriptors
      *
-     * @param columns contains Greenplum data type and column name
+     * @param columns contains Greengage data type and column name
      * @return the generated parquet schema used for write
      */
     private MessageType generateParquetSchema(List<ColumnDescriptor> columns) {
@@ -528,13 +536,13 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
                 .stream()
                 .map(this::getTypeForColumnDescriptor)
                 .collect(Collectors.toList());
-        return new MessageType("greenplum_pxf_schema", fields);
+        return new MessageType("greengage_pxf_schema", fields);
     }
 
     /**
      * Generate parquet schema type based on each columnDescriptor
      *
-     * @param columnDescriptor contains Greenplum data type information
+     * @param columnDescriptor contains Greengage data type information
      * @return the generated parquet type schema
      */
     private Type getTypeForColumnDescriptor(ColumnDescriptor columnDescriptor) {

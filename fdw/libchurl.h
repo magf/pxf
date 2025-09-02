@@ -32,6 +32,18 @@ typedef void *CHURL_HEADERS;
 typedef void *CHURL_HANDLE;
 
 /*
+    SSL options
+*/
+typedef struct {
+    char *pxf_ssl_cacert;
+    char *pxf_ssl_cert;
+    char *pxf_ssl_cert_type;
+    char *pxf_ssl_key;
+    char *pxf_ssl_keypasswd;
+    long pxf_ssl_verify_peer;
+} churl_ssl_options;
+
+/*
  * PUT example
  * -----------
  *
@@ -108,6 +120,14 @@ CHURL_HANDLE churl_init_upload(const char *url, CHURL_HEADERS headers);
 CHURL_HANDLE churl_init_upload_timeout(const char *url, CHURL_HEADERS headers, long timeout);
 
 /*
+ *  SSL versions of upload functions
+ */
+CHURL_HANDLE churl_init_upload_ssl(const char *url, CHURL_HEADERS headers,
+                churl_ssl_options *ssl_options);
+CHURL_HANDLE churl_init_upload_timeout_ssl(const char *url, CHURL_HEADERS headers,
+                churl_ssl_options *ssl_options, long timeout);
+
+/*
  * Returns local port of connected handle or 0
  */
 int			churl_get_local_port(CHURL_HANDLE handle);
@@ -117,6 +137,12 @@ int			churl_get_local_port(CHURL_HANDLE handle);
  * returns a handle to churl transfer
  */
 CHURL_HANDLE churl_init_download(const char *url, CHURL_HEADERS headers);
+
+/*
+ *  SSL version of download function
+ */
+CHURL_HANDLE churl_init_download_ssl(const char *url, CHURL_HEADERS headers,
+    churl_ssl_options *ssl_options);
 
 /*
  * Restart a session to a new URL

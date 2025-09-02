@@ -4,12 +4,14 @@ import org.apache.parquet.example.data.simple.NanoTime;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.greenplum.pxf.api.GreenplumDateTime;
+import org.greenplum.pxf.api.error.UnsupportedTypeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 
 import static org.greenplum.pxf.plugins.hdfs.parquet.ParquetConstant.*;
@@ -26,12 +28,17 @@ public class ParquetTimestampUtilities {
         return (int) date.toEpochDay();
     }
 
-    public static long getLongFromTimestamp(String timestampString, boolean useLocalPxfTimezone, boolean isTimestampWithTimeZone) {
+    public static long getLongFromTimestamp(
+            String timestampString,
+            LogicalTypeAnnotation.TimeUnit timeUnit,
+            boolean useLocalPxfTimezone,
+            boolean isTimestampWithTimeZone
+    ) {
         if (isTimestampWithTimeZone) {
             // We receive a timestamp string with time zone offset from GPDB
             OffsetDateTime date = OffsetDateTime.parse(timestampString, GreenplumDateTime.DATETIME_WITH_TIMEZONE_FORMATTER);
             ZonedDateTime zdt = date.toZonedDateTime();
-            return getEpochWithMicroSeconds(zdt, date.getNano());
+            return getEpochTime(zdt, timeUnit);
         } else {
             // We receive a timestamp string from GPDB in the server timezone
             // If useLocalPxfTimezone = true we convert it to the UTC using local pxf server timezone and save it in the parquet as UTC
@@ -39,7 +46,7 @@ public class ParquetTimestampUtilities {
             ZoneId zoneId = useLocalPxfTimezone ? ZoneId.systemDefault() : ZoneOffset.UTC;
             LocalDateTime date = LocalDateTime.parse(timestampString, GreenplumDateTime.DATETIME_FORMATTER);
             ZonedDateTime zdt = ZonedDateTime.of(date, zoneId);
-            return getEpochWithMicroSeconds(zdt, date.getNano());
+            return getEpochTime(zdt, timeUnit);
         }
     }
 
@@ -66,7 +73,7 @@ public class ParquetTimestampUtilities {
                 nanoseconds = (value % SECOND_IN_MICROS) * NANOS_IN_MICROS;
                 break;
             case NANOS:
-                // Greenplum timestamp type has a minimum resolution 1 microsecond
+                // Greengage timestamp type has a minimum resolution 1 microsecond
                 seconds = value / SECOND_IN_NANOS;
                 nanoseconds = (value % SECOND_IN_NANOS);
                 break;
@@ -96,7 +103,7 @@ public class ParquetTimestampUtilities {
      * Converts a "timestamp with time zone" string to a INT96 byte array.
      * Supports microseconds for timestamps
      *
-     * @param timestampWithTimeZoneString the greenplum string of the timestamp with the time zone
+     * @param timestampWithTimeZoneString the greengage string of the timestamp with the time zone
      * @return Binary format of the timestamp with time zone string
      */
     public static Binary getBinaryFromTimestampWithTimeZone(String timestampWithTimeZoneString) {
@@ -106,7 +113,7 @@ public class ParquetTimestampUtilities {
     }
 
     // Convert parquet byte array to java timestamp IN LOCAL SERVER'S TIME ZONE
-    public static String bytesToTimestamp(byte[] bytes, boolean useLocalTimezone) {
+    public static String bytesToTimestamp(byte[] bytes, boolean useLocalTimezone, boolean isTimestampWithTimeZone) {
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
         byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
         long timeOfDayNanos = byteBuffer.getLong();
@@ -119,7 +126,9 @@ public class ParquetTimestampUtilities {
         // If useLocalTimezone = true we convert timestamp to an instant of the current PXF server timezone
         // If useLocalTimezone = false we send timestamp to GP as is
         ZoneId zoneId = useLocalTimezone ? ZoneId.systemDefault() : ZoneOffset.UTC;
-        String timestamp = instant.atZone(zoneId).format(GreenplumDateTime.DATETIME_FORMATTER);
+        DateTimeFormatter formatter = isTimestampWithTimeZone ?
+                GreenplumDateTime.DATETIME_WITH_TIMEZONE_FORMATTER : GreenplumDateTime.DATETIME_FORMATTER;
+        String timestamp = instant.atZone(zoneId).format(formatter);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Converted bytes: {} to date: {} from: julianDays {}, timeOfDayNanos {}, unixTimeMs {}",
@@ -129,10 +138,20 @@ public class ParquetTimestampUtilities {
         return timestamp;
     }
 
-    // Helper method that takes a ZonedDateTime object and return it as nano time as long type
-    private static long getEpochWithMicroSeconds(ZonedDateTime zdt, int nanoOfSecond) {
-        long microSeconds = zdt.toEpochSecond() * SECOND_IN_MICROS;
-        return microSeconds + nanoOfSecond / NANOS_IN_MICROS;
+    // Helper method that takes a ZonedDateTime object and return epoch time
+    private static long getEpochTime(ZonedDateTime zdt, LogicalTypeAnnotation.TimeUnit timeUnit) {
+        switch (timeUnit) {
+            case MILLIS:
+                return zdt.toInstant().toEpochMilli();
+            case MICROS:
+                long microSeconds = zdt.toEpochSecond() * SECOND_IN_MICROS;
+                return microSeconds + zdt.getNano() / NANOS_IN_MICROS;
+            // We don't support NANOS, because postgres supports only microsecond precision out of the box
+            default:
+                throw new UnsupportedTypeException(
+                        String.format("Time unit '%s' for parquet timestamp logical type annotation is not supported", timeUnit)
+                );
+        }
     }
 
     // Helper method that takes a ZonedDateTime object and return it as nano time in binary form (UTC)

@@ -24,13 +24,16 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileSplit;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.io.DataType;
+import org.greenplum.pxf.api.model.RequestContext;
 import org.greenplum.pxf.api.utilities.Utilities;
 import org.greenplum.pxf.plugins.hdfs.HcfsFragmentMetadata;
+import org.greenplum.pxf.plugins.hdfs.HcfsType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * HdfsUtilities class exposes helper methods for PXF classes.
@@ -76,6 +79,12 @@ public class HdfsUtilities {
             }
             LOG.debug("Created new dir {}", parent);
         }
+    }
+
+    public static boolean isS3Request(RequestContext context) {
+        return Optional.ofNullable(context.getProtocol())
+                .map(p -> p.equalsIgnoreCase(HcfsType.S3A.name()))
+                .orElse(false);
     }
 
     /**

@@ -38,6 +38,7 @@ import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.SequenceFileRecordReader;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.model.RequestContext;
+import org.greenplum.pxf.plugins.hdfs.utilities.HdfsUtilities;
 
 import java.io.IOException;
 import java.util.EnumSet;
@@ -83,19 +84,10 @@ public class SequenceFileAccessor extends HdfsSplittableDataAccessor {
         fc = FileContext.getFileContext(configuration);
         defaultKey = new LongWritable(context.getSegmentId());
 
-        if (fs.exists(file)) {
-            throw new IOException("file " + file.toString()
-                    + " already exists, can't write data");
-        }
-
-        Path parent = file.getParent();
-        if (!fs.exists(parent)) {
-            if (!fs.mkdirs(parent)) {
-                throw new IOException("Creation of dir '" + parent.toString() + "' failed");
-            }
-            LOG.debug("Created new dir {}", parent);
-        } else {
-            LOG.debug("Directory {} already exists. Skip creating", parent);
+        // We don't need neither to check file and folder neither create folder fos S3A protocol
+        // We will check the file during the creation of the SequenceFile.Writer
+        if (!HdfsUtilities.isS3Request(context)) {
+            HdfsUtilities.validateFile(file, fs);
         }
 
         writer = null;

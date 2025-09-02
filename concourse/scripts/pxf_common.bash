@@ -1,7 +1,7 @@
 #!/bin/bash
 
-GPHOME=${GPHOME:=/usr/local/greenplum-db-devel}
-GP_PATH_FILE=${GP_PATH_FILE:-greenplum_path.sh}
+GPHOME=${GPHOME:=/usr/local/greengage-db-devel}
+GP_PATH_FILE=${GP_PATH_FILE:-greengage_path.sh}
 PXF_HOME=${PXF_HOME:=${GPHOME}/pxf}
 CDD_VALUE=/data/gpdata/coordinator/gpseg-1
 PXF_COMMON_SRC_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -121,7 +121,7 @@ function run_pxf_automation() {
 		time make GROUP=${GROUP} test
 
 		# if the test is successful, create certification file
-		gpdb_build_from_sql=\$(source \$GPHOME/\$GP_PATH_FILE && psql -c 'select version()' | grep Greenplum | cut -d ' ' -f 6,8)
+		gpdb_build_from_sql=\$(source \$GPHOME/\$GP_PATH_FILE && psql -c 'select version()' | grep Greengage | cut -d ' ' -f 6,8)
 		gpdb_build_clean=\${gpdb_build_from_sql%)}
 		pxf_version=\$(< ${PXF_HOME}/version)
 		echo "GPDB-\${gpdb_build_clean/ commit:/-}-PXF-\${pxf_version}" > "${PWD}/certification/certification.txt"
@@ -148,7 +148,9 @@ function run_regression_test() {
 		#!/bin/bash
 		source /opt/gcc_env.sh || true
 		source ${GPHOME}/${GP_PATH_FILE}
-		source gpdb_src/gpAux/gpdemo/gpdemo-env.sh
+    if [[ -f gpdb_src/gpAux/gpdemo/gpdemo-env.sh ]]; then
+        source gpdb_src/gpAux/gpdemo/gpdemo-env.sh
+    fi
 		export PATH=\$PATH:${GPHD_ROOT}/bin
 
 		cd "${PXF_EXTENSIONS_DIR}"
@@ -210,13 +212,10 @@ function build_install_gpdb() {
 }
 
 function install_gpdb_binary() {
-	# TODO Remove the chown once the ownership of /home/gpadmin is correctly set
-	# In concourse 7.8.x, even though the base pxf dev image correctly gave
-	# gpadmin permissions to /home/gpadmin, the change is not respected
-	# So we have added this chown here to ensure gpadmin owns its home directory
-	chown -R gpadmin:gpadmin /home/gpadmin
-
-	if [[ -d bin_gpdb ]]; then
+	if [[ -d gpdb_src ]]; then
+		source gpdb_src/concourse/scripts/common.bash
+		install_gpdb
+	elif [[ -d bin_gpdb ]]; then
 		mkdir -p ${GPHOME}
 		tar -xzf bin_gpdb/*.tar.gz -C ${GPHOME}
 	else
@@ -249,7 +248,7 @@ function install_gpdb_package() {
 
 	if command -v rpm; then
 		# install GPDB RPM
-		pkg_file=$(find "${gpdb_package}" -name 'greenplum-db-*x86_64.rpm')
+		pkg_file=$(find "${gpdb_package}" -name 'greengage-db-*x86_64.rpm')
 		if [[ -z ${pkg_file} ]]; then
 			echo "Couldn't find RPM file in ${gpdb_package}. Skipping install..."
 			return 1
@@ -263,7 +262,7 @@ function install_gpdb_package() {
 		export_pythonpath+=:/usr/lib/${python_dir}:/usr/lib64/${python_dir}
 	elif command -v apt-get; then
 		# install GPDB DEB, apt-get wants an absolute path
-		pkg_file=$(find "${gpdb_package}" -name 'greenplum-db-*-ubuntu18.04-amd64.deb')
+		pkg_file=$(find "${gpdb_package}" -name 'greengage-db-*-ubuntu18.04-amd64.deb')
 		if [[ -z ${pkg_file} ]]; then
 			echo "Couldn't find DEB file in ${gpdb_package}. Skipping install..."
 			return 1
@@ -279,17 +278,17 @@ function install_gpdb_package() {
 		exit 1
 	fi
 
-	# create symlink to allow pgregress to run (hardcoded to look for /usr/local/greenplum-db-devel/psql)
-	rm -rf /usr/local/greenplum-db-devel
+	# create symlink to allow pgregress to run (hardcoded to look for /usr/local/greengage-db-devel/psql)
+	rm -rf /usr/local/greengage-db-devel
 	# obtain full version name
 	local gpdb_version
 	gpdb_version="$(<"${gpdb_package}/version")"
 	# in case of dev builds, get simplified version from the version file
 	local version="${gpdb_version%%+*}"
-	gphome_dir=$(find /usr/local/ -name "greenplum-db-${version}*" -type d)
-	ln -sf "${gphome_dir}" /usr/local/greenplum-db-devel
+	gphome_dir=$(find /usr/local/ -name "greengage-db-${version}*" -type d)
+	ln -sf "${gphome_dir}" /usr/local/greengage-db-devel
 	# change permissions to gpadmin
-	chown -R gpadmin:gpadmin /usr/local/greenplum-db*
+	chown -R gpadmin:gpadmin /usr/local/greengage-db*
 }
 
 function remote_access_to_gpdb() {
@@ -340,27 +339,8 @@ function add_remote_user_access_for_gpdb() {
 }
 
 function setup_gpadmin_user() {
-
-	# Don't create gpadmin user if already exists
-	if ! id -u gpadmin; then
-		groupadd -g 1000 gpadmin && useradd -u 1000 -g 1000 -M gpadmin
-		echo "gpadmin  ALL=(ALL)	   NOPASSWD: ALL" > /etc/sudoers.d/gpadmin
-		groupadd supergroup && usermod -a -G supergroup gpadmin
-		mkdir -p ~gpadmin/.ssh
-		ssh-keygen -t rsa -N "" -f ~gpadmin/.ssh/id_rsa
-		cat /home/gpadmin/.ssh/id_rsa.pub >> ~gpadmin/.ssh/authorized_keys
-		chmod 0600 /home/gpadmin/.ssh/authorized_keys
-		awk '{print "localhost", $1, $2; print "0.0.0.0", $1, $2}' /etc/ssh/ssh_host_rsa_key.pub >> ~gpadmin/.ssh/known_hosts
-		chown -R gpadmin:gpadmin ${GPHOME} ~gpadmin/.ssh # don't chown cached dirs ~/.m2, etc.
-		echo -e "password\npassword" | passwd gpadmin 2> /dev/null
-	fi
-	cat <<-EOF >> /etc/security/limits.d/gpadmin-limits.conf
-		gpadmin soft core unlimited
-		gpadmin soft nproc 131072
-		gpadmin soft nofile 65536
-	EOF
-	if [[ -d gpdb_src/gpAux/gpdemo ]]; then
-		chown -R gpadmin:gpadmin gpdb_src/gpAux/gpdemo
+	if [[ -d gpdb_src ]]; then
+		gpdb_src/concourse/scripts/setup_gpadmin_user.bash
 	fi
 
 	if grep -i ubuntu /etc/os-release; then
@@ -590,7 +570,7 @@ function configure_pxf_server() {
 	echo 'Ensure pxf version can be run before configuring pxf'
 	su gpadmin -c "${PXF_HOME}/bin/pxf version | grep -E '^PXF version [0-9]+.[0-9]+.[0-9]+'" || exit 1
 
-	echo 'Register PXF extension in Greenplum'
+	echo 'Register PXF extension in Greengage'
 	# requires a login shell to source startup scripts (JAVA_HOME)
 	su --login gpadmin -c "${PXF_HOME}/bin/pxf register"
 

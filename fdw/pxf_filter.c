@@ -54,7 +54,7 @@ static bool SupportedArrayType(Oid type);
  * All supported operators and their PXF operator codes.
  * Note that it is OK to use hardcoded OIDs, since these are all pinned
  * down system catalog operators.
- * See catalog/pg_operator.h in Greenplum 6 or catalog/pg_operator_d.h in Greenplum 7
+ * See catalog/pg_operator.h in Greengage 6 or catalog/pg_operator_d.h in Greengage 7
  */
 dbop_pxfop_map pxf_supported_opr_op_expr[] =
 {

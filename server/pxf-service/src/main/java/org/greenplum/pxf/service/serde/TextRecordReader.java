@@ -31,8 +31,8 @@ import java.util.stream.IntStream;
  */
 public class TextRecordReader extends BaseRecordReader {
 
-    // max number of columns in a Greenplum table
-    // see MaxHeapAttributeNumber in https://github.com/greenplum-db/gpdb/blob/main/src/include/access/htup_details.h
+    // max number of columns in a Greengage table
+    // see MaxHeapAttributeNumber in https://github.com/GreengageDB/greengage/blob/main/src/include/access/htup_details.h
     private static final int MAX_COLUMNS = 1600;
 
     private final GreenplumCSV greenplumCSV;
@@ -81,7 +81,7 @@ public class TextRecordReader extends BaseRecordReader {
         parserSettings.setCommentProcessingEnabled(false);  // there should be no comments, do not waste time analyzing
         parserSettings.setIgnoreLeadingWhitespaces(false);  // do not remove any whitespaces
         parserSettings.setIgnoreTrailingWhitespaces(false); // do not remove any whitespaces
-        parserSettings.setMaxColumns(MAX_COLUMNS);          // align max columns with Greenplum spec
+        parserSettings.setMaxColumns(MAX_COLUMNS);          // align max columns with Greengage spec
         return parserSettings;
     }
 
@@ -187,7 +187,7 @@ public class TextRecordReader extends BaseRecordReader {
     }
 
     /**
-     * Converts Strings that contain Greenplum binary data in escape format to ByteBuffers
+     * Converts Strings that contain Greengage binary data in escape format to ByteBuffers
      */
     public class BinaryConversion extends ObjectConversion<ByteBuffer> {
 

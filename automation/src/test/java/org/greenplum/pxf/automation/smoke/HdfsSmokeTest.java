@@ -39,7 +39,7 @@ public class HdfsSmokeTest extends BaseSmoke {
         runSqlTest("smoke/small_data");
     }
 
-    @Test(groups = { "smoke", "gpdb", "security" })
+    @Test(groups = { "smoke" })
     @WorksWithFDW
     public void test() throws Exception {
         runTest();

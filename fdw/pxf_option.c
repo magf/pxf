@@ -36,6 +36,12 @@
 #define FDW_OPTION_PXF_HOST "pxf_host"
 #define FDW_OPTION_PXF_PORT "pxf_port"
 #define FDW_OPTION_PXF_PROTOCOL "pxf_protocol"
+#define FDW_OPTION_SSL_CACERT "pxf_ssl_cacert"
+#define FDW_OPTION_SSL_CERT "pxf_ssl_cert"
+#define FDW_OPTION_SSL_CERT_TYPE "pxf_ssl_cert_type"
+#define FDW_OPTION_SSL_KEY "pxf_ssl_key"
+#define FDW_OPTION_SSL_KEYPASSWD "pxf_ssl_keypasswd"
+#define FDW_OPTION_SSL_VERIFY_PEER "pxf_ssl_verify_peer"
 #define FDW_OPTION_REJECT_LIMIT "reject_limit"
 #define FDW_OPTION_REJECT_LIMIT_TYPE "reject_limit_type"
 #define FDW_OPTION_RESOURCE "resource"
@@ -71,6 +77,13 @@ static const struct PxfFdwOption valid_options[] = {
 	{FDW_OPTION_REJECT_LIMIT, ForeignTableRelationId},
 	{FDW_OPTION_REJECT_LIMIT_TYPE, ForeignTableRelationId},
 	{FDW_OPTION_LOG_ERRORS, ForeignTableRelationId},
+
+	/* SSL related options */
+	{FDW_OPTION_SSL_CACERT, ForeignDataWrapperRelationId},
+	{FDW_OPTION_SSL_CERT, ForeignDataWrapperRelationId},
+	{FDW_OPTION_SSL_CERT_TYPE, ForeignDataWrapperRelationId},
+	{FDW_OPTION_SSL_KEY, ForeignDataWrapperRelationId},
+	{FDW_OPTION_SSL_KEYPASSWD, ForeignDataWrapperRelationId},
 
 	/* Sentinel */
 	{NULL, InvalidOid}
@@ -241,6 +254,16 @@ pxf_fdw_validator(PG_FUNCTION_ARGS)
 						(errcode(ERRCODE_FDW_INVALID_OPTION_NAME),
 								errmsg("the %s option cannot be defined at the foreign-data wrapper level",
 									   FDW_OPTION_DISABLE_PPD)));
+		}
+		else if (strcmp(def->defname, FDW_OPTION_SSL_VERIFY_PEER) == 0)
+		{
+			(void) defGetBoolean(def); /* call is required for validation */
+
+			if (catalog != ForeignDataWrapperRelationId)
+				ereport(ERROR,
+						(errcode(ERRCODE_FDW_INVALID_OPTION_NAME),
+								errmsg("the %s option can be defined only at the wrapper level",
+									   def->defname)));
 		}
 		else if (IsCopyOption(def->defname))
 			copy_options = lappend(copy_options, def);
@@ -446,6 +469,18 @@ PxfGetOptions(Oid foreigntableid)
 			opt->pxf_port = atoi(defGetString(def));
 		else if (strcmp(def->defname, FDW_OPTION_PXF_PROTOCOL) == 0)
 			opt->pxf_protocol = defGetString(def);
+		else if (strcmp(def->defname, FDW_OPTION_SSL_CACERT) == 0)
+			opt->pxf_ssl_cacert = defGetString(def);
+		else if (strcmp(def->defname, FDW_OPTION_SSL_CERT) == 0)
+			opt->pxf_ssl_cert = defGetString(def);
+		else if (strcmp(def->defname, FDW_OPTION_SSL_CERT_TYPE) == 0)
+			opt->pxf_ssl_cert_type = defGetString(def);
+		else if (strcmp(def->defname, FDW_OPTION_SSL_KEY) == 0)
+			opt->pxf_ssl_key = defGetString(def);
+		else if (strcmp(def->defname, FDW_OPTION_SSL_KEYPASSWD) == 0)
+			opt->pxf_ssl_keypasswd = defGetString(def);
+		else if (strcmp(def->defname, FDW_OPTION_SSL_VERIFY_PEER) == 0)
+			opt->pxf_ssl_verify_peer = defGetBoolean(def);
 		else if (strcmp(def->defname, FDW_OPTION_PROTOCOL) == 0)
 			opt->protocol = defGetString(def);
 		else if (strcmp(def->defname, FDW_OPTION_RESOURCE) == 0)

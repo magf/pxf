@@ -92,7 +92,7 @@ public class HBaseSmokeTest extends BaseSmoke {
         runSqlTest("smoke/small_data");
     }
 
-    @Test(groups = { "smoke", "gpdb", "hbase" })
+    @Test(groups = { "smoke" })
     @WorksWithFDW
     public void test() throws Exception {
         runTest();

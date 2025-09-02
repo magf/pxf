@@ -8,7 +8,7 @@ import org.greenplum.pxf.plugins.hdfs.utilities.PgUtilities;
 import org.springframework.stereotype.Component;
 
 /**
- * A factory that creates a new RecordReader to deserialize data from Greenplum. It looks into the information
+ * A factory that creates a new RecordReader to deserialize data from Greengage. It looks into the information
  * in the RequestContext to decide which particular RecordReader to create.
  * This is a Spring Component that gets auto-wired into other Spring services.
  */

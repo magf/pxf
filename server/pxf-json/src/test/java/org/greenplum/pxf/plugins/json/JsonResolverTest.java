@@ -449,7 +449,7 @@ public class JsonResolverTest {
         cd.add(new ColumnDescriptor("type_boolean", DataType.BOOLEAN.getOID(), 9, "bool", null, true));
         cd.add(new ColumnDescriptor("type_array[0]", DataType.TEXT.getOID(), 10, "text", null, true));
         cd.add(new ColumnDescriptor("type_array[1]", DataType.TEXT.getOID(), 11, "text", null, true));
-        // complex types serialized as strings for Greenplum
+        // complex types serialized as strings for Greengage
         cd.add(new ColumnDescriptor("type_array", DataType.TEXT.getOID(), 12, "text", null, true));
         cd.add(new ColumnDescriptor("type_int_arr_as_text", DataType.TEXT.getOID(), 13, "text", null, true));
         cd.add(new ColumnDescriptor("type_bigint_arr_as_text", DataType.TEXT.getOID(), 14, "text", null, true));
@@ -464,7 +464,7 @@ public class JsonResolverTest {
         cd.add(new ColumnDescriptor("type_null_as_text", DataType.TEXT.getOID(), 23, "text", null, true));
         cd.add(new ColumnDescriptor("type_empty_arr_as_text", DataType.TEXT.getOID(), 24, "text", null, true));
         cd.add(new ColumnDescriptor("type_empty_object_as_text", DataType.TEXT.getOID(), 25, "text", null, true));
-        // complex types serialized as text array for Greenplum
+        // complex types serialized as text array for Greengage
         cd.add(new ColumnDescriptor("type_array_as_textarray", DataType.TEXTARRAY.getOID(), 26, "text", null, true));
         cd.add(new ColumnDescriptor("type_int_arr_as_textarray", DataType.TEXTARRAY.getOID(), 27, "text", null, true));
         cd.add(new ColumnDescriptor("type_bigint_arr_as_textarray", DataType.TEXTARRAY.getOID(), 28, "text", null, true));

@@ -39,9 +39,9 @@ public class ParquetUtilities {
     }
 
     /**
-     * Parse a String representation of Greenplum array into a Parquet object array according to primitiveTypeName
+     * Parse a String representation of Greengage array into a Parquet object array according to primitiveTypeName
      *
-     * @param val                   A String representation of a Greenplum array
+     * @param val                   A String representation of a Greengage array
      * @param primitiveTypeName     Primitive type name of each element inside the array
      * @param logicalTypeAnnotation Logical type annotation if this type has one
      * @return A list of Java object
@@ -66,9 +66,9 @@ public class ParquetUtilities {
     }
 
     /**
-     * Decode a String representation of a Greenplum object into a Java object according to primitiveTypeName
+     * Decode a String representation of a Greengage object into a Java object according to primitiveTypeName
      *
-     * @param val                   A String representation of a Greenplum object
+     * @param val                   A String representation of a Greengage object
      * @param primitiveTypeName     Primitive type name of this object
      * @param logicalTypeAnnotation Logical type annotation of this object if it has one
      * @return A Java object

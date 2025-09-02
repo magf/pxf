@@ -80,8 +80,9 @@ public class Int64ParquetTypeConverter implements ParquetTypeConverter {
         if (detectedDataType == DataType.TIMESTAMP || detectedDataType == DataType.TIMESTAMP_WITH_TIME_ZONE) {
             String timestamp = (String) fieldValue;
             boolean isTimestampWithTimeZone = TIMESTAMP_PATTERN.matcher(timestamp).find();
+            LogicalTypeAnnotation.TimestampLogicalTypeAnnotation tsAnno = (LogicalTypeAnnotation.TimestampLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
             return ParquetTimestampUtilities
-                    .getLongFromTimestamp(timestamp, useLocalPxfTimezoneWrite, isTimestampWithTimeZone);
+                    .getLongFromTimestamp(timestamp, tsAnno.getUnit(), useLocalPxfTimezoneWrite, isTimestampWithTimeZone);
         } else if (detectedDataType == DataType.NUMERIC) {
             String decimalValue = (String) fieldValue;
             LogicalTypeAnnotation.DecimalLogicalTypeAnnotation decimalAnno = (LogicalTypeAnnotation.DecimalLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
@@ -119,7 +120,7 @@ public class Int64ParquetTypeConverter implements ParquetTypeConverter {
      * Times with time zone are not supported
      * <a href="https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_timetz">...</a>'
      *
-     * @param timeValue the greenplum string of the timestamp with the time zone
+     * @param timeValue the greengage string of the timestamp with the time zone
      * @return # of time units provided by logical type annotation since Unix epoch
      */
     private long writeTimeValue(String timeValue) {

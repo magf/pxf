@@ -116,12 +116,12 @@ public class RequestContext {
     private OutputFormat outputFormat;
 
     /**
-     * The Greenplum command count
+     * The Greengage command count
      */
     private int gpCommandCount;
 
     /**
-     * The Greenplum session ID
+     * The Greengage session ID
      */
     private int gpSessionId;
 
@@ -137,7 +137,7 @@ public class RequestContext {
 
     /**
      * Statistics parameter. Returns the max number of fragments to return for
-     * ANALYZE sampling. The value is set in Greenplum side using the GUC
+     * ANALYZE sampling. The value is set in Greengage side using the GUC
      * pxf_stats_max_fragments.
      */
     @Setter(AccessLevel.NONE)
@@ -146,7 +146,7 @@ public class RequestContext {
     /**
      * Statistics parameter. Returns a number between 0.0001 and 1.0,
      * representing the sampling ratio on each fragment for ANALYZE sampling.
-     * The value is set in Greenplum side based on ANALYZE computations and the
+     * The value is set in Greengage side based on ANALYZE computations and the
      * number of sampled fragments.
      */
     @Setter(AccessLevel.NONE)
@@ -218,34 +218,34 @@ public class RequestContext {
     private ColumnDescriptor recordkeyColumn;
 
     /**
-     * The contents of pxf_remote_service_login set in Greenplum. Should the
+     * The contents of pxf_remote_service_login set in Greengage. Should the
      * user set it to an empty string this function will return null.
      */
     private String remoteLogin;
 
     /**
-     * The contents of pxf_remote_service_secret set in Greenplum. Should the
+     * The contents of pxf_remote_service_secret set in Greengage. Should the
      * user set it to an empty string this function will return null.
      */
     private String remoteSecret;
 
     /**
-     * The current segment ID in Greenplum.
+     * The current segment ID in Greengage.
      */
     private int segmentId;
 
     /**
-     * The name of the origin Greenplum schema name.
+     * The name of the origin Greengage schema name.
      */
     private String schemaName;
 
     /**
-     * The name of the origin Greenplum table name.
+     * The name of the origin Greengage table name.
      */
     private String tableName;
 
     /**
-     * The transaction ID for the current Greenplum query.
+     * The transaction ID for the current Greengage query.
      */
     private String transactionId;
 
@@ -257,7 +257,7 @@ public class RequestContext {
     private String serverName = "default";
 
     /**
-     * The number of segments in Greenplum.
+     * The number of segments in Greengage.
      */
     private int totalSegments;
 

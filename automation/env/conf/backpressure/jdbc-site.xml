@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property>
+        <name>jdbc.driver</name>
+        <value>oracle.jdbc.driver.OracleDriver</value>
+    </property>
+    <property>
+        <name>jdbc.url</name>
+        <value>jdbc:oracle:thin:@oracle:1521:ORCL</value>
+    </property>
+    <property>
+        <name>jdbc.user</name>
+        <value>system</value>
+    </property>
+    <property>
+        <name>jdbc.password</name>
+        <value>oracle</value>
+    </property>
+    <property>
+        <name>jdbc.pool.enabled</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>jdbc.pool.property.maximumPoolSize</name>
+        <value>10</value>
+    </property>
+    <property>
+        <name>jdbc.pool.property.connectionTimeout</name>
+        <value>10000</value>
+    </property>
+    <property>
+        <name>jdbc.pool.property.idleTimeout</name>
+        <value>10000</value>
+    </property>
+</configuration>

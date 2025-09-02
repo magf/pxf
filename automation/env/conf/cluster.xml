@@ -1,0 +1,127 @@
+<sut>
+    <cluster>
+        <class>org.greenplum.pxf.automation.components.cluster.MultiNodeCluster</class>
+        <host>localhost</host>
+        <phdRoot>/usr/local/greengage-db-devel</phdRoot>
+        <hiveBaseHdfsDirectory>/user/hive/warehouse/</hiveBaseHdfsDirectory>
+        <nodes index="0">
+            <class>org.greenplum.pxf.automation.components.cluster.installer.nodes.CoordinatorNode</class>
+            <host>mdw</host>
+            <port>5432</port>
+            <userName>gpadmin</userName>
+            <password></password>
+            <services>gpdb,pxf</services>
+        </nodes>
+        <nodes index="1">
+            <class>org.greenplum.pxf.automation.components.cluster.installer.nodes.SegmentNode</class>
+            <host>sdw1</host>
+            <userName>gpadmin</userName>
+            <password></password>
+            <services>pxf</services>
+        </nodes>
+        <nodes index="2">
+            <class>org.greenplum.pxf.automation.components.cluster.installer.nodes.SegmentNode</class>
+            <host>sdw2</host>
+            <userName>gpadmin</userName>
+            <password></password>
+            <services>pxf</services>
+        </nodes>
+    </cluster>
+
+    <gpdb>
+        <class>org.greenplum.pxf.automation.components.gpdb.Gpdb</class>
+        <host>mdw</host>
+        <port>5432</port>
+        <masterHost>mdw</masterHost>
+        <userName>gpadmin</userName>
+        <db>pxfautomation</db>
+    </gpdb>
+
+    <gpdb2>
+        <class>org.greenplum.pxf.automation.components.gpdb.Gpdb</class>
+        <host>mdw</host>
+        <port>5432</port>
+        <masterHost>mdw</masterHost>
+        <userName>gpadmin</userName>
+        <db>pxfautomation_encoding</db>
+        <encoding>WIN1251</encoding>
+        <localeCollate>ru_RU.CP1251</localeCollate>
+        <localeCollateType>ru_RU.CP1251</localeCollateType>
+    </gpdb2>
+
+    <hdfs>
+        <class>org.greenplum.pxf.automation.components.hdfs.Hdfs</class>
+        <host>hadoop</host>
+        <port>8020</port>
+        <workingDirectory>tmp/pxf_automation_data/__UUID__</workingDirectory>
+        <scheme>hdfs</scheme>
+    </hdfs>
+
+    <hbase>
+        <class>org.greenplum.pxf.automation.components.hbase.HBase</class>
+        <host>hadoop</host>
+        <userName>gpadmin</userName>
+        <hbaseRoot>/etc/hbase</hbaseRoot>
+    </hbase>
+
+    <hive>
+        <class>org.greenplum.pxf.automation.components.hive.Hive</class>
+        <host>hadoop</host>
+        <port>10000</port>
+        <userName>gpadmin</userName>
+    </hive>
+
+    <oracle>
+        <class>org.greenplum.pxf.automation.components.oracle.Oracle</class>
+        <host>oracle</host>
+        <port>1521</port>
+        <userName>system</userName>
+        <password>oracle</password>
+    </oracle>
+
+    <mysql>
+        <class>org.greenplum.pxf.automation.components.mysql.Mysql</class>
+        <host>mysql</host>
+        <port>3306</port>
+        <db>gpexternal</db>
+        <userName>mysqluser</userName>
+        <password>mysqlpwd</password>
+    </mysql>
+
+    <minio>
+        <class>org.greenplum.pxf.automation.components.minio.Minio</class>
+        <endpoint>http://minio.local:9000</endpoint>
+        <accessKeyId>minio</accessKeyId>
+        <secretKey>minio123</secretKey>
+    </minio>
+
+    <file>
+        <class>org.greenplum.pxf.automation.components.hdfs.Hdfs</class>
+        <workingDirectory>${base.path}/tmp/pxf_automation_data/__UUID__</workingDirectory>
+        <hadoopRoot>${pxf.base}/servers/file</hadoopRoot>
+        <scheme>file</scheme>
+    </file>
+
+    <regress>
+        <class>org.greenplum.pxf.automation.components.regress.Regress</class>
+        <regressTestFolder>sqlrepo</regressTestFolder>
+        <dbName>pxfautomation</dbName>
+    </regress>
+
+    <pxf>
+        <class>org.greenplum.pxf.automation.components.pxf.Pxf</class>
+        <host>sdw1</host>
+        <port>5888</port>
+    </pxf>
+
+    <shellsystemobject>
+        <JAVA_HOME></JAVA_HOME>
+        <GPHOME></GPHOME>
+        <GPHD_ROOT></GPHD_ROOT>
+        <GPDATA></GPDATA>
+        <MASTER_DATA_DIRECTORY></MASTER_DATA_DIRECTORY>
+        <PGPORT></PGPORT>
+        <PGHOST></PGHOST>
+        <PGDATABASE></PGDATABASE>
+    </shellsystemobject>
+</sut>

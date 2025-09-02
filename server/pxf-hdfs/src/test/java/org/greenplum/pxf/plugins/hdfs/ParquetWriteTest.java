@@ -22,6 +22,7 @@ import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
+import org.greenplum.pxf.api.GreenplumDateTime;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.error.PxfRuntimeException;
@@ -204,14 +205,14 @@ public class ParquetWriteTest {
         columnDescriptors.add(new ColumnDescriptor("id", DataType.INTEGER.getOID(), 0, "int4", null));
         context.setDataSource(temp + "/out/");
         context.setTransactionId("XID-XYZ-123453");
-        context.addOption("USE_INT64_TIMESTAMPS", "true");
+        configuration.set("pxf.parquet.use.int64.timestamps", "true");
 
         accessor.setRequestContext(context);
         accessor.afterPropertiesSet();
         assertTrue(accessor.openForWrite());
         accessor.closeForWrite();
 
-        assertTrue(context.getOption(USE_INT64_TIMESTAMPS_NAME, DEFAULT_USE_INT64_TIMESTAMPS));
+        assertTrue(configuration.getBoolean(USE_INT64_TIMESTAMPS_NAME, DEFAULT_USE_INT64_TIMESTAMPS));
     }
 
     @Test
@@ -220,14 +221,14 @@ public class ParquetWriteTest {
         columnDescriptors.add(new ColumnDescriptor("id", DataType.INTEGER.getOID(), 0, "int4", null));
         context.setDataSource(temp + "/out/");
         context.setTransactionId("XID-XYZ-123453");
-        context.addOption("USE_LOCAL_PXF_TIMEZONE_WRITE", "false");
+        configuration.set("pxf.parquet.use.local.pxf.timezone.write", "false");
 
         accessor.setRequestContext(context);
         accessor.afterPropertiesSet();
         assertTrue(accessor.openForWrite());
         accessor.closeForWrite();
 
-        assertFalse(context.getOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE));
+        assertFalse(configuration.getBoolean(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_WRITE));
     }
 
     @Test
@@ -236,11 +237,11 @@ public class ParquetWriteTest {
         columnDescriptors.add(new ColumnDescriptor("id", DataType.INTEGER.getOID(), 0, "int4", null));
         context.setDataSource(temp + "/out/");
         context.setTransactionId("XID-XYZ-123453");
-        context.addOption("USE_LOCAL_PXF_TIMEZONE_READ", "false");
+        configuration.set("pxf.parquet.use.local.pxf.timezone.read", "false");
 
         resolver.setRequestContext(context);
         resolver.afterPropertiesSet();
-        assertFalse(context.getOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ));
+        assertFalse(configuration.getBoolean(USE_LOCAL_PXF_TIMEZONE_READ_NAME, DEFAULT_USE_LOCAL_PXF_TIMEZONE_READ));
     }
 
     @Test
@@ -562,7 +563,7 @@ public class ParquetWriteTest {
             String localTimestampString = localTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
 
             assertEquals(localTimestampString,
-                    ParquetTimestampUtilities.bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes(), true));
+                    ParquetTimestampUtilities.bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes(), true, false));
         }
         assertNull(fileReader.read());
         fileReader.close();
@@ -577,7 +578,7 @@ public class ParquetWriteTest {
 
         context.setDataSource(path);
         context.setTransactionId("XID-XYZ-123462");
-        context.addOption("USE_INT64_TIMESTAMPS", "true");
+        configuration.set("pxf.parquet.use.int64.timestamps", "true");
 
         accessor.setRequestContext(context);
         accessor.afterPropertiesSet();
@@ -640,9 +641,9 @@ public class ParquetWriteTest {
 
         context.setDataSource(path);
         context.setTransactionId("XID-XYZ-123462");
-        context.addOption(USE_INT64_TIMESTAMPS_NAME, "true");
-        context.addOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, "false");
-        context.addOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, "false");
+        configuration.set("pxf.parquet.use.int64.timestamps", "true");
+        configuration.set("pxf.parquet.use.local.pxf.timezone.write", "false");
+        configuration.set("pxf.parquet.use.local.pxf.timezone.read", "false");
 
         accessor.setRequestContext(context);
         accessor.afterPropertiesSet();
@@ -705,9 +706,9 @@ public class ParquetWriteTest {
 
         context.setDataSource(path);
         context.setTransactionId("XID-XYZ-123462");
-        context.addOption(USE_INT64_TIMESTAMPS_NAME, "true");
-        context.addOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, "false");
-        context.addOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, "true");
+        configuration.set("pxf.parquet.use.int64.timestamps", "true");
+        configuration.set("pxf.parquet.use.local.pxf.timezone.write", "false");
+        configuration.set("pxf.parquet.use.local.pxf.timezone.read", "true");
 
         accessor.setRequestContext(context);
         accessor.afterPropertiesSet();
@@ -772,9 +773,9 @@ public class ParquetWriteTest {
 
         context.setDataSource(path);
         context.setTransactionId("XID-XYZ-123462");
-        context.addOption(USE_INT64_TIMESTAMPS_NAME, "true");
-        context.addOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, "true");
-        context.addOption(USE_LOCAL_PXF_TIMEZONE_READ_NAME, "false");
+        configuration.set("pxf.parquet.use.int64.timestamps", "true");
+        configuration.set("pxf.parquet.use.local.pxf.timezone.write", "true");
+        configuration.set("pxf.parquet.use.local.pxf.timezone.read", "false");
 
         accessor.setRequestContext(context);
         accessor.afterPropertiesSet();
@@ -1504,7 +1505,7 @@ public class ParquetWriteTest {
 
         context.setDataSource(path);
         context.setTransactionId("XID-XYZ-123475");
-        context.addOption("USE_INT64_TIMESTAMPS", "true");
+        configuration.set("pxf.parquet.use.int64.timestamps", "true");
 
         accessor.setRequestContext(context);
         accessor.afterPropertiesSet();
@@ -1980,16 +1981,16 @@ public class ParquetWriteTest {
 
         Instant timestamp0 = Instant.parse("2020-08-01T04:00:05Z"); // UTC
         ZonedDateTime localTime0 = timestamp0.atZone(ZoneId.systemDefault());
-        String localTimestampString0 = localTime0.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
-        assertEquals(localTimestampString0, ParquetTimestampUtilities.bytesToTimestamp(row0.getInt96(2, 0).getBytes(), true));
+        String localTimestampString0 = localTime0.format(GreenplumDateTime.DATETIME_WITH_TIMEZONE_FORMATTER); // should be "2020-08-%02dT04:00:05Z" in PST
+        assertEquals(localTimestampString0, ParquetTimestampUtilities.bytesToTimestamp(row0.getInt96(2, 0).getBytes(), true, true));
         Instant timestamp1 = Instant.parse("2020-08-02T04:00:05Z"); // UTC
         ZonedDateTime localTime1 = timestamp1.atZone(ZoneId.systemDefault());
-        String localTimestampString1 = localTime1.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
-        assertEquals(localTimestampString1, ParquetTimestampUtilities.bytesToTimestamp(row1.getInt96(2, 0).getBytes(), true));
+        String localTimestampString1 = localTime1.format(GreenplumDateTime.DATETIME_WITH_TIMEZONE_FORMATTER); // should be "2020-08-%02dT04:00:05Z" in PST
+        assertEquals(localTimestampString1, ParquetTimestampUtilities.bytesToTimestamp(row1.getInt96(2, 0).getBytes(), true, true));
         Instant timestamp2 = Instant.parse("2020-08-03T04:00:05Z"); // UTC
         ZonedDateTime localTime2 = timestamp2.atZone(ZoneId.systemDefault());
-        String localTimestampString2 = localTime2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // should be "2020-08-%02dT04:00:05Z" in PST
-        assertEquals(localTimestampString2, ParquetTimestampUtilities.bytesToTimestamp(row2.getInt96(2, 0).getBytes(), true));
+        String localTimestampString2 = localTime2.format(GreenplumDateTime.DATETIME_WITH_TIMEZONE_FORMATTER); // should be "2020-08-%02dT04:00:05Z" in PST
+        assertEquals(localTimestampString2, ParquetTimestampUtilities.bytesToTimestamp(row2.getInt96(2, 0).getBytes(), true, true));
 
         assertEquals(Binary.fromString("e"), row0.getBinary(3, 0));
         assertEquals(Binary.fromString("ee"), row1.getBinary(3, 0));
@@ -2069,8 +2070,8 @@ public class ParquetWriteTest {
             Instant timestamp = Instant.parse("2020-08-01T04:00:05Z"); // UTC
             ZonedDateTime localTime = timestamp.atZone(ZoneId.systemDefault());
             //parquet doesn't keep timezone information
-            String localTimestampString = localTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // 2020-06-28 04:30:00
-            assertEquals(localTimestampString, ParquetTimestampUtilities.bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes(), true));
+            String localTimestampString = localTime.format(GreenplumDateTime.DATETIME_WITH_TIMEZONE_FORMATTER);
+            assertEquals(localTimestampString, ParquetTimestampUtilities.bytesToTimestamp(fileReader.read().getInt96(0, 0).getBytes(), true, true));
         }
         assertNull(fileReader.read());
         fileReader.close();
@@ -2085,8 +2086,7 @@ public class ParquetWriteTest {
 
         context.setDataSource(path);
         context.setTransactionId("XID-XYZ-123484");
-        context.addOption("USE_INT64_TIMESTAMPS", "true");
-
+        configuration.set("pxf.parquet.use.int64.timestamps", "true");
         accessor.setRequestContext(context);
         accessor.afterPropertiesSet();
         resolver.setRequestContext(context);
@@ -2152,7 +2152,7 @@ public class ParquetWriteTest {
 
         context.setDataSource(path);
         context.setTransactionId("XID-XYZ-123484");
-        context.addOption("USE_INT64_TIMESTAMPS", "true");
+        configuration.set("pxf.parquet.use.int64.timestamps", "true");
         // This parameter doesn't play role in case of timestamp with time zone. We always convert it to UTC as we have offset time zone
         context.addOption(USE_LOCAL_PXF_TIMEZONE_WRITE_NAME, "false");
 
@@ -2262,7 +2262,7 @@ public class ParquetWriteTest {
 
         context.setDataSource(path);
         context.setTransactionId("XID-XYZ-123485");
-        context.addOption("USE_INT64_TIMESTAMPS", "true");
+        configuration.set("pxf.parquet.use.int64.timestamps", "true");
 
         accessor.setRequestContext(context);
         accessor.afterPropertiesSet();
@@ -2848,7 +2848,7 @@ public class ParquetWriteTest {
                     }
                     break;
                 case INT96:
-                    assertEquals(expectedValues[j], ParquetTimestampUtilities.bytesToTimestamp(elementGroup.getInt96(0, 0).getBytes(), true));
+                    assertEquals(expectedValues[j], ParquetTimestampUtilities.bytesToTimestamp(elementGroup.getInt96(0, 0).getBytes(), true, false));
                     break;
                 case FLOAT:
                     assertEquals(Float.parseFloat(expectedValues[j]), elementGroup.getFloat(0, 0));

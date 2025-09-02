@@ -11,20 +11,25 @@ public class Int96ParquetTypeConverter implements ParquetTypeConverter {
 
     private final boolean useLocalPxfTimezoneRead;
     private final boolean useLocalPxfTimezoneWrite;
+    private final DataType dataType;
 
-    public Int96ParquetTypeConverter(boolean useLocalPxfTimezoneRead, boolean useLocalPxfTimezoneWrite) {
+    public Int96ParquetTypeConverter(DataType dataType, boolean useLocalPxfTimezoneRead, boolean useLocalPxfTimezoneWrite) {
+        this.dataType = dataType;
         this.useLocalPxfTimezoneRead = useLocalPxfTimezoneRead;
         this.useLocalPxfTimezoneWrite = useLocalPxfTimezoneWrite;
     }
 
     @Override
     public DataType getDataType() {
-        return DataType.TIMESTAMP;
+        return dataType == DataType.TIMESTAMP_WITH_TIME_ZONE ? DataType.TIMESTAMP_WITH_TIME_ZONE : DataType.TIMESTAMP;
     }
 
     @Override
     public String read(Group group, int columnIndex, int repeatIndex) {
-        return ParquetTimestampUtilities.bytesToTimestamp(group.getInt96(columnIndex, repeatIndex).getBytes(), useLocalPxfTimezoneRead);
+        return ParquetTimestampUtilities.bytesToTimestamp(
+                group.getInt96(columnIndex, repeatIndex).getBytes(),
+                useLocalPxfTimezoneRead,
+                dataType == DataType.TIMESTAMP_WITH_TIME_ZONE);
     }
 
     @Override

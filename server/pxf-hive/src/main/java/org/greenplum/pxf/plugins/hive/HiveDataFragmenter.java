@@ -226,7 +226,7 @@ public class HiveDataFragmenter extends HdfsDataFragmenter {
     }
 
     /**
-     * Verifies that all the Greenplum defined columns are present in the Hive
+     * Verifies that all the Greengage defined columns are present in the Hive
      * table schema.
      *
      * @param tbl the hive table

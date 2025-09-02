@@ -23,7 +23,7 @@ import java.util.List;
 public class Gpdb extends DbSystemObject {
 
 	private static final String DEFAULT_PORT = "5432";
-	private static final String GREENPLUM_DATABASE_PREFIX = "Database ";
+	private static final String GREENGAGE_DATABASE_PREFIX = "Database ";
 	private static final String IF_NOT_EXISTS_OPTION = "IF NOT EXISTS";
 
 	private String sshUserName;
@@ -77,8 +77,12 @@ public class Gpdb extends DbSystemObject {
 			createTestFDW(true);
 			createSystemFDW(true);
 			createForeignServers(true);
+			if (!StringUtils.isEmpty(System.getenv("PXF_VAULT_ENABLED"))
+					&& Boolean.parseBoolean(System.getenv("PXF_VAULT_ENABLED"))) {
+				createJdbcFDWVault(true);
+				createJdbcVaultForeignServer(true);
+			}
 		}
-
 		ReportUtils.stopLevel(report);
 	}
 
@@ -214,8 +218,8 @@ public class Gpdb extends DbSystemObject {
 
 		String createStatement;
 		if (version == 5) {
-			// Greenplum 5
-			ReportUtils.startLevel(report, getClass(), "Unable to create database with encoding that does not match server's locale in Greenplum 5");
+			// Greengage 5
+			ReportUtils.startLevel(report, getClass(), "Unable to create database with encoding that does not match server's locale in Greengage 5");
 			createStatement = String.format("CREATE DATABASE %s", schemaName);
 		} else {
 			createStatement = String.format("CREATE DATABASE %s TEMPLATE = template0 ENCODING = '%s' LC_COLLATE = '%s' LC_CTYPE = '%s'",
@@ -248,6 +252,18 @@ public class Gpdb extends DbSystemObject {
 				ignoreFail, false);
 	}
 
+	private void createJdbcFDWVault(boolean ignoreFail) throws Exception {
+		runQuery("DROP FOREIGN DATA WRAPPER IF EXISTS jdbc_pxf_fdw_ssl CASCADE", ignoreFail, false);
+		runQuery("CREATE FOREIGN DATA WRAPPER jdbc_pxf_fdw_ssl HANDLER pxf_fdw_handler " +
+						"VALIDATOR pxf_fdw_validator OPTIONS (protocol 'jdbc', mpp_execute 'all segments'," +
+						"pxf_protocol 'https', " +
+						"pxf_ssl_cacert '/opt/ssl/certs/ca-cert', " +
+						"pxf_ssl_cert '/opt/ssl/certs/pxf-client.pem', " +
+						"pxf_ssl_cert_type 'PEM', " +
+						"pxf_ssl_key '/opt/ssl/certs/pxf-client.key')",
+				ignoreFail, false);
+	}
+
 	private void createSystemFDW(boolean ignoreFail) throws Exception {
 		runQuery("DROP FOREIGN DATA WRAPPER IF EXISTS system_pxf_fdw CASCADE", ignoreFail, false);
 		runQuery("CREATE FOREIGN DATA WRAPPER system_pxf_fdw HANDLER pxf_fdw_handler " +
@@ -256,27 +272,30 @@ public class Gpdb extends DbSystemObject {
 	}
 
 	private void createForeignServers(boolean ignoreFail) throws Exception {
-		List<String> servers = Lists.newArrayList(
-		"default_hdfs",
-		"default_hive",
-		"db-hive_jdbc", // Needed for JdbcHiveTest
-		"default_hbase",
-		"default_jdbc", // Needed for JdbcHiveTest and other JdbcTest which refers to the default server.
-		"database_jdbc",
-		"db-session-params_jdbc",
-		"default_file",
-		"default_s3",
-		"default_gs",
-		"default_adl",
-		"default_wasbs",
-		"s3_s3",
-		"s3-invalid_s3",
-		"s3-non-existent_s3",
-		"hdfs-non-secure_hdfs",
-		"hdfs-secure_hdfs",
-		"hdfs-ipa_hdfs",
-		"default_test",
-		"default_system");
+        List<String> servers = Lists.newArrayList(
+                "default_hdfs",
+                "default_hive",
+                "db-hive_jdbc", // Needed for JdbcHiveTest
+                "default_hbase",
+                "default_jdbc", // Needed for JdbcHiveTest and other JdbcTest which refers to the default server.
+                "database_jdbc",
+                "db-session-params_jdbc",
+                "default_file",
+                "default_s3",
+                "default_gs",
+                "default_adl",
+                "default_wasbs",
+                "s3_s3",
+                "s3-invalid_s3",
+                "s3-non-existent_s3",
+                "hdfs-non-secure_hdfs",
+                "hdfs-secure_hdfs",
+                "hdfs-ipa_hdfs",
+                "default_test",
+                "default_system",
+                "oracle_jdbc",
+                "mysql_jdbc",
+				"parquet_config_hdfs");
 
 		// version below GP7 do not have IF EXISTS / IF NOT EXISTS command options for foreign SERVER creation
 		String option = (version < 7) ? "" : IF_NOT_EXISTS_OPTION;
@@ -294,6 +313,19 @@ public class Gpdb extends DbSystemObject {
 					ignoreFail, false);
 		}
 	}
+
+    private void createJdbcVaultForeignServer(boolean ignoreFail) throws Exception {
+        String server = "default_pxf_server_ssl_jdbc";
+        if (!(version < 7 && serverExists(server))) {
+            String pxfServerName = server.substring(0, server.indexOf("_")); // strip protocol at the end
+            String fdwName = server.substring(server.lastIndexOf("_") + 1) + "_pxf_fdw_ssl"; // strip protocol at the end
+            String option = (version < 7) ? "" : IF_NOT_EXISTS_OPTION;
+            runQuery(String.format("CREATE SERVER %s %s FOREIGN DATA WRAPPER %s OPTIONS(config '%s')",
+                    option, server, fdwName, pxfServerName), ignoreFail, false);
+            runQuery(String.format("CREATE USER MAPPING %s FOR CURRENT_USER SERVER %s", option, server),
+                    ignoreFail, false);
+        }
+    }
 
 	@Override
 	public void dropDataBase(String dbName, boolean cascade, boolean ignoreFail) throws Exception {
@@ -322,7 +354,7 @@ public class Gpdb extends DbSystemObject {
 
 		sso.init();
 
-		sso.runCommand("source $GPHOME/greenplum_path.sh");
+		sso.runCommand("source $GPHOME/greengage_path.sh");
 		// psql do not return error code so use EXIT_CODE_NOT_EXISTS
 		sso.runCommand("psql " + getDb(), ShellSystemObject.EXIT_CODE_NOT_EXISTS);
 
@@ -563,17 +595,17 @@ public class Gpdb extends DbSystemObject {
 
 	private int determineVersion() throws Exception {
 		String query = "SELECT version()";
-		ReportUtils.report(report, getClass(), "Determining Greenplum version - query: " + query);
+		ReportUtils.report(report, getClass(), "Determining Greengage version - query: " + query);
 
 		ResultSet res = stmt.executeQuery(query);
 		res.next();
 		String fullVersion = res.getString(1);
-		ReportUtils.report(report, getClass(), "Retrieved from Greenplum: [" + fullVersion + "]");
-		int gpIndex = fullVersion.indexOf(GREENPLUM_DATABASE_PREFIX); // where the version prefix starts
+		ReportUtils.report(report, getClass(), "Retrieved from Greengage: [" + fullVersion + "]");
+		int gpIndex = fullVersion.indexOf(GREENGAGE_DATABASE_PREFIX); // where the version prefix starts
 		int dotIndex = fullVersion.indexOf(".", gpIndex);             // where the first dot of GP version starts
-		String versionStr = fullVersion.substring(gpIndex + GREENPLUM_DATABASE_PREFIX.length(), dotIndex);
+		String versionStr = fullVersion.substring(gpIndex + GREENGAGE_DATABASE_PREFIX.length(), dotIndex);
 		int versionInt = Integer.parseInt(versionStr);
-		ReportUtils.report(report, getClass(), "Determined Greenplum version: " + versionInt);
+		ReportUtils.report(report, getClass(), "Determined Greengage version: " + versionInt);
 		return versionInt;
 	}
 
@@ -591,7 +623,7 @@ public class Gpdb extends DbSystemObject {
 		ResultSet res = stmt.executeQuery(query);
 		res.next();
 		int count = res.getInt(1);
-		ReportUtils.report(report, getClass(), "Retrieved from Greenplum: [" + count + "] servers");
+		ReportUtils.report(report, getClass(), "Retrieved from Greengage: [" + count + "] servers");
 		return count > 0;
 	}
 

@@ -10,8 +10,8 @@ import java.util.Objects;
 
 /**
  * Functional Test for reading fixedwidth data format text files in HCFS
- * The dataset is based on a set of tests available in Greenplum
- * https://github.com/greenplum-db/gpdb/blob/main/contrib/formatter_fixedwidth/data/fixedwidth_small_correct.tbl
+ * The dataset is based on a set of tests available in Greengage
+ * https://github.com/GreengageDB/greengage/blob/main/contrib/formatter_fixedwidth/data/fixedwidth_small_correct.tbl
  */
 @Feature("Reading fixedwidth files in HCFS")
 public class HcfsFixedwidthReadTest extends BaseFeature {

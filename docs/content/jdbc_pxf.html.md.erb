@@ -32,9 +32,9 @@ This section describes how to use the PXF JDBC connector to access data in an ex
 Before you access an external SQL database using the PXF JDBC connector, ensure that:
 
 - You can identify the PXF runtime configuration directory (`$PXF_BASE`).
-- You have configured PXF, and PXF is running on each Greenplum Database host. See [Configuring PXF](instcfg_pxf.html) for additional information.
-- Connectivity exists between all Greenplum Database hosts and the external SQL database.
-- You have configured your external SQL database for user access from all Greenplum Database hosts.
+- You have configured PXF, and PXF is running on each Greengage Database host. See [Configuring PXF](instcfg_pxf.html) for additional information.
+- Connectivity exists between all Greengage Database hosts and the external SQL database.
+- You have configured your external SQL database for user access from all Greengage Database hosts.
 - You have registered any JDBC driver JAR dependencies.
 - (Recommended) You have created one or more named PXF JDBC connector server configurations as described in [Configuring the PXF JDBC Connector](jdbc_cfg.html).
 
@@ -68,9 +68,9 @@ PXF includes version 1.1.0 of the Hive JDBC driver. This version does **not** su
 ## <a id="queryextdata"></a>Accessing an External SQL Database
 The PXF JDBC connector supports a single profile named `jdbc`. You can both read data from and write data to an external SQL database table with this profile. You can also use the connector to run a static, named query in external SQL database and read the results.
 
-To access data in a remote SQL database, you create a readable or writable Greenplum Database external table that references the remote database table. The Greenplum Database external table and the remote database table or query result tuple must have the same definition; the column names and types must match.
+To access data in a remote SQL database, you create a readable or writable Greengage Database external table that references the remote database table. The Greengage Database external table and the remote database table or query result tuple must have the same definition; the column names and types must match.
 
-Use the following syntax to create a Greenplum Database external table that references a remote SQL database table or a query result from the remote database:
+Use the following syntax to create a Greengage Database external table that references a remote SQL database table or a query result from the remote database:
 
 <pre>
 CREATE [READABLE | WRITABLE] EXTERNAL TABLE &lt;table_name>
@@ -80,7 +80,7 @@ FORMAT 'CUSTOM' (FORMATTER='pxfwritable_import'|'pxfwritable_export');
 </pre>
 
 
-The specific keywords and values used in the Greenplum Database [CREATE EXTERNAL TABLE](https://docs.vmware.com/en/VMware-Greenplum/6/greenplum-database/ref_guide-sql_commands-CREATE_EXTERNAL_TABLE.html) command are described in the table below.
+The specific keywords and values used in the Greengage Database 'CREATE EXTERNAL TABLE' command are described in the table below.
 
 | Keyword  | Value |
 |-------|-------------------------------------|
@@ -103,6 +103,7 @@ You include JDBC connector custom options in the `LOCATION` URI, prefacing each 
 | FETCH_SIZE | Read | Integer that identifies the number of rows to buffer when reading from an external SQL database. Read row batching is activated by default. The default read fetch size for MySQL is `-2147483648` (`Integer.MIN_VALUE`). The default read fetch size for all other databases is 1000. |
 | QUERY_TIMEOUT | Read/Write | Integer that identifies the amount of time (in seconds) that the JDBC driver waits for a statement to run. The default wait time is infinite. |
 | DATE_WIDE_RANGE | Read/Write | Boolean that enables special parsing of dates when the year contains more than four alphanumeric characters. The default value is `false`. When set to `true`, PXF uses extended classes to parse dates, and recognizes years that specify `BC` or `AD`. |
+| UNKNOWN_DBMS_AS_POSTGRESQL | Read | Boolean that allows using PostgreSQL syntax when interacting with an external data source whose syntax is unknown. The default value is `true`. When set to `false`, PXF uses default syntaxes. This parameter might be important for pushdown filter. |
 | POOL_SIZE | Write | Activate thread pooling on `INSERT` operations and identify the number of threads in the pool. Thread pooling is deactivated by default. |
 | PARTITION_BY | Read | Activates read partitioning. The partition column, \<column-name\>:\<column-type\>. You may specify only one partition column. The JDBC connector supports `date`, `int`, and `enum` \<column-type\> values, where `int` represents any JDBC integral type. If you do not identify a `PARTITION_BY` column, a single PXF instance services the read request. |
 | RANGE | Read | Required when `PARTITION_BY` is specified. The query range; used as a hint to aid the creation of partitions. The `RANGE` format is dependent upon the data type of the partition column. When the partition column is an `enum` type, `RANGE` must specify a list of values, \<value\>:\<value\>[:\<value\>[...]], each of which forms its own fragment. If the partition column is an `int` or `date` type, `RANGE` must specify \<start-value\>:\<end-value\> and represents the interval from \<start-value\> through \<end-value\>, inclusive. The `RANGE` for an `int` partition column may span any 64-bit signed integer values. If the partition column is a `date` type, use the `yyyy-MM-dd` date format. |
@@ -150,9 +151,9 @@ To deactivate or activate a thread pool and set the pool size, create the PXF ex
 
 #### <a id="partitioning"></a>Partitioning (Read)
 
-The PXF JDBC connector supports simultaneous read access from PXF instances running on multiple Greenplum Database hosts to an external SQL table. This feature is referred to as partitioning. Read partitioning is not activated by default. To activate read partitioning, set the `PARTITION_BY`, `RANGE`, and `INTERVAL` custom options when you create the PXF external table.
+The PXF JDBC connector supports simultaneous read access from PXF instances running on multiple Greengage Database hosts to an external SQL table. This feature is referred to as partitioning. Read partitioning is not activated by default. To activate read partitioning, set the `PARTITION_BY`, `RANGE`, and `INTERVAL` custom options when you create the PXF external table.
 
-PXF uses the `RANGE` and `INTERVAL` values and the `PARTITON_BY` column that you specify to assign specific data rows in the external table to PXF instances running on the Greenplum Database segment hosts. This column selection is specific to PXF processing, and has no relationship to a partition column that you may have specified for the table in the external SQL database.
+PXF uses the `RANGE` and `INTERVAL` values and the `PARTITON_BY` column that you specify to assign specific data rows in the external table to PXF instances running on the Greengage Database segment hosts. This column selection is specific to PXF processing, and has no relationship to a partition column that you may have specified for the table in the external SQL database.
 
 
 Example JDBC \<custom-option\> substrings that identify partitioning parameters:
@@ -174,9 +175,9 @@ For example, when a user queries a PXF external table created with a `LOCATION` 
 - Fragment 4: WHERE (id >= 5) - implicitly-generated fragment for RANGE end-bounded interval
 - Fragment 5: WHERE (id IS NULL) - implicitly-generated fragment
 
-PXF distributes the fragments among Greenplum Database segments. A PXF instance running on a segment host spawns a thread for each segment on that host that services a fragment. If the number of fragments is less than or equal to the number of Greenplum segments configured on a segment host, a single PXF instance may service all of the fragments. Each PXF instance sends its results back to Greenplum Database, where they are collected and returned to the user.
+PXF distributes the fragments among Greengage Database segments. A PXF instance running on a segment host spawns a thread for each segment on that host that services a fragment. If the number of fragments is less than or equal to the number of Greengage segments configured on a segment host, a single PXF instance may service all of the fragments. Each PXF instance sends its results back to Greengage Database, where they are collected and returned to the user.
 
-When you specify the `PARTITION_BY` option, tune the `INTERVAL` value and unit based upon the optimal number of JDBC connections to the target database and the optimal distribution of external data across Greenplum Database segments. The `INTERVAL` low boundary is driven by the number of Greenplum Database segments while the high boundary is driven by the acceptable number of JDBC connections to the target database. The `INTERVAL` setting influences the number of fragments, and should ideally not be set too high nor too low. Testing with multiple values may help you select the optimal settings. 
+When you specify the `PARTITION_BY` option, tune the `INTERVAL` value and unit based upon the optimal number of JDBC connections to the target database and the optimal distribution of external data across Greengage Database segments. The `INTERVAL` low boundary is driven by the number of Greengage Database segments while the high boundary is driven by the acceptable number of JDBC connections to the target database. The `INTERVAL` setting influences the number of fragments, and should ideally not be set too high nor too low. Testing with multiple values may help you select the optimal settings.
 
 ## <a id="examples"></a>Examples
 
@@ -194,12 +195,12 @@ The PXF JDBC Connector allows you to specify a statically-defined query to run a
 - You need to join several tables that all reside in the same external database.
 - You want to perform complex aggregation closer to the data source.
 - You would use, but are not allowed to create, a `VIEW` in the external database.
-- You would rather consume computational resources in the external system to minimize utilization of Greenplum Database resources.
+- You would rather consume computational resources in the external system to minimize utilization of Greengage Database resources.
 - You want to run a HIVE query and control resource utilization via YARN.
 
-The Greenplum Database administrator defines a query and provides you with the query name to use when you create the external table. Instead of a table name, you specify `query:<query_name>` in the `CREATE EXTERNAL TABLE` `LOCATION` clause to instruct the PXF JDBC connector to run the static query named `<query_name>` in the remote SQL database.
+The Greengage Database administrator defines a query and provides you with the query name to use when you create the external table. Instead of a table name, you specify `query:<query_name>` in the `CREATE EXTERNAL TABLE` `LOCATION` clause to instruct the PXF JDBC connector to run the static query named `<query_name>` in the remote SQL database.
 
-PXF supports named queries only with readable external tables. You must create a unique Greenplum Database readable external table for each query that you want to run.
+PXF supports named queries only with readable external tables. You must create a unique Greengage Database readable external table for each query that you want to run.
 
 The names and types of the external table columns must exactly match the names, types, and order of the columns return by the query result. If the query returns the results of an aggregation or other function, be sure to use the `AS` qualifier to specify a specific column name.
 
@@ -219,7 +220,7 @@ SELECT c.name, sum(o.amount) AS total, o.month
 GROUP BY c.name, o.month
 ```
 
-This query returns tuples of type `(name text, total int, month int)`. If the `order_rpt` query is defined for the PXF JDBC server named `pgserver`, you could create a Greenplum Database external table to read these query results as follows:
+This query returns tuples of type `(name text, total int, month int)`. If the `order_rpt` query is defined for the PXF JDBC server named `pgserver`, you could create a Greengage Database external table to read these query results as follows:
 
 ``` sql
 CREATE EXTERNAL TABLE orderrpt_frompg(name text, total int, month int)
@@ -261,5 +262,5 @@ FORMAT 'CUSTOM' (FORMATTER='pxfwritable_export');</pre>
 
 <div class="note warning"><b>Warning:</b> Credentials that you provide in this manner are visible as part of the external table definition. Do not use this method of passing credentials in a production environment.</div>
 
-Refer to [Configuration Property Precedence](cfg_server.html#override) for detailed information about the precedence rules that PXF uses to obtain configuration property settings for a Greenplum Database user.
+Refer to [Configuration Property Precedence](cfg_server.html#override) for detailed information about the precedence rules that PXF uses to obtain configuration property settings for a Greengage Database user.
 

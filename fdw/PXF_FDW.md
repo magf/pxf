@@ -5,11 +5,11 @@ residing in external systems such as Hadoop, Hive, HBase, relational databases,
 S3, Google Cloud Storage, among other external systems.
 
 PXF uses the [External Table Framework](https://gpdb.docs.pivotal.io/latest/ref_guide/sql_commands/CREATE_EXTERNAL_TABLE.html)
-in Greenplum 5 and 6 to access external data. Greenplum 6 introduces the 
+in Greengage 5 and 6 to access external data. Greengage 6 introduces the 
 [Foreign Data Wrapper Framework](https://gpdb.docs.pivotal.io/6-0Beta/admin_guide/external/g-devel-fdw.html)
 to access external data, and extensions are starting to move to the foreign
 data wrapper (FDW) framework because the External Table Framework will be 
-deprecated in later versions of Greenplum. 
+deprecated in later versions of Greengage. 
 
 # PXF Foreign Data Wrapper
 

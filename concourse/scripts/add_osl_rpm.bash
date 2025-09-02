@@ -53,7 +53,7 @@ ls -al /usr/local/pxf-gp${GP_VER}
 
 # check that the OSL file is present
 [[ -f /usr/local/pxf-gp${GP_VER}/open_source_licenses.txt ]] || fail "/usr/local/pxf-gp${GP_VER}/open_source_licenses.txt not found"
-grep -q "Greenplum Platform Extension Framework" "/usr/local/pxf-gp${GP_VER}/open_source_licenses.txt" || \
+grep -q "Greengage Platform Extension Framework" "/usr/local/pxf-gp${GP_VER}/open_source_licenses.txt" || \
   fail "/usr/local/pxf-gp${GP_VER}/open_source_licenses.txt has incorrect content"
 
 # copy the new RPM to the output directory

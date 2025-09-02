@@ -45,7 +45,7 @@ import java.util.*;
  * follows
  * <p>
  * ---------------------------------------------------------------------------
- * | ORC Physical Type | ORC Logical Type   | Greenplum Type | Greenplum OID |
+ * | ORC Physical Type | ORC Logical Type   | Greengage Type | Greengage OID |
  * ---------------------------------------------------------------------------
  * |  Integer          |  boolean  (1 bit)  |  BOOLEAN       |  16           |
  * |  Integer          |  tinyint  (8 bit)  |  SMALLINT      |  21           |
@@ -244,7 +244,7 @@ class ORCVectorizedMappingFunctions {
     /**
      * Returns a string representation of the timestamp stored in the TimestampColumnVector at the given row.
      * This function handles both the timestamp and the timestamp with timezone cases.
-     * We do not use the TimestampColumnVector stringifyValue as we need to handle Greenplum Datetime formatting
+     * We do not use the TimestampColumnVector stringifyValue as we need to handle Greengage Datetime formatting
      * @param timestampColumnVector the column vector from which to pull the data
      * @param row the row to stringify
      * @param oid the oid to determine which date time formatter to use (with or without timezone)
@@ -525,7 +525,7 @@ class ORCVectorizedMappingFunctions {
             ((BytesColumnVector) columnVector).setRef(row, buffer, 0, buffer.length);
         });
         writeFunctionsMap.put(TypeDescription.Category.DATE, (columnName, columnVector, row, val, decimalUtilities) -> {
-            // parse Greenplum date given as a string to a local date (no timezone info)
+            // parse Greengage date given as a string to a local date (no timezone info)
             LocalDate date = LocalDate.parse((String) val, GreenplumDateTime.DATE_FORMATTER);
             // convert local date to days since epoch and store in DateColumnVector
             ((DateColumnVector) columnVector).vector[row] = date.toEpochDay();
@@ -567,7 +567,7 @@ class ORCVectorizedMappingFunctions {
         // MAP, STRUCT, UNION - not supported by our ORCSchemaBuilder, so we do not expect to see them
 
         writeFunctionsMap.put(TypeDescription.Category.TIMESTAMP_INSTANT, (columnName, columnVector, row, val, decimalUtilities) -> {
-            // parse Greenplum timestamp given as a string with timezone to an offset dateTime
+            // parse Greengage timestamp given as a string with timezone to an offset dateTime
             OffsetDateTime offsetDateTime = OffsetDateTime.parse((String) val, GreenplumDateTime.DATETIME_WITH_TIMEZONE_FORMATTER);
             // convert offset dateTime to an instant and then to a Timestamp and store in TimestampColumnVector
             ((TimestampColumnVector) columnVector).set(row, Timestamp.from(offsetDateTime.toInstant()));
@@ -599,7 +599,7 @@ class ORCVectorizedMappingFunctions {
     }
 
     /**
-     * A special function that writes timestamps to ORC file such that the parsed string timestamp from Greenplum
+     * A special function that writes timestamps to ORC file such that the parsed string timestamp from Greengage
      * is considered an instant in the local timezone, then it is shifted to UTC and then stored. The ORC writer
      * will also automatically store the timezone of the writer to the ORC stripe footer, such that other programs
      * that read the file can deconstruct the timestamp value properly.
@@ -694,7 +694,7 @@ class ORCVectorizedMappingFunctions {
      * @return instant representing the given timestamp in the given timezone
      */
     private static Instant getTimeStampAsInstant(Object val, ZoneId timezone) {
-        // parse Greenplum timestamp given as a string to a local dateTime (no timezone info)
+        // parse Greengage timestamp given as a string to a local dateTime (no timezone info)
         LocalDateTime localDateTime = LocalDateTime.parse((String) val, GreenplumDateTime.DATETIME_FORMATTER);
         // consider this timestamp as an instant in a requested timezone
         return ZonedDateTime.of(localDateTime, timezone).toInstant();

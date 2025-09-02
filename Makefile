@@ -9,7 +9,7 @@ export PXF_VERSION
 PG_CONFIG ?= pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 ifndef PGXS
-	$(error Make sure the Greenplum installation binaries are in your PATH. i.e. export PATH=<path to your Greenplum installation>/bin:$$PATH)
+	$(error Make sure the Greengage installation binaries are in your PATH. i.e. export PATH=<path to your Greengage installation>/bin:$$PATH)
 endif
 include $(PGXS)
 
@@ -181,9 +181,9 @@ help:
 	@echo
 	@echo 'Possible targets'
 	@echo	'  - all - build extensions, cli, and server modules'
-	@echo	'  - extensions - build Greenplum external table and foreign data wrapper extensions'
-	@echo	'  - external-table - build Greenplum external table extension'
-	@echo	'  - fdw - build Greenplum foreign data wrapper extension'
+	@echo	'  - extensions - build Greengage external table and foreign data wrapper extensions'
+	@echo	'  - external-table - build Greengage external table extension'
+	@echo	'  - fdw - build Greengage foreign data wrapper extension'
 	@echo	'  - cli - install Go CLI dependencies and build Go CLI'
 	@echo	'  - server - install server dependencies and build server module'
 	@echo	'  - clean - clean up external-table, fdw, CLI and server binaries'

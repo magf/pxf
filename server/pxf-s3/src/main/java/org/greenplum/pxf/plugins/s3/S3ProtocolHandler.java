@@ -175,7 +175,7 @@ public class S3ProtocolHandler implements ProtocolHandler {
 
     /**
      * Determines if the given data format can be retrieved from S3 using S3_SELECT protocol
-     * and sent back to Greenplum using given OutputFormat
+     * and sent back to Greengage using given OutputFormat
      *
      * @param outputFormat   output format
      * @param format         data format

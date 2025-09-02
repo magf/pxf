@@ -60,7 +60,7 @@ public final class JsonUtilities {
      * Can handle single-dimensional arrays by parsing the serialized array value into decoded elements and then
      * recursively invoking itself for each array element.
      * @param jsonGenerator Json generator
-     * @param dataType Greenplum data type of the value
+     * @param dataType Greengage data type of the value
      * @param value value to decode and write (can be a primitive or an array)
      * @throws IOException if writing fails
      */
@@ -131,8 +131,8 @@ public final class JsonUtilities {
     }
 
     /**
-     * Parse a String representation of Greenplum array into a list of objects
-     * @param val               a String representation of a Greenplum array
+     * Parse a String representation of Greengage array into a list of objects
+     * @param val               a String representation of a Greengage array
      * @param primitiveType     a primitive type of each element inside the array
      * @return a list of Java objects
      */
@@ -156,8 +156,8 @@ public final class JsonUtilities {
     }
 
     /**
-     * Decode a String representation of a Greenplum primitive type into a Java object
-     * @param val               a String representation of a Greenplum object
+     * Decode a String representation of a Greengage primitive type into a Java object
+     * @param val               a String representation of a Greengage object
      * @param primitiveType     primitive type
      * @return A Java object
      */

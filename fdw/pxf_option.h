@@ -27,6 +27,14 @@ typedef struct PxfOptions
 	char	   *pxf_protocol;	/* protocol for the PXF Service (i.e HTTP or
 								 * HTTPS) */
 
+	/* SSL options, used when protocol is HTTPS */
+	const char *pxf_ssl_cacert;
+	const char *pxf_ssl_cert;
+	const char *pxf_ssl_cert_type;
+	const char *pxf_ssl_key;
+	const char *pxf_ssl_keypasswd;
+	long pxf_ssl_verify_peer;
+
 	/* Server doesn't come from options, it is the actual SERVER name */
 	char	   *server;			/* the name of the external server */
 
@@ -34,7 +42,7 @@ typedef struct PxfOptions
 
 	/* Defined at options, but it is not visible to FDWs */
 	char		exec_location;	/* execute on MASTER, ANY or ALL SEGMENTS,
-								 * Greenplum MPP specific */
+								 * Greengage MPP specific */
 
 	/* Single Row Error Handling */
 	int			reject_limit;

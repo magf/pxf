@@ -393,7 +393,7 @@ public class HiveAccessor extends HdfsSplittableDataAccessor {
 
     /**
      * Builds a list of indexes corresponding to the matching columns in
-     * Greenplum, ordered by the Greenplum schema order.
+     * Greengage, ordered by the Greengage schema order.
      *
      * @param properties the metadata properties
      * @return the hive indexes

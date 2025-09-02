@@ -83,8 +83,6 @@ public class ForeignTable extends WritableExternalTable {
             appendOption(joiner, "newline", getNewLine());
         }
 
-        // TODO: encoding might only be properly supported in refactor branch
-        // https://github.com/greenplum-db/pxf/commit/6be3ca67e1a2748205fcaf9ac96e124925593e11#diff-495fb626f562922c4333130eb7334b9766a18f1968e577549bff0384890e0d05
         if (getEncoding() != null) {
             appendOption(joiner, "encoding", getEncoding());
         }

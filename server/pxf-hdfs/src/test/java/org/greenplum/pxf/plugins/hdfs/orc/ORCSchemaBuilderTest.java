@@ -74,7 +74,7 @@ public class ORCSchemaBuilderTest {
     public void testUnsupportedType() {
         columnDescriptors.add(new ColumnDescriptor("col0", DataType.UNSUPPORTED_TYPE.getOID(), 0, "", null));
         Exception e = assertThrows(PxfRuntimeException.class, () -> ORCSchemaBuilder.buildSchema(columnDescriptors));
-        assertEquals("Unsupported Greenplum type -1 for column col0", e.getMessage());
+        assertEquals("Unsupported Greengage type -1 for column col0", e.getMessage());
     }
 
     @Test

@@ -1,0 +1,29 @@
+-- @description query01 for PXF test to check that the session is closed correctly
+-- start_matchsubs
+--
+-- m/ERROR:  PXF server error : Failed to read text of query wrong_file_name.*/
+-- s/ERROR:  PXF server error : Failed to read text of query wrong_file_name.*/ERROR:  PXF server error : Failed to read text of query wrong_file_name/
+--
+-- m/HINT:  Check the PXF logs located in the .*/
+-- s/HINT:  Check the PXF logs located in the .*/HINT:  Check the PXF logs located in the pxf log dir./
+--
+-- end_matchsubs
+SELECT * FROM named_query_read_ext_table ORDER BY id;
+ id | name
+----+-------
+  1 | text1
+  2 | text2
+  3 | text3
+(3 rows)
+
+SELECT * FROM named_query_wrong_read_ext_table ORDER BY id;
+ERROR:  PXF server error : Failed to read text of query wrong_file_name : File '/usr/local/greengage-db-devel/pxf/servers/named/wrong_file_name.sql' does not exist
+
+CONTEXT:  External table named_query_wrong_read_ext_table
+SELECT * FROM named_query_read_ext_table ORDER BY id;
+ id | name
+----+-------
+  1 | text1
+  2 | text2
+  3 | text3
+(3 rows)
