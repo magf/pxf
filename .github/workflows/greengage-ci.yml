@@ -30,6 +30,8 @@ jobs:
       actions: write  # Required for artifact upload
     uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-build.yml@feat/build-pxg
     with:
+      pxf: ${{ env.pxf }}
+      version: ${{ env.version }}
       target_os: ${{ matrix.target_os }}
     secrets:
       ghcr_token: ${{ secrets.GITHUB_TOKEN }}
@@ -119,6 +121,8 @@ jobs:
       actions: write  # Required for artifact upload
     uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-upload.yml@feat/build-pxg
     with:
+      pxf: ${{ env.pxf }}
+      version: ${{ env.version }}
       target_os: ${{ matrix.target_os }}
     secrets:
       ghcr_token: ${{ secrets.GITHUB_TOKEN }}
