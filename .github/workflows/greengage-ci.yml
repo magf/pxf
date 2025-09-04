@@ -1,10 +1,6 @@
 # Main CI pipeline orchestrating build, test, and upload stages
 name: Greengage CI
 
-env:
-  pxf: true
-  version: 6
-
 on:
   push:
     branches: ['main']  # Trigger on push to main (after merged PR)
@@ -30,8 +26,8 @@ jobs:
       actions: write  # Required for artifact upload
     uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-build.yml@feat/build-pxg
     with:
-      pxf: ${{ env.pxf }}
-      version: ${{ env.version }}
+      pxf: true
+      version: 6
       target_os: ${{ matrix.target_os }}
     secrets:
       ghcr_token: ${{ secrets.GITHUB_TOKEN }}
@@ -121,8 +117,8 @@ jobs:
       actions: write  # Required for artifact upload
     uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-upload.yml@feat/build-pxg
     with:
-      pxf: ${{ env.pxf }}
-      version: ${{ env.version }}
+      pxf: true
+      version: 6
       target_os: ${{ matrix.target_os }}
     secrets:
       ghcr_token: ${{ secrets.GITHUB_TOKEN }}
