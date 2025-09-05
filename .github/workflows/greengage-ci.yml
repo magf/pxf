@@ -64,7 +64,6 @@ jobs:
       actions: write  # Required for artifact upload
     uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-tests-regression-pxf.yml@feat/build-pxg
     with:
-      pxf: true
       version: 6
       target_os: ${{ matrix.target_os }}
     secrets:
