@@ -51,7 +51,7 @@ jobs:
   #   secrets:
   #     ghcr_token: ${{ secrets.GITHUB_TOKEN }}
 
-  regression-tests:
+regression-tests:
     needs: build
     if: github.event_name == 'pull_request'  # Only for PR
     strategy:
