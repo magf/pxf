@@ -1,5 +1,5 @@
 # https://github.com/GreengageDB/greengage/tree/main/ci
-ARG GGDB_IMAGE=greengagedb/ggdb6_ubuntu:6.29.0
+ARG GGDB_IMAGE=greengagedb/ggdb6_ubuntu:6.29.1
 FROM $GGDB_IMAGE
 
 SHELL ["bash", "-c"]
