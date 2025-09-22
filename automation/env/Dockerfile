@@ -1,5 +1,5 @@
 # https://github.com/GreengageDB/greengage/tree/main/ci
-ARG GGDB_IMAGE=greengagedb/ggdb6_ubuntu:6.29.0
+ARG GGDB_IMAGE=greengagedb/ggdb6_ubuntu:6.29.1
 FROM $GGDB_IMAGE
 
 SHELL ["bash", "-c"]
@@ -75,9 +75,9 @@ RUN source gpdb_src/concourse/scripts/common.bash && \
     source ${GPHOME}/greengage_path.sh && \
     export SKIP_FDW_BUILD_REASON=0 && \
     pxf_src/concourse/scripts/compile_pxf_without_test.sh && \
-    chown -R gpadmin:gpadmin /home/gpadmin/pxf_src
+    chown -R gpadmin:gpadmin /home/gpadmin/pxf_src/
 
-RUN mkdir workspace && ln -s /home/gpadmin/pxf_src /home/gpadmin/workspace/pxf && chown -R gpadmin:gpadmin /home/gpadmin/workspace
+RUN mkdir workspace && ln -s /home/gpadmin/pxf_src /home/gpadmin/workspace/pxf && chown -R gpadmin:gpadmin /home/gpadmin/workspace/
 
 # Need to run automation tests
 ENV PXF_HOME=${GPHOME}/pxf
@@ -120,5 +120,5 @@ RUN set -eux; \
 RUN cp /tmp/libs/* ${PXF_HOME}/lib/
 
 RUN chmod -R a+x ./pxf_src/automation/env/scripts
-RUN chown -R gpadmin:gpadmin ${GPHOME}
+RUN chown -R gpadmin:gpadmin ${GPHOME}/
 ENTRYPOINT ["/home/gpadmin/pxf_src/automation/env/scripts/start_cluster.sh"]
