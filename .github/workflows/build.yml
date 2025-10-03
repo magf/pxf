@@ -17,6 +17,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - component: server
@@ -63,7 +64,7 @@ jobs:
         if: matrix.setup == 'c'
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc make postgresql-server-dev-12 libcurl4-openssl-dev
+          sudo apt-get install -y gcc cmake
 
       - name: Build ${{ matrix.component }}
         run: |
