@@ -13,6 +13,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
   cancel-in-progress: true  # Automatically cancel any previous runs for the same group
 
+env:
+  GGDB_IMAGE: greengagedb/ggdb6_ubuntu:6.29.1
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -60,13 +63,16 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Install C dependencies
+      - name: Build C component in container
         if: matrix.setup == 'c'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc cmake postgresql-server-dev-14
+          docker run --rm -v "$(pwd)":/home/gpadmin/pxf \
+            -w /home/gpadmin/pxf/${{ matrix.component }} \
+            $GGDB_IMAGE \
+            ${{ matrix.build_command }}
 
-      - name: Build ${{ matrix.component }}
+      - name: Build Java/Go component on host
+        if: matrix.setup != 'c'
         run: |
           cd ${{ matrix.component }} || exit 1
           ${{ matrix.build_command }}
