@@ -70,6 +70,8 @@ jobs:
             -w /home/gpadmin/pxf/${{ matrix.component }} \
             $GGDB_IMAGE \
             bash -c "
+              set -x
+              mkdir -p /usr/local/greengage-db-devel
               tar -xzf /home/gpadmin/bin_gpdb/bin_gpdb.tar.gz -C /usr/local/greengage-db-devel/
               source /usr/local/greengage-db-devel/greengage_path.sh
               export GPHOME=/usr/local/greengage-db-devel
