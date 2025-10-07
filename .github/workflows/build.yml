@@ -63,7 +63,7 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Build C component in container
+      - name: Build ${{ matrix.component }} component in container
         if: matrix.setup == 'c'
         run: |
           set -x
@@ -77,17 +77,17 @@ jobs:
             bash -c "
               set -x
               env
-              mkdir -p $GPHOME
-              tar -xzf /home/gpadmin/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
-              source $GPHOME/greengage_path.sh
+              mkdir -p \$GPHOME
+              tar -xzf /home/gpadmin/bin_gpdb/bin_gpdb.tar.gz -C \$GPHOME/
+              source \$GPHOME/greengage_path.sh
               ${{ matrix.build_command }}
-              chown $EXTERNAL_USER:$EXTERNAL_GROUP -R /home/gpadmin/pxf
+              chown \$EXTERNAL_USER:\$EXTERNAL_GROUP -R /home/gpadmin/pxf
             "
             echo COMPONENT ${{ matrix.component }} 
             echo PATH ${{ matrix.cache_paths }}
             ls -la
 
-      - name: Build Java/Go component on host
+      - name: Build ${{ matrix.component }} component on host
         if: matrix.setup != 'c'
         run: |
           cd ${{ matrix.component }} || exit 1
@@ -95,6 +95,15 @@ jobs:
           echo COMPONENT ${{ matrix.component }} 
           echo PATH ${{ matrix.cache_paths }}
           ls -la
+
+      - name: Build ${{ matrix.component }} component on host
+        if: matrix.setup != 'c'
+        run: |
+          echo COMPONENT ${{ matrix.component }} 
+          echo PATH ${{ matrix.cache_paths }}
+          ls -la 
+          find . -type d -name ${{ matrix.cache_paths }}
+          ls -la ${{ matrix.cache_paths }} || true
 
       - name: Cache artifacts
         uses: actions/cache@v4
