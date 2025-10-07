@@ -76,6 +76,7 @@ jobs:
             $GGDB_IMAGE \
             bash -c "
               set -x
+              env
               mkdir -p $GPHOME
               tar -xzf /home/gpadmin/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
               source $GPHOME/greengage_path.sh
