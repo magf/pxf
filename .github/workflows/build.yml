@@ -66,29 +66,34 @@ jobs:
       - name: Build C component in container
         if: matrix.setup == 'c'
         run: |
-          docker run --rm -v ./:/home/gpadmin/pxf \
+          set -x
+          docker run --rm \
+            -v ./:/home/gpadmin/pxf \
+            -e EXTERNAL_USER="$(id -u)" \
+            -e EXTERNAL_GROUP="$(id -g)" \
+            -e GPHOME=/usr/local/greengage-db-devel \
             -w /home/gpadmin/pxf/${{ matrix.component }} \
             $GGDB_IMAGE \
             bash -c "
               set -x
-              mkdir -p /usr/local/greengage-db-devel
-              tar -xzf /home/gpadmin/bin_gpdb/bin_gpdb.tar.gz -C /usr/local/greengage-db-devel/
-              source /usr/local/greengage-db-devel/greengage_path.sh
-              export GPHOME=/usr/local/greengage-db-devel
+              mkdir -p $GPHOME
+              tar -xzf /home/gpadmin/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
+              source $GPHOME/greengage_path.sh
               ${{ matrix.build_command }}
+              chown $EXTERNAL_USER:$EXTERNAL_GROUP -R /home/gpadmin/pxf
             "
             echo COMPONENT ${{ matrix.component }} 
             echo PATH ${{ matrix.cache_paths }}
             ls -la
-            ls -la ${{ matrix.cache_paths }} || true
 
       - name: Build Java/Go component on host
         if: matrix.setup != 'c'
         run: |
           cd ${{ matrix.component }} || exit 1
           ${{ matrix.build_command }}
+          echo COMPONENT ${{ matrix.component }} 
+          echo PATH ${{ matrix.cache_paths }}
           ls -la
-          ls -la ${{ matrix.cache_paths }} || true
 
       - name: Cache artifacts
         uses: actions/cache@v4
