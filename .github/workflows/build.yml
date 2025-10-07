@@ -66,7 +66,7 @@ jobs:
       - name: Build C component in container
         if: matrix.setup == 'c'
         run: |
-          docker run --rm -v $(pwd):/home/gpadmin/pxf \
+          docker run --rm -v ${{ github.workspace }}:/home/gpadmin/pxf \
             -w /home/gpadmin/pxf/${{ matrix.component }} \
             $GGDB_IMAGE \
             bash -c "
@@ -76,13 +76,16 @@ jobs:
               source /usr/local/greengage-db-devel/greengage_path.sh
               export GPHOME=/usr/local/greengage-db-devel
               ${{ matrix.build_command }}
+              ls -la ${{ matrix.cache_paths }}
             "
+            ls -la /home/gpadmin/pxf/${{ matrix.cache_paths }}
 
       - name: Build Java/Go component on host
         if: matrix.setup != 'c'
         run: |
           cd ${{ matrix.component }} || exit 1
           ${{ matrix.build_command }}
+          ls -la ${{ matrix.cache_paths }}
 
       - name: Cache artifacts
         uses: actions/cache@v4
