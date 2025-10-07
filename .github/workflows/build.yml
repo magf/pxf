@@ -96,16 +96,8 @@ jobs:
           echo PATH ${{ matrix.cache_paths }}
           ls -la
 
-      - name: Build ${{ matrix.component }} component on host
-        if: matrix.setup != 'c'
-        run: |
-          echo COMPONENT ${{ matrix.component }} 
-          echo PATH ${{ matrix.cache_paths }}
-          ls -la 
-          find . -type d -name ${{ matrix.cache_paths }}
-          ls -la ${{ matrix.cache_paths }} || true
-
       - name: Cache artifacts
+        if: always()
         uses: actions/cache@v4
         with:
           path: ${{ matrix.cache_paths }}
