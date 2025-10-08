@@ -41,19 +41,15 @@ jobs:
           cache-dependency-path: cli
 
       - name: Build and install all components
+        working-directory: ${{ env.DEV_HOME }}/pxf
         run: |
-          set -x
-          env
-          pwd
-          ls -la
-          sudo -s
-          env
-          pwd
-          ls -la
-          mkdir -p $GPHOME
-          tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
-          source $GPHOME/greengage_path.sh
-          make all install
+          sudo bash -c "
+            set -x
+            mkdir -p $GPHOME
+            tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
+            source $GPHOME/greengage_path.sh
+            make all install
+          "
 
       - name: Cache installed PXF
         uses: actions/cache@v4
