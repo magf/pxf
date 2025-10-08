@@ -15,13 +15,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ${{ env.GGDB_IMAGE }}
+      image: ${{ vars.GGDB_IMAGE }}
       volumes:
-        - ${{ github.workspace }}:${{ env.DEV_HOME }}/pxf
+        - ${{ github.workspace }}:${{ vars.DEV_HOME }}/pxf
       env:
-        PXF_HOME: ${{ env.PXF_HOME }}
-        GPHOME: ${{ env.GPHOME }}
-        PATH: ${{ env.PXF_HOME }}/bin:$PATH
+        PXF_HOME: ${{ vars.PXF_HOME }}
+        GPHOME: ${{ vars.GPHOME }}
+        PATH: ${{ vars.PXF_HOME }}/bin:$PATH
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -41,11 +41,11 @@ jobs:
       - name: Prepare Greengage environment
         run: |
           mkdir -p $GPHOME
-          tar -xzf ${{ env.DEV_HOME }}/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
+          tar -xzf ${{ vars.DEV_HOME }}/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
           source $GPHOME/greengage_path.sh
 
       - name: Build and install all components
-        working-directory: ${{ env.DEV_HOME }}/pxf
+        working-directory: ${{ vars.DEV_HOME }}/pxf
         run: |
           source $GPHOME/greengage_path.sh
           make all install
@@ -53,7 +53,7 @@ jobs:
       - name: Cache installed PXF
         uses: actions/cache@v4
         with:
-          path: ${{ env.PXF_HOME }}
+          path: ${{ vars.PXF_HOME }}
           key: pxf-${{ github.sha }}
 
       - name: Upload installed artifacts
@@ -61,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pxf-bin
-          path: ${{ env.PXF_HOME }}
+          path: ${{ vars.PXF_HOME }}
 
   test:
     needs: build
@@ -70,13 +70,13 @@ jobs:
       matrix:
         group: [smoke, features, regression]
     container:
-      image: ${{ env.GGDB_IMAGE }}
+      image: ${{ vars.GGDB_IMAGE }}
       volumes:
-        - ${{ github.workspace }}:${{ env.DEV_HOME }}/pxf
+        - ${{ github.workspace }}:${{ vars.DEV_HOME }}/pxf
       env:
-        PXF_HOME: ${{ env.PXF_HOME }}
-        GPHOME: ${{ env.GPHOME }}
-        PATH: ${{ env.PXF_HOME }}/bin:$PATH
+        PXF_HOME: ${{ vars.PXF_HOME }}
+        GPHOME: ${{ vars.GPHOME }}
+        PATH: ${{ vars.PXF_HOME }}/bin:$PATH
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -84,23 +84,19 @@ jobs:
       - name: Restore PXF installation
         uses: actions/cache@v4
         with:
-          path: ${{ env.PXF_HOME }}
+          path: ${{ vars.PXF_HOME }}
           key: pxf-${{ github.sha }}
 
-      - name: Start Hadoop services
+      - name: Start Hadoop services for ${{ matrix.group }}
         uses: isbang/compose-action@v2.1.1
         with:
-          # compose-file: "${{ env.DEV_HOME }}/pxf/automation/ci/docker-compose-hadoop.yml"
-          compose-file: "${{ env.DEV_HOME }}/pxf/automation/env/docker-compose-ssl.yml"
+          compose-file: "${{ vars.DEV_HOME }}/pxf/automation/env/docker-compose-ssl.yml"
+          project-name: "pxf-test-${{ matrix.group }}"
 
-      - name: Set up PXF environment
+      - name: Run ${{ matrix.group }} tests
+        working-directory: ${{ vars.DEV_HOME }}/pxf/automation
         run: |
           source $GPHOME/greengage_path.sh
           pxf prepare
           pxf start
-
-      - name: Run ${{ matrix.group }} tests
-        working-directory: ${{ env.DEV_HOME }}/pxf/automation
-        run: |
-          source $GPHOME/greengage_path.sh
           make GROUP=${{ matrix.group }}
