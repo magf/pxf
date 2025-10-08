@@ -84,17 +84,13 @@ jobs:
               ${{ matrix.build_command }}
               chown \$EXTERNAL_USER:\$EXTERNAL_GROUP -R /home/gpadmin/pxf
             "
-            ls -la
 
       - name: Build ${{ matrix.component }} component on host
         if: matrix.setup != 'c'
-        run: |
-          cd ${{ matrix.component }} || exit 1
-          ${{ matrix.build_command }}
-          ls -la
+        working-directory: ${{ matrix.component }}
+        run: ${{ matrix.build_command }}
 
       - name: Cache artifacts
-        if: always()
         uses: actions/cache@v4
         with:
           path: ${{ matrix.cache_paths }}
@@ -106,4 +102,3 @@ jobs:
         with:
           name: pxf-${{ matrix.component }}
           path: ${{ matrix.cache_paths }}
-
