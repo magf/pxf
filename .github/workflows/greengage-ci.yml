@@ -39,15 +39,12 @@ jobs:
           go-version: '1.21'
           cache-dependency-path: cli
 
-      - name: Prepare Greengage environment
-        run: |
-          mkdir -p $GPHOME
-          tar -xzf ${{ vars.DEV_HOME }}/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
-          source $GPHOME/greengage_path.sh
-
-      - name: Build and install all components
+      - name: PBuild and install all components
         working-directory: ${{ vars.DEV_HOME }}/pxf
         run: |
+          sudo -s
+          mkdir -p $GPHOME
+          tar -xzf ${{ vars.DEV_HOME }}/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
           source $GPHOME/greengage_path.sh
           make all install
 
