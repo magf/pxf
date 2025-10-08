@@ -8,8 +8,8 @@ on:
 env:
   GGDB_IMAGE: greengagedb/ggdb6_ubuntu:6.29.1
   PXF_HOME: /usr/local/pxf
-  GPHOME: /usr/local/greengage-db-devel
   DEV_HOME: /home/gpadmin
+  GPHOME:   /usr/local/greengage-db-devel
 
 jobs:
   build:
@@ -21,8 +21,9 @@ jobs:
         - ${{ github.workspace }}:${{ vars.DEV_HOME }}/pxf
       env:
         PXF_HOME: ${{ vars.PXF_HOME }}
-        GPHOME: ${{ vars.GPHOME }}
-        PATH: ${{ vars.PXF_HOME }}/bin:$PATH
+        DEV_HOME: ${{ vars.DEV_HOME }}
+        GPHOME:   ${{ vars.GPHOME }}
+        PATH:     ${{ vars.PXF_HOME }}/bin:$PATH
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,17 +40,18 @@ jobs:
           go-version: '1.21'
           cache-dependency-path: cli
 
-      - name: PBuild and install all components
-        working-directory: ${{ vars.DEV_HOME }}/pxf
+      - name: Build and install all components
         run: |
           set -x
-          pwd
           env
+          pwd
           ls -la
           sudo -s
           env
+          pwd
+          ls -la
           mkdir -p $GPHOME
-          tar -xzf ${{ vars.DEV_HOME }}/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
+          tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
           source $GPHOME/greengage_path.sh
           make all install
 
@@ -79,8 +81,8 @@ jobs:
         - ${{ github.workspace }}:${{ vars.DEV_HOME }}/pxf
       env:
         PXF_HOME: ${{ vars.PXF_HOME }}
-        GPHOME: ${{ vars.GPHOME }}
-        PATH: ${{ vars.PXF_HOME }}/bin:$PATH
+        GPHOME:   ${{ vars.GPHOME }}
+        PATH:     ${{ vars.PXF_HOME }}/bin:$PATH
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
