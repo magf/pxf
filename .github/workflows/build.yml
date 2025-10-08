@@ -62,7 +62,7 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: '1.21'
-          working-directory: ${{ matrix.component }}
+          cache-dependency-path: ${{ matrix.component }}
 
       - name: Build ${{ matrix.component }} component in container
         if: matrix.setup == 'c'
