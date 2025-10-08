@@ -42,7 +42,12 @@ jobs:
       - name: PBuild and install all components
         working-directory: ${{ vars.DEV_HOME }}/pxf
         run: |
+          set -x
+          pwd
+          env
+          ls -la
           sudo -s
+          env
           mkdir -p $GPHOME
           tar -xzf ${{ vars.DEV_HOME }}/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
           source $GPHOME/greengage_path.sh
