@@ -16,7 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ${{ vars.GGDB_IMAGE }}
-      options: --privileged --user root
       volumes:
         - ${{ github.workspace }}:${{ vars.DEV_HOME }}/pxf
       env:
@@ -40,19 +39,26 @@ jobs:
           go-version: '1.21'
           cache-dependency-path: cli
 
-      - name: Build and install all components
-        working-directory: ${{ env.DEV_HOME }}/pxf
+      # - name: Build and install all components
+      #   run: |
+      #     sudo bash -c "
+      #       set -x
+      #       pwd
+      #       ls -la 
+      #       ls -la /home
+      #       mkdir -p $GPHOME
+      #       tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
+      #       source $GPHOME/greengage_path.sh
+      #       make all install
+      #     "
+
+      - name: Debug container
         run: |
-          sudo bash -c "
-            set -x
-            pwd
-            ls -la 
-            ls -la /home
-            mkdir -p $GPHOME
-            tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
-            source $GPHOME/greengage_path.sh
-            make all install
-          "
+          set -x
+          echo "Hostname:" $(hostname)
+          cat /etc/os-release
+          ps -ef | head
+          id
 
       - name: Cache installed PXF
         uses: actions/cache@v4
