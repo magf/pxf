@@ -41,10 +41,13 @@ jobs:
           cache-dependency-path: cli
 
       - name: Build and install all components
-        working-directory: ${{ env.DEV_HOME }}/pxf
+        # working-directory: ${{ env.DEV_HOME }}/pxf
         run: |
           sudo bash -c "
             set -x
+            pwd
+            ls -la 
+            ls -la /home
             mkdir -p $GPHOME
             tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
             source $GPHOME/greengage_path.sh
