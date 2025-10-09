@@ -34,13 +34,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Cache SHA image
-      - name: Cache SHA image
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.ARCHIVE_NAME }}
-          key:  ${{ env.IMAGE_NAME }}
-
       - name: Install build dependencies (Java + Go)
         run: |
           set -eux
