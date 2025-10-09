@@ -30,6 +30,7 @@ jobs:
         PXF_HOME: ${{ env.PXF_HOME }}
         DEV_HOME: ${{ matrix.dev_home }}
         GPHOME:   ${{ env.GPHOME }}
+        PATH:     ${{ env.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,8 +39,12 @@ jobs:
         run: |
           set -eux
           apt-get update
-          apt-get install -y openjdk-17-jdk golang-go
+          apt-get install -y openjdk-17-jdk
           java -version
+          go_version=$(grep -E '^go [0-9]+\.[0-9]+\.[0-9]+' cli/go.mod | cut -d' ' -f2)
+          curl -L https://go.dev/dl/go$go_version.linux-amd64.tar.gz -O go.tar.gz
+          rm -rf /usr/local/go
+          tar -C /usr/local -xzf go.tar.gz
           go version
 
       - name: Build and install all components
@@ -47,7 +52,6 @@ jobs:
         shell: bash
         run: |
           set -x
-          export PATH="$PXF_HOME/bin:$PATH"
           ls -la $DEV_HOME
           mkdir -p $GPHOME
           tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
