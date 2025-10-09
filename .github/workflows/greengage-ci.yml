@@ -53,7 +53,9 @@ jobs:
         working-directory: ${{ matrix.dev_home }}/pxf
         shell: bash
         run: |
-          set -x
+          set -eux
+          pwd
+          git config --global --add safe.directory .
           ls -la $DEV_HOME
           mkdir -p $GPHOME
           tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
