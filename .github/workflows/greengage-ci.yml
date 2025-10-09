@@ -30,7 +30,6 @@ jobs:
         PXF_HOME: ${{ env.PXF_HOME }}
         DEV_HOME: ${{ matrix.dev_home }}
         GPHOME:   ${{ env.GPHOME }}
-        PATH:     ${{ env.PXF_HOME }}/bin:$PATH
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -47,6 +46,7 @@ jobs:
         working-directory: ${{ matrix.dev_home }}/pxf
         run: |
           set -x
+          export PATH="$PXF_HOME/bin:\$PATH"
           pwd
           ls -la 
           ls -la /home
@@ -92,7 +92,6 @@ jobs:
         PXF_HOME: ${{ env.PXF_HOME }}
         DEV_HOME: ${{ matrix.dev_home }}
         GPHOME:   ${{ env.GPHOME }}
-        PATH:     ${{ env.PXF_HOME }}/bin:$PATH
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -112,6 +111,7 @@ jobs:
       - name: Run ${{ matrix.group }} tests
         working-directory: ${{ matrix.dev_home }}/pxf/automation
         run: |
+          export PATH="$PXF_HOME/bin:\$PATH"
           source $GPHOME/greengage_path.sh
           pxf prepare
           pxf start
