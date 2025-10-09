@@ -7,21 +7,30 @@ on:
 
 env:
   PXF_HOME: /usr/local/pxf
-  DEV_HOME: /home/gpadmin
   GPHOME:   /usr/local/greengage-db-devel
 
 jobs:
   build:
+    # The matrix defines the container image and its home directory
+    strategy:
+      matrix:
+        include:
+          - image: greengagedb/ggdb6_ubuntu:6.29.1
+            dev_home: /home/gpadmin
+          # Add more OS images later if needed:
+          # - image: greengagedb/ggdb6_centos:6.29.1
+          #   dev_home: /home/gpadmin
+
     runs-on: ubuntu-latest
     container:
-      image: greengagedb/ggdb6_ubuntu:6.29.1
+      image: ${{ matrix.image }}
       volumes:
-        - ${{ github.workspace }}:${{ vars.DEV_HOME }}/pxf
+        - ${{ github.workspace }}:${{ matrix.dev_home }}/pxf
       env:
-        PXF_HOME: ${{ vars.PXF_HOME }}
-        DEV_HOME: ${{ vars.DEV_HOME }}
-        GPHOME:   ${{ vars.GPHOME }}
-        PATH:     ${{ vars.PXF_HOME }}/bin:$PATH
+        PXF_HOME: ${{ env.PXF_HOME }}
+        DEV_HOME: ${{ matrix.dev_home }}
+        GPHOME:   ${{ env.GPHOME }}
+        PATH:     ${{ env.PXF_HOME }}/bin:$PATH
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,21 +44,21 @@ jobs:
           go version
 
       - name: Build and install all components
-        working-directory: ${{ vars.DEV_HOME }}/pxf
+        working-directory: ${{ matrix.dev_home }}/pxf
         run: |
-            set -x
-            pwd
-            ls -la 
-            ls -la /home
-            mkdir -p $GPHOME
-            tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
-            source $GPHOME/greengage_path.sh
-            make all install
+          set -x
+          pwd
+          ls -la 
+          ls -la /home
+          mkdir -p $GPHOME
+          tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
+          source $GPHOME/greengage_path.sh
+          make all install
 
       - name: Cache installed PXF
         uses: actions/cache@v4
         with:
-          path: ${{ vars.PXF_HOME }}
+          path: ${{ env.PXF_HOME }}
           key: pxf-${{ github.sha }}
 
       - name: Upload installed artifacts
@@ -57,23 +66,33 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pxf-bin
-          path: ${{ vars.PXF_HOME }}
+          path: ${{ env.PXF_HOME }}
 
   test:
     needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        group: [smoke, features, regression]
+        include:
+          - image: greengagedb/ggdb6_ubuntu:6.29.1
+            dev_home: /home/gpadmin
+            group: smoke
+          - image: greengagedb/ggdb6_ubuntu:6.29.1
+            dev_home: /home/gpadmin
+            group: features
+          - image: greengagedb/ggdb6_ubuntu:6.29.1
+            dev_home: /home/gpadmin
+            group: regression
     container:
-      image: greengagedb/ggdb6_ubuntu:6.29.1
+      image: ${{ matrix.image }}
       options: --privileged --user root
       volumes:
-        - ${{ github.workspace }}:${{ vars.DEV_HOME }}/pxf
+        - ${{ github.workspace }}:${{ matrix.dev_home }}/pxf
       env:
-        PXF_HOME: ${{ vars.PXF_HOME }}
-        GPHOME:   ${{ vars.GPHOME }}
-        PATH:     ${{ vars.PXF_HOME }}/bin:$PATH
+        PXF_HOME: ${{ env.PXF_HOME }}
+        DEV_HOME: ${{ matrix.dev_home }}
+        GPHOME:   ${{ env.GPHOME }}
+        PATH:     ${{ env.PXF_HOME }}/bin:$PATH
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -81,17 +100,17 @@ jobs:
       - name: Restore PXF installation
         uses: actions/cache@v4
         with:
-          path: ${{ vars.PXF_HOME }}
+          path: ${{ env.PXF_HOME }}
           key: pxf-${{ github.sha }}
 
       - name: Start Hadoop services for ${{ matrix.group }}
         uses: isbang/compose-action@v2.1.1
         with:
-          compose-file: "${{ vars.DEV_HOME }}/pxf/automation/env/docker-compose-ssl.yml"
+          compose-file: "${{ matrix.dev_home }}/pxf/automation/env/docker-compose-ssl.yml"
           project-name: "pxf-test-${{ matrix.group }}"
 
       - name: Run ${{ matrix.group }} tests
-        working-directory: ${{ vars.DEV_HOME }}/pxf/automation
+        working-directory: ${{ matrix.dev_home }}/pxf/automation
         run: |
           source $GPHOME/greengage_path.sh
           pxf prepare
