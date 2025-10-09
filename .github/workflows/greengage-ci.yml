@@ -47,6 +47,8 @@ jobs:
         run: |
           set -x
           export PATH="$PXF_HOME/bin:\$PATH"
+          env
+          echo \$PATH
           pwd
           ls -la 
           ls -la /home
