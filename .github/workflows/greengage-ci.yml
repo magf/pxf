@@ -46,9 +46,9 @@ jobs:
         working-directory: ${{ matrix.dev_home }}/pxf
         run: |
           set -x
-          export PATH=$PXF_HOME/bin:\$PATH
+          export PATH="$PXF_HOME/bin:$PATH"
           env
-          echo \$PATH
+          echo $PATH
           pwd
           ls -la 
           ls -la /home
