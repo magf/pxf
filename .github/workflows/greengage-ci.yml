@@ -15,8 +15,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - image: greengagedb/ggdb6_ubuntu:6.29.1
+          - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
             dev_home: /home/gpadmin
+          # - image: greengagedb/ggdb6_ubuntu:6.29.1
+          #   dev_home: /home/gpadmin
           # Add more OS images later if needed:
           # - image: greengagedb/ggdb6_centos:6.29.1
           #   dev_home: /home/gpadmin
@@ -42,7 +44,7 @@ jobs:
           apt-get install -y openjdk-17-jdk
           java -version
           go_version=$(grep -E '^go [0-9]+\.[0-9]+\.[0-9]+' cli/go.mod | cut -d' ' -f2)
-          curl -L https://go.dev/dl/go$go_version.linux-amd64.tar.gz -O go.tar.gz
+          curl -L https://go.dev/dl/go$go_version.linux-amd64.tar.gz --output go.tar.gz
           rm -rf /usr/local/go
           tar -C /usr/local -xzf go.tar.gz
           go version
