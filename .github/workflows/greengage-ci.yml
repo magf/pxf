@@ -33,6 +33,7 @@ jobs:
         DEV_HOME: ${{ matrix.dev_home }}
         GPHOME:   ${{ env.GPHOME }}
         PATH:     ${{ env.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin
+        JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
