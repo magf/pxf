@@ -34,6 +34,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Cache SHA image
+      - name: Cache SHA image
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.ARCHIVE_NAME }}
+          key:  ${{ env.IMAGE_NAME }}
+
       - name: Install build dependencies (Java + Go)
         run: |
           set -eux
@@ -44,6 +51,7 @@ jobs:
 
       - name: Build and install all components
         working-directory: ${{ matrix.dev_home }}/pxf
+        shell: bash
         run: |
           set -x
           export PATH="$PXF_HOME/bin:$PATH"
@@ -109,8 +117,9 @@ jobs:
 
       - name: Run ${{ matrix.group }} tests
         working-directory: ${{ matrix.dev_home }}/pxf/automation
+        shell: bash
         run: |
-          export PATH="$PXF_HOME/bin:\$PATH"
+          export PATH="$PXF_HOME/bin:$PATH"
           source $GPHOME/greengage_path.sh
           pxf prepare
           pxf start
