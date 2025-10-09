@@ -56,6 +56,7 @@ jobs:
           set -eux
           pwd
           git config --global --add safe.directory $(pwd)
+          localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
           ls -la $DEV_HOME
           mkdir -p $GPHOME
           tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
