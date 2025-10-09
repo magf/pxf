@@ -47,13 +47,10 @@ jobs:
         run: |
           set -x
           export PATH="$PXF_HOME/bin:$PATH"
-          env
-          echo $PATH
-          pwd
-          ls -la 
-          ls -la /home
+          ls -la $DEV_HOME
           mkdir -p $GPHOME
           tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
+          ls -la $GPHOME/
           source $GPHOME/greengage_path.sh
           make all install
 
