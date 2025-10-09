@@ -70,7 +70,7 @@ jobs:
       - name: Cache deb PXF
         uses: actions/cache@v4
         with:
-          path: ./*.deb
+          path: build/*.deb
           key: pxf-deb-${{ github.sha }}
 
       - name: Upload stage artifacts
@@ -80,19 +80,19 @@ jobs:
           name: pxf-stage
           path: build/stage/
 
-      - name: Upload debuild artifacts
+      - name: Upload debbuild artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pxf-stage
-          path: build/debuild/
+          path: build/debbuild/
 
       - name: Upload deb artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pxf-deb
-          path: ./*.deb
+          path: build/*.deb
 
   test:
     needs: build
@@ -122,14 +122,14 @@ jobs:
       - name: Restore PXF deb
         uses: actions/cache@v4
         with:
-          path: ./*.deb
+          path: build/*.deb
           key: pxf-deb-${{ github.sha }}
 
       - name: Install PXF deb
         shell: bash
         run: |
           set -eux
-          { apt install -y ./*.deb 2>&1 || dpkg -i ./*.deb 2>&1; }
+          { apt install -y build/*.deb 2>&1 || dpkg -i build/*.deb 2>&1; }
           apt install -f -y
 
       - name: Start Hadoop Docker compose for ${{ matrix.group }}
