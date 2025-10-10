@@ -85,7 +85,7 @@ jobs:
               chown \$EXTERNAL_USER:\$EXTERNAL_GROUP -R /home/gpadmin/pxf
             "
 
-      - name: Build ${{ matrix.component }} component on host
+      - name: Build ${{ matrix.component }} component
         if: matrix.setup != 'c'
         working-directory: ${{ matrix.component }}
         run: ${{ matrix.build_command }}
