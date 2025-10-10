@@ -84,7 +84,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pxf-stage
+          name: pxf-debbuild
           path: build/debbuild/
 
       - name: Upload deb artifacts
