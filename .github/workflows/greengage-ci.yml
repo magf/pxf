@@ -1,0 +1,180 @@
+# .github/workflows/greengage-ci.yml
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: ['*']
+
+env:
+  DEV_HOME: /home/gpadmin
+  PXF_HOME: /usr/local/pxf
+  GPHOME:   /usr/local/greengage-db-devel
+
+jobs:
+  build:
+    # The matrix defines the container image and its home directory
+    strategy:
+      matrix:
+        include:
+          - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
+            dev_home: /home/gpadmin
+          # - image: greengagedb/ggdb6_ubuntu:6.29.1
+          #   dev_home: /home/gpadmin
+          # Add more OS images later if needed:
+          # - image: greengagedb/ggdb6_centos:6.29.1
+          #   dev_home: /home/gpadmin
+
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.image }}
+      volumes:
+        - ${{ github.workspace }}:${{ matrix.dev_home }}/pxf
+      env:
+        PXF_HOME: ${{ env.PXF_HOME }}
+        DEV_HOME: ${{ matrix.dev_home }}
+        GPHOME:   ${{ env.GPHOME }}
+        PATH:     ${{ env.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin
+        JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies (Java + Go)
+        run: |
+          set -eux
+          apt-get update
+          apt-get install -y openjdk-17-jdk
+          java -version
+          go_version=$(grep -E '^go [0-9]+\.[0-9]+\.[0-9]+' cli/go.mod | cut -d' ' -f2)
+          curl -L https://go.dev/dl/go$go_version.linux-amd64.tar.gz --output go.tar.gz
+          rm -rf /usr/local/go
+          tar -C /usr/local -xzf go.tar.gz
+          go version
+
+      - name: Build and package deb all components
+        working-directory: ${{ matrix.dev_home }}/pxf
+        shell: bash
+        run: |
+          set -eux
+          pwd
+          git config --global --add safe.directory $(pwd)
+          localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
+          ls -la $DEV_HOME
+          mkdir -p $GPHOME
+          tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
+          ls -la $GPHOME/
+          source $GPHOME/greengage_path.sh
+          make all install deb
+          ls -la
+
+      - name: Cache deb PXF
+        uses: actions/cache@v4
+        with:
+          path: build/*.deb
+          key: pxf-deb-${{ github.sha }}
+
+      - name: Upload stage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxf-stage
+          path: build/stage/
+
+      - name: Upload debbuild artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxf-debbuild
+          path: build/debbuild/
+
+      - name: Upload deb artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxf-deb
+          path: build/*.deb
+
+      - name: Build Hadoop 3.3.6 image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./automation/env/hadoop
+          file: ./automation/env/hadoop/Dockerfile
+          push: false
+          tags: pxf-hadoop:3.3.6
+
+      - name: Build Vault image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./automation/env/vault
+          file: ./automation/env/vault/Dockerfile
+          push: false
+          tags: pxf-vault-test:it
+
+      - name: Build PXF automation image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./automation/env/vault
+          file: ./automation/env/Dockerfile
+          push: false
+          tags: ggdb6_pxf_automation:it
+          build-args: GGDB_IMAGE=${{ matrix.image }}
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run IT
+        shell: bash
+        run: |
+          cd automation/env
+          bash run_it.sh true
+
+  # test:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - image: greengagedb/ggdb6_ubuntu:6.29.1
+  #           dev_home: /home/gpadmin
+  #           group: smoke
+  #         - image: greengagedb/ggdb6_ubuntu:6.29.1
+  #           dev_home: /home/gpadmin
+  #           group: features
+  #         - image: greengagedb/ggdb6_ubuntu:6.29.1
+  #           dev_home: /home/gpadmin
+  #           group: regression
+  #   env:
+  #     PXF_HOME: ${{ vars.PXF_HOME }}
+  #     GPHOME:   ${{ vars.GPHOME }}
+  #     PATH:     ${{ vars.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin
+  #     JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+  #     DEBIAN_FRONTEND: noninteractive
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Restore PXF deb
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: build/*.deb
+  #         key: pxf-deb-${{ github.sha }}
+
+  #     - name: Install PXF deb
+  #       shell: bash
+  #       run: |
+  #         set -eux
+  #         { apt install -y build/*.deb 2>&1 || dpkg -i build/*.deb 2>&1; }
+  #         apt install -f -y
+
+  #     - name: Start Hadoop Docker compose for ${{ matrix.group }}
+  #       run: docker compose --file "${{ matrix.dev_home }}/pxf/automation/env/docker-compose-ssl.yml" --project-name "pxf-test-${{ matrix.group }}" up -d
+
+  #     - name: Run ${{ matrix.group }} tests
+  #       working-directory: ${{ matrix.dev_home }}/pxf/automation
+  #       shell: bash
+  #       run: |
+  #         source $GPHOME/greengage_path.sh
+  #         pxf prepare
+  #         pxf start
+  #         make GROUP=${{ matrix.group }}
