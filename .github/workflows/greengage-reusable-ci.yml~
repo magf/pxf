@@ -1,0 +1,48 @@
+# .github/workflows/ci.yml
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: ['*']
+
+env:
+  GGDB_IMAGE: greengagedb/ggdb6_ubuntu:6.29.1
+  PXF_HOME: /usr/local/pxf
+  GPHOME: /usr/local/greengage-db-devel
+  DEV_HOME: /home/gpadmin
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      ggdb_image: ${{ env.GGDB_IMAGE }}
+      pxf_home: ${{ env.PXF_HOME }}
+      gphome: ${{ env.GPHOME }}
+      dev_home: ${{ env.DEV_HOME }}
+
+  smoke-tests:
+    needs: build
+    uses: ./.github/workflows/smoke-tests.yml
+    with:
+      ggdb_image: ${{ env.GGDB_IMAGE }}
+      pxf_home: ${{ env.PXF_HOME }}
+      gphome: ${{ env.GPHOME }}
+      dev_home: ${{ env.DEV_HOME }}
+
+  feature-tests:
+    needs: build
+    uses: ./.github/workflows/feature-tests.yml
+    with:
+      ggdb_image: ${{ env.GGDB_IMAGE }}
+      pxf_home: ${{ env.PXF_HOME }}
+      gphome: ${{ env.GPHOME }}
+      dev_home: ${{ env.DEV_HOME }}
+
+  regression-tests:
+    needs: build
+    uses: ./.github/workflows/regression-tests.yml
+    with:
+      ggdb_image: ${{ env.GGDB_IMAGE }}
+      pxf_home: ${{ env.PXF_HOME }}
+      gphome: ${{ env.GPHOME }}
+      dev_home: ${{ env.DEV_HOME }}

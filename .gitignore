@@ -1,5 +1,7 @@
 *.iml
+.deps/
 .idea/
+.local/
 .vscode/
 *.pyc
 *.log

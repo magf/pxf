@@ -1,0 +1,20 @@
+Source: pxf
+Maintainer: Greengage <greengage@greengagedb.org>
+Section: database
+Build-Depends: debhelper (>= 13),
+	 lsb-release
+
+Package: pxf
+Architecture: any
+Depends:
+Description: The pxf package provides connection pool for the Greengage Database 6
+
+Package: gppxf-adb6
+Architecture: any
+Depends: gpdb
+Description: Greenplum pxf extension
+
+Package: gppxf-fdw
+Architecture: any
+Depends: gpdb
+Description: Greenplum fdw pxf extension

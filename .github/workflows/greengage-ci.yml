@@ -1,152 +1,202 @@
-# Main CI pipeline orchestrating build, test, and upload stages
-name: Greengage CI
+# .github/workflows/greengage-ci.yml
+name: CI Pipeline
 
 on:
-  push:
-    branches: ['main']  # Trigger on push to main (after merged PR)
-    tags: ['6.*']   # Trigger on tags for versioned releases
   pull_request:
-    branches: ['*'] # Trigger on pull requests for all branches
+    branches: ['*']
 
-# Concurrency control to cancel previous runs on new push to same PR/branch
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true  # Automatically cancel any previous runs for the same group
+env:
+  DEV_HOME: /home/gpadmin
+  PXF_HOME: /usr/local/pxf
+  GPHOME:   /usr/local/greengage-db-devel
 
 jobs:
-  # Build developer's debug version as docker image
   build:
+    # The matrix defines the container image and its home directory
     strategy:
-      fail-fast: true  # Stop on any failure in the matrix
       matrix:
-        target_os: [ubuntu]
-    permissions:
-      contents: read  # Explicit for default behavior
-      packages: write # Required for GHCR access
-      actions: write  # Required for artifact upload
-    uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-build.yml@feat/build-pxg
-    with:
-      pxf: true
-      version: 6
-      target_os: ${{ matrix.target_os }}
-    secrets:
-      ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+        include:
+          - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
+            dev_home: /home/gpadmin
+          # - image: greengagedb/ggdb6_ubuntu:6.29.1
+          #   dev_home: /home/gpadmin
+          # Add more OS images later if needed:
+          # - image: greengagedb/ggdb6_centos:6.29.1
+          #   dev_home: /home/gpadmin
 
-  # behave-tests:
-  #   needs: build  # Wait for build to complete
-  #   if: github.event_name == 'pull_request'  # Only for PR
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       target_os: [ubuntu]
-  #   permissions:
-  #     contents: read  # Explicit for default behavior
-  #     packages: read  # Explicit for GHCR access clarity
-  #     actions: write  # Required for artifact upload
-  #   uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-tests-behave.yml@feat/build-pxg
-  #   with:
-  #     pxf: true
-  #     version: 6
-  #     target_os: ${{ matrix.target_os }}
-  #   secrets:
-  #     ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.image }}
+      volumes:
+        - ${{ github.workspace }}:${{ matrix.dev_home }}/pxf
+      env:
+        PXF_HOME: ${{ env.PXF_HOME }}
+        DEV_HOME: ${{ matrix.dev_home }}
+        GPHOME:   ${{ env.GPHOME }}
+        PATH:     ${{ env.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin
+        JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  # regression-tests:
-  #   needs: build
-  #   if: github.event_name == 'pull_request'  # Only for PR
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       target_os: [ubuntu]
-  #   permissions:
-  #     contents: read  # Explicit for default behavior
-  #     packages: read  # Explicit for GHCR access clarity
-  #     actions: write  # Required for artifact upload
-  #   uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-tests-regression.yml@feat/build-pxg
-  #   with:
-  #     pxf: true
-  #     version: 6
-  #     target_os: ${{ matrix.target_os }}
-  #   secrets:
-  #     ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install build dependencies (Java + Go)
+        run: |
+          set -eux
+          apt-get update
+          apt-get install -y openjdk-17-jdk
+          java -version
+          go_version=$(grep -E '^go [0-9]+\.[0-9]+\.[0-9]+' cli/go.mod | cut -d' ' -f2)
+          curl -L https://go.dev/dl/go$go_version.linux-amd64.tar.gz --output go.tar.gz
+          rm -rf /usr/local/go
+          tar -C /usr/local -xzf go.tar.gz
+          go version
 
-  # orca-tests:
-  #   needs: build
-  #   if: github.event_name == 'pull_request'  # Only for PR
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       target_os: [ubuntu]
-  #   permissions:
-  #     contents: read  # Explicit for default behavior
-  #     packages: read  # Explicit for GHCR access clarity
-  #     actions: write  # Required for artifact upload
-  #   uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-tests-orca.yml@feat/build-pxg
-  #   with:
-  #     pxf: true
-  #     version: 6
-  #     target_os: ${{ matrix.target_os }}
-  #   secrets:
-  #     ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and package deb all components
+        working-directory: ${{ matrix.dev_home }}/pxf
+        shell: bash
+        run: |
+          set -eux
+          pwd
+          git config --global --add safe.directory $(pwd)
+          localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
+          ls -la $DEV_HOME
+          mkdir -p $GPHOME
+          tar -xzf $DEV_HOME/bin_gpdb/bin_gpdb.tar.gz -C $GPHOME/
+          ls -la $GPHOME/
+          source $GPHOME/greengage_path.sh
+          make all install deb
+          ls -la
 
-  # resgroup-tests:
-  #   needs: build
-  #   if: github.event_name == 'pull_request'  # Only for PR
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       target_os: [ubuntu]
-  #   permissions:
-  #     contents: read  # Explicit for default behavior
-  #     packages: read  # Explicit for GHCR access clarity
-  #     actions: write  # Required for artifact upload
-  #   uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-tests-resgroup.yml@feat/build-pxg
-  #   with:
-  #     pxf: true
-  #     version: 6
-  #     target_os: ${{ matrix.target_os }}
-  #   secrets:
-  #     ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Cache deb PXF
+        uses: actions/cache@v4
+        with:
+          path: build/*.deb
+          key: pxf-deb-${{ github.sha }}
 
-  upload:
-    if: github.event_name == 'push'  # For push to main or tags
-    needs: build  # For push (main or tags)
+      - name: Upload stage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxf-stage
+          path: build/stage/
+
+      - name: Upload debbuild artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxf-debbuild
+          path: build/debbuild/
+
+      - name: Upload deb artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxf-deb
+          path: build/*.deb
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
-        target_os: [ubuntu]
-    permissions:
-      contents: read  # Explicit for default behavior
-      packages: write # Required for GHCR access
-      actions: write  # Required for artifact upload
-    uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-upload.yml@feat/build-pxg
-    with:
-      pxf: true
-      version: 6
-      target_os: ${{ matrix.target_os }}
-    secrets:
-      ghcr_token: ${{ secrets.GITHUB_TOKEN }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        include:
+          - image: greengagedb/ggdb6_ubuntu:6.29.1
+            dev_home: /home/gpadmin
+    env:
+      PXF_HOME: ${{ vars.PXF_HOME }}
+      GPHOME:   ${{ vars.GPHOME }}
+      PATH:     ${{ vars.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin
+      JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+      DEBIAN_FRONTEND: noninteractive
 
-  # # Rebuild prod-redy version without debug extensions and pack it to deb
-  # package:
-  #   if: github.event_name == 'push'  # For push to main or tags
+    steps:
+      - name: Install Java to runner
+        run: |
+          set -eux
+          sudo apt-get update
+          sudo apt-get install -y openjdk-17-jdk
+          java -version
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Hadoop 3.3.6 image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./automation/env/hadoop
+          file: ./automation/env/hadoop/Dockerfile
+          push: false
+          tags: pxf-hadoop:3.3.6
+
+      - name: Build Vault image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./automation/env/vault
+          file: ./automation/env/vault/Dockerfile
+          push: false
+          tags: pxf-vault-test:it
+
+      - name: Build PXF automation image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./automation/env/vault
+          file: ./automation/env/Dockerfile
+          push: false
+          tags: ggdb6_pxf_automation:it
+          build-args: GGDB_IMAGE=${{ matrix.image }}
+
+      - name: Run IT
+        shell: bash
+        run: |
+          cd automation/env
+          bash run_it.sh true
+
+  # test:
+  #   needs: build
+  #   runs-on: ubuntu-latest
   #   strategy:
-  #     fail-fast: false
   #     matrix:
-  #       target_os: [ubuntu]
-  #   permissions:
-  #     contents: read  # Explicit for default behavior
-  #     packages: write # Required for GHCR access
-  #     actions: write  # Required for artifact upload
-  #   uses: greengagedb/greengage-ci/.github/workflows/greengage-reusable-package.yml@feat/build-pxg
-  #   with:
-  #     pxf: true
-  #     version: 6
-  #     target_os: ${{ matrix.target_os }}
-  #     test_lima:   ''           # Lima Template (e.g., ubuntu-22.04) for deploy test. Skip if empty
-  #     test_docker: ubuntu:22.04 # Docker Image  (e.g., ubuntu:22.04, ubuntu:noble) for deploy test. Skip if empty
-  #     rebuild_builder: false    # Force rebuild builder even if it already exists
-  #   secrets:
-  #     ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+  #       include:
+  #         - image: greengagedb/ggdb6_ubuntu:6.29.1
+  #           dev_home: /home/gpadmin
+  #           group: smoke
+  #         - image: greengagedb/ggdb6_ubuntu:6.29.1
+  #           dev_home: /home/gpadmin
+  #           group: features
+  #         - image: greengagedb/ggdb6_ubuntu:6.29.1
+  #           dev_home: /home/gpadmin
+  #           group: regression
+  #   env:
+  #     PXF_HOME: ${{ vars.PXF_HOME }}
+  #     GPHOME:   ${{ vars.GPHOME }}
+  #     PATH:     ${{ vars.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin
+  #     JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+  #     DEBIAN_FRONTEND: noninteractive
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Restore PXF deb
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: build/*.deb
+  #         key: pxf-deb-${{ github.sha }}
+
+  #     - name: Install PXF deb
+  #       shell: bash
+  #       run: |
+  #         set -eux
+  #         { apt install -y build/*.deb 2>&1 || dpkg -i build/*.deb 2>&1; }
+  #         apt install -f -y
+
+  #     - name: Start Hadoop Docker compose for ${{ matrix.group }}
+  #       run: docker compose --file "${{ matrix.dev_home }}/pxf/automation/env/docker-compose-ssl.yml" --project-name "pxf-test-${{ matrix.group }}" up -d
+
+  #     - name: Run ${{ matrix.group }} tests
+  #       working-directory: ${{ matrix.dev_home }}/pxf/automation
+  #       shell: bash
+  #       run: |
+  #         source $GPHOME/greengage_path.sh
+  #         pxf prepare
+  #         pxf start
+  #         make GROUP=${{ matrix.group }}

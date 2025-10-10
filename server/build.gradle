@@ -26,6 +26,7 @@ buildscript {
 plugins {
     id "org.springframework.boot" version "${springBootVersion}" apply false
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id "org.sonarqube" version "6.3.1.5724"
 }
 
 // override Spring Framework version to pick the Spring MVC 5.3.33 with the async race condition fix
@@ -394,4 +395,11 @@ task stage(type: Copy) {
     into "$buildDir/stage"
 
     doLast { new File("${buildDir}/stage/version").text = "${version}\n" }
+}
+
+sonar {
+  properties {
+    property "sonar.projectKey", "magf_pxf"
+    property "sonar.organization", "magf"
+  }
 }

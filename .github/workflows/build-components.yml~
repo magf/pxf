@@ -1,0 +1,104 @@
+# .github/workflows/build.yml
+name: Build PXF Components
+
+on:
+  pull_request:
+    branches: ['*']
+  push:
+    branches: ['main']
+    tags: ['6.*']
+
+# Concurrency control to cancel previous runs on new push to same PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true  # Automatically cancel any previous runs for the same group
+
+env:
+  GGDB_IMAGE: greengagedb/ggdb6_ubuntu:6.29.1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: server
+            cache_paths: |
+              server/build/stage
+            setup: java
+            build_command: ./gradlew stage
+          - component: cli
+            cache_paths: |
+              cli/build
+            setup: go
+            build_command: make build
+          - component: fdw
+            cache_paths: |
+              fdw/*.so
+              fdw/*.sql
+              fdw/*.control
+            setup: c
+            build_command: make
+          - component: external-table
+            cache_paths: |
+              external-table/*.so
+              external-table/*.sql
+            setup: c
+            build_command: make
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        if: matrix.setup == 'java'
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Setup Go
+        if: matrix.setup == 'go'
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.21'
+          cache-dependency-path: ${{ matrix.component }}
+
+      - name: Build ${{ matrix.component }} component in container
+        if: matrix.setup == 'c'
+        run: |
+          set -x
+          docker run --rm \
+            -v ./:/home/gpadmin/pxf \
+            -e EXTERNAL_USER="$(id -u)" \
+            -e EXTERNAL_GROUP="$(id -g)" \
+            -e GPHOME=/usr/local/greengage-db-devel \
+            -w /home/gpadmin/pxf/${{ matrix.component }} \
+            $GGDB_IMAGE \
+            bash -c "
+              set -x
+              env
+              mkdir -p \$GPHOME
+              tar -xzf /home/gpadmin/bin_gpdb/bin_gpdb.tar.gz -C \$GPHOME/
+              source \$GPHOME/greengage_path.sh
+              ${{ matrix.build_command }}
+              chown \$EXTERNAL_USER:\$EXTERNAL_GROUP -R /home/gpadmin/pxf
+            "
+
+      - name: Build ${{ matrix.component }} component
+        if: matrix.setup != 'c'
+        working-directory: ${{ matrix.component }}
+        run: ${{ matrix.build_command }}
+
+      - name: Cache artifacts
+        uses: actions/cache@v4
+        with:
+          path: ${{ matrix.cache_paths }}
+          key: pxf-${{ matrix.component }}-${{ github.sha }}
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxf-${{ matrix.component }}
+          path: ${{ matrix.cache_paths }}
