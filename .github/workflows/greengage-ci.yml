@@ -94,6 +94,29 @@ jobs:
           name: pxf-deb
           path: build/*.deb
 
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - image: greengagedb/ggdb6_ubuntu:6.29.1
+            dev_home: /home/gpadmin
+    env:
+      PXF_HOME: ${{ vars.PXF_HOME }}
+      GPHOME:   ${{ vars.GPHOME }}
+      PATH:     ${{ vars.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin
+      JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+      DEBIAN_FRONTEND: noninteractive
+
+    steps:
+      - name: Install Java to runner
+        run: |
+          set -eux
+          apt-get update
+          apt-get install -y openjdk-17-jdk
+          java -version
+
       - name: Build Hadoop 3.3.6 image
         uses: docker/build-push-action@v6
         with:
@@ -119,10 +142,6 @@ jobs:
           tags: ggdb6_pxf_automation:it
           build-args: GGDB_IMAGE=${{ matrix.image }}
 
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - name: Run IT
         shell: bash
         run: |
