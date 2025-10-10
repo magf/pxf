@@ -117,6 +117,9 @@ jobs:
           sudo apt-get install -y openjdk-17-jdk
           java -version
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Build Hadoop 3.3.6 image
         uses: docker/build-push-action@v6
         with:
