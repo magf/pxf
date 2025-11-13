@@ -1,0 +1,84 @@
+name: Integration Tests (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+      release:
+        required: true
+        type: string
+      tests_matrix:
+        required: true
+        type: string  # JSON string with test matrix
+
+jobs:
+  integration:
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(inputs.tests_matrix) }}
+
+    name: IT '${{ matrix.test }}'${{ matrix.fdw && ' FDW' || '' }}${{ matrix.ssl && ' SSL' || '' }} on ${{ inputs.image }}
+
+    runs-on: ubuntu-latest
+    env:
+      DEV_HOME: /home/gpadmin
+      PXF_HOME: /usr/local/greengage-db-devel/pxf
+      GPHOME:   /usr/local/greengage-db-devel
+      PROFILE: ${{ matrix.test }}
+      GROUP: ${{ matrix.test }}
+      USE_FDW: ${{ matrix.fdw }}
+      USE_SSL: ${{ matrix.ssl }}
+      GGDB_IMAGE: ${{ inputs.image }}
+      IT_IMAGE: greengagedb/ggdb${{ inputs.version }}_pxf_automation_${{ inputs.release }}
+      IT_TAG: it
+      JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+      DEBIAN_FRONTEND: noninteractive
+
+    steps:
+      # Maximize build space for Docker
+      - name: Move /var/lib/docker/
+        run: sudo mv /var/lib/docker/ "${GITHUB_WORKSPACE}/docker"
+
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          temp-reserve-mb: 32
+          swap-size-mb: 32
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'false'
+          build-mount-path: '/var/lib/docker/'
+      - run: sudo sh -c "mv ${GITHUB_WORKSPACE}/docker/* /var/lib/docker"
+      # - run: cp /etc/apt/sources.list ./
+      - uses: actions/checkout@v4
+
+      - name: Build '${{ env.IT_IMAGE }}:${{ env.IT_TAG }}' image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ci/Dockerfile.integration
+          tags: ${{ env.IT_IMAGE }}:${{ env.IT_TAG }}
+          build-args: GGDB_IMAGE=${{ env.GGDB_IMAGE }}
+
+      - name: Run '${{ matrix.test }}' integration test
+        run: |
+          set -ex
+          cd automation/env
+          bash it.sh
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-ggdb${{ inputs.version }}-${{ inputs.release }}-${{ matrix.test }}${{ matrix.fdw && '-fdw' || '' }}${{ matrix.ssl && '-ssl' || '' }}
+          path: automation/env/artifacts/
+          retention-days: 7

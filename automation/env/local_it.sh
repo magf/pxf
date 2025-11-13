@@ -1,38 +1,48 @@
 #!/bin/bash
+# shellcheck disable=SC1087,2155,2004,2207
+set -e
+
 # --- Presets ---
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd) ; export SCRIPT_DIR=${SCRIPT_DIR:-.}
-CONFIG=$1 ; export CONFIG=${CONFIG:-"$SCRIPT_DIR"/../../.github/workflows/greengage-ci.yml}
+CONFIG=${1:-"$SCRIPT_DIR/local_it.ini"} ; export CONFIG
 
-# Check YQ Utility
-yq_version=$(yq --version 2>/dev/null)
-if [ -z "$yq_version" ] ; then
-  echo -n "Utility YQ not found but required. Try to install... "
-  install_log=$(mktemp)
-  sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq &> $install_log
-  sudo chmod +x /usr/local/bin/yq &>> $install_log
-  yq_version=$(yq --version 2>/dev/null)
-  [ -z "$yq_version" ] && { echo "failed. Process terminated. See log: 'cat $install_log'" ; exit 1; } \
-               || { echo -ne "completed. Installed $yq_version\n" ; rm -f $install_log; }
-else
-  echo "Utility YQ found: $yq_version"
-fi
-
-# Check config file
+# --- Check config file ---
 [ -r "$CONFIG" ] || { echo "Config file '$CONFIG' not readable. Process terminated"; exit 1; }
 
-# --- Configure ---
-export KEY_ENV='.jobs.integration.env'
-export KEY_TESTS='.jobs.integration.strategy.matrix.include'
+# --- Helper function to apply section variables ---
+function apply_section_vars() {
+    local section=$1
+    awk -F '=' -v section="$section" '
+        {
+            sub(/[;#].*$/, "", $0)
+            gsub(/^[ \t]+|[ \t]+$/, "", $0)
+        }
+        NF == 0 { next }
+        $0 ~ "^\\[" section "\\]$" { in_section=1; next }
+        /^\[.*\]$/ { in_section=0 }
+        in_section && $1 ~ /^[a-zA-Z_][a-zA-Z0-9_]*$/ {
+            gsub(/^[ \t]+|[ \t]+$/, "", $1)
+            gsub(/^[ \t]+|[ \t]+$/, "", $2)
+            print "export " $1 "=\"" $2 "\""
+        }
+    ' "$CONFIG"
+}
 
-export GGDB_IMAGE=$(yq "${KEY_ENV}.GGDB_IMAGE // \"ghcr.io/greengagedb/greengage/ggdb6_ubuntu:latest\"" "$CONFIG")
-export IT_IMAGE=$(yq "${KEY_ENV}.IT_IMAGE // \"greengagedb/ggdb6_pxf_automation\"" "$CONFIG")
-export IT_TAG=$(yq "${KEY_ENV}.IT_TAG // \"it\"" "$CONFIG")
+# --- Load general section first ---
+eval "$(apply_section_vars "general")"
 
-export DEBUG_DIR=$(yq "${KEY_ENV}.DEBUG_DIR // \"artifacts/docker_logs\"" "$CONFIG")
-export DEBUG=$(yq "${KEY_ENV}.DEBUG // \"\"" "$CONFIG")
+# --- Load default section for reset ---
+DEFAULT_VARS=$(apply_section_vars "default")
+
+# --- Collect all test sections dynamically ---
+TEST_SECTIONS=($(grep '^\[.*\]' "$CONFIG" | sed 's/^\[//;s/\]//' | grep -v -E "^(general|default)$"))
+tests_num=${#TEST_SECTIONS[@]}
+
+echo "----------------"
+echo "Tests found: $tests_num"
+echo "----------------"
 
 # --- Begin ---
-set -e
 if [ "$BUILD_IMAGES" == "true" ]; then
   echo "------------"
   echo "Force (re)build image $IT_IMAGE:$IT_TAG"
@@ -40,45 +50,52 @@ if [ "$BUILD_IMAGES" == "true" ]; then
   bash "$SCRIPT_DIR"/build-images.sh
 fi
 
-if ! docker image inspect $IT_IMAGE:$IT_TAG &>/dev/null ; then
+if ! docker image inspect "$IT_IMAGE:$IT_TAG" &>/dev/null ; then
   echo "------------"
-  echo "Integreation tests image $IT_IMAGE:$IT_TAG not found locally. Building"
+  echo "Integration tests image $IT_IMAGE:$IT_TAG not found locally. Building"
   echo "------------"
   bash "$SCRIPT_DIR"/build-images.sh
 fi
 
-tests_num=$(yq  "$KEY_TESTS | length" "$CONFIG")
-echo "----------------"
-echo "Tests found: $tests_num"
-echo "----------------"
-
 unset was_failed
-for n in $(seq 0 $(($tests_num-1))) ; do
-  export GROUP=$(yq "$KEY_TESTS[$n].test" "$CONFIG")
-  export USE_FDW=$(yq "$KEY_TESTS[$n].fdw // \"\"" "$CONFIG")
-  export USE_SSL=$(yq "$KEY_TESTS[$n].ssl // \"\"" "$CONFIG")
-  export PROFILE=$(yq "$KEY_TESTS[$n].profile // \"\"" "$CONFIG")
-  echo "---------------------------------------------------------------------------------"
-  echo "Run test #$(($n+1)) of $tests_num with: GROUP='$GROUP', FDW='${USE_FDW:-false}', SSL='${USE_SSL:-false}', PROFILE='${PROFILE:-$GROUP}'"
-  echo "---------------------------------------------------------------------------------"
-  pushd "$SCRIPT_DIR"
-  if ! bash "$SCRIPT_DIR"/it.sh ; then  # Collect failed tests
-    unset opts
-    [ -n "$USE_FDW" ] && opts=${opts:+$opts,}FDW || true
-    [ -n "$USE_SSL" ] && opts=${opts:+$opts,}SSL || true
-    was_failed=${was_failed:+$was_failed, }$GROUP${opts:+"($opts)"}
+for section in "${TEST_SECTIONS[@]}"; do
+  # Reset to default values for each test section
+  eval "$DEFAULT_VARS"
+
+  # Apply section-specific variables
+  eval "$(apply_section_vars "$section")"
+
+  # GROUP must be defined in each test section
+  if [ -z "$GROUP" ]; then
+    echo "ERROR: Section '$section' must define GROUP variable"
+    exit 1
   fi
-  popd
+
+  export PROFILE="${PROFILE:-all}"
+
+  echo "----------------------------------------------------------------------------"
+  echo "Run test: $section"
+  echo "Group: $GROUP, Profile: $PROFILE${USE_FDW:+, with FDW}${USE_SSL:+, with SSL}"
+  echo "----------------------------------------------------------------------------"
+
+  pushd "$SCRIPT_DIR" > /dev/null
+  if ! bash "$SCRIPT_DIR"/it.sh ; then
+    unset opts
+    [ -n "$USE_FDW" ] && opts=${opts:+$opts,}FDW
+    [ -n "$USE_SSL" ] && opts=${opts:+$opts,}SSL
+    was_failed=${was_failed:+$was_failed, }$GROUP${opts:+" (with $opts)"}
+  fi
+  popd > /dev/null
 done
 
 if [ -z "$was_failed" ]; then
   echo "----------------------------"
-  echo "Grand TOTAL $tests_num test(s) passed"
+  echo "Grand TOTAL $tests_num test(s) started at $STARTED_AT passed"
   echo "----------------------------"
   exit 0
 else
   echo "----------------------------------------------"
-  echo "This tests(s) was failed: $was_failed. Check logs and reports"
+  echo "This test(s) started at $STARTED_AT was failed: $was_failed. Check logs and reports"
   echo "----------------------------------------------"
   exit 1
 fi

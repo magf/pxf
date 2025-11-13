@@ -20,26 +20,33 @@ env:
 
 jobs:
   build:
-    name: Build PXF Packages
+    name: Build on ggdb${{ matrix.version }}-${{ matrix.release }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
           - image: greengagedb/ggdb6_ubuntu:6.29.1
-            dev_home: /home/gpadmin
-            version: dh-6.29.1
+            release: stable
+            version: '6'
           - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
-            dev_home: /home/gpadmin
-            version: ghcr-latest
+            release: devel
+            version: '6'
+          - image: greengagedb/ggdb7_ubuntu:7.4.0
+            release: stable
+            version: '7'
+          - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
+            release: devel
+            version: '7'
+
     container:
       image: ${{ matrix.image }}
       volumes:
-        - ${{ github.workspace }}:${{ matrix.dev_home }}/pxf
+        - ${{ github.workspace }}:/home/gpadmin/pxf
       env:
         PXF_HOME: ${{ env.PXF_HOME }}
-        DEV_HOME: ${{ matrix.dev_home }}
-        PXF_SRC: ${{ matrix.dev_home }}/pxf
+        DEV_HOME: /home/gpadmin
+        PXF_SRC: /home/gpadmin/pxf
         GPHOME: ${{ env.GPHOME }}
         GOPATH: ${{ env.GOPATH }}
         PATH: ${{ env.GPHOME }}/bin:${{ env.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:${{ env.GOPATH }}/bin
@@ -54,21 +61,21 @@ jobs:
           cd $PXF_SRC
           bash ci/build_in_docker.sh
           git config --global --add safe.directory $PXF_SRC
-          make deb
-      - name: Cache deb packages
-        uses: actions/cache@v4
-        with:
-          path: build/*.deb
-          key: pxf-deb-${{ github.sha }}-${{ matrix.version }}
-      - name: Upload build artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pxf-deb-${{ matrix.version }}
-          path: build/*.deb
+          # make deb
+      # - name: Cache deb packages
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: build/*.deb
+      #     key: pxf-deb-${{ github.sha }}-${{ matrix.version }}-${{ matrix.release }}
+      # - name: Upload build artifacts
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: pxf-deb-${{ matrix.version }}-${{ matrix.release }}
+      #     path: build/*.deb
 
-  integration:
-    name: IT '${{ matrix.test }}' with ${{ matrix.fdw && 'FDW' || 'external table' }}${{ matrix.ssl && ' and SSL' || '' }}
+  regression:
+    name: Regression on ggdb${{ matrix.version }}-${{ matrix.release }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -76,106 +83,31 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - test: smoke
-          - test: gpdb
-          - test: jdbc
-          - test: smoke
-            fdw: 'true'
-          - test: gpdb
-            fdw: 'true'
-          - test: jdbc
-            fdw: 'true'
-          - test: ggdbssl
-            fdw: 'true'
-            ssl: 'true'
-
-    env:
-      PROFILE: ${{ matrix.test }}
-      GROUP: ${{ matrix.test }}
-      USE_FDW: ${{ matrix.fdw }}
-      USE_SSL: ${{ matrix.ssl }}
-      JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
-      DEBIAN_FRONTEND: noninteractive
-      GGDB_IMAGE: greengagedb/ggdb6_ubuntu:6.29.1
-      IT_IMAGE: greengagedb/ggdb6_pxf_automation
-      IT_TAG: it
-      DEBUG: 'true'
-      DEBUG_DIR: 'artifacts/docker_logs'
-
-    steps:
-      # Maximize build space for Docker
-      - name: Move /var/lib/docker/
-        run: sudo mv /var/lib/docker/ "${GITHUB_WORKSPACE}/docker"
-
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 512
-          temp-reserve-mb: 32
-          swap-size-mb: 32
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
-          remove-docker-images: 'false'
-          build-mount-path: '/var/lib/docker/'
-
-      - run: sudo sh -c "mv ${GITHUB_WORKSPACE}/docker/* /var/lib/docker"
-      - uses: actions/checkout@v4
-      - run: cp /etc/apt/sources.list ./
-      - name: Build '${{ env.IT_IMAGE }}:${{ env.IT_TAG }}' image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ci/Dockerfile.${{ github.job }}
-          no-cache: true
-          push: false
-          tags: ${{ env.IT_IMAGE }}:${{ env.IT_TAG }}
-          build-args: GGDB_IMAGE=${{ env.GGDB_IMAGE }}
-      - name: Set up Docker Compose
-        uses: docker/setup-compose-action@v1
-      - name: Run '${{ matrix.test }}' test with ${{ matrix.fdw && 'FDW' || 'external table' }}${{ matrix.ssl && ' and SSL' || '' }}
-        run: |
-          set -ex
-          cd automation/env
-          bash it.sh
-
-      - name: Upload integration tests artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifacts-integration-${{ matrix.test }}${{ matrix.fdw && '-fdw' || '' }}${{ matrix.ssl && '-ssl' || '' }}
-          path: automation/env/artifacts/
-          retention-days: 7
-          if-no-files-found: warn
-
-  regression:
-    name: Regression on ${{ matrix.version }} image
-    runs-on: ubuntu-latest
-    timeout-minutes: 180
-
-    strategy:
-      matrix:
-        include:
           - image: greengagedb/ggdb6_ubuntu:6.29.1
-            dev_home: /home/gpadmin
-            version: dh-6.29.1
-          - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu:latest
-            dev_home: /home/gpadmin
-            version: ghcr-latest
+            release: stable
+            version: '6'
+          - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
+            release: devel
+            version: '6'
+          - image: greengagedb/ggdb7_ubuntu:7.4.0
+            release: stable
+            version: '7'
+          - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
+            release: devel
+            version: '7'
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build PXF regression image ${{ matrix.version }}
+      - name: Build PXF regression on ggdb${{ matrix.version }}-${{ matrix.release }} 
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./ci/Dockerfile.${{ github.job }}
           push: false
-          tags: greengagedb/ggdb6_pxf_regression:${{ matrix.version }}
+          tags: greengagedb/ggdb${{ matrix.version }}_pxf_regression:${{ matrix.release }}
           build-args: GGDB_IMAGE=${{ matrix.image }}
 
-      - name: Run regression on ${{ matrix.version }} image
+      - name: Run regression on ggdb${{ matrix.version }}-${{ matrix.release }}
         shell: bash
         run: |
           mkdir logs
@@ -183,7 +115,7 @@ jobs:
             -v ./logs:/logs \
             --sysctl 'kernel.sem=500 1024000 200 4096' \
             --privileged \
-            greengagedb/ggdb6_pxf_regression:${{ matrix.version }} \
+            greengagedb/ggdb${{ matrix.version }}_pxf_regression:${{ matrix.release }} \
             bash -c "
               set +e
               cd /tmp/build || status=1
@@ -198,7 +130,79 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: logs_regression-${{ matrix.version }}
+          name: regression-ggdb${{ matrix.version }}-${{ matrix.release }}
           path: logs
           retention-days: 7
           if-no-files-found: warn
+
+  integration-ggdb6-stable:
+    name: Integration on ggdb6-stable
+    uses: ./.github/workflows/integration-tests.yml
+    with:
+      image: greengagedb/ggdb6_ubuntu:6.29.1
+      version: '6'
+      release: stable
+      tests_matrix: |
+        [
+          { "test": "smoke" },
+          { "test": "gpdb" },
+          { "test": "jdbc" },
+          { "test": "smoke", "fdw": "true" },
+          { "test": "gpdb", "fdw": "true" },
+          { "test": "jdbc", "fdw": "true" },
+          { "test": "ggdbssl", "fdw": "true", "ssl": "true" }
+        ]
+
+  integration-ggdb6-devel:
+    name: Integration on ggdb6-devel
+    uses: ./.github/workflows/integration-tests.yml
+    with:
+      image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
+      version: '6'
+      release: devel
+      tests_matrix: |
+        [
+          { "test": "smoke" },
+          { "test": "gpdb" },
+          { "test": "jdbc" },
+          { "test": "smoke", "fdw": "true" },
+          { "test": "gpdb", "fdw": "true" },
+          { "test": "jdbc", "fdw": "true" },
+          { "test": "ggdbssl", "fdw": "true", "ssl": "true" }
+        ]
+
+  integration-ggdb7-stable:
+    name: Integration on ggdb7-stable
+    uses: ./.github/workflows/integration-tests.yml
+    with:
+      image: greengagedb/ggdb7_ubuntu:7.4.0
+      version: '7'
+      release: stable
+      tests_matrix: |
+        [
+          { "test": "smoke" },
+          { "test": "gpdb" },
+          { "test": "jdbc" },
+          { "test": "smoke", "fdw": "true" },
+          { "test": "gpdb", "fdw": "true" },
+          { "test": "jdbc", "fdw": "true" },
+          { "test": "ggdbssl", "fdw": "true", "ssl": "true" }
+        ]
+
+  integration-ggdb7-devel:
+    name: Integration on ggdb7-devel
+    uses: ./.github/workflows/integration-tests.yml
+    with:
+      image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
+      version: '7'
+      release: devel
+      tests_matrix: |
+        [
+          { "test": "smoke" },
+          { "test": "gpdb" },
+          { "test": "jdbc" },
+          { "test": "smoke", "fdw": "true" },
+          { "test": "gpdb", "fdw": "true" },
+          { "test": "jdbc", "fdw": "true" },
+          { "test": "ggdbssl", "fdw": "true", "ssl": "true" }
+        ]

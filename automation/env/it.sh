@@ -42,7 +42,7 @@ start_copy_artifacts() {
   $DOCKER_COMPOSE cp "$TEST_SERVICE:/home/gpadmin/workspace/pxf/automation/target/allure-results" "./$test_dir"
   pxf_log_count=$($DOCKER_COMPOSE exec -it "$TEST_SERVICE" ls  /tmp/pxf 2> /dev/null | wc -l)
   if [ "$pxf_log_count" -ge 1 ]; then
-    $DOCKER_COMPOSE cp "$TEST_SERVICE:/tmp/pxf" ./$test_dir
+    $DOCKER_COMPOSE cp "$TEST_SERVICE:/tmp/pxf" "./$test_dir"
   fi
 }
 
@@ -75,6 +75,7 @@ echo -en "-----\n----- Start running '${GROUP^^}' tests with $TYPE\n-----\n"
 bash "$SCRIPT_DIR"/compose.sh down # try down before up. must be clear run
 bash "$SCRIPT_DIR"/compose.sh up
 
+set +e
 [ -n "$DEBUG" ] && echo "Run '$DOCKER_COMPOSE exec \"$TEST_SERVICE\" sudo -H -u gpadmin bash -l -c \"make -C \$TEST_HOME GROUP=$GROUP USE_FDW=$USE_FDW\"'" | tee -a "$DEBUG_DIR/compose_before_down.log" || true
 $DOCKER_COMPOSE exec "$TEST_SERVICE" sudo -H -u gpadmin bash -l -c "make -C \$TEST_HOME GROUP=$GROUP USE_FDW=$USE_FDW"
 check_test_result $? "${GROUP^^}" "$TYPE"
