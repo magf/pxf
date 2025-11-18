@@ -77,11 +77,8 @@ public class Gpdb extends DbSystemObject {
 			createTestFDW(true);
 			createSystemFDW(true);
 			createForeignServers(true);
-			if (!StringUtils.isEmpty(System.getenv("PXF_VAULT_ENABLED"))
-					&& Boolean.parseBoolean(System.getenv("PXF_VAULT_ENABLED"))) {
-				createJdbcFDWVault(true);
-				createJdbcVaultForeignServer(true);
-			}
+			createJdbcFDWVault(true);
+			createJdbcVaultForeignServer(true);
 		}
 		ReportUtils.stopLevel(report);
 	}
