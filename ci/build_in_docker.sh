@@ -12,7 +12,7 @@ export JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:-'-Dfile.encoding=UTF8'}
 export DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-noninteractive}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-"$SCRIPT_DIR/set_azure_sources_list.sh"
+# "$SCRIPT_DIR/set_azure_sources_list.sh"
 
 apt-get -y update
 apt-get -y install --no-install-recommends openjdk-17-jdk # unzip vim nano ksh locales
@@ -34,9 +34,9 @@ tar -xzf "$DEV_HOME/bin_gpdb/bin_gpdb.tar.gz" -C "$GPHOME/"
 source "$GPHOME/greengage_path.sh"
 make all install
 
-rm "$HOME/.cache" -rf
-rm "$HOME/.gitconfig" -rf
-rm "$HOME/.gradle" -rf
+# rm "$HOME/.cache" -rf
+# rm "$HOME/.gitconfig" -rf
+# rm "$HOME/.gradle" -rf
 
-rm -rf /var/lib/apt/lists/*
-rm -rf /tmp/*
+# rm -rf /var/lib/apt/lists/*
+# rm -rf /tmp/*
