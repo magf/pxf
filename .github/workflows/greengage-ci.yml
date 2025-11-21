@@ -61,18 +61,23 @@ jobs:
           cd $PXF_SRC
           bash ci/build_in_docker.sh
           git config --global --add safe.directory $PXF_SRC
-          # make deb
-      # - name: Cache deb packages
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: build/*.deb
-      #     key: pxf-deb-${{ github.sha }}-${{ matrix.version }}-${{ matrix.release }}
-      # - name: Upload build artifacts
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: pxf-deb-${{ matrix.version }}-${{ matrix.release }}
-      #     path: build/*.deb
+      - name: Cache packages
+        uses: actions/cache@v4
+        with:
+          path: Package/
+          key: pxf-packages-${{ github.sha }}-${{ matrix.version }}-${{ matrix.release }}
+      - name: Upload package artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxf-packages-${{ matrix.version }}-${{ matrix.release }}
+          path: Package/
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxf-build-${{ matrix.version }}-${{ matrix.release }}
+          path: debian/tmp/pxf/
 
   regression:
     name: Regression on ggdb${{ matrix.version }}-${{ matrix.release }}
