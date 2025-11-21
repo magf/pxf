@@ -1,9 +1,9 @@
 SHELL := /bin/bash
 
-# PXF_HOME is only needed for install targets
-ifeq "$(PXF_HOME)" ""
-	ifneq "$(GPHOME)" ""
-		PXF_HOME := "$(GPHOME)/pxf"
-	endif
+# Fail early if GPHOME not found
+ifeq ($(GPHOME),)
+$(error GPHOME not defined)
 endif
-export PXF_HOME
+
+# Default PXF_HOME
+PXF_HOME ?= $(GPHOME)/pxf
