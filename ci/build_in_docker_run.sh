@@ -13,8 +13,9 @@ export PATH=$GPHOME/bin:$PXF_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/
 export JAVA_TOOL_OPTIONS='-Dfile.encoding=UTF8'
 export DEBIAN_FRONTEND='noninteractive'
 
-docker run --name pxf_build_in_docker --rm -it \
-  --mount type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size=128m \
+docker run --name pxf_builder -it \
+  --mount type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size=1024m \
+  --mount type=bind,source="$HOME/deb",target=/deb,ro \
   --mount type=bind,source="$(pwd)",target="$PXF_SRC" \
   --workdir="$PXF_SRC" \
   --env GOPATH \
@@ -24,4 +25,4 @@ docker run --name pxf_build_in_docker --rm -it \
   --env PATH \
   --env JAVA_TOOL_OPTIONS \
   --env DEBIAN_FRONTEND \
-  $GGDB_IMAGE bash ci/build_in_docker.sh
+  $GGDB_IMAGE bash #ci/build_in_docker.sh
