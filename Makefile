@@ -6,7 +6,7 @@ export PXF_MODULES
 PXF_VERSION ?= $(shell cat version)
 export PXF_VERSION
 
-PG_CONFIG = pg_config
+PG_CONFIG ?= pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 ifndef PGXS
 	$(error Make sure the Greengage installation binaries are in your PATH. i.e. export PATH=<path to your Greengage installation>/bin:$$PATH)
@@ -88,7 +88,6 @@ ifneq ($(SKIP_FDW_BUILD_REASON),)
 	$(eval PXF_MODULES := $(filter-out fdw,$(PXF_MODULES)))
 endif
 	set -e ;\
-	echo DESTDIR=$(DESTDIR) ; \
 	for module in $${PXF_MODULES[@]}; do \
 		echo "===> Installing [$${module}] module <===" ;\
 		make -C $${module} install DESTDIR=$(DESTDIR) GPHOME=$(GPHOME) PXF_HOME=$(PXF_HOME) ;\
@@ -144,11 +143,9 @@ debian/install:
 pkg : pkg-deb
 
 # Build Debian package
-pkg-deb : GPROOT = /opt/greengagedb
-pkg-deb : GPDIR  = greengage
 pkg-deb : debian/changelog debian/install
-	@echo "Building with GPROOT=$(GPROOT), GPDIR=$(GPDIR), PACKAGE_NAME=$(PACKAGE_NAME)"
-	@GPROOT="$(GPROOT)" GPDIR="$(GPDIR)" PACKAGE_NAME="$(PACKAGE_NAME)" debuild --preserve-env -us -uc -b
+	@echo "Building with GPHOME=$(GPHOME) PXF_HOME=$(PXF_HOME), PACKAGE_NAME=$(PACKAGE_NAME)"
+	@GPHOME="$(GPHOME)" PXF_HOME="$(PXF_HOME)" PACKAGE_NAME="$(PACKAGE_NAME)" debuild --preserve-env -us -uc -b
 	@mkdir -p $(ARTIFACTS_DIR)
 	@find $(CURDIR)/../ -maxdepth 1 -type f \( -name "*.deb" \
 											-o -name "*.ddeb" \
