@@ -25,7 +25,7 @@ PXF_ROOT_DIR := $(shell cd .. && pwd)
 PXF_VERSION ?= $(shell cat $(PXF_ROOT_DIR)/version)
 PXF_API_VERSION ?= $(shell cat $(PXF_ROOT_DIR)/api_version)
 
-PXF_GRADLE_PROPERTIES = -Pversion=$(PXF_VERSION) -PapiVersion=$(PXF_API_VERSION)
+PXF_GRADLE_PROPERTIES = -Pversion=$(PXF_VERSION) -PapiVersion=$(PXF_API_VERSION) --debug
 
 help:
 	@echo
@@ -61,6 +61,14 @@ test unittest:
 		echo 'Test $(TEST) was not found'; \
 		exit 1; \
 	fi
+
+	@echo "=== Environment Variables ==="
+	@printenv | sort
+	@echo "=== End of Environment Variables ==="
+	@echo "=== JVM System Properties ==="
+	@./gradlew properties | grep -i command || echo "No suspicious properties found"
+	@echo "=== End of JVM System Properties ==="
+
 	./gradlew $(PXF_GRADLE_PROPERTIES) ${GRADLEW_TEST_PARAMS}
 
 coverage:

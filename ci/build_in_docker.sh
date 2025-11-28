@@ -72,7 +72,7 @@ localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 # mkdir -p "$GPHOME"
 # tar -xzf "$DEV_HOME/bin_gpdb/bin_gpdb.tar.gz" -C "$GPHOME/"
 
-apt-get -f install -y $GREENGAGE_DEB
+apt-get -f install -y "$GREENGAGE_DEB"
 
 known_locations='/opt /usr/lib'
 GPHOME=$(dev/detect_gphome.bash "$known_locations")
@@ -101,7 +101,11 @@ export OPENSSL_CONF
 # shellcheck source=/dev/null
 # pg_config
 
-make all install #pkg-deb
+echo " >>>>>>>>>>>>>>> MAKE ALL <<<<<<<<<<<<<<<<<"
+make all # install #pkg-deb
+
+echo " >>>>>>>>>>>>>>> MAKE INSTALL <<<<<<<<<<<<<<<<<"
+make install #pkg-deb
 
 # rm "$HOME/.cache" -rf
 # rm "$HOME/.gitconfig" -rf
