@@ -14,8 +14,8 @@ concurrency:
 
 env:
   DEV_HOME: /home/gpadmin
-  PXF_HOME: /usr/local/greengage-db-devel/pxf
-  GPHOME:   /usr/local/greengage-db-devel
+  PXF_HOME: /opt/greengagedb/greengage/pxf
+  GPHOME:   /opt/greengagedb/greengage
   GOPATH:   /opt/go
 
 jobs:
