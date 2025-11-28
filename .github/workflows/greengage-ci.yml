@@ -26,23 +26,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image: ghcr.io/magf/greengage/ggdb6_ubuntu
-            tag: '6.99.9'
+          - image: greengagedb/ggdb6_ubuntu:6.29.1
             release: stable
             version: '6'
-          - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
-            release: devel
-            version: '6'
-          - image: greengagedb/ggdb7_ubuntu
-            tag: '7.4.0'
-            release: stable
-            version: '7'
-          - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
-            release: devel
-            version: '7'
+          # - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
+          #   release: devel
+          #   version: '6'
+          # - image: greengagedb/ggdb7_ubuntu:7.4.0
+          #   release: stable
+          #   version: '7'
+          # - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
+          #   release: devel
+          #   version: '7'
 
     container:
-      image: ${{ matrix.image }}:${{ matrix.tag || 'latest' }}
+      image: ${{ matrix.image }}
       volumes:
         - ${{ github.workspace }}:/home/gpadmin/pxf
       env:
@@ -55,7 +53,7 @@ jobs:
         JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
         DEBIAN_FRONTEND: noninteractive
         GREENGAGE_DEB: /tmp/greengage.deb
-        GREENGAGE_DEB_URL: https://github.com/magf/greengage/releases/download/${{ matrix.tag || 'main' }}/greengage${{ matrix.version }}.deb
+        GREENGAGE_DEB_URL: https://github.com/magf/greengage/releases/download/6.99.9/greengage6.deb
     steps:
       - uses: actions/checkout@v4
       - name: Build in Docker
