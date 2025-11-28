@@ -55,7 +55,7 @@ jobs:
         JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
         DEBIAN_FRONTEND: noninteractive
         GREENGAGE_DEB: /tmp/greengage.deb
-        GREENGAGE_DEB_URL: https://github.com/magf/greengage/releases/download/${{ matrix.tag || main }}/greengage${{ matrix.version }}.deb
+        GREENGAGE_DEB_URL: https://github.com/magf/greengage/releases/download/${{ matrix.tag || 'main' }}/greengage${{ matrix.version }}.deb
     steps:
       - uses: actions/checkout@v4
       - name: Build in Docker
