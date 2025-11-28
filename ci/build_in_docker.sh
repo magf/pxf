@@ -14,19 +14,26 @@ export DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-noninteractive}
 export GOPATH=/opt/go
 export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
-DEB=${DEB:-/deb/greengage.deb}
+export GREENGAGE_DEB=${GREENGAGE_DEB:-/tmp/greengage.deb}
+export GREENGAGE_DEB_URL=${GREENGAGE_DEB_URL:-https://github.com/greengagedb/greengage/releases/download/main/greengage.deb}
 
 # SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # "$SCRIPT_DIR/set_azure_sources_list.sh"
 
 mime_type='application/vnd.debian.binary-package'
 
-if [ ! -r "$DEB" ] ; then
-  echo -n "GreengageDB deb-package file '$DEB' "
-  echo "not exists or not readable. Use 'DEB=<ggdb_deb_file> $0' for proper file location"
-  exit 1
-elif [ "$(file -Lb --mime-type "$DEB")" != "$mime_type" ] ; then
-  echo "not a $mime_type. Use 'DEB=<ggdb_deb_file> $0' for proper file location"
+if [ ! -r "$GREENGAGE_DEB" ] ; then
+  echo -n "GreengageDB deb-package file '$GREENGAGE_DEB' "
+  echo -n "not exists or not readable. Try to download from $GREENGAGE_DEB_URL "
+  curl -L "$GREENGAGE_DEB_URL" -o "$GREENGAGE_DEB" &>/dev/null
+    if [ ! -r "$GREENGAGE_DEB" ] ; then
+      echo "failed. Exiting"
+      exit 1
+    else
+      echo "Done"
+    fi
+elif [ "$(file -Lb --mime-type "$GREENGAGE_DEB")" != "$mime_type" ] ; then
+  echo "not a $mime_type. Use 'GREENGAGE_DEB=<ggdb_deb_file> $0' for proper file location"
   exit 1
 fi
 
@@ -65,7 +72,7 @@ localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 # mkdir -p "$GPHOME"
 # tar -xzf "$DEV_HOME/bin_gpdb/bin_gpdb.tar.gz" -C "$GPHOME/"
 
-apt-get -f install -y $DEB
+apt-get -f install -y $GREENGAGE_DEB
 
 known_locations='/opt /usr/lib'
 GPHOME=$(dev/detect_gphome.bash "$known_locations")
