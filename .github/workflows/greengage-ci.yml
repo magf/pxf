@@ -74,12 +74,18 @@ jobs:
         with:
           name: pxf-packages-${{ matrix.version }}-${{ matrix.release }}
           path: Package/
-      - name: Upload build artifacts
+      - name: Upload debian artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pxf-build-${{ matrix.version }}-${{ matrix.release }}
+          name: pxf-debian-${{ matrix.version }}-${{ matrix.release }}
           path: debian/tmp/pxf/
+      - name: Upload build server logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxf-build-server-logs-${{ matrix.version }}-${{ matrix.release }}
+          path: /home/gpadmin/pxf/server/pxf-service/build/reports
 
   # regression:
   #   name: Regression on ggdb${{ matrix.version }}-${{ matrix.release }}
