@@ -101,7 +101,7 @@ export OPENSSL_CONF
 # shellcheck source=/dev/null
 # pg_config
 
-make all install pkg-deb
+make all install #pkg-deb
 
 # rm "$HOME/.cache" -rf
 # rm "$HOME/.gitconfig" -rf
