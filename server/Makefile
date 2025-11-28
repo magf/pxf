@@ -25,7 +25,7 @@ PXF_ROOT_DIR := $(shell cd .. && pwd)
 PXF_VERSION ?= $(shell cat $(PXF_ROOT_DIR)/version)
 PXF_API_VERSION ?= $(shell cat $(PXF_ROOT_DIR)/api_version)
 
-PXF_GRADLE_PROPERTIES = -Pversion=$(PXF_VERSION) -PapiVersion=$(PXF_API_VERSION) --debug
+PXF_GRADLE_PROPERTIES = -Pversion=$(PXF_VERSION) -PapiVersion=$(PXF_API_VERSION) #--debug
 
 help:
 	@echo
@@ -62,13 +62,6 @@ test unittest:
 		exit 1; \
 	fi
 
-	@echo "=== Environment Variables ==="
-	@printenv | sort
-	@echo "=== End of Environment Variables ==="
-	@echo "=== JVM System Properties ==="
-	@./gradlew properties | grep -i command || echo "No suspicious properties found"
-	@echo "=== End of JVM System Properties ==="
-
 	./gradlew $(PXF_GRADLE_PROPERTIES) ${GRADLEW_TEST_PARAMS}
 
 coverage:
@@ -79,13 +72,22 @@ coverage:
 
 .PHONY: stage stage-notest
 stage stage-notest:
-ifneq ($(SKIP_TESTS),)
-	./gradlew $(PXF_GRADLE_PROPERTIES) stage -x test
-else ifeq ($@,stage-notest)
-	./gradlew $(PXF_GRADLE_PROPERTIES) stage -x test
-else
-	./gradlew $(PXF_GRADLE_PROPERTIES) test stage
-endif
+
+	@echo "=== Environment Variables ==="
+	@printenv | sort
+	@echo "=== End of Environment Variables ==="
+	@echo "=== JVM System Properties ==="
+	@./gradlew properties | grep -i command || echo "No suspicious properties found"
+	@echo "=== End of JVM System Properties ==="
+
+	ifneq ($(SKIP_TESTS),)
+		./gradlew $(PXF_GRADLE_PROPERTIES) stage -x test
+	else ifeq ($@,stage-notest)
+		./gradlew $(PXF_GRADLE_PROPERTIES) stage -x test
+	else
+		./gradlew $(PXF_GRADLE_PROPERTIES) test stage
+	endif
+
 	install -m 744 -d "$(DESTDIR)build/stage/lib"
 	install -m 744 -d "$(DESTDIR)build/stage/lib/native"
 	install -m 744 -d "$(DESTDIR)build/stage/servers"
