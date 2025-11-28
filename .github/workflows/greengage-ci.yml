@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image: magf/ggdb6_ubuntu
+          - image: magf/greengage/ggdb6_ubuntu
             tag: '6.99.9'
             release: stable
             version: '6'
@@ -54,8 +54,8 @@ jobs:
         PATH: ${{ env.GPHOME }}/bin:${{ env.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:${{ env.GOPATH }}/bin
         JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
         DEBIAN_FRONTEND: noninteractive
-        GREENGAGE_DEB: /tmp/greengage${{ matrix.version }}.deb
-        GREENGAGE_DEB_URL: https://github.com/magf/greengage/releases/download/${{ matrix.tag }}/greengage${{ matrix.version }}.deb
+        GREENGAGE_DEB: /tmp/greengage.deb
+        GREENGAGE_DEB_URL: https://github.com/magf/greengage/releases/download/${{ matrix.tag || main }}/greengage${{ matrix.version }}.deb
     steps:
       - uses: actions/checkout@v4
       - name: Build in Docker

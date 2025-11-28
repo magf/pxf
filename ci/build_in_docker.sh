@@ -15,7 +15,7 @@ export GOPATH=/opt/go
 export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
 export GREENGAGE_DEB=${GREENGAGE_DEB:-/tmp/greengage.deb}
-export GREENGAGE_DEB_URL=${GREENGAGE_DEB_URL:-https://github.com/greengagedb/greengage/releases/download/main/greengage.deb}
+export GREENGAGE_DEB_URL=${GREENGAGE_DEB_URL:-https://github.com/GreengageDB/greengage/releases/download/main/greengage.deb}
 
 # SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # "$SCRIPT_DIR/set_azure_sources_list.sh"
