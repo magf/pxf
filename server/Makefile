@@ -77,17 +77,16 @@ stage stage-notest:
 	@printenv | sort
 	@echo "=== End of Environment Variables ==="
 	@echo "=== JVM System Properties ==="
-	@./gradlew properties | grep -i command || echo "No suspicious properties found"
+	@./gradlew properties
 	@echo "=== End of JVM System Properties ==="
 
-	ifneq ($(SKIP_TESTS),)
-		./gradlew $(PXF_GRADLE_PROPERTIES) stage -x test
-	else ifeq ($@,stage-notest)
-		./gradlew $(PXF_GRADLE_PROPERTIES) stage -x test
-	else
-		./gradlew $(PXF_GRADLE_PROPERTIES) test stage
-	endif
-
+ifneq ($(SKIP_TESTS),)
+	./gradlew $(PXF_GRADLE_PROPERTIES) stage -x test
+else ifeq ($@,stage-notest)
+	./gradlew $(PXF_GRADLE_PROPERTIES) stage -x test
+else
+	./gradlew $(PXF_GRADLE_PROPERTIES) test stage
+endif
 	install -m 744 -d "$(DESTDIR)build/stage/lib"
 	install -m 744 -d "$(DESTDIR)build/stage/lib/native"
 	install -m 744 -d "$(DESTDIR)build/stage/servers"
