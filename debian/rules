@@ -21,7 +21,7 @@ override_dh_auto_build:
 
 override_dh_auto_install:
 	@echo "=== DeBuilder Installing PXF modules into $$PXF_HOME ==="
-	env -u CFLAGS -u CPPFLAGS -u CXXFLAGS -u LDFLAGS \
+	env -u CFLAGS -u CPPFLAGS -u CXXFLAGS -u LDFLAGS -u MAKEOVERRIDES \
 	PATH=$(GPHOME)/bin:/usr/local/go/bin:$(PATH) \
 	PYTHONPATH=$(PYTHONPATH) \
 	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) \
