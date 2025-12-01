@@ -1,0 +1,18 @@
+Source: pxf
+Maintainer: arenadata
+Section: database
+
+Package: pxf
+Architecture: any
+Depends:
+Description: The pxf package provides connection pool for the Greenplum Database 6
+
+Package: gppxf-adb6
+Architecture: any
+Depends: gpdb
+Description: Greenplum pxf extension
+
+Package: gppxf-fdw
+Architecture: any
+Depends: gpdb
+Description: Greenplum fdw pxf extension
