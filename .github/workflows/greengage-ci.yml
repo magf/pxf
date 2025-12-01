@@ -224,6 +224,22 @@ jobs:
     # if: startsWith(github.ref, 'refs/tags/')
     needs: [build]
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # - image: greengagedb/ggdb6_ubuntu:6.29.1
+          #   release: stable
+          #   version: '6'
+          - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
+            release: devel
+            version: '6'
+          # - image: greengagedb/ggdb7_ubuntu:7.4.0
+          #   release: stable
+          #   version: '7'
+          # - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
+          #   release: devel
+          #   version: '7'
     permissions:
       contents: write  # Required for release creation
     steps:
