@@ -97,6 +97,23 @@ endif
 install-server:
 	make -C server install-server DESTDIR=$(DESTDIR) GPHOME=$(GPHOME) PXF_HOME=$(PXF_HOME)
 
+stage:
+	rm -rf build/stage
+ifneq ($(SKIP_FDW_PACKAGE_REASON),)
+	@echo "Skipping staging FDW extension because $(SKIP_FDW_PACKAGE_REASON)"
+	$(eval PXF_MODULES := $(filter-out fdw,$(PXF_MODULES)))
+endif
+	set -e ;\
+	mkdir -p build/stage/$${PXF_PACKAGE_NAME}/pxf ;\
+	for module in $${PXF_MODULES[@]}; do \
+		echo "===> Staging [$${module}] module <===" ;\
+		make -C $${module} stage  DESTDIR=$(DESTDIR) GPHOME=$(GPHOME) PXF_HOME=$(PXF_HOME) ;\
+		cp -a "$${module}"/build/stage/* "build/stage/$${PXF_PACKAGE_NAME}/pxf" ;\
+	done ;\
+	echo $$(git rev-parse --verify HEAD) > build/stage/$${PXF_PACKAGE_NAME}/pxf/commit.sha ;\
+	cp package/install_binary build/stage/$${PXF_PACKAGE_NAME}/install_component ;\
+	echo "===> PXF staging is complete <==="
+
 #---------------------------------------------------------------------
 # Packaging targets with changelog options
 #---------------------------------------------------------------------
