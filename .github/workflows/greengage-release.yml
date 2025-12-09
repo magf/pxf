@@ -25,7 +25,7 @@ jobs:
       contents: write
     steps:
       - name: Upload packages to release
-        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@v10
+        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@main
         with:
           version: -${{ matrix.version }}
           artifact_name: pxf-packages-${{ matrix.version }}
