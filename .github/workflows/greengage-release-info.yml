@@ -1,0 +1,147 @@
+# Release creation workflow
+name: Greengage release info
+
+on:
+  release:
+    types: [published, edited]
+
+jobs:
+  info:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Show release info
+        run: |
+          echo "=== RELEASE INFO ==="
+          echo "Tag: ${{ github.event.release.tag_name }}"
+          echo "Release name: ${{ github.event.release.name }}"
+          echo "Is draft: ${{ github.event.release.draft }}"
+          echo "Is prerelease: ${{ github.event.release.prerelease }}"
+          echo "Target commitish: ${{ github.event.release.target_commitish }}"
+          echo "Created at: ${{ github.event.release.created_at }}"
+          echo "Published at: ${{ github.event.release.published_at }}"
+          echo -e "\n"
+
+      - name: Show workflow context
+        run: |
+          echo "=== WORKFLOW CONTEXT ==="
+          echo "SHA: ${{ github.sha }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Ref name: ${{ github.ref_name }}"
+          echo "Ref type: ${{ github.ref_type }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "Run number: ${{ github.run_number }}"
+          echo "Run attempt: ${{ github.run_attempt }}"
+          echo -e "\n"
+
+      - name: Get CI workflow runs for this tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "=== CI WORKFLOW RUNS FOR TAG ==="
+          echo "Looking for runs with tag: ${{ github.event.release.tag_name }}"
+          
+          runs=$(gh run list --workflow "Greengage CI" --limit 50 \
+            --json conclusion,headSha,event,headBranch,databaseId,url,displayTitle,createdAt,updatedAt \
+            --jq 'map(select(.headSha == "'"${{ github.sha }}"'" or .headBranch == "'"${{ github.event.release.tag_name }}"'"))')
+          
+          echo "Found $(echo "$runs" | jq 'length') runs:"
+          echo "$runs" | jq -c '.[]' | while read run; do
+            echo "---"
+            echo "$run" | jq -r '. | "ID: \(.databaseId)\nConclusion: \(.conclusion)\nSHA: \(.headSha)\nBranch/Tag: \(.headBranch)\nEvent: \(.event)\nCreated: \(.createdAt)\nTitle: \(.displayTitle)\nURL: \(.url)"'
+          done
+          
+          successful_run=$(echo "$runs" | jq 'map(select(.conclusion == "success")) | .[0]')
+          if [ -n "$successful_run" ] && [ "$successful_run" != "null" ]; then
+            echo -e "\n=== FIRST SUCCESSFUL RUN ==="
+            echo "$successful_run" | jq .
+            run_id=$(echo "$successful_run" | jq -r '.databaseId')
+            echo "Run ID: $run_id"
+          fi
+
+      - name: Check available caches for matrix combinations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "=== AVAILABLE CACHES ==="
+          
+          matrix_combinations=(
+            "pxf-packages-6-devel"
+            "pxf-packages-6-stable"
+            "pxf-packages-7-devel"
+            "pxf-packages-7-stable"
+            "deb-packages"
+            "pxf-packages"
+            "Packages"
+          )
+          
+          for prefix in "${matrix_combinations[@]}"; do
+            key="${prefix}-${{ github.sha }}"
+            echo -e "\nChecking cache with key: $key"
+            
+            # Пробуем проверить наличие кэша через gh cache list
+            cache_info=$(gh cache list --key "$key" 2>/dev/null || true)
+            if [ -n "$cache_info" ] && [ "$cache_info" != "[]" ]; then
+              echo "✓ Cache found!"
+              echo "$cache_info" | jq .
+            else
+              echo "✗ Cache not found"
+            fi
+          done
+          
+          echo -e "\n=== ALL CACHES IN REPOSITORY (last 20) ==="
+          gh cache list --limit 20 || echo "Failed to list caches"
+
+      - name: Check artifacts for successful CI runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "=== ARTIFACTS IN CI WORKFLOWS ==="
+          
+          successful_runs=$(gh run list --workflow "Greengage CI" --limit 20 --json databaseId,conclusion,headSha,headBranch \
+            --jq 'map(select(.conclusion == "success"))')
+          
+          echo "Found $(echo "$successful_runs" | jq 'length') successful runs"
+          
+          echo "$successful_runs" | jq -c '.[]' | while read run; do
+            run_id=$(echo "$run" | jq -r '.databaseId')
+            sha=$(echo "$run" | jq -r '.headSha')
+            branch=$(echo "$run" | jq -r '.headBranch')
+            
+            echo -e "\n--- Run $run_id (SHA: $sha, Branch: $branch) ---"
+            
+            artifacts=$(gh api /repos/${{ github.repository }}/actions/runs/$run_id/artifacts 2>/dev/null || echo '{"artifacts": []}')
+            artifact_count=$(echo "$artifacts" | jq '.artifacts | length')
+            
+            if [ "$artifact_count" -gt 0 ]; then
+              echo "Artifacts ($artifact_count):"
+              echo "$artifacts" | jq -r '.artifacts[] | "  - \(.name) (\(.id)): \(.size_in_bytes) bytes, created \(.created_at)"'
+            else
+              echo "No artifacts found"
+            fi
+          done
+
+      - name: Debug matrix combinations
+        run: |
+          echo "=== MATRIX COMBINATIONS DEBUG ==="
+          echo "Testing different artifact_name patterns:"
+          
+          versions=("6" "7")
+          releases=("devel" "stable")
+          
+          for version in "${versions[@]}"; do
+            for release in "${releases[@]}"; do
+              echo "  - pxf-packages-${version}-${release}"
+            done
+          done
+
+      - name: Check permissions
+        run: |
+          echo "=== PERMISSIONS CHECK ==="
+          echo "Token permissions analysis:"
+          echo "Contents: ${{ permissions.contents }}"
+          echo "Actions: ${{ permissions.actions }}"
+          echo "Repository token permissions are defined at workflow level"

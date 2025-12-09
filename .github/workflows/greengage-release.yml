@@ -10,17 +10,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  info:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Show release info
-        run: |
-          echo "Tag: ${{ github.event.release.tag_name }}"
-          echo "Release name: ${{ github.event.release.name }}"
-          echo "Is draft: ${{ github.event.release.draft }}"
-          echo "Is prerelease: ${{ github.event.release.prerelease }}"
-          echo "Target commitish: ${{ github.event.release.target_commitish }}"
-
   upload-to-release:
     strategy:
       fail-fast: false
