@@ -37,7 +37,7 @@ elif [ "$(file -Lb --mime-type "$GREENGAGE_DEB")" != "$mime_type" ] ; then
   exit 1
 fi
 
-pkgs='openjdk-17-jdk' # unzip vim nano ksh locales
+pkgs='openjdk-17-jdk debhelper devscripts dh-python' # unzip vim nano ksh locales
 echo -n "Installing $pkgs via apt... "
 {
   apt-get -yq update
