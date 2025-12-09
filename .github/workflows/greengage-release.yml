@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read 
     steps:
       - name: Upload packages to release
         uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@main
