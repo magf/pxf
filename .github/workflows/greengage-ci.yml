@@ -35,9 +35,9 @@ jobs:
           # - image: greengagedb/ggdb7_ubuntu:7.4.0
           #   release: stable
           #   version: '7'
-          # - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
-          #   release: devel
-          #   version: '7'
+          - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
+            release: devel
+            version: '7'
 
     container:
       image: ${{ matrix.image }}
