@@ -28,6 +28,8 @@ jobs:
         version: # as package suffix
         - '6-devel'
         - '7-devel'
+        - '6-stable'
+        - '7-stable'
 
     runs-on: ubuntu-latest
     permissions:
