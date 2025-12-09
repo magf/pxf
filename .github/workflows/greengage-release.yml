@@ -1,0 +1,44 @@
+# Release creation workflow
+name: Greengage release
+
+on:
+  release:
+    types: [published, edited]
+
+concurrency:
+  group: Greengage CI-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show release info
+        run: |
+          echo "Tag: ${{ github.event.release.tag_name }}"
+          echo "Release name: ${{ github.event.release.name }}"
+          echo "Is draft: ${{ github.event.release.draft }}"
+          echo "Is prerelease: ${{ github.event.release.prerelease }}"
+          echo "Target commitish: ${{ github.event.release.target_commitish }}"
+
+  upload-to-release:
+    strategy:
+      fail-fast: false
+      matrix:
+        version: # as package suffix
+        - '6-devel'
+        - '7-devel'
+        - '6-stable'
+        - '7-stable'
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Upload packages to release
+        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@v10
+        with:
+          version: -${{ matrix.version }}
+          artifact_name: pxf-packages-${{ matrix.version }}
+          package_name: pxf
+          extensions: deb ddeb
