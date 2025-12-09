@@ -220,34 +220,34 @@ jobs:
   #         { "test": "ggdbssl", "fdw": "true", "ssl": "true" }
   #       ]
 
-  upload-to-release:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: [build]
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # - image: greengagedb/ggdb6_ubuntu:6.29.1
-          #   release: stable
-          #   version: '6'
-          - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
-            release: devel
-            version: '6'
-          # - image: greengagedb/ggdb7_ubuntu:7.4.0
-          #   release: stable
-          #   version: '7'
-          # - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
-          #   release: devel
-          #   version: '7'
-    permissions:
-      contents: write  # Required for release creation
-    steps:
-      - name: Upload packages to release
-        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@ADBDEV-8877
-        with:
-          ghcr_token: ${{ secrets.ghcr_token }}
-          artifact_name: pxf-packages-${{ matrix.version }}-${{ matrix.release }}           # optional, defaults to deb-packages
-          # version: ${{ inputs.version }}    # optional, defaults empty
-          # package_name: greengage           # optional, defaults to repo name
-          # extensions: "deb ddeb"            # optional, space-separated list of extensions
+  # upload-to-release:
+  #   if: startsWith(github.ref, 'refs/tags/')
+  #   needs: [build]
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         # - image: greengagedb/ggdb6_ubuntu:6.29.1
+  #         #   release: stable
+  #         #   version: '6'
+  #         - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
+  #           release: devel
+  #           version: '6'
+  #         # - image: greengagedb/ggdb7_ubuntu:7.4.0
+  #         #   release: stable
+  #         #   version: '7'
+  #         # - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
+  #         #   release: devel
+  #         #   version: '7'
+  #   permissions:
+  #     contents: write  # Required for release creation
+  #   steps:
+  #     - name: Upload packages to release
+  #       uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@ADBDEV-8877
+  #       with:
+  #         ghcr_token: ${{ secrets.ghcr_token }}
+  #         artifact_name: pxf-packages-${{ matrix.version }}-${{ matrix.release }}           # optional, defaults to deb-packages
+  #         # version: ${{ inputs.version }}    # optional, defaults empty
+  #         # package_name: greengage           # optional, defaults to repo name
+  #         # extensions: "deb ddeb"            # optional, space-separated list of extensions
