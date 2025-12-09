@@ -26,8 +26,8 @@ jobs:
       fail-fast: false
       matrix:
         version: # as package suffix
-        - '-6-devel'
-        - '-7-devel'
+        - '6-devel'
+        - '7-devel'
 
     runs-on: ubuntu-latest
     permissions:
@@ -36,7 +36,7 @@ jobs:
       - name: Upload packages to release
         uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@v10
         with:
-          version: ${{ matrix.version }}
+          version: -${{ matrix.version }}
           artifact_name: pxf-packages-${{ matrix.version }}
           package_name: pxf
           extensions: deb ddeb
