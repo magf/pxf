@@ -66,12 +66,13 @@ jobs:
           cd $PXF_SRC
           bash ci/build_in_docker.sh
           git config --global --add safe.directory $PXF_SRC
-      - name: Cache packages
-        uses: actions/cache@v4
+
+      - name: Cache Package artifacts
+        uses: actions/cache/save@v4
         with:
           path: Package/
           key: pxf-packages-${{ matrix.version }}-${{ matrix.release }}-${{ github.sha }}
-      - name: Upload package artifacts
+      - name: Upload Package artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
