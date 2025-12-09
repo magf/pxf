@@ -12,6 +12,9 @@ jobs:
       contents: read
       actions: read
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Show release info
         run: |
           echo "Tag: ${{ github.event.release.tag_name }}"
