@@ -67,6 +67,13 @@ jobs:
           bash ci/build_in_docker.sh
           git config --global --add safe.directory $PXF_SRC
 
+      - name: Debug ref context GREENGAGE Workflow SAVE
+        run: |
+          echo "Current ref: ${{ github.ref }}"
+          echo "Current ref_name: ${{ github.ref_name }}"
+          echo "Current sha: ${{ github.sha }}"
+          echo "Event name: ${{ github.event_name }}"
+
       - name: Cache Package artifacts
         uses: actions/cache/save@v4
         with:
