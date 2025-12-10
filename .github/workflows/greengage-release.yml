@@ -27,6 +27,14 @@ jobs:
       contents: write
       actions: read 
     steps:
+
+      - name: Restore Debian artifacts from cache
+        uses: actions/cache/restore@v4
+        id: cache-restore
+        with:
+          path: ${{ matrix.artifact_name }}
+          key:  ${{ matrix.artifact_name }}-${{ github.sha }}
+
       - name: Upload packages to release
         uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@main
         with:
