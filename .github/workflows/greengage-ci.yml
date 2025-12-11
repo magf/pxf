@@ -15,12 +15,6 @@ concurrency:
   # Cancel branch/PR builds on new pushes (standard behavior)
   cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
-env:
-  DEV_HOME: /home/gpadmin
-  PXF_HOME: /opt/greengagedb/greengage/pxf
-  GPHOME:   /opt/greengagedb/greengage
-  GOPATH:   /opt/go
-
 jobs:
   build:
     name: Build on ggdb${{ matrix.version }}-${{ matrix.release }}
@@ -42,30 +36,46 @@ jobs:
             release: devel
             version: '7'
 
-    container:
-      image: ${{ matrix.image }}
-      volumes:
-        - ${{ github.workspace }}:/home/gpadmin/pxf
-      env:
-        PXF_HOME: ${{ env.PXF_HOME }}
-        DEV_HOME: /home/gpadmin
-        PXF_SRC: /home/gpadmin/pxf
-        GPHOME: ${{ env.GPHOME }}
-        GOPATH: ${{ env.GOPATH }}
-        PATH: ${{ env.GPHOME }}/bin:${{ env.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:${{ env.GOPATH }}/bin
-        JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
-        DEBIAN_FRONTEND: noninteractive
-        GREENGAGE_DEB: /tmp/greengage.deb
-        GREENGAGE_DEB_URL: https://github.com/magf/greengage/releases/download/6.99.9/greengage6.deb
     steps:
       - uses: actions/checkout@v4
-      - name: Build in Docker
-        shell: bash
+      
+      # - name: Set up Docker
+      #   run: |
+      #     docker pull ${{ matrix.image }}
+      
+      - name: Build in Docker using docker run
+        env:
+          DEV_HOME: /home/gpadmin
+          PXF_HOME: /opt/greengagedb/greengage/pxf
+          GPHOME: /opt/greengagedb/greengage
+          GOPATH: /opt/go
+          PXF_SRC: /home/gpadmin/pxf
+          PATH: /opt/greengagedb/greengage/bin:/opt/greengagedb/greengage/pxf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/opt/go/bin
+          JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+          DEBIAN_FRONTEND: noninteractive
+          GREENGAGE_DEB: /tmp/greengage.deb
+          GREENGAGE_DEB_URL: https://github.com/magf/greengage/releases/download/6.99.9/greengage6.deb
         run: |
           set -eux
-          cd $PXF_SRC
-          bash ci/build_in_docker.sh
-          git config --global --add safe.directory $PXF_SRC
+          docker run \
+            --rm \
+            -v ${{ github.workspace }}:/home/gpadmin/pxf \
+            -e DEV_HOME \
+            -e PXF_HOME \
+            -e GPHOME \
+            -e GOPATH \
+            -e PXF_SRC \
+            -e PATH \
+            -e JAVA_TOOL_OPTIONS \
+            -e DEBIAN_FRONTEND \
+            -e GREENGAGE_DEB \
+            -e GREENGAGE_DEB_URL \
+            ${{ matrix.image }} \
+            bash -c "
+              cd /home/gpadmin/pxf
+              bash ci/build_in_docker.sh
+              git config --global --add safe.directory /home/gpadmin/pxf
+            "
 
       - name: Debug ref context GREENGAGE Workflow SAVE
         run: |
