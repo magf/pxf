@@ -74,17 +74,21 @@ jobs:
           echo "Current sha: ${{ github.sha }}"
           echo "Event name: ${{ github.event_name }}"
 
+      - name: Rename Package artifacts
+        run: mv Package deb-packages-${{ matrix.version }}-${{ matrix.release }}
+
       - name: Cache Package artifacts
         uses: actions/cache/save@v4
         with:
-          path: Package
-          key: pxf-packages-${{ matrix.version }}-${{ matrix.release }}-${{ github.sha }}
+          path: deb-packages-${{ matrix.version }}-${{ matrix.release }}
+          key: deb-packages-${{ matrix.version }}-${{ matrix.release }}-${{ github.sha }}
       - name: Upload Package artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pxf-packages-${{ matrix.version }}-${{ matrix.release }}
-          path: Package
+          name: deb-packages-${{ matrix.version }}-${{ matrix.release }}
+          path: deb-packages-${{ matrix.version }}-${{ matrix.release }}
+
       # - name: Upload debian artifacts
       #   if: always()
       #   uses: actions/upload-artifact@v4
@@ -258,7 +262,7 @@ jobs:
   #       uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@ADBDEV-8877
   #       with:
   #         ghcr_token: ${{ secrets.ghcr_token }}
-  #         artifact_name: pxf-packages-${{ matrix.version }}-${{ matrix.release }}           # optional, defaults to deb-packages
+  #         artifact_name: deb-packages-${{ matrix.version }}-${{ matrix.release }}           # optional, defaults to deb-packages
   #         # version: ${{ inputs.version }}    # optional, defaults empty
   #         # package_name: greengage           # optional, defaults to repo name
   #         # extensions: "deb ddeb"            # optional, space-separated list of extensions

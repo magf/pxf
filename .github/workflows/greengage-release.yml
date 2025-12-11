@@ -37,6 +37,6 @@ jobs:
         uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@main
         with:
           version: -${{ matrix.version }}
-          artifact_name: pxf-packages-${{ matrix.version }}
+          artifact_name: deb-packages-${{ matrix.version }}
           package_name: pxf
           extensions: deb ddeb
