@@ -3,7 +3,7 @@ name: Greengage release
 
 on:
   release:
-    types: [published]
+    types: [released]
 
 concurrency:
   group: Greengage CI-${{ github.ref }}
