@@ -23,7 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: read 
     steps:
 
       - name: Debug ref context RELEASE Workflow
