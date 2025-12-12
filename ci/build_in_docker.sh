@@ -34,7 +34,7 @@ if [ ! -r "$GREENGAGE_DEB" ] ; then
     fi
 fi
 if [ "$(file -Lb --mime-type "$GREENGAGE_DEB")" != "$mime_type" ] ; then
-  echo "not a $mime_type. Use 'GREENGAGE_DEB=<ggdb_deb_file> $0' for proper file location"
+  echo "File $GREENGAGE_DEB not a $mime_type. Use 'GREENGAGE_DEB=<ggdb_deb_file> $0' for proper file location"
   exit 1
 fi
 
