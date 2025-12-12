@@ -34,7 +34,7 @@ jobs:
           echo "Event name: ${{ github.event_name }}"
 
       - name: Upload packages to release
-        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@main
+        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@fix/tag-then-release-race
         with:
           version: -${{ matrix.version }}
           artifact_name: deb-packages-${{ matrix.version }}
