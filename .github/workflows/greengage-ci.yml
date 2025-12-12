@@ -72,6 +72,7 @@ jobs:
             -e GREENGAGE_DEB_URL \
             ${{ matrix.image }} \
             bash -c "
+              set -e
               cd /home/gpadmin/pxf
               bash ci/build_in_docker.sh
               git config --global --add safe.directory /home/gpadmin/pxf
