@@ -21,14 +21,6 @@ jobs:
       contents: write
       actions: read
     steps:
-
-      - name: Debug ref context RELEASE Workflow
-        run: |
-          echo "Current ref: ${{ github.ref }}"
-          echo "Current ref_name: ${{ github.ref_name }}"
-          echo "Current sha: ${{ github.sha }}"
-          echo "Event name: ${{ github.event_name }}"
-
       - name: Upload packages to release
         uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@fix/tag-then-release-race
         with:
