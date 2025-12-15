@@ -13,12 +13,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
   cancel-in-progress: true  # Automatically cancel any previous runs for the same group
 
-env:
-  DEV_HOME: /home/gpadmin
-  PXF_HOME: /opt/greengagedb/greengage/pxf
-  GPHOME:   /opt/greengagedb/greengage
-  GOPATH:   /opt/go
-
 jobs:
   build:
     name: Build on ggdb${{ matrix.version }}-${{ matrix.release }}
@@ -40,41 +34,66 @@ jobs:
             release: devel
             version: '7'
 
-    container:
-      image: ${{ matrix.image }}
-      volumes:
-        - ${{ github.workspace }}:/home/gpadmin/pxf
-      env:
-        PXF_HOME: ${{ env.PXF_HOME }}
-        DEV_HOME: /home/gpadmin
-        PXF_SRC: /home/gpadmin/pxf
-        GPHOME: ${{ env.GPHOME }}
-        GOPATH: ${{ env.GOPATH }}
-        PATH: ${{ env.GPHOME }}/bin:${{ env.PXF_HOME }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:${{ env.GOPATH }}/bin
-        JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
-        DEBIAN_FRONTEND: noninteractive
-        GREENGAGE_DEB: /tmp/greengage.deb
-        GREENGAGE_DEB_URL: https://github.com/magf/greengage/releases/download/6.99.9/greengage6.deb
     steps:
       - uses: actions/checkout@v4
-      - name: Build in Docker
-        shell: bash
+      - name: Build in Docker using docker run
+        env:
+          DEV_HOME: /home/gpadmin
+          PXF_HOME: /opt/greengagedb/greengage/pxf
+          GPHOME: /opt/greengagedb/greengage
+          GOPATH: /opt/go
+          PXF_SRC: /home/gpadmin/pxf
+          PATH: /opt/greengagedb/greengage/bin:/opt/greengagedb/greengage/pxf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/opt/go/bin
+          JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+          DEBIAN_FRONTEND: noninteractive
+          GREENGAGE_DEB: /tmp/greengage.deb
+          GREENGAGE_DEB_URL: https://github.com/magf/greengage/releases/download/6.99.9/greengage6.deb
         run: |
           set -eux
-          cd $PXF_SRC
-          bash ci/build_in_docker.sh
-          git config --global --add safe.directory $PXF_SRC
-      - name: Cache packages
-        uses: actions/cache@v4
+          docker run \
+            --rm \
+            -v ${{ github.workspace }}:/home/gpadmin/pxf \
+            -e DEV_HOME \
+            -e PXF_HOME \
+            -e GPHOME \
+            -e GOPATH \
+            -e PXF_SRC \
+            -e PATH \
+            -e JAVA_TOOL_OPTIONS \
+            -e DEBIAN_FRONTEND \
+            -e GREENGAGE_DEB \
+            -e GREENGAGE_DEB_URL \
+            ${{ matrix.image }} \
+            bash -c "
+              set -e
+              cd /home/gpadmin/pxf
+              bash ci/build_in_docker.sh
+              git config --global --add safe.directory /home/gpadmin/pxf
+            "
+
+      - name: Debug ref context GREENGAGE Workflow SAVE
+        run: |
+          echo "Current ref: ${{ github.ref }}"
+          echo "Current ref_name: ${{ github.ref_name }}"
+          echo "Current sha: ${{ github.sha }}"
+          echo "Event name: ${{ github.event_name }}"
+
+      - name: Rename Package artifacts
+        run: mv Package deb-packages-${{ matrix.version }}-${{ matrix.release }}
+
+      - name: Cache Package artifacts
+        uses: actions/cache/save@v4
         with:
-          path: Package/
-          key: pxf-packages-${{ matrix.version }}-${{ matrix.release }}-${{ github.sha }}
-      - name: Upload package artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pxf-packages-${{ matrix.version }}-${{ matrix.release }}
-          path: Package/
+          path: deb-packages-${{ matrix.version }}-${{ matrix.release }}
+          key:  deb-packages-${{ matrix.version }}-${{ matrix.release }}-${{ github.sha }}
+
+      # - name: Upload Package artifacts
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: deb-packages-${{ matrix.version }}-${{ matrix.release }}
+      #     path: deb-packages-${{ matrix.version }}-${{ matrix.release }}
+
       # - name: Upload debian artifacts
       #   if: always()
       #   uses: actions/upload-artifact@v4
@@ -248,7 +267,7 @@ jobs:
   #       uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@ADBDEV-8877
   #       with:
   #         ghcr_token: ${{ secrets.ghcr_token }}
-  #         artifact_name: pxf-packages-${{ matrix.version }}-${{ matrix.release }}           # optional, defaults to deb-packages
+  #         artifact_name: deb-packages-${{ matrix.version }}-${{ matrix.release }}           # optional, defaults to deb-packages
   #         # version: ${{ inputs.version }}    # optional, defaults empty
   #         # package_name: greengage           # optional, defaults to repo name
   #         # extensions: "deb ddeb"            # optional, space-separated list of extensions
