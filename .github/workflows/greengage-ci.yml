@@ -36,11 +36,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
-      # - name: Set up Docker
-      #   run: |
-      #     docker pull ${{ matrix.image }}
-      
       - name: Build in Docker using docker run
         env:
           DEV_HOME: /home/gpadmin
@@ -90,13 +85,14 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: deb-packages-${{ matrix.version }}-${{ matrix.release }}
-          key: deb-packages-${{ matrix.version }}-${{ matrix.release }}-${{ github.sha }}
-      - name: Upload Package artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: deb-packages-${{ matrix.version }}-${{ matrix.release }}
-          path: deb-packages-${{ matrix.version }}-${{ matrix.release }}
+          key:  deb-packages-${{ matrix.version }}-${{ matrix.release }}-${{ github.sha }}
+
+      # - name: Upload Package artifacts
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: deb-packages-${{ matrix.version }}-${{ matrix.release }}
+      #     path: deb-packages-${{ matrix.version }}-${{ matrix.release }}
 
       # - name: Upload debian artifacts
       #   if: always()

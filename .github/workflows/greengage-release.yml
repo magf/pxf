@@ -22,7 +22,7 @@ jobs:
       actions: read
     steps:
       - name: Upload packages to release
-        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@fix/tag-then-release-race
+        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@v10
         with:
           version: -${{ matrix.version }}
           artifact_name: deb-packages-${{ matrix.version }}
