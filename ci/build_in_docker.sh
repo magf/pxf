@@ -70,9 +70,8 @@ fi
 
 git config --global --add safe.directory "$(pwd)"
 localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
-# mkdir -p "$GPHOME"
-# tar -xzf "$DEV_HOME/bin_gpdb/bin_gpdb.tar.gz" -C "$GPHOME/"
 
+# Install Greengage package
 apt-get -f install -y "$GREENGAGE_DEB"
 
 known_locations='/opt /usr/lib'
@@ -99,14 +98,4 @@ export PYTHONPATH
 export LD_LIBRARY_PATH
 export OPENSSL_CONF
 
-# shellcheck source=/dev/null
-# pg_config
-
 make all install pkg-deb
-
-# rm "$HOME/.cache" -rf
-# rm "$HOME/.gitconfig" -rf
-# rm "$HOME/.gradle" -rf
-
-# rm -rf /var/lib/apt/lists/*
-# rm -rf /tmp/*
