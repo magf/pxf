@@ -20,6 +20,16 @@ export GREENGAGE_DEB_URL=${GREENGAGE_DEB_URL:-https://github.com/GreengageDB/gre
 # SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # "$SCRIPT_DIR/set_azure_sources_list.sh"
 
+pkgs='openjdk-17-jdk debhelper devscripts dh-python file' # unzip vim nano ksh locales
+echo -n "Installing $pkgs via apt... "
+{
+  apt-get -yq update
+  apt-get -yq install --no-install-recommends $pkgs
+  apt-get clean
+} &>/dev/null ; echo "Done"
+
+update-locale LANG=en_US.UTF-8
+
 mime_type='application/vnd.debian.binary-package'
 
 if [ ! -r "$GREENGAGE_DEB" ] ; then
@@ -37,16 +47,6 @@ if [ "$(file -Lb --mime-type "$GREENGAGE_DEB")" != "$mime_type" ] ; then
   echo "File $GREENGAGE_DEB not a $mime_type. Use 'GREENGAGE_DEB=<ggdb_deb_file> $0' for proper file location"
   exit 1
 fi
-
-pkgs='openjdk-17-jdk debhelper devscripts dh-python file' # unzip vim nano ksh locales
-echo -n "Installing $pkgs via apt... "
-{
-  apt-get -yq update
-  apt-get -yq install --no-install-recommends $pkgs
-  apt-get clean
-} &>/dev/null ; echo "Done"
-
-update-locale LANG=en_US.UTF-8
 
 go_version=$(grep -E '^go [0-9]+\.[0-9]+\.[0-9]+' cli/go.mod | cut -d' ' -f2)
 installed_go_version=$(go version 2>/dev/null | grep -Eo 'go[0-9]+\.[0-9]+\.[0-9]+' | tr -d 'go')
