@@ -50,11 +50,11 @@ jobs:
           TEST_DOCKER_IMAGE: ubuntu:22.04
         run: |
           set -eux
-          mkdir "$(dirname $GREENGAGE_DEB)"
+          mkdir -p "$(dirname $GREENGAGE_DEB)"
           curl -L $GREENGAGE_DEB_URL -o $GREENGAGE_DEB
           docker run \
             --rm \
-            -v ${{ github.workspace }}:/home/gpadmin/pxf \
+            -v ${{ github.workspace }}:$PXF_SRC \
             -w $PXF_SRC \
             -e DEV_HOME \
             -e PXF_HOME \

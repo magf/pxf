@@ -6,7 +6,7 @@
 # image=ghcr.io/greengagedb/greengage/ggdb6_ubuntu:latest
 # version=ghcr-latest
 
-set -eu
+set -eux
 
 export JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:-'-Dfile.encoding=UTF8'}
 export DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-noninteractive}
