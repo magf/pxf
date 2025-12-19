@@ -69,9 +69,9 @@ jobs:
             --rm \
             -v ${{ env.GREENGAGE_DEB }}:${{ env.GREENGAGE_DEB }} \
             -v ${{ github.workspace }}:/home/gpadmin/pxf \
-            -w $PXF_HOME \
-            -e PXF_HOME \
+            -w $PXF_SRC \
             -e DEV_HOME \
+            -e PXF_HOME \
             -e GPHOME \
             -e GOPATH \
             -e PXF_SRC \
