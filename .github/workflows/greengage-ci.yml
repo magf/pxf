@@ -33,24 +33,8 @@ jobs:
           - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
             release: devel
             version: '7'
-    env:
-      GREENGAGE_DEB: /tmp/greengage.deb
-      GREENGAGE_DEB_URL: https://github.com/GreengageDB/greengage/releases/download/6.29.2/greengage6.deb
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Try to restore Greengage deb-package
-        uses: actions/cache@v4
-        id: cache-greengage-deb
-        with:
-          path: ${{ env.GREENGAGE_DEB }}
-          key:  greengage-deb
-
-      - name: Download Greengage deb-package
-        if: steps.cache-greengage-deb.outputs.cache-hit != 'true'
-        run: curl -L "${{ env.GREENGAGE_DEB_URL }}" -o "${{ env.GREENGAGE_DEB }}"
-
       - name: Build in Docker using docker run
         env:
           DEV_HOME: /home/gpadmin
@@ -61,13 +45,14 @@ jobs:
           PATH: /opt/greengagedb/greengage/bin:/opt/greengagedb/greengage/pxf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/opt/go/bin
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
           DEBIAN_FRONTEND: noninteractive
-          GREENGAGE_DEB: ${{ env.GREENGAGE_DEB }}
-          GREENGAGE_DEB_URL: ${{ env.GREENGAGE_DEB_URL }}
+          GREENGAGE_DEB: Package/greengage.deb
+          GREENGAGE_DEB_URL: https://github.com/GreengageDB/greengage/releases/download/6.29.2/greengage6.deb
+          TEST_DOCKER_IMAGE: ubuntu:22.04
         run: |
           set -eux
+          curl -L $GREENGAGE_DEB_URL -o $GREENGAGE_DEB
           docker run \
             --rm \
-            -v ${{ env.GREENGAGE_DEB }}:${{ env.GREENGAGE_DEB }} \
             -v ${{ github.workspace }}:/home/gpadmin/pxf \
             -w $PXF_SRC \
             -e DEV_HOME \
@@ -82,6 +67,21 @@ jobs:
             -e GREENGAGE_DEB_URL \
             ${{ matrix.image }} \
             /bin/bash ci/build_in_docker.sh
+
+      - name: Test Package install in Docker
+        run: |
+          set -eux
+          docker run \
+            --rm \
+            -v ./Package:/deb-packages \
+            ${TEST_DOCKER_IMAGE} \
+            /bin/bash -c "
+              set -e
+              apt-get update 
+              { apt-get install -yq /deb-packages/*.deb 2>&1 || dpkg -i /deb-packages/*.deb 2>&1; }
+              apt-get install -yqf
+            "
+            rm -f $GREENGAGE_DEB
 
       - name: Rename Package artifacts
         run: mv Package deb-packages-${{ matrix.version }}-${{ matrix.release }}
