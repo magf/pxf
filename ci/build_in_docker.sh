@@ -6,6 +6,8 @@
 # image=ghcr.io/greengagedb/greengage/ggdb6_ubuntu:latest
 # version=ghcr-latest
 
+# shellcheck disable=SC2086
+
 set -eux
 
 export JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:-'-Dfile.encoding=UTF8'}
