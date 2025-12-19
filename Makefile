@@ -188,6 +188,4 @@ help:
 	@echo	'  - install - install external table and foreign data wrapper extensions, CLI and server binaries'
 	@echo	'  - install-server - install server binaries only without running tests'
 	@echo	'  - stage - install external table and foreign data wrapper extensions, CLI, and server binaries into build/stage/pxf directory'
-	@echo	'  - tar - bundle external table and foreign data wrapper extensions, CLI, and server into a single tarball'
 	@echo	'  - deb - create PXF DEB package'
-	@echo	'  - deb-tar - bundle PXF DEB package along with helper scripts into a single tarball'

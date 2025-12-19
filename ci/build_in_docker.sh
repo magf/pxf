@@ -6,7 +6,9 @@
 # image=ghcr.io/greengagedb/greengage/ggdb6_ubuntu:latest
 # version=ghcr-latest
 
-set -eu
+# shellcheck disable=SC2086
+
+set -eux
 
 export JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:-'-Dfile.encoding=UTF8'}
 export DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-noninteractive}
@@ -31,7 +33,6 @@ echo -n "Installing $pkgs via apt... "
 update-locale LANG=en_US.UTF-8
 
 mime_type='application/vnd.debian.binary-package'
-
 if [ ! -r "$GREENGAGE_DEB" ] ; then
   echo -n "GreengageDB deb-package file '$GREENGAGE_DEB' "
   echo -n "not exists or not readable. Try to download from $GREENGAGE_DEB_URL "
@@ -70,10 +71,9 @@ fi
 
 git config --global --add safe.directory "$(pwd)"
 localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
-# mkdir -p "$GPHOME"
-# tar -xzf "$DEV_HOME/bin_gpdb/bin_gpdb.tar.gz" -C "$GPHOME/"
 
-apt-get -f install -y "$GREENGAGE_DEB"
+# Install Greengage package
+apt-get install -yf "$(realpath "$GREENGAGE_DEB")"
 
 known_locations='/opt /usr/lib'
 GPHOME=$(dev/detect_gphome.bash "$known_locations")
@@ -99,14 +99,4 @@ export PYTHONPATH
 export LD_LIBRARY_PATH
 export OPENSSL_CONF
 
-# shellcheck source=/dev/null
-# pg_config
-
 make all install pkg-deb
-
-# rm "$HOME/.cache" -rf
-# rm "$HOME/.gitconfig" -rf
-# rm "$HOME/.gradle" -rf
-
-# rm -rf /var/lib/apt/lists/*
-# rm -rf /tmp/*
