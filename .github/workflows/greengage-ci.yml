@@ -33,6 +33,9 @@ jobs:
           - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
             release: devel
             version: '7'
+    env:
+      GREENGAGE_DEB:     Package/greengage.deb
+      GREENGAGE_DEB_URL: https://github.com/GreengageDB/greengage/releases/download/6.29.2/greengage6.deb
     steps:
       - uses: actions/checkout@v4
       - name: Build in Docker using docker run
@@ -45,8 +48,8 @@ jobs:
           PATH: /opt/greengagedb/greengage/bin:/opt/greengagedb/greengage/pxf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/opt/go/bin
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
           DEBIAN_FRONTEND: noninteractive
-          GREENGAGE_DEB: Package/greengage.deb
-          GREENGAGE_DEB_URL: https://github.com/GreengageDB/greengage/releases/download/6.29.2/greengage6.deb
+          GREENGAGE_DEB: ${{ env.GREENGAGE_DEB }}
+          GREENGAGE_DEB_URL: ${{ env.GREENGAGE_DEB_URL }}
         run: |
           set -eux
           mkdir -p "$(dirname $GREENGAGE_DEB)"
@@ -70,13 +73,15 @@ jobs:
 
       - name: Test Package install in Docker
         env:
-          GREENGAGE_DEB: Package/greengage.deb
+          GREENGAGE_DEB: ${{ env.GREENGAGE_DEB }}
+          DEBIAN_FRONTEND: noninteractive
           TEST_DOCKER_IMAGE: ubuntu:22.04
         run: |
           set -eux
           docker run \
             --rm \
             -v ./Package:/deb-packages \
+            -e DEBIAN_FRONTEND \
             $TEST_DOCKER_IMAGE \
             /bin/bash -c "
               set -e
