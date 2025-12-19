@@ -31,7 +31,6 @@ echo -n "Installing $pkgs via apt... "
 update-locale LANG=en_US.UTF-8
 
 mime_type='application/vnd.debian.binary-package'
-
 if [ ! -r "$GREENGAGE_DEB" ] ; then
   echo -n "GreengageDB deb-package file '$GREENGAGE_DEB' "
   echo -n "not exists or not readable. Try to download from $GREENGAGE_DEB_URL "
@@ -72,7 +71,7 @@ git config --global --add safe.directory "$(pwd)"
 localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 
 # Install Greengage package
-apt-get -f install -y "$GREENGAGE_DEB"
+apt-get install -yf "$(realpath "$GREENGAGE_DEB")"
 
 known_locations='/opt /usr/lib'
 GPHOME=$(dev/detect_gphome.bash "$known_locations")
