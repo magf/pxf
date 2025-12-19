@@ -50,6 +50,7 @@ jobs:
           TEST_DOCKER_IMAGE: ubuntu:22.04
         run: |
           set -eux
+          mkdir "$(dirname $GREENGAGE_DEB)"
           curl -L $GREENGAGE_DEB_URL -o $GREENGAGE_DEB
           docker run \
             --rm \
