@@ -10,6 +10,8 @@
 
 set -eu
 
+: "${GPHOME:?GPHOME must be set}"
+
 export JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:-'-Dfile.encoding=UTF8'}
 export DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-noninteractive}
 
@@ -37,6 +39,7 @@ mime_type='application/vnd.debian.binary-package'
 if [ ! -r "$GREENGAGE_DEB" ] ; then
   echo -n "GreengageDB deb-package file '$GREENGAGE_DEB' "
   echo -n "not exists or not readable. Try to download from $GREENGAGE_DEB_URL "
+  mkdir -p "$(dirname $GREENGAGE_DEB)"
   curl -L "$GREENGAGE_DEB_URL" -o "$GREENGAGE_DEB" &>/dev/null
     if [ ! -r "$GREENGAGE_DEB" ] ; then
       echo "failed. Exiting"
@@ -75,16 +78,6 @@ localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 
 # Install Greengage package
 apt-get install -yf "$(realpath "$GREENGAGE_DEB")"
-
-known_locations='/opt /usr/lib'
-GPHOME=$(dev/detect_gphome.bash "$known_locations")
-if [ -z "$GPHOME" ] ; then
-  echo "Greengage not found at known locations: '$known_locations'. Exiting"
-  exit 1
-else
-  export GPHOME
-  echo "Greengage found at $GPHOME"
-fi
 
 # GreengageDB environment variables
 PATH="$GPHOME/bin:$PATH"
