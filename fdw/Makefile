@@ -20,6 +20,7 @@ PGXS := $(shell $(PG_CONFIG) --pgxs)
 ifndef PGXS
     $(error Make sure the Greengage installation binaries are in your PATH. i.e. export PATH=<path to your Greengage installation>/bin:$$PATH)
 endif
+PG_CPPFLAGS+=-I$(shell $(PG_CONFIG) --includedir)
 include $(PGXS)
 
 
@@ -46,3 +47,10 @@ installcheck-http:
 .PHONY: installcheck-https
 installcheck-https:
 	$(MAKE) installcheck REGRESS="$(REGRESS_COMMON) $(REGRESS_HTTPS)"
+
+installcheck: isolationcheck
+
+ISOLATION2_ROOT=$(pgxsdir)/src/test/isolation2
+
+isolationcheck: submake
+	make ISOLATION2_ROOT=$(ISOLATION2_ROOT) -C isolation2 isolationcheck
