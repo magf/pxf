@@ -25,7 +25,10 @@
 
 #include "pxf_option.h"
 
+#include "libpq-fe.h"
+
 #include "commands/copy.h"
+#include "cdb/cdbconn.h"
 #include "cdb/cdbvars.h"
 #include "nodes/execnodes.h"
 #include "nodes/parsenodes.h"
@@ -73,6 +76,10 @@ typedef struct PxfFdwModifyState
 	Datum	   *values;			/* List of values exported for the row */
 	bool	   *nulls;			/* List of null fields for the exported row */
 #endif
+
+#ifdef LIBPQ_HAS_EXT_METADATA_COMMIT_V1
+	ggMetadataQueueId metadata_queue_id;
+#endif	
 } PxfFdwModifyState;
 
 /* Clean up churl related data structures from the context */
@@ -85,8 +92,10 @@ void		PxfBridgeImportStart(PxfFdwScanState *pxfsstate);
 /* Sets up data before starting export */
 void		PxfBridgeExportStart(PxfFdwModifyState *pxfmstate);
 
+#ifdef LIBPQ_HAS_EXT_METADATA_COMMIT_V1
 /* Sets up data before starting metadata commit */
 void		PxfBridgeCommitStart(PxfFdwModifyState *pxfmstate);
+#endif
 
 /* Reads data from the PXF server into the given buffer of a given size */
 #if PG_VERSION_NUM >= 90600
@@ -98,7 +107,9 @@ int			PxfBridgeRead(void *outbuf, int datasize, void *extra);
 /* Writes data from the given buffer of a given size to the PXF server */
 int			PxfBridgeWrite(PxfFdwModifyState *context, char *databuf, int datalen);
 
+#ifdef LIBPQ_HAS_EXT_METADATA_COMMIT_V1
 /* Reads metadata from the PXF server v1 and sends it to the coordinator */
 int PxfBridgeReceiveMetadata(PxfFdwModifyState *pxfmstate, StringInfo buf);
+#endif
 
 #endif							/* _PXFBRIDGE_H */
