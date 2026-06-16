@@ -12,7 +12,7 @@
 
 # shellcheck disable=SC2086
 
-set -eu
+set -eux
 
 export GREENGAGE_VERSION=${GREENGAGE_VERSION:-6}
 
@@ -62,11 +62,10 @@ echo "deb [signed-by=/etc/apt/keyrings/greengagedb.gpg] \
 
 pkgs="openjdk-17-jdk debhelper devscripts dh-python file $GREENGAGE_PACKAGE" # unzip vim nano ksh locales
 echo -n "Installing $pkgs via apt... "
-{
+
   apt-get -yq update
   apt-get -yq install --no-install-recommends $pkgs
   apt-get clean
-} &>/dev/null ; echo "Done"
 
 known_locations='/opt /usr/lib'
 GPHOME=$(dev/detect_gphome.bash "$known_locations")
