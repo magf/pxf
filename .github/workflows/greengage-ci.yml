@@ -22,40 +22,33 @@ jobs:
       matrix:
         include:
           # With STABLE GG6
-          - tag: 6.31.0 # greengagedb/ggdb6_ubuntu:6.31.0
-            version: '6'
+          - version: 6 # greengagedb/ggdb6_ubuntu:6.31.0
             target_os: ubuntu
-            target_os_version: "22.04"
-          - tag: 6.31.0 # greengagedb/ggdb6_ubuntu24.04:6.31.0
-            version: '6'
+            target_os_version: 22.04
+          - version: 6 # greengagedb/ggdb6_ubuntu24.04:6.31.0
             target_os: ubuntu
-            target_os_version: "24.04"
+            target_os_version: 24.04
 
           # With DEVEL GG6
-          - tag: latest # image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu:latest
-            release: '-devel'
-            version: '6'
+          - version: 6 # image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu:latest
             target_os: ubuntu
-            target_os_version: "22.04"
-          - tag: latest # image: ghcr.io/greengagedb/greengage/ggdb624.04_ubuntu:latest
-            release: '-devel'
-            version: '6'
+            target_os_version: 22.04
+            release: -devel
+          - version: 6 # image: ghcr.io/greengagedb/greengage/ggdb624.04_ubuntu:latest
             target_os: ubuntu
-            target_os_version: "24.04"
+            target_os_version: 24.04
+            release: -devel
 
           # With STABLE GG7
-          - tag: 7.4.1 # greengagedb/ggdb7_ubuntu:7.4.1
-            version: '7'
+          - version: 7 # image: greengagedb/ggdb7_ubuntu:7.4.1
             target_os: ubuntu
-            target_os_version: "22.04"
-
+            target_os_version: 22.04
 
           # With DEVEL GG7
-          - tag: latest # ghcr.io/greengagedb/greengage/ggdb7_ubuntu:latest
-            release: '-devel'
-            version: '7'
+          - version: 7 # image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu:latest
             target_os: ubuntu
-            target_os_version: "22.04"
+            target_os_version: 22.04
+            release: -devel
 
     steps:
       - uses: actions/checkout@v4
@@ -72,7 +65,7 @@ jobs:
           GREENGAGE_VERSION: ${{ matrix.version }}
           GREENGAGE_PACKAGE: greengage${{ matrix.version }}
           GREENGAGE_REPO_URL: 'https://greengagedb.org' # 'https://storage.yandexcloud.net/greengage-repo'
-          IMAGE: ${{ matrix.release == '-devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:${{ matrix.tag }}
+          IMAGE: ${{ matrix.release == '-devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:latest
 
         run: |
           set -eu
