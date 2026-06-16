@@ -57,9 +57,6 @@ jobs:
             target_os: ubuntu
             target_os_version: "22.04"
 
-    env:
-      GREENGAGE_DEB:     Package/greengage.deb
-      GREENGAGE_DEB_URL: https://github.com/GreengageDB/greengage/releases/download/6.29.2/greengage6.deb
     steps:
       - uses: actions/checkout@v4
       - name: Build in Docker using docker run
@@ -72,13 +69,13 @@ jobs:
           PATH: /opt/greengagedb/greengage/bin:/opt/greengagedb/greengage/pxf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/opt/go/bin
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
           DEBIAN_FRONTEND: noninteractive
-          GREENGAGE_DEB: ${{ env.GREENGAGE_DEB }}
-          GREENGAGE_DEB_URL: ${{ env.GREENGAGE_DEB_URL }}
+          GREENGAGE_VERSION: ${{ matrix.version }}
+          GREENGAGE_PACKAGE: greengage${{ matrix.version }}
+          GREENGAGE_REPO_URL: 'https://storage.yandexcloud.net/greengage-repo' # https://greengagedb.org
           IMAGE: ${{ matrix.release == '-devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:${{ matrix.tag }}
+
         run: |
           set -eu
-          mkdir -p "$(dirname $GREENGAGE_DEB)"
-          curl -L $GREENGAGE_DEB_URL -o $GREENGAGE_DEB
           docker run \
             --rm \
             -v ${{ github.workspace }}:$PXF_SRC \
@@ -91,8 +88,9 @@ jobs:
             -e PATH \
             -e JAVA_TOOL_OPTIONS \
             -e DEBIAN_FRONTEND \
-            -e GREENGAGE_DEB \
-            -e GREENGAGE_DEB_URL \
+            -e GREENGAGE_VERSION \
+            -e GREENGAGE_PACKAGE \
+            -e GREENGAGE_REPO_URL \
             $IMAGE \
             /bin/bash ci/build_in_docker.sh
 

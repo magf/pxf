@@ -10,14 +10,16 @@
 
 set -eu
 
+export GREENGAGE_VERSION=${GREENGAGE_VERSION:-6}
+
 export JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:-'-Dfile.encoding=UTF8'}
 export DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-noninteractive}
 
 export GOPATH=/opt/go
 export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
-export GREENGAGE_DEB=${GREENGAGE_DEB:-/tmp/greengage.deb}
-export GREENGAGE_DEB_URL=${GREENGAGE_DEB_URL:-https://github.com/GreengageDB/greengage/releases/download/main/greengage.deb}
+export GREENGAGE_PACKAGE=${GREENGAGE_PACKAGE:-greengage$GREENGAGE_VERSION}
+export GREENGAGE_REPO_URL=${GREENGAGE_REPO_URL:-'https://greengagedb.org'}
 
 # SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # "$SCRIPT_DIR/set_azure_sources_list.sh"
@@ -74,7 +76,13 @@ git config --global --add safe.directory "$(pwd)"
 localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 
 # Install Greengage package
-apt-get install -yf "$(realpath "$GREENGAGE_DEB")"
+# shellcheck disable=SC1091 # External source
+source /etc/os-release
+echo "deb [signed-by=/etc/apt/keyrings/greengagedb.gpg] \
+  ${GREENGAGE_REPO_URL}/repositories/ubuntu/${VERSION_ID}/x86_64 greengagedb main" \
+  > /etc/apt/sources.list.d/greengagedb.list
+
+apt-get install -yf "$GREENGAGE_PACKAGE"
 
 known_locations='/opt /usr/lib'
 GPHOME=$(dev/detect_gphome.bash "$known_locations")
