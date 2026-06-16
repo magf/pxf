@@ -107,7 +107,7 @@ jobs:
 
   regression:
     if: github.event_name == 'pull_request'  # Only for PR
-    name: Regression on ggdb${{ matrix.version }}${{ matrix.release }}
+    name: Regression tests
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -130,7 +130,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build PXF regression on ggdb${{ matrix.version }}${{ matrix.release }} 
+      - name: Build PXF regression on ggdb${{ matrix.version }}-${{ matrix.release }}
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -139,7 +139,7 @@ jobs:
           tags: greengagedb/ggdb${{ matrix.version }}_pxf_regression:${{ matrix.release }}
           build-args: GGDB_IMAGE=${{ matrix.image }}
 
-      - name: Run regression on ggdb${{ matrix.version }}${{ matrix.release }}
+      - name: Run regression on ggdb${{ matrix.version }}-${{ matrix.release }}
         shell: bash
         run: |
           mkdir logs
@@ -162,7 +162,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: regression-ggdb${{ matrix.version }}${{ matrix.release }}
+          name: regression-ggdb${{ matrix.version }}-${{ matrix.release }}
           path: logs
           retention-days: 7
           if-no-files-found: warn
