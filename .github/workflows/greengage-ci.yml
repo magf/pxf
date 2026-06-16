@@ -113,20 +113,20 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
+          name: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}${{ matrix.release }}
           path: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
 
       - name: Cache Debian artifacts
         uses: actions/cache/save@v4
         with:
           path: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
-          key:  deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}-${{ github.sha }}
+          key:  deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}${{ matrix.release }}-${{ github.sha }}
 
       - name: Test install deb-package in Docker 
         uses: greengagedb/greengage-ci/.github/actions/tests/install/deb@v44
         with:
           test_docker: ${{ matrix.target_os}}:${{ matrix.target_os_version }}
-          artifact_name: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
+          artifact_name: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}${{ matrix.release }}
           verify_commands: |
             dpkg -l greengage* 2>/dev/null || true
             dpkg -l pxf*
