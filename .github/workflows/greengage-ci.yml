@@ -116,6 +116,12 @@ jobs:
           name: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
           path: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
 
+      - name: Cache Debian artifacts
+        uses: actions/cache/save@v4
+        with:
+          path: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
+          key:  deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}-${{ github.sha }}
+
       - name: Test install deb-package in Docker 
         uses: greengagedb/greengage-ci/.github/actions/tests/install/deb@v44
         with:
