@@ -48,10 +48,7 @@ jobs:
             version: '7'
             target_os: ubuntu
             target_os_version: "22.04"
-          - tag: 7.4.0 # greengagedb/ggdb7_ubuntu24.04:7.4.0
-            version: '7'
-            target_os: ubuntu
-            target_os_version: "24.04"
+
 
           # With DEVEL GG7
           - tag: latest # ghcr.io/greengagedb/greengage/ggdb7_ubuntu:latest
@@ -59,11 +56,6 @@ jobs:
             version: '7'
             target_os: ubuntu
             target_os_version: "22.04"
-          - tag: latest # ghcr.io/greengagedb/greengage/ggdb7_ubuntu24.04:latest
-            release: '-devel'
-            version: '7'
-            target_os: ubuntu
-            target_os_version: "24.04"
 
     env:
       GREENGAGE_DEB:     Package/greengage.deb
