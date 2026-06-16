@@ -12,7 +12,7 @@
 
 # shellcheck disable=SC2086
 
-set -eux
+set -eu
 
 export GREENGAGE_VERSION=${GREENGAGE_VERSION:-6}
 
@@ -34,6 +34,13 @@ git config --global --add safe.directory "$(pwd)"
 update-locale LANG=en_US.UTF-8
 localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 
+# Install packages from apt
+echo -n "Installing packages via apt... "
+{
+  apt-get -yq update
+  apt-get -yq install --no-install-recommends openjdk-17-jdk "$GREENGAGE_PACKAGE"
+  apt-get clean
+} &>/dev/null ; echo "Done"
 
 # Install Golang
 go_version=$(grep -E '^go [0-9]+\.[0-9]+\.[0-9]+' cli/go.mod | cut -d' ' -f2)
@@ -55,17 +62,6 @@ if [ "$go_version" != "$installed_go_version" ] ; then
 else
   echo "found"
 fi
-
-# Install packages from apt
-# shellcheck disable=SC1091 # External source
-source /etc/os-release
-echo "deb [signed-by=/etc/apt/keyrings/greengagedb.gpg] \
-  ${GREENGAGE_REPO_URL}/repositories/ubuntu/${VERSION_ID}/x86_64 greengagedb main" \
-  > /etc/apt/sources.list.d/greengagedb.list
-curl -fsSL ${GREENGAGE_REPO_URL}/repositories/gpg 2>/dev/null | gpg --batch --dearmor -o /etc/apt/keyrings/greengagedb.gpg
-
-apt-get -yq update && apt-get -yq install --no-install-recommends openjdk-17-jdk "$GREENGAGE_PACKAGE"
-apt-get clean
 
 # Find GPHOME
 known_locations='/opt /usr/lib'
