@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build on ggdb${{ matrix.version }}${{ matrix.release }}
+    name: Build on ${{ matrix.target_os }}:${{ matrix.target_os_version }} with ggdb${{ matrix.version }}${{ matrix.release }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
