@@ -15,23 +15,21 @@ concurrency:
 
 jobs:
   build:
-    name: Build on ggdb${{ matrix.version }}-${{ matrix.release }}
+    name: Build on ggdb${{ matrix.version }}${{ matrix.release }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
           - image: greengagedb/ggdb6_ubuntu:6.29.1
-            release: stable
             version: '6'
           - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
-            release: devel
+            release: '-devel'
             version: '6'
           - image: greengagedb/ggdb7_ubuntu:7.4.0
-            release: stable
             version: '7'
           - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
-            release: devel
+            release: '-devel'
             version: '7'
     env:
       GREENGAGE_DEB:     Package/greengage.deb
@@ -92,24 +90,24 @@ jobs:
             rm -f $GREENGAGE_DEB
 
       - name: Rename Package artifacts
-        run: mv Package deb-packages-${{ matrix.version }}-${{ matrix.release }}
+        run: mv Package deb-packages-${{ matrix.version }}${{ matrix.release }}
 
       - name: Cache Package artifacts
         uses: actions/cache/save@v4
         with:
-          path: deb-packages-${{ matrix.version }}-${{ matrix.release }}
-          key:  deb-packages-${{ matrix.version }}-${{ matrix.release }}-${{ github.sha }}
+          path: deb-packages-${{ matrix.version }}${{ matrix.release }}
+          key:  deb-packages-${{ matrix.version }}${{ matrix.release }}-${{ github.sha }}
 
       - name: Upload Package artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: deb-packages-${{ matrix.version }}-${{ matrix.release }}
-          path: deb-packages-${{ matrix.version }}-${{ matrix.release }}
+          name: deb-packages-${{ matrix.version }}${{ matrix.release }}
+          path: deb-packages-${{ matrix.version }}${{ matrix.release }}
 
   regression:
     if: github.event_name == 'pull_request'  # Only for PR
-    name: Regression on ggdb${{ matrix.version }}-${{ matrix.release }}
+    name: Regression on ggdb${{ matrix.version }}${{ matrix.release }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -132,7 +130,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build PXF regression on ggdb${{ matrix.version }}-${{ matrix.release }} 
+      - name: Build PXF regression on ggdb${{ matrix.version }}${{ matrix.release }} 
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -141,7 +139,7 @@ jobs:
           tags: greengagedb/ggdb${{ matrix.version }}_pxf_regression:${{ matrix.release }}
           build-args: GGDB_IMAGE=${{ matrix.image }}
 
-      - name: Run regression on ggdb${{ matrix.version }}-${{ matrix.release }}
+      - name: Run regression on ggdb${{ matrix.version }}${{ matrix.release }}
         shell: bash
         run: |
           mkdir logs
@@ -164,7 +162,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: regression-ggdb${{ matrix.version }}-${{ matrix.release }}
+          name: regression-ggdb${{ matrix.version }}${{ matrix.release }}
           path: logs
           retention-days: 7
           if-no-files-found: warn
