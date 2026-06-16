@@ -3,9 +3,9 @@ package org.greenplum.pxf.service.controller;
 import com.google.common.io.CountingInputStream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.greenplum.pxf.api.model.CommittableOperation;
 import org.greenplum.pxf.api.model.ConfigurationFactory;
 import org.greenplum.pxf.api.model.RequestContext;
-import org.greenplum.pxf.api.utilities.Utilities;
 import org.greenplum.pxf.service.MetricsReporter;
 import org.greenplum.pxf.service.bridge.Bridge;
 import org.greenplum.pxf.service.bridge.BridgeFactory;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
@@ -23,7 +24,7 @@ import java.util.function.Predicate;
  */
 @Service
 @Slf4j
-public class WriteServiceImpl extends BaseServiceImpl<OperationStats> implements WriteService {
+public class WriteServiceImpl extends BaseServiceImpl implements WriteService {
 
     private final Map<RequestIdentifier, Bridge> writeExecutionMap = new ConcurrentHashMap<>();
 
@@ -42,14 +43,13 @@ public class WriteServiceImpl extends BaseServiceImpl<OperationStats> implements
     }
 
     @Override
-    public String writeData(RequestContext context, InputStream inputStream) throws Exception {
-        OperationStats stats = processData(context, () -> readStream(context, inputStream));
+    public OperationResult writeData(RequestContext context, InputStream inputStream) throws Exception {
+        return processData(context, OperationStats.Operation.WRITE, () -> readStream(context, inputStream));
+    }
 
-        String censuredPath = Utilities.maskNonPrintables(context.getDataSource());
-        String returnMsg = String.format("wrote %d records to %s", stats.getRecordCount(), censuredPath);
-        log.debug(returnMsg);
-
-        return returnMsg;
+    @Override
+    public void commitData(RequestContext context, List<byte[]> fullMetadata) throws Exception {
+        processData(context, OperationStats.Operation.COMMIT, () -> processCommit(context, fullMetadata));
     }
 
     @Override
@@ -74,6 +74,23 @@ public class WriteServiceImpl extends BaseServiceImpl<OperationStats> implements
                 && (StringUtils.isBlank(server) || key.getServer().equals(server));
     }
 
+    private OperationResult processCommit(RequestContext context, List<byte[]> fullMetadata) {
+        var result = new OperationResult();
+        Bridge bridge = getBridge(context);
+        if(!(bridge instanceof CommittableOperation)) {
+            result.setException(new IllegalStateException("Commit operation is not supported by protocol " + context.getProtocolVersion()));
+            return result;
+        }
+        try {
+            ((CommittableOperation)bridge).commit(fullMetadata);
+        } catch (Exception e) {
+            result.setException(e);
+        } finally {
+            result.setStats(new OperationStats(OperationStats.Operation.WRITE, metricsReporter, context));
+        }
+        return result;
+    }
+
     /**
      * Reads the input stream, iteratively submits data from the stream to created bridge.
      *
@@ -94,7 +111,7 @@ public class WriteServiceImpl extends BaseServiceImpl<OperationStats> implements
         CountingInputStream countingInputStream = new CountingInputStream(inputStream);
         try (DataInputStream dataStream = new DataInputStream(countingInputStream)) {
             // open the output file, returns true or throws an error
-            bridge.beginIteration();
+            metricsReporter.reportTimer(MetricsReporter.PxfMetric.BRIDGE_BEGIN, context, bridge::beginIteration);
             while (bridge.setNext(dataStream)) {
                 operationStats.reportCompletedRecord(countingInputStream.getCount());
             }
@@ -102,7 +119,7 @@ public class WriteServiceImpl extends BaseServiceImpl<OperationStats> implements
             operationResult.setException(e);
         } finally {
             try {
-                bridge.endIteration();
+                operationResult.setMetadata(bridge.endIteration());
             } catch (Exception e) {
                 if (operationResult.getException() == null) {
                     operationResult.setException(e);

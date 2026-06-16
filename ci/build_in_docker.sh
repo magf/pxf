@@ -14,6 +14,8 @@
 
 set -eu
 
+: "${GPHOME:?GPHOME must be set}"
+
 export GREENGAGE_VERSION=${GREENGAGE_VERSION:-6}
 
 export JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:-'-Dfile.encoding=UTF8'}
@@ -67,17 +69,6 @@ if [ "$go_version" != "$installed_go_version" ] ; then
   } &>/dev/null ; echo 'Done'
 else
   echo "found"
-fi
-
-# Find GPHOME
-known_locations='/opt /usr/lib'
-GPHOME=$(dev/detect_gphome.bash "$known_locations")
-if [ -z "$GPHOME" ] ; then
-  echo "Greengage not found at known locations: '$known_locations'. Exiting"
-  exit 1
-else
-  export GPHOME
-  echo "Greengage found at $GPHOME"
 fi
 
 # GreengageDB environment variables
