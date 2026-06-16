@@ -74,11 +74,11 @@ jobs:
       - name: Build in Docker using docker run
         env:
           DEV_HOME: /home/gpadmin
-          PXF_HOME: /opt/greengagedb/greengage/pxf
-          GPHOME: /opt/greengagedb/greengage
+          PXF_HOME: /opt/greengagedb/greengage${{ matrix.version }}/pxf
+          GPHOME: /opt/greengagedb/greengage${{ matrix.version }}
           GOPATH: /opt/go
           PXF_SRC: /home/gpadmin/pxf
-          PATH: /opt/greengagedb/greengage/bin:/opt/greengagedb/greengage/pxf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/opt/go/bin
+          PATH: /opt/greengagedb/greengage${{ matrix.version }}/bin:/opt/greengagedb/greengage${{ matrix.version }}/pxf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/opt/go/bin
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
           DEBIAN_FRONTEND: noninteractive
           GREENGAGE_VERSION: ${{ matrix.version }}

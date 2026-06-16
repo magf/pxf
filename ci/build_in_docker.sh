@@ -72,18 +72,12 @@ else
 fi
 
 # GreengageDB environment variables
-PATH="$GPHOME/bin:$PATH"
-PYTHONPATH="$GPHOME/lib/python"
-LD_LIBRARY_PATH="$GPHOME/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export PYTHONPATH="$GPHOME/lib/python"
+export LD_LIBRARY_PATH="$GPHOME/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
 if [ -e "$GPHOME/etc/openssl.cnf" ]; then
-	OPENSSL_CONF="$GPHOME/etc/openssl.cnf"
+	export OPENSSL_CONF="$GPHOME/etc/openssl.cnf"
 fi
-
-export PATH
-export PYTHONPATH
-export LD_LIBRARY_PATH
-export OPENSSL_CONF
 
 # Build
 make all install pkg-deb
