@@ -35,4 +35,3 @@ jobs:
           package_dir:          ${{ matrix.package_dir }}
           target_os:            ${{ matrix.target_os }}
           target_os_version:    ${{ matrix.target_os_version }}
-          artifact_name:        ${{ matrix.package_dir }}-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
