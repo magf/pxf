@@ -12,7 +12,7 @@
 
 # shellcheck disable=SC2086
 
-set -eu
+set -eux
 
 : "${GPHOME:?GPHOME must be set}"
 
@@ -48,7 +48,7 @@ echo -n "Installing packages via apt... "
   apt-get -yq update
   apt-get -yq install --no-install-recommends openjdk-17-jdk "$GREENGAGE_PACKAGE"
   apt-get clean
-} 1>/dev/null ; echo "Done"
+} 2>/dev/null ; echo "Done"
 
 # Install Golang
 go_version=$(grep -E '^go [0-9]+\.[0-9]+\.[0-9]+' cli/go.mod | cut -d' ' -f2)
