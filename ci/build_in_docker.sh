@@ -37,6 +37,12 @@ localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
 # Install packages from apt
 echo -n "Installing packages via apt... "
 {
+  # Bugfix: developers image 24.04 contains sources.list for 22.04
+  # shellcheck disable=SC1091 # External source
+  source /etc/os-release
+  echo "deb [signed-by=/etc/apt/keyrings/greengagedb.gpg] \
+  ${GREENGAGE_REPO_URL}/repositories/ubuntu/${VERSION_ID}/x86_64 greengagedb main" \
+    > /etc/apt/sources.list.d/greengagedb.list
   apt-get -yq update
   apt-get -yq install --no-install-recommends openjdk-17-jdk "$GREENGAGE_PACKAGE"
   apt-get clean
