@@ -62,7 +62,7 @@ source /etc/os-release
 echo "deb [signed-by=/etc/apt/keyrings/greengagedb.gpg] \
   ${GREENGAGE_REPO_URL}/repositories/ubuntu/${VERSION_ID}/x86_64 greengagedb main" \
   > /etc/apt/sources.list.d/greengagedb.list
-curl -fsSL ${GREENGAGE_REPO_URL}/repositories/gpg 2>/dev/null | gpg --dearmor -o /etc/apt/keyrings/greengagedb.gpg
+curl -fsSL ${GREENGAGE_REPO_URL}/repositories/gpg 2>/dev/null | gpg --batch --dearmor -o /etc/apt/keyrings/greengagedb.gpg
 
 apt-get -yq update && apt-get -yq install --no-install-recommends openjdk-17-jdk "$GREENGAGE_PACKAGE"
 apt-get clean
