@@ -33,7 +33,7 @@ export SKIP_FDW_PACKAGE_REASON
 export GP_MAJORVERSION
 export GP_BUILD_ARCH
 
-PACKAGE_NAME := $(shell grep '^Package:' debian/control | head -1 | awk '{print $$2}')
+PACKAGE_NAME := $(shell grep '^Source:' debian/control.in | awk '{print $$2}')
 PXF_PACKAGE_NAME := $(PACKAGE_NAME)-$(PXF_VERSION)-$(GP_BUILD_ARCH)
 export PXF_PACKAGE_NAME
 
@@ -94,8 +94,17 @@ endif
 	done ;\
 	echo "===> PXF installation is complete <==="
 
+install-ext: install-fdw
+
 install-server:
 	make -C server install-server DESTDIR=$(DESTDIR) GPHOME=$(GPHOME) PXF_HOME=$(PXF_HOME)
+
+install-cli:
+	make -C cli install DESTDIR=$(DESTDIR) GPHOME=$(GPHOME) PXF_HOME=$(PXF_HOME)
+
+install-fdw:
+	make -C fdw install DESTDIR=$(DESTDIR) GPHOME=$(GPHOME) PXF_HOME=$(PXF_HOME)
+	make -C external-table install DESTDIR=$(DESTDIR) GPHOME=$(GPHOME) PXF_HOME=$(PXF_HOME)
 
 stage:
 	rm -rf build/stage
@@ -119,8 +128,6 @@ endif
 #---------------------------------------------------------------------
 
 # Metadata vars
-PACKAGE_NAME := $(shell grep '^Package:' debian/control | head -1 | awk '{print $$2}')
-MAINTAINER := $(shell grep '^Maintainer:' debian/control | sed 's/Maintainer: //')
 DATE_RFC := $(shell date -R)
 ARTIFACTS_DIR := $(CURDIR)/./Package
 
@@ -128,50 +135,79 @@ ARTIFACTS_DIR := $(CURDIR)/./Package
 # 	@echo "Update $@"
 # 	./getversion > $@
 	@cat $@
-
-version-vars : ./version
-	$(eval FULL_VERSION := $(shell [ -f ./version ] && perl -pe 's, ,-,g' ./version))
-	$(eval PACKAGE_VERSION := $(shell [ -f ./version ] && perl -pe 's, .*,,g' ./version))
-	$(eval IS_RELEASE := $(if $(findstring +dev,$(PACKAGE_VERSION)),no,yes))
-	$(eval STABILITY := $(if $(filter yes,$(IS_RELEASE)),stable,unstable))
-	$(eval BUILD_TYPE := $(if $(filter yes,$(IS_RELEASE)),Release build,Development build))
+version-vars: ./version
+	$(eval FULL_VERSION    := $(shell perl -pe 's, ,-,g' ./version))
+	$(eval PACKAGE_VERSION := $(shell perl -pe 's, .*,,g; s/-SNAPSHOT/~snapshot/' ./version))
+	$(eval DISTRO_CODENAME := $(shell lsb_release -sc))
+	$(eval IS_RELEASE      := $(if $(findstring ~snapshot,$(PACKAGE_VERSION)),no,yes))
+	$(eval STABILITY       := $(if $(filter yes,$(IS_RELEASE)),stable,unstable))
+	$(eval BUILD_TYPE      := $(if $(filter yes,$(IS_RELEASE)),Release build,Development build))
 
 version-info : version-vars
 	@echo "PACKAGE_VERSION: $(PACKAGE_VERSION)"
 	@echo "FULL_VERSION: $(FULL_VERSION)"
+	@echo "DISTRO_CODENAME: $(DISTRO_CODENAME)"
 	@echo "IS_RELEASE: $(IS_RELEASE)"
 	@echo "STABILITY: $(STABILITY)"
 	@echo "BUILD_TYPE: $(BUILD_TYPE)"
 
+# Generate control file
+debian/control: debian/control.in
+	@echo "=== Generating debian/control for GP$(GP_MAJORVERSION) ==="
+	sed 's|@GP_MAJORVERSION@|$(GP_MAJORVERSION)|g' $< > $@
+
 # Generate package control files
 changelog : debian/changelog
-debian/changelog : version-vars
-	@echo "$(PACKAGE_NAME) ($(PACKAGE_VERSION)) $(STABILITY); urgency=low" > $@
+debian/changelog: version-vars debian/control
+	$(eval PACKAGE_NAME := $(shell grep '^Source:' debian/control | awk '{print $$2}'))
+	$(eval MAINTAINER   := $(shell grep '^Maintainer:' debian/control | sed 's/Maintainer: //'))
+	@echo "$(PACKAGE_NAME) ($(PACKAGE_VERSION)) $(DISTRO_CODENAME); urgency=low" > $@
 	@echo "" >> $@
 	@echo "  * $(BUILD_TYPE)" >> $@
 	@echo "" >> $@
 	@echo " -- $(MAINTAINER)  $(DATE_RFC)" >> $@
 
-debian/install:
-	@echo "$(PACKAGE_NAME)/* /" > $@
+DEB_PREREQS  := debian/changelog debian/control
+DEBUILD_ENV  := GPHOME="$(GPHOME)" PXF_HOME="$(PXF_HOME)" GP_MAJORVERSION="$(GP_MAJORVERSION)"
+DEBUILD_CMD  := debuild --preserve-env -us -uc -b
 
+# $(1) — human-readable name, $(2) — DH_OPTIONS package name (empty = build all)
+define debuild-pkg
+	@echo "Building $(1) package"
+	@$(DEBUILD_ENV) $(if $(2),DH_OPTIONS="-p$(2)") $(DEBUILD_CMD)
+	@$(MAKE) _collect-artifacts
+endef
 
 # Default packaging target
-pkg : pkg-deb
+pkg: pkg-deb
 
 # Build Debian package
-pkg-deb : debian/changelog debian/install
-	@echo "Building with GPHOME=$(GPHOME) PXF_HOME=$(PXF_HOME), PACKAGE_NAME=$(PACKAGE_NAME)"
-	@GPHOME="$(GPHOME)" PXF_HOME="$(PXF_HOME)" PACKAGE_NAME="$(PACKAGE_NAME)" debuild --preserve-env -us -uc -b
+pkg-deb: $(DEB_PREREQS)
+	$(call debuild-pkg,pxf (all))
+
+pkg-deb-server: $(DEB_PREREQS)
+	$(call debuild-pkg,pxf-server,pxf-server)
+
+pkg-deb-cli: $(DEB_PREREQS)
+	$(call debuild-pkg,pxf-cli,pxf-cli)
+
+pkg-deb-fdw: $(DEB_PREREQS)
+	$(call debuild-pkg,pxf-fdw$(GP_MAJORVERSION),pxf-fdw$(GP_MAJORVERSION))
+
+pkg-deb-ext: pkg-deb-fdw
+
+_collect-artifacts:
 	@mkdir -p $(ARTIFACTS_DIR)
 	@find $(CURDIR)/../ -maxdepth 1 -type f \( -name "*.deb" \
-											-o -name "*.ddeb" \
-											-o -name "*.build" \
-											-o -name "*.buildinfo" \
-											-o -name "*.changes" \) \
-											-exec mv -f {} $(ARTIFACTS_DIR)/ \;
+	                                        -o -name "*.ddeb" \
+	                                        -o -name "*.build" \
+	                                        -o -name "*.buildinfo" \
+	                                        -o -name "*.changes" \) \
+	                                        -exec mv -f {} $(ARTIFACTS_DIR)/ \;
 
-.PHONY: pkg pkg-deb changelog version-vars version-info
+.PHONY: pkg pkg-deb pkg-deb-server pkg-deb-cli pkg-deb-fdw pkg-deb-ext \
+        build-server build-ext install-server-pkg install-ext \
+        _collect-artifacts changelog version-vars version-info
 
 
 help:

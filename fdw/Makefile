@@ -6,7 +6,7 @@ OBJS        = pxf_fdw.o pxf_bridge.o pxf_deparse.o pxf_filter.o pxf_header.o pxf
 with_llvm = no
 
 is_ssl_supported :=$(filter https,$(PXF_PROTOCOL))
-REGRESS_COMMON = pxf_fdw_wrapper pxf_fdw_server pxf_fdw_user_mapping pxf_fdw_foreign_table
+REGRESS_COMMON = pxf_fdw_wrapper pxf_fdw_server pxf_fdw_user_mapping pxf_fdw_foreign_table pxf_fdw_metadata
 REGRESS_HTTP   = pxf_fdw_http
 REGRESS_HTTPS  := $(if $(is_ssl_supported), pxf_fdw_ssl)
 REGRESS        = $(REGRESS_COMMON) $(REGRESS_HTTP) $(REGRESS_HTTPS)
@@ -20,6 +20,7 @@ PGXS := $(shell $(PG_CONFIG) --pgxs)
 ifndef PGXS
     $(error Make sure the Greengage installation binaries are in your PATH. i.e. export PATH=<path to your Greengage installation>/bin:$$PATH)
 endif
+PG_CPPFLAGS+=-I$(shell $(PG_CONFIG) --includedir)
 include $(PGXS)
 
 
@@ -46,3 +47,10 @@ installcheck-http:
 .PHONY: installcheck-https
 installcheck-https:
 	$(MAKE) installcheck REGRESS="$(REGRESS_COMMON) $(REGRESS_HTTPS)"
+
+installcheck:
+
+ISOLATION2_ROOT=$(pgxsdir)/src/test/isolation2
+
+isolationcheck: submake
+	make ISOLATION2_ROOT=$(ISOLATION2_ROOT) -C isolation2 isolationcheck

@@ -1,0 +1,8 @@
+@PXF_HOME_REL@/application/*
+@PXF_HOME_REL@/conf/*
+@PXF_HOME_REL@/lib/*
+@PXF_HOME_REL@/templates/*
+@PXF_HOME_REL@/share/*
+@PXF_HOME_REL@/bin/kill-pxf.sh
+@PXF_HOME_REL@/bin/merge-pxf-config.sh
+@PXF_HOME_REL@/version
