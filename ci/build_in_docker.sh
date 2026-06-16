@@ -46,7 +46,7 @@ echo -n "Installing packages via apt... "
   apt-get -yq update
   apt-get -yq install --no-install-recommends openjdk-17-jdk "$GREENGAGE_PACKAGE"
   apt-get clean
-} &>/dev/null ; echo "Done"
+} 1>/dev/null ; echo "Done"
 
 # Install Golang
 go_version=$(grep -E '^go [0-9]+\.[0-9]+\.[0-9]+' cli/go.mod | cut -d' ' -f2)
