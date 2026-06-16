@@ -21,16 +21,50 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image: greengagedb/ggdb6_ubuntu:6.29.1
+          # With STABLE GG6
+          - tag: 6.29.1 # greengagedb/ggdb6_ubuntu:6.29.1
             version: '6'
-          - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
+            target_os: ubuntu
+            target_os_version: "22.04"
+          - tag: 6.29.1 # greengagedb/ggdb6_ubuntu24.04:6.29.1
+            version: '6'
+            target_os: ubuntu
+            target_os_version: "24.04"
+
+          # With DEVEL GG6
+          - tag: latest # image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu:latest
             release: '-devel'
             version: '6'
-          - image: greengagedb/ggdb7_ubuntu:7.4.0
+            target_os: ubuntu
+            target_os_version: "22.04"
+          - tag: latest # image: ghcr.io/greengagedb/greengage/ggdb624.04_ubuntu:latest
+            release: '-devel'
+            version: '6'
+            target_os: ubuntu
+            target_os_version: "24.04"
+
+          # With STABLE GG7
+          - tag: 7.4.0 # greengagedb/ggdb7_ubuntu:7.4.0
             version: '7'
-          - image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu
+            target_os: ubuntu
+            target_os_version: "22.04"
+          - tag: 7.4.0 # greengagedb/ggdb7_ubuntu24.04:7.4.0
+            version: '7'
+            target_os: ubuntu
+            target_os_version: "24.04"
+
+          # With DEVEL GG7
+          - tag: latest # ghcr.io/greengagedb/greengage/ggdb7_ubuntu:latest
             release: '-devel'
             version: '7'
+            target_os: ubuntu
+            target_os_version: "22.04"
+          - tag: latest # ghcr.io/greengagedb/greengage/ggdb7_ubuntu24.04:latest
+            release: '-devel'
+            version: '7'
+            target_os: ubuntu
+            target_os_version: "24.04"
+
     env:
       GREENGAGE_DEB:     Package/greengage.deb
       GREENGAGE_DEB_URL: https://github.com/GreengageDB/greengage/releases/download/6.29.2/greengage6.deb
@@ -48,6 +82,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
           GREENGAGE_DEB: ${{ env.GREENGAGE_DEB }}
           GREENGAGE_DEB_URL: ${{ env.GREENGAGE_DEB_URL }}
+          IMAGE: ${{ release == '-devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:${{ matrix.tag }}
         run: |
           set -eu
           mkdir -p "$(dirname $GREENGAGE_DEB)"
@@ -66,44 +101,28 @@ jobs:
             -e DEBIAN_FRONTEND \
             -e GREENGAGE_DEB \
             -e GREENGAGE_DEB_URL \
-            ${{ matrix.image }} \
+            $IMAGE \
             /bin/bash ci/build_in_docker.sh
 
-      - name: Test Package install in Ubuntu 22.04 (docker)
-        env:
-          GREENGAGE_DEB: ${{ env.GREENGAGE_DEB }}
-          DEBIAN_FRONTEND: noninteractive
-          TEST_DOCKER_IMAGE: ubuntu:22.04
-        run: |
-          set -eu
-          docker run \
-            --rm \
-            -v ./Package:/deb-packages \
-            -e DEBIAN_FRONTEND \
-            $TEST_DOCKER_IMAGE \
-            /bin/bash -c "
-              set -e
-              apt-get update 
-              { apt-get install -yq /deb-packages/*.deb 2>&1 || dpkg -i /deb-packages/*.deb 2>&1; }
-              apt-get install -yqf
-            "
-            rm -f $GREENGAGE_DEB
-
       - name: Rename Package artifacts
-        run: mv Package deb-packages-${{ matrix.version }}${{ matrix.release }}
-
-      - name: Cache Package artifacts
-        uses: actions/cache/save@v4
-        with:
-          path: deb-packages-${{ matrix.version }}${{ matrix.release }}
-          key:  deb-packages-${{ matrix.version }}${{ matrix.release }}-${{ github.sha }}
+        run: mv Package deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
 
       - name: Upload Package artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: deb-packages-${{ matrix.version }}${{ matrix.release }}
-          path: deb-packages-${{ matrix.version }}${{ matrix.release }}
+          name: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
+          path: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
+
+      - name: Test install deb-package in Docker 
+        uses: greengagedb/greengage-ci/.github/actions/tests/install/deb@v44
+        with:
+          test_docker: ${{ matrix.target_os}}:${{ matrix.target_os_version }}
+          artifact_name: deb-packages-${{ inputs.target_os }}${{ inputs.target_os_version }}
+          verify_commands: |
+            dpkg -l sigar 2>/dev/null || true
+            dpkg -l greengage*
+
 
   regression:
     if: github.event_name == 'pull_request'  # Only for PR
