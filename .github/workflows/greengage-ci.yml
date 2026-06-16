@@ -22,11 +22,11 @@ jobs:
       matrix:
         include:
           # With STABLE GG6
-          - tag: 6.29.1 # greengagedb/ggdb6_ubuntu:6.29.1
+          - tag: 6.31.0 # greengagedb/ggdb6_ubuntu:6.31.0
             version: '6'
             target_os: ubuntu
             target_os_version: "22.04"
-          - tag: 6.29.1 # greengagedb/ggdb6_ubuntu24.04:6.29.1
+          - tag: 6.31.0 # greengagedb/ggdb6_ubuntu24.04:6.31.0
             version: '6'
             target_os: ubuntu
             target_os_version: "24.04"
@@ -134,7 +134,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image: greengagedb/ggdb6_ubuntu:6.29.1
+          - image: greengagedb/ggdb6_ubuntu:6.31.0
             release: stable
             version: '6'
           - image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu
@@ -191,7 +191,7 @@ jobs:
     name: Integration on ggdb6-stable
     uses: ./.github/workflows/integration-tests.yml
     with:
-      image: greengagedb/ggdb6_ubuntu:6.29.1
+      image: greengagedb/ggdb6_ubuntu:6.31.0
       version: '6'
       release: stable
       tests_matrix: |
