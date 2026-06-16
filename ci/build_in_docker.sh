@@ -28,8 +28,14 @@ export GREENGAGE_REPO_URL=${GREENGAGE_REPO_URL:-'https://greengagedb.org'}
 # SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # "$SCRIPT_DIR/set_azure_sources_list.sh"
 
-update-locale LANG=en_US.UTF-8
+# Configure
+git config --global --add safe.directory "$(pwd)"
 
+update-locale LANG=en_US.UTF-8
+localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
+
+
+# Install Golang
 go_version=$(grep -E '^go [0-9]+\.[0-9]+\.[0-9]+' cli/go.mod | cut -d' ' -f2)
 installed_go_version=$(go version 2>/dev/null | grep -Eo 'go[0-9]+\.[0-9]+\.[0-9]+' | tr -d 'go')
 
@@ -50,23 +56,18 @@ else
   echo "found"
 fi
 
-git config --global --add safe.directory "$(pwd)"
-localedef -c -i ru_RU -f CP1251 ru_RU.CP1251
-
-# Install Greengage package
+# Install packages from apt
 # shellcheck disable=SC1091 # External source
 source /etc/os-release
 echo "deb [signed-by=/etc/apt/keyrings/greengagedb.gpg] \
   ${GREENGAGE_REPO_URL}/repositories/ubuntu/${VERSION_ID}/x86_64 greengagedb main" \
   > /etc/apt/sources.list.d/greengagedb.list
+curl -fsSL ${GREENGAGE_REPO_URL}/repositories/gpg 2>/dev/null | gpg --dearmor -o /etc/apt/keyrings/greengagedb.gpg
 
-pkgs="openjdk-17-jdk debhelper devscripts dh-python file $GREENGAGE_PACKAGE" # unzip vim nano ksh locales
-echo -n "Installing $pkgs via apt... "
+apt-get -yq update && apt-get -yq install --no-install-recommends openjdk-17-jdk "$GREENGAGE_PACKAGE"
+apt-get clean
 
-  apt-get -yq update
-  apt-get -yq install --no-install-recommends $pkgs
-  apt-get clean
-
+# Find GPHOME
 known_locations='/opt /usr/lib'
 GPHOME=$(dev/detect_gphome.bash "$known_locations")
 if [ -z "$GPHOME" ] ; then
@@ -91,4 +92,5 @@ export PYTHONPATH
 export LD_LIBRARY_PATH
 export OPENSSL_CONF
 
+# Build
 make all install pkg-deb
