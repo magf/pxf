@@ -46,7 +46,7 @@ jobs:
       - name: Maximize disk space
         uses: greengagedb/greengage-ci/.github/actions/maximize-disk-space@v19
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build ${{ env.IT_IMAGE }}:${{ env.IT_TAG }} image
         uses: docker/build-push-action@v6

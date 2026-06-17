@@ -73,7 +73,7 @@ jobs:
           #   release: devel
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Build in Docker using docker run
         env:
           GOPATH:   /opt/go
@@ -154,7 +154,7 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.generate-matrix.outputs.images) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/tests/regression
         with:
           tag:     ${{ matrix.tag }}
