@@ -33,9 +33,12 @@ env:
     ]
 
 jobs:
-  build:
-    name: Build on ${{ matrix.target_os }}:${{ matrix.target_os_version }} with ggdb${{ matrix.version }}${{ matrix.release }}
+  build-deb:
+    name: Build deb-packages on ${{ matrix.target_os }}:${{ matrix.target_os_version }} with ggdb${{ matrix.version }}
     runs-on: ubuntu-latest
+    env:
+      GGDB_IMAGE:   ${{ matrix.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:latest
+      DEB_PACKAGES: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
     strategy:
       fail-fast: false
       matrix:
@@ -48,15 +51,15 @@ jobs:
             target_os: ubuntu
             target_os_version: 24.04
 
-          # With DEVEL GG6
-          - version: 6 # image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu:latest
-            target_os: ubuntu
-            target_os_version: 22.04
-            release: -devel
-          - version: 6 # image: ghcr.io/greengagedb/greengage/ggdb624.04_ubuntu:latest
-            target_os: ubuntu
-            target_os_version: 24.04
-            release: -devel
+          # # With DEVEL GG6
+          # - version: 6 # image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu:latest
+          #   target_os: ubuntu
+          #   target_os_version: 22.04
+          #   release: devel
+          # - version: 6 # image: ghcr.io/greengagedb/greengage/ggdb624.04_ubuntu:latest
+          #   target_os: ubuntu
+          #   target_os_version: 24.04
+          #   release: devel
 
           # # With STABLE GG7
           # - version: 7 # image: greengagedb/ggdb7_ubuntu:7.4.1
@@ -67,27 +70,24 @@ jobs:
           # - version: 7 # image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu:latest
           #   target_os: ubuntu
           #   target_os_version: 22.04
-          #   release: -devel
+          #   release: devel
 
     steps:
       - uses: actions/checkout@v4
       - name: Build in Docker using docker run
         env:
+          GOPATH:   /opt/go
           DEV_HOME: /home/gpadmin
-          PXF_HOME: /opt/greengagedb/greengage${{ matrix.version }}/pxf
-          GPHOME: /opt/greengagedb/greengage${{ matrix.version }}
-          GOPATH: /opt/go
-          PXF_SRC: /home/gpadmin/pxf
-          PATH: /opt/greengagedb/greengage${{ matrix.version }}/bin:/opt/greengagedb/greengage${{ matrix.version }}/pxf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/opt/go/bin
+          PXF_HOME: /opt/greengagedb/pxf
+          GPHOME:   /opt/greengagedb/greengage${{ matrix.version }}
+          PXF_SRC:  /home/gpadmin/pxf
+          PATH:     /opt/greengagedb/greengage${{ matrix.version }}/bin:/opt/greengagedb/pxf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/opt/go/bin
+          DEBIAN_FRONTEND:   noninteractive
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
-          DEBIAN_FRONTEND: noninteractive
           GREENGAGE_VERSION: ${{ matrix.version }}
-          GREENGAGE_PACKAGE: greengage${{ matrix.version }}
-          GREENGAGE_REPO_URL: 'https://greengagedb.org' # 'https://storage.yandexcloud.net/greengage-repo'
-          IMAGE: ${{ matrix.release == '-devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:latest
 
         run: |
-          set -eu
+          set -eux
           docker run \
             --rm \
             -v ${{ github.workspace }}:$PXF_SRC \
@@ -98,35 +98,25 @@ jobs:
             -e GOPATH \
             -e PXF_SRC \
             -e PATH \
-            -e JAVA_TOOL_OPTIONS \
             -e DEBIAN_FRONTEND \
+            -e JAVA_TOOL_OPTIONS \
             -e GREENGAGE_VERSION \
-            -e GREENGAGE_PACKAGE \
-            -e GREENGAGE_REPO_URL \
-            $IMAGE \
+            $GGDB_IMAGE \
             /bin/bash ci/build_in_docker.sh
 
-      - name: Rename Package artifacts
-        run: mv Package deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
+          mv Package $DEB_PACKAGES
 
       - name: Upload Package artifacts
-        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}${{ matrix.release }}
-          path: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
+          name: ${{ env.DEB_PACKAGES }}
+          path: ${{ env.DEB_PACKAGES }}
 
-      - name: Cache Debian artifacts
-        uses: actions/cache/save@v4
-        with:
-          path: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
-          key:  deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}${{ matrix.release }}-${{ github.sha }}
-
-      - name: Test install deb-package in Docker 
+      - name: Test install deb-packages in Docker 
         uses: greengagedb/greengage-ci/.github/actions/tests/install/deb@v44
         with:
           test_docker: ${{ matrix.target_os}}:${{ matrix.target_os_version }}
-          artifact_name: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}${{ matrix.release }}
+          artifact_name: ${{ env.DEB_PACKAGES }}
           verify_commands: |
             dpkg -l greengage* 2>/dev/null || true
             dpkg -l pxf*
