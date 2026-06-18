@@ -16,13 +16,13 @@ on:
         description: 'Target OS version (e.g., 24.04)'
         required: true
         type: string
-    release:
-      description: |
-        Artifacts suffix. The value 'devel' triggers using GHCR
-        (ghcr.io/greengagedb/greengage) as the image source;
-        any other value (e.g., 'prod') uses DockerHub (greengagedb).
-      required: true
-      type: string
+      release:
+        description: |
+          Artifacts suffix. The value 'devel' triggers using GHCR
+          (ghcr.io/greengagedb/greengage) as the image source;
+          any other value (e.g., 'prod') uses DockerHub (greengagedb).
+        required: true
+        type: string
       tests:
         required: true
         type: string  # JSON string with test matrix
