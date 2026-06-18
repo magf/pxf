@@ -1,4 +1,4 @@
-# greengage-reusable-tests-regression.yml
+# .github/workflows/greengage-reusable-tests-regression.yml
 name: Greengage PXF Reusable regression Tests
 
 on:
@@ -10,15 +10,14 @@ on:
 
 jobs:
   regression:
+    name: Regression on ${{ matrix.target_os}}${{ matrix.target_os_version }} with ${{ matrix.release }} ggdb${{ matrix.version}}
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
         include: ${{ fromJson(matrix.builds) }}
 
-    name: Regression on ${{ matrix.target_os}}${{ matrix.target_os_version }} with ${{ matrix.release }} ggdb${{ matrix.version}}
-
-    runs-on: ubuntu-latest
     env:
       TEST_IMAGE: ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version }}_pxf_regression_${{ matrix.release  }}
       GGDB_IMAGE: ${{ matrix.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:latest
