@@ -146,7 +146,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.generate-matrix.outputs.builds) }}
-    uses: ./.github/workflows/greengage-reusable-tests-integration.yml@CI-5860
+    uses: ./.github/workflows/greengage-reusable-tests-integration.yml
     with:
       version: ${{ matrix.version }}
       release: ${{ matrix.release }}
