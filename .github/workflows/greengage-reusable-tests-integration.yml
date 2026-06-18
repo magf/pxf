@@ -46,7 +46,7 @@ jobs:
       USE_FDW:    ${{ matrix.fdw }}
       USE_SSL:    ${{ matrix.ssl }}
       GGDB_IMAGE: ${{ inputs.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version != '22.04' && inputs.target_os_version || '' }}:latest
-      IT_IMAGE:   ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version != '22.04' && inputs.target_os_version || '' }}_pxf_automation
+      IT_IMAGE:   ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version }}_pxf_automation_${{ inputs.release }}
       IT_TAG:     it
       JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
       DEBIAN_FRONTEND:    noninteractive
@@ -62,6 +62,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          push: false
           file: ci/Dockerfile.integration
           tags: ${{ env.IT_IMAGE }}:${{ env.IT_TAG }}
           build-args: GGDB_IMAGE=${{ env.GGDB_IMAGE }}
