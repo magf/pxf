@@ -12,7 +12,6 @@ jobs:
   regression:
     name: Regression on ${{ matrix.target_os}}${{ matrix.target_os_version }} with ${{ matrix.release }} ggdb${{ matrix.version}}
     runs-on: ubuntu-latest
-    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:

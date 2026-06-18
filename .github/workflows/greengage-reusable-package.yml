@@ -23,6 +23,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+
       - name: Build in Docker using docker run
         env:
           GOPATH:   /opt/go
