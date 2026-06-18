@@ -4,13 +4,20 @@ name: Greengage PXF Reusable Integration Tests
 on:
   workflow_call:
     inputs:
-      image:
-        required: true
-        type: string
       version:
+        description: 'GGDB major version (e.g., 6 or 7)'
         required: true
         type: string
-      tag:
+      target_os:
+        description: 'Target OS (e.g., ubuntu)'
+        required: true
+        type: string
+      target_os_version:
+        description: 'Target OS version (e.g., 24.04)'
+        required: true
+        type: string
+      release:
+        description: 'Artifacts suffixs (e.g., prod or devel)'
         required: true
         type: string
       tests:
@@ -24,22 +31,22 @@ jobs:
       matrix:
         include: ${{ fromJson(inputs.tests) }}
 
-    name: Test ${{ matrix.test }}${{ matrix.fdw && ' FDW' || '' }}${{ matrix.ssl && ' SSL' || '' }} on ${{ inputs.image }}${{ inputs.version }}_ubuntu:${{ inputs.tag }}
+    name: Test ${{ matrix.test }}${{ matrix.fdw && ' FDW' || '' }}${{ matrix.ssl && ' SSL' || '' }} on ${{ inputs.release }} ggdb${{ inputs.version}} ${{ inputs.target_os}}${{ inputs.target_os_version }}
 
     runs-on: ubuntu-latest
     env:
-      DEV_HOME: /home/gpadmin
-      PXF_HOME: /usr/local/greengage-db-devel/pxf
-      GPHOME:   /usr/local/greengage-db-devel
-      PROFILE: ${{ matrix.test }}
-      GROUP: ${{ matrix.test }}
-      USE_FDW: ${{ matrix.fdw }}
-      USE_SSL: ${{ matrix.ssl }}
-      GGDB_IMAGE: ${{ inputs.image }}${{ inputs.version }}_ubuntu:${{ inputs.tag }}
-      IT_IMAGE: ${{ inputs.image }}${{ inputs.version }}_ubuntu_pxf_automation
-      IT_TAG: ${{ inputs.tag }}
+      DEV_HOME:   /home/gpadmin
+      PXF_HOME:   /usr/local/greengage-db-devel/pxf
+      GPHOME:     /usr/local/greengage-db-devel
+      PROFILE:    ${{ matrix.test }}
+      GROUP:      ${{ matrix.test }}
+      USE_FDW:    ${{ matrix.fdw }}
+      USE_SSL:    ${{ matrix.ssl }}
+      GGDB_IMAGE: ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version != '22.04' && inputs.target_os_version || '' }}:latest
+      IT_IMAGE:   ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version != '22.04' && inputs.target_os_version || '' }}_pxf_automation
+      IT_TAG:     it
       JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
-      DEBIAN_FRONTEND: noninteractive
+      DEBIAN_FRONTEND:    noninteractive
 
     steps:
       # Maximize build space for Docker
@@ -66,6 +73,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: integration-ggdb${{ inputs.version }}-${{ inputs.tag }}-${{ matrix.test }}${{ matrix.fdw && '-fdw' || '' }}${{ matrix.ssl && '-ssl' || '' }}
+          name: integration-ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version }}-${{ inputs.release }}-${{ matrix.test }}${{ matrix.fdw && '-fdw' || '' }}${{ matrix.ssl && '-ssl' || '' }}
           path: automation/env/artifacts/
           retention-days: 7

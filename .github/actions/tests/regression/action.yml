@@ -5,20 +5,16 @@ description: Builds and runs PXF regression tests inside Docker
 inputs:
   version:
     required: true
-    description: 'GGDB major version (e.g. 6 or 7)'
-  tag:
-    required: false
-    default: 'latest'
-    description: 'Docker image tag (e.g. 6.30.1 or latest)'
-  image:
-    required: false
-    default: 'greengagedb/ggdb'
-    description: |
-      Source Docker repository
-      (e.g.
-        'greengagedb/ggdb' - DockerHub,
-        'ghcr.io/greengagedb/greengage/ggdb' - GHCR
-      )
+    description: 'GGDB major version (e.g., 6 or 7)'
+  release:
+    required: true
+    description: 'Artifacts suffixs (e.g., prod or devel)'
+  target_os:
+    description: 'Target OS (e.g., ubuntu)'
+    required: true
+  target_os_version:
+    description: 'Target OS version (e.g., 22.04)'
+    required: true
 
 runs:
   using: composite
@@ -29,9 +25,9 @@ runs:
         context: .
         file: ./ci/Dockerfile.regression
         push: false
-        tags: ${{ inputs.image }}${{ inputs.version }}_pxf_regression:${{ inputs.tag }}
+        tags: ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version }}_pxf_regression_${{ inputs.release }}
         build-args: |
-          GGDB_IMAGE=${{ inputs.image }}${{ inputs.version }}_ubuntu:${{ inputs.tag }}
+          GGDB_IMAGE=ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version != '22.04' && inputs.target_os_version || '' }}:latest
 
     - name: Run regression
       shell: bash
@@ -41,7 +37,7 @@ runs:
           -v ./logs:/logs \
           --sysctl 'kernel.sem=500 1024000 200 4096' \
           --privileged \
-          ${{ inputs.image }}${{ inputs.version }}_pxf_regression:${{ inputs.tag }} \
+          ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version }}_pxf_regression_${{ inputs.release }} \
           bash -c "
             set +e
             cd /tmp/build || status=1
@@ -56,7 +52,7 @@ runs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: regression-ggdb${{ inputs.version }}-${{ inputs.tag }}
+        name: regression-ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version }}-${{ inputs.release }}
         path: logs
         retention-days: 7
         if-no-files-found: warn

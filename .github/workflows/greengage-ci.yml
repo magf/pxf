@@ -14,12 +14,14 @@ concurrency:
   cancel-in-progress: true  # Automatically cancel any previous runs for the same group
 
 env:
-  IMAGES: |
+  BUILD_MATRIX: |
     [
-      { "version": "6", "image": "greengagedb/ggdb", "tag": "6.31.0"  },
-      { "version": "7", "image": "greengagedb/ggdb", "tag": "7.4.1"   },
-      { "version": "6", "image": "ghcr.io/greengagedb/greengage/ggdb", "tag": "latest" },
-      { "version": "7", "image": "ghcr.io/greengagedb/greengage/ggdb", "tag": "latest" }
+      { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "prod"  },
+      { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel" },
+      { "version": "6", "target_os": "ubuntu", "target_os_version": "24.04", "release": "prod"  },
+      { "version": "6", "target_os": "ubuntu", "target_os_version": "24.04", "release": "devel" },
+      { "version": "7", "target_os": "ubuntu", "target_os_version": "22.04", "release": "prod"  },
+      { "version": "7", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel" }
     ]
   TESTS: |
     [
@@ -33,44 +35,40 @@ env:
     ]
 
 jobs:
+  generate-matrix:
+    name: Generate CI matrix
+    runs-on: ubuntu-latest
+    outputs:
+      builds: ${{ steps.builds.outputs.matrix }}
+      tests:  ${{ steps.tests.outputs.tests }}
+    steps:
+      - name: Generate builds mtrix
+        id: builds
+        run: |
+          cat > /tmp/builds.json << 'JSON_END'
+          ${{ env.BUILD_MATRIX }}
+          JSON_END
+          echo "matrix=$(jq -c . /tmp/builds.json)" >> $GITHUB_OUTPUT
+
+      - name: Generate tests mtrix
+        id: tests
+        run: |
+          cat > /tmp/tests.json << 'JSON_END'
+          ${{ env.TESTS }}
+          JSON_END
+          echo "tests=$(jq -c . /tmp/tests.json)" >> $GITHUB_OUTPUT
+
   build-deb:
+    needs: generate-matrix
     name: Build deb-packages on ${{ matrix.target_os }}:${{ matrix.target_os_version }} with ggdb${{ matrix.version }}
     runs-on: ubuntu-latest
     env:
       GGDB_IMAGE:   ${{ matrix.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:latest
-      DEB_PACKAGES: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}
+      DEB_PACKAGES: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}${{ matrix.release == 'devel' && '-devel' || '' }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # With STABLE GG6
-          - version: 6 # greengagedb/ggdb6_ubuntu:6.31.0
-            target_os: ubuntu
-            target_os_version: 22.04
-          - version: 6 # greengagedb/ggdb6_ubuntu24.04:6.31.0
-            target_os: ubuntu
-            target_os_version: 24.04
-
-          # # With DEVEL GG6
-          # - version: 6 # image: ghcr.io/greengagedb/greengage/ggdb6_ubuntu:latest
-          #   target_os: ubuntu
-          #   target_os_version: 22.04
-          #   release: devel
-          # - version: 6 # image: ghcr.io/greengagedb/greengage/ggdb624.04_ubuntu:latest
-          #   target_os: ubuntu
-          #   target_os_version: 24.04
-          #   release: devel
-
-          # # With STABLE GG7
-          # - version: 7 # image: greengagedb/ggdb7_ubuntu:7.4.1
-          #   target_os: ubuntu
-          #   target_os_version: 22.04
-
-          # # With DEVEL GG7
-          # - version: 7 # image: ghcr.io/greengagedb/greengage/ggdb7_ubuntu:latest
-          #   target_os: ubuntu
-          #   target_os_version: 22.04
-          #   release: devel
+        include: ${{ fromJson(needs.generate-matrix.outputs.builds) }}
 
     steps:
       - uses: actions/checkout@v6
@@ -121,86 +119,37 @@ jobs:
             dpkg -l greengage* 2>/dev/null || true
             dpkg -l pxf*
 
-  generate-matrix:
-    name: Generate CI matrix
-    runs-on: ubuntu-latest
-    outputs:
-      images: ${{ steps.images.outputs.matrix }}
-      tests:  ${{ steps.tests.outputs.tests }}
-    steps:
-      - name: Generate images mtrix
-        id: images
-        run: |
-          cat > /tmp/images.json << 'JSON_END'
-          ${{ env.IMAGES }}
-          JSON_END
-          echo "matrix=$(jq -c . /tmp/images.json)" >> $GITHUB_OUTPUT
-
-      - name: Generate tests mtrix
-        id: tests
-        run: |
-          cat > /tmp/tests.json << 'JSON_END'
-          ${{ env.TESTS }}
-          JSON_END
-          echo "tests=$(jq -c . /tmp/tests.json)" >> $GITHUB_OUTPUT
-
   regression:
     if: github.event_name == 'pull_request'  # Only for PR
+    needs: generate-matrix
     name: Regression tests
     runs-on: ubuntu-latest
     timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.generate-matrix.outputs.images) }}
+        include: ${{ fromJson(needs.generate-matrix.outputs.builds) }}
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/tests/regression
+      - uses: ./.github/actions/tests/regression@CI-5860
         with:
-          tag:     ${{ matrix.tag }}
-          image:   ${{ matrix.image }}
           version: ${{ matrix.version }}
+          release: ${{ matrix.release }}
+          target_os: ${{ matrix.target_os }}
+          target_os_version: ${{ matrix.target_os_version }}
 
-  integration-0:
+  integration:
     if: github.event_name == 'pull_request'  # Only for PR
     needs: generate-matrix
-    name: Integration on ggdb${{ fromJson(needs.generate-matrix.outputs.images)[0].version }}:${{ fromJson(needs.generate-matrix.outputs.images)[0].tag }}
-    uses: ./.github/workflows/greengage-reusable-tests-integration.yml
+    name: Integration on ${{ matrix.target_os }}${{ matrix.target_os_version }} for ggdb${{ matrix.version }}${{ matrix.release == 'devel' && '-devel' || '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.generate-matrix.outputs.builds) }}
+    uses: ./.github/workflows/greengage-reusable-tests-integration.yml@CI-5860
     with:
-      tag:     ${{ fromJson(needs.generate-matrix.outputs.images)[0].tag }}
-      image:   ${{ fromJson(needs.generate-matrix.outputs.images)[0].image }}
-      version: ${{ fromJson(needs.generate-matrix.outputs.images)[0].version }}
-      tests: ${{ needs.generate-matrix.outputs.tests }}
-
-  integration-1:
-    if: github.event_name == 'pull_request'  # Only for PR
-    needs: generate-matrix
-    name: Integration on ggdb${{ fromJson(needs.generate-matrix.outputs.images)[1].version }}:${{ fromJson(needs.generate-matrix.outputs.images)[1].tag }}
-    uses: ./.github/workflows/greengage-reusable-tests-integration.yml
-    with:
-      tag:     ${{ fromJson(needs.generate-matrix.outputs.images)[1].tag }}
-      image:   ${{ fromJson(needs.generate-matrix.outputs.images)[1].image }}
-      version: ${{ fromJson(needs.generate-matrix.outputs.images)[1].version }}
-      tests: ${{ needs.generate-matrix.outputs.tests }}
-
-  integration-2:
-    if: github.event_name == 'pull_request'  # Only for PR
-    needs: generate-matrix
-    name: Integration on ggdb${{ fromJson(needs.generate-matrix.outputs.images)[2].version }}:${{ fromJson(needs.generate-matrix.outputs.images)[2].tag }}
-    uses: ./.github/workflows/greengage-reusable-tests-integration.yml
-    with:
-      tag:     ${{ fromJson(needs.generate-matrix.outputs.images)[2].tag }}
-      image:   ${{ fromJson(needs.generate-matrix.outputs.images)[2].image }}
-      version: ${{ fromJson(needs.generate-matrix.outputs.images)[2].version }}
-      tests: ${{ needs.generate-matrix.outputs.tests }}
-
-  integration-3:
-    if: github.event_name == 'pull_request'  # Only for PR
-    needs: generate-matrix
-    name: Integration on ggdb${{ fromJson(needs.generate-matrix.outputs.images)[3].version }}:${{ fromJson(needs.generate-matrix.outputs.images)[3].tag }}
-    uses: ./.github/workflows/greengage-reusable-tests-integration.yml
-    with:
-      tag:     ${{ fromJson(needs.generate-matrix.outputs.images)[3].tag }}
-      image:   ${{ fromJson(needs.generate-matrix.outputs.images)[3].image }}
-      version: ${{ fromJson(needs.generate-matrix.outputs.images)[3].version }}
+      version: ${{ matrix.version }}
+      release: ${{ matrix.release }}
+      target_os: ${{ matrix.target_os }}
+      target_os_version: ${{ matrix.target_os_version }}
       tests: ${{ needs.generate-matrix.outputs.tests }}
