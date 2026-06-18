@@ -58,66 +58,12 @@ jobs:
           JSON_END
           echo "tests=$(jq -c . /tmp/tests.json)" >> $GITHUB_OUTPUT
 
-  build-deb:
+  package:
     needs: generate-matrix
     name: Build deb-packages on ${{ matrix.target_os }}:${{ matrix.target_os_version }} with ggdb${{ matrix.version }}
-    runs-on: ubuntu-latest
-    env:
-      GGDB_IMAGE:   ${{ matrix.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:latest
-      DEB_PACKAGES: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}${{ matrix.release == 'devel' && '-devel' || '' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.generate-matrix.outputs.builds) }}
-
-    steps:
-      - uses: actions/checkout@v6
-      - name: Build in Docker using docker run
-        env:
-          GOPATH:   /opt/go
-          DEV_HOME: /home/gpadmin
-          PXF_HOME: /opt/greengagedb/pxf
-          GPHOME:   /opt/greengagedb/greengage${{ matrix.version }}
-          PXF_SRC:  /home/gpadmin/pxf
-          PATH:     /opt/greengagedb/greengage${{ matrix.version }}/bin:/opt/greengagedb/pxf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/opt/go/bin
-          DEBIAN_FRONTEND:   noninteractive
-          JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
-          GREENGAGE_VERSION: ${{ matrix.version }}
-
-        run: |
-          set -eux
-          docker run \
-            --rm \
-            -v ${{ github.workspace }}:$PXF_SRC \
-            -w $PXF_SRC \
-            -e DEV_HOME \
-            -e PXF_HOME \
-            -e GPHOME \
-            -e GOPATH \
-            -e PXF_SRC \
-            -e PATH \
-            -e DEBIAN_FRONTEND \
-            -e JAVA_TOOL_OPTIONS \
-            -e GREENGAGE_VERSION \
-            $GGDB_IMAGE \
-            /bin/bash ci/build_in_docker.sh
-
-          mv Package $DEB_PACKAGES
-
-      - name: Upload Package artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.DEB_PACKAGES }}
-          path: ${{ env.DEB_PACKAGES }}
-
-      - name: Test install deb-packages in Docker 
-        uses: greengagedb/greengage-ci/.github/actions/tests/install/deb@v44
-        with:
-          test_docker: ${{ matrix.target_os}}:${{ matrix.target_os_version }}
-          artifact_name: ${{ env.DEB_PACKAGES }}
-          verify_commands: |
-            dpkg -l greengage* 2>/dev/null || true
-            dpkg -l pxf*
+    uses: ./.github/workflows/greengage-reusable-tests-integration.yml
+    with:
+      builds: ${{ needs.generate-matrix.outputs.builds }}
 
   regression:
     if: github.event_name == 'pull_request'  # Only for PR
@@ -131,7 +77,7 @@ jobs:
         include: ${{ fromJson(needs.generate-matrix.outputs.builds) }}
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/tests/regression@CI-5860
+      - uses: ./.github/actions/tests/regression
         with:
           version: ${{ matrix.version }}
           release: ${{ matrix.release }}
