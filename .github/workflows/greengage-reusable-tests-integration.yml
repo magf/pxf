@@ -34,7 +34,7 @@ jobs:
       matrix:
         include: ${{ fromJson(inputs.tests) }}
 
-    name: Test ${{ matrix.test }}${{ matrix.fdw && ' FDW' || '' }}${{ matrix.ssl && ' SSL' || '' }} on ${{ inputs.release }} ggdb${{ inputs.version}} ${{ inputs.target_os}}${{ inputs.target_os_version }}
+    name: IT ${{ matrix.test }}${{ matrix.fdw && ' FDW' || '' }}${{ matrix.ssl && ' SSL' || '' }} on ${{ inputs.release }} ggdb${{ inputs.version}} ${{ inputs.target_os}}${{ inputs.target_os_version }}
 
     runs-on: ubuntu-latest
     env:

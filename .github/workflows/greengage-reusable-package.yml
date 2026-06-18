@@ -10,7 +10,7 @@ on:
 
 jobs:
   deb-packages:
-    name: Create deb-packages on ${{ matrix.target_os }}:${{ matrix.target_os_version }} with ggdb${{ matrix.version }}
+    name: Create deb with greengage${{ matrix.version }} for ${{ matrix.target_os }}:${{ matrix.target_os_version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

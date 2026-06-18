@@ -69,7 +69,7 @@ jobs:
     if: github.event_name == 'pull_request'  # Only for PR
     needs: generate-matrix
     name: Regression tests
-    uses: ./.github/workflows/greengage-reusable-package.yml
+    uses: ./.github/workflows/greengage-reusable-tests-regression.yml
     with:
       builds: ${{ needs.generate-matrix.outputs.builds }}
 

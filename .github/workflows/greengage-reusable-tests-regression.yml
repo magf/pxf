@@ -16,7 +16,7 @@ jobs:
       matrix:
         include: ${{ fromJson(matrix.builds) }}
 
-    name: Regression on ${{ matrix.release }} ggdb${{ matrix.version}} ${{ matrix.target_os}}${{ matrix.target_os_version }}
+    name: Regression on ${{ matrix.target_os}}${{ matrix.target_os_version }} with ${{ matrix.release }} ggdb${{ matrix.version}}
 
     runs-on: ubuntu-latest
     env:
