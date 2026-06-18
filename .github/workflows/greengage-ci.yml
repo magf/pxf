@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true  # Automatically cancel any previous runs for the same group
 
 env:
-  BUILD_MATRIX: |
+  MATRIX_BUILDS: |
     [
       { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "prod"  },
       { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel" },
@@ -23,7 +23,7 @@ env:
       { "version": "7", "target_os": "ubuntu", "target_os_version": "22.04", "release": "prod"  },
       { "version": "7", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel" }
     ]
-  TESTS: |
+  MATRIX_TESTS: |
     [
       { "test": "smoke" },
       { "test": "gpdb" },
@@ -36,7 +36,7 @@ env:
 
 jobs:
   generate-matrix:
-    name: Generate CI matrix
+    name: Generate builds and tests matrix
     runs-on: ubuntu-latest
     outputs:
       builds: ${{ steps.builds.outputs.matrix }}
@@ -46,7 +46,7 @@ jobs:
         id: builds
         run: |
           cat > /tmp/builds.json << 'JSON_END'
-          ${{ env.BUILD_MATRIX }}
+          ${{ env.MATRIX_BUILDS }}
           JSON_END
           echo "matrix=$(jq -c . /tmp/builds.json)" >> $GITHUB_OUTPUT
 
@@ -54,13 +54,13 @@ jobs:
         id: tests
         run: |
           cat > /tmp/tests.json << 'JSON_END'
-          ${{ env.TESTS }}
+          ${{ env.MATRIX_TESTS }}
           JSON_END
           echo "tests=$(jq -c . /tmp/tests.json)" >> $GITHUB_OUTPUT
 
   package:
     needs: generate-matrix
-    name: Build deb-packages on ${{ matrix.target_os }}:${{ matrix.target_os_version }} with ggdb${{ matrix.version }}
+    name: Create packages
     uses: ./.github/workflows/greengage-reusable-package.yml
     with:
       builds: ${{ needs.generate-matrix.outputs.builds }}

@@ -53,7 +53,7 @@ runs:
 
     - name: Upload regression artifacts
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: regression-ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version }}-${{ inputs.release }}
         path: logs

@@ -106,7 +106,7 @@ runs:
 
     - name: Upload package artifacts
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: deb-packages-${{ inputs.target_os }}${{ inputs.target_os_version }}-${{ inputs.tag }}
         path: deb-packages-${{ inputs.target_os }}${{ inputs.target_os_version }}-${{ inputs.tag }}
