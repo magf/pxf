@@ -61,7 +61,7 @@ jobs:
   package:
     needs: generate-matrix
     name: Build deb-packages on ${{ matrix.target_os }}:${{ matrix.target_os_version }} with ggdb${{ matrix.version }}
-    uses: ./.github/workflows/greengage-reusable-tests-integration.yml
+    uses: ./.github/workflows/greengage-reusable-package.yml
     with:
       builds: ${{ needs.generate-matrix.outputs.builds }}
 
