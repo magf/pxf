@@ -32,14 +32,20 @@ jobs:
           GPHOME:   /opt/greengagedb/greengage${{ matrix.version }}
           PXF_SRC:  /home/gpadmin/pxf
           PATH:     /opt/greengagedb/greengage${{ matrix.version }}/bin:/opt/greengagedb/pxf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/opt/go/bin
-          DEBIAN_FRONTEND:   noninteractive
-          JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
-          GREENGAGE_VERSION: ${{ matrix.version }}
+          DEBIAN_FRONTEND:    noninteractive
+          JAVA_TOOL_OPTIONS:  -Dfile.encoding=UTF8
+          GREENGAGE_VERSION:  ${{ matrix.version }}
+          GREENGAGE_REPO_URL: https://greengagedb.org
 
         run: |
           set -eux
+          # Fix for old stable images w/o Greengage GPG
+          curl -fsSL ${GREENGAGE_REPO_URL}/repositories/gpg 2>curl.err | \
+            sudo gpg --dearmor -o /etc/apt/keyrings/greengagedb.gpg 1>gpg.log 2>>gpg.err || \
+            (echo -e "### ❌ Error: ${GREENGAGE_REPO_URL} GPG installation\n$(cat curl.err gpg.{err,log})\n\n" ; exit 1)
           docker run \
             --rm \
+            -v /etc/apt/keyrings/greengagedb.gpg:/etc/apt/keyrings/greengagedb.gpg \
             -v ${{ github.workspace }}:$PXF_SRC \
             -w $PXF_SRC \
             -e DEV_HOME \
