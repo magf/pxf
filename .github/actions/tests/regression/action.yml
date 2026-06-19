@@ -23,7 +23,7 @@ runs:
   using: composite
   steps:
     - name: Build PXF regression image
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       with:
         context: .
         file: ./ci/Dockerfile.regression

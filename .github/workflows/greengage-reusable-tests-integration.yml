@@ -64,7 +64,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Build ${{ env.IT_IMAGE }}:${{ env.IT_TAG }} image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: false
