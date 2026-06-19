@@ -10,7 +10,7 @@ on:
 
 jobs:
   deb-packages:
-    name: deb with greengage${{ matrix.version }} for ${{ matrix.target_os }} ${{ matrix.target_os_version }}
+    name: deb with ${{ inputs.tag || 'latest' }} ${{ matrix.release }} greengage${{ matrix.version }} for ${{ matrix.target_os }} ${{ matrix.target_os_version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -19,7 +19,7 @@ jobs:
 
     env:
       GGDB_IMAGE:   ${{ matrix.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:${{ matrix.tag || 'latest' }}
-      DEB_PACKAGES: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}${{ matrix.release == 'devel' && '-devel' || '' }}
+      DEB_PACKAGES: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}${{ matrix.release == 'devel' && '-devel' || '' }}${{ matrix.tag && format('-{0}', matrix.tag) }}
 
     steps:
       - name: Skip notify
