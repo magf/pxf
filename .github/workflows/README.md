@@ -56,14 +56,14 @@ image and uploads them as artifacts named
 
 #### Matrix entry fields
 
-| Field               | Required | Description                                              |
-|---------------------|----------|----------------------------------------------------------|
-| `version`           | yes      | GGDB major version (`6` or `7`)                          |
-| `target_os`         | yes      | Target OS (`ubuntu`)                                     |
-| `target_os_version` | yes      | Target OS version (`22.04`, `24.04`)                     |
-| `release`           | yes      | `prod` (DockerHub) or `devel` (GHCR)                     |
-| `tag`               | no       | Custom Greengage branch or tag (default: `latest`)       |
-| `skip_package`      | no       | Set to `"true"` to skip the build for this entry         |
+| Field               | Required | Description                                        |
+|---------------------|----------|----------------------------------------------------|
+| `version`           | yes      | GGDB major version (`6` or `7`)                    |
+| `target_os`         | yes      | Target OS (`ubuntu`)                               |
+| `target_os_version` | yes      | Target OS version (`22.04`, `24.04`)               |
+| `release`           | yes      | `prod` (DockerHub) or `devel` (GHCR)               |
+| `tag`               | no       | Custom Greengage branch or tag (default: `latest`) |
+| `skip_package`      | no       | Set to `"true"` to skip the build for this entry   |
 
 #### `skip_package` flag
 
