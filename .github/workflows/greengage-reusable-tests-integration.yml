@@ -29,7 +29,7 @@ on:
       tag:
         description: 'Developers tag'
         required: false
-        default: latest
+        default: 'latest'
         type: string
 
 jobs:
