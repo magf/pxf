@@ -50,7 +50,7 @@ jobs:
       GROUP:      ${{ matrix.test }}
       USE_FDW:    ${{ matrix.fdw }}
       USE_SSL:    ${{ matrix.ssl }}
-      GGDB_IMAGE: ${{ inputs.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version != '22.04' && inputs.target_os_version || '' }}:${{ inputs.tag }}
+      GGDB_IMAGE: ${{ inputs.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version != '22.04' && inputs.target_os_version || '' }}:${{ inputs.tag || 'latest' }}
       IT_IMAGE:   ggdb${{ inputs.version}}_${{ inputs.target_os}}${{ inputs.target_os_version }}_pxf_automation_${{ inputs.release }}
       IT_TAG:     it
       JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
