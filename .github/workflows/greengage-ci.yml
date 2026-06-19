@@ -16,8 +16,6 @@ concurrency:
 env:
   MATRIX_BUILDS: |
     [
-      { "version": "8", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel", "tag": "GG-399", "skip_package": "true" },
-      { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel", "tag": "GG-559" },
       { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "prod"  },
       { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel" },
       { "version": "6", "target_os": "ubuntu", "target_os_version": "24.04", "release": "prod"  },
