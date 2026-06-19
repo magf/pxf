@@ -39,7 +39,7 @@ jobs:
       matrix:
         include: ${{ fromJson(inputs.tests) }}
 
-    name: ${{ matrix.test }}${{ matrix.fdw && ' FDW' || '' }}${{ matrix.ssl && ' SSL' || '' }} with ${{ inputs.release }}${{ inputs.tag && format('-{0}', inputs.tag) }} ggdb${{ inputs.version}} on ${{ inputs.target_os}} ${{ inputs.target_os_version }}
+    name: ${{ matrix.test }}${{ matrix.fdw && ' FDW' || '' }}${{ matrix.ssl && ' SSL' || '' }} with ${{ inputs.release }}${{ inputs.tag && format(' {0}', inputs.tag) }} ggdb${{ inputs.version}} on ${{ inputs.target_os}} ${{ inputs.target_os_version }}
 
     runs-on: ubuntu-latest
     env:
