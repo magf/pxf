@@ -10,7 +10,7 @@ on:
 
 jobs:
   deb-packages:
-    name: deb with ${{ inputs.tag || 'latest' }} ${{ matrix.release }} greengage${{ matrix.version }} for ${{ matrix.target_os }} ${{ matrix.target_os_version }}
+    name: deb with ${{ matrix.release }}${{ matrix.tag && format('-{0}', matrix.tag) }} greengage${{ matrix.version }} for ${{ matrix.target_os }} ${{ matrix.target_os_version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
