@@ -12,27 +12,27 @@ jobs:
       matrix:
         include:
         - target_os: ubuntu
-          target_os_version: '22.04'
+          target_os_version: 22.04
           extensions:  deb ddeb
-          package_dir: deb-packages-pxf6
+          artifact_prefix: deb-packages-pxf6
         - target_os: ubuntu
-          target_os_version: '24.04'
+          target_os_version: 24.04
           extensions:  deb ddeb
-          package_dir: deb-packages-pxf6
+          artifact_prefix: deb-packages-pxf6
         # - target_os: ubuntu
-        #   target_os_version: '22.04'
+        #   target_os_version: 22.04
         #   extensions:  deb ddeb
-        #   package_dir: deb-packages-pxf7
+        #   artifact_prefix: deb-packages-pxf7
     runs-on: ubuntu-latest
     permissions:
       contents: write
       actions: read
     steps:
       - name: Upload packages to release
-        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@v39
+        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@CI-5861
         with:
           workflow_for_waiting: Greengage PXF CI
-          extensions:           ${{ matrix.extensions }}
-          package_dir:          ${{ matrix.package_dir }}
           target_os:            ${{ matrix.target_os }}
           target_os_version:    ${{ matrix.target_os_version }}
+          extensions:           ${{ matrix.extensions }}
+          artifact_prefix:      ${{ matrix.artifact_prefix }}
