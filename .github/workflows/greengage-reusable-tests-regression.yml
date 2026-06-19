@@ -19,7 +19,7 @@ jobs:
 
     env:
       TEST_IMAGE: ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version }}_pxf_regression_${{ matrix.release  }}
-      GGDB_IMAGE: ${{ matrix.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:latest
+      GGDB_IMAGE: ${{ matrix.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:${{ matrix.tag && matrix.tag || 'latest' }}
 
     steps:
       - uses: actions/checkout@v6
@@ -32,7 +32,7 @@ jobs:
           file: ./ci/Dockerfile.regression
           tags: ${{ env.TEST_IMAGE }}
           build-args: |
-            GGDB_IMAGE=${{ matrix.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:latest
+            GGDB_IMAGE=${{ env.GGDB_IMAGE }}
 
       - name: Run regression
         shell: bash

@@ -90,6 +90,7 @@ jobs:
       target_os: ${{ matrix.target_os }}
       target_os_version: ${{ matrix.target_os_version }}
       tests: ${{ needs.generate-matrix.outputs.tests }}
+      tag: ${{ needs.generate-matrix.outputs.tag }}
 
   # integration:
   #   if: github.event_name == 'pull_request'  # Only for PR
