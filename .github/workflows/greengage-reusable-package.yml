@@ -18,13 +18,18 @@ jobs:
         include: ${{ fromJson(inputs.builds) }}
 
     env:
-      GGDB_IMAGE:   ${{ matrix.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:latest
+      GGDB_IMAGE:   ${{ matrix.release == 'devel' && 'ghcr.io/greengagedb/greengage' || 'greengagedb' }}/ggdb${{ matrix.version}}_${{ matrix.target_os}}${{ matrix.target_os_version != '22.04' && matrix.target_os_version || '' }}:${{ matrix.tag && matrix.tag || 'latest' }}
       DEB_PACKAGES: deb-packages-pxf${{ matrix.version }}-${{ matrix.target_os }}${{ matrix.target_os_version }}${{ matrix.release == 'devel' && '-devel' || '' }}
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Skip notify
+        if: ${{ matrix.skip_package == 'true' }}
+        run: echo "Job will be skipped due to flag 'skip_package'"
 
+      - uses: actions/checkout@v6
+        if: ${{ matrix.skip_package != 'true' }}
       - name: Build in Docker using docker run
+        if: ${{ matrix.skip_package != 'true' }}
         env:
           GOPATH:   /opt/go
           DEV_HOME: /home/gpadmin
@@ -63,12 +68,14 @@ jobs:
           mv Package $DEB_PACKAGES
 
       - name: Upload Package artifacts
+        if: ${{ matrix.skip_package != 'true' }}
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.DEB_PACKAGES }}
           path: ${{ env.DEB_PACKAGES }}
 
       - name: Test install deb-packages in Docker 
+        if: ${{ matrix.skip_package != 'true' }}
         uses: greengagedb/greengage-ci/.github/actions/tests/install/deb@v44
         with:
           test_docker: ${{ matrix.target_os}}:${{ matrix.target_os_version }}

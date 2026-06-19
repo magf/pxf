@@ -16,6 +16,8 @@ concurrency:
 env:
   MATRIX_BUILDS: |
     [
+      { "version": "8", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel", "tag": "GG-399", "skip_package": "true" },
+      { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel", "tag": "GG-559" },
       { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "prod"  },
       { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel" },
       { "version": "6", "target_os": "ubuntu", "target_os_version": "24.04", "release": "prod"  },
@@ -88,3 +90,12 @@ jobs:
       target_os: ${{ matrix.target_os }}
       target_os_version: ${{ matrix.target_os_version }}
       tests: ${{ needs.generate-matrix.outputs.tests }}
+
+  # integration:
+  #   if: github.event_name == 'pull_request'  # Only for PR
+  #   needs: generate-matrix
+  #   name: Integration tests
+  #   uses: ./.github/workflows/greengage-reusable-tests-integration.yml
+  #   with:
+  #     builds: ${{ needs.generate-matrix.outputs.builds }}
+  #     tests: ${{ needs.generate-matrix.outputs.tests }}
