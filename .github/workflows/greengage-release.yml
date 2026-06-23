@@ -1,4 +1,4 @@
-# Release creation workflow
+# .github/workflows/greengage-release.yml
 name: Greengage PXF Release
 
 on:
@@ -10,21 +10,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: # as package suffix
-        - '6-devel'
-        - '7-devel'
-        - '6-stable'
-        - '7-stable'
-
+        include:
+        - target_os: ubuntu
+          target_os_version: 22.04
+          extensions:  deb ddeb
+          artifact_prefix: deb-packages-pxf6
+        - target_os: ubuntu
+          target_os_version: 24.04
+          extensions:  deb ddeb
+          artifact_prefix: deb-packages-pxf6
+        # - target_os: ubuntu
+        #   target_os_version: 22.04
+        #   extensions:  deb ddeb
+        #   artifact_prefix: deb-packages-pxf7
     runs-on: ubuntu-latest
     permissions:
       contents: write
       actions: read
     steps:
       - name: Upload packages to release
-        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@v10
+        uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@v45
         with:
-          version: -${{ matrix.version }}
-          artifact_name: deb-packages-${{ matrix.version }}
-          package_name: pxf
-          extensions: deb ddeb
+          workflow_for_waiting: Greengage PXF CI
+          target_os:            ${{ matrix.target_os }}
+          target_os_version:    ${{ matrix.target_os_version }}
+          extensions:           ${{ matrix.extensions }}
+          artifact_prefix:      ${{ matrix.artifact_prefix }}
