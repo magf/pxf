@@ -28,9 +28,6 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
-// override Spring Framework version to pick the Spring MVC 5.3.33 with the async race condition fix
-// https://github.com/spring-projects/spring-framework/issues/32342
-ext['spring-framework.version'] = '6.1.5'
 ext['tomcat.version'] = '10.1.28'
 
 def javaProjects = subprojects.findAll {
@@ -101,7 +98,7 @@ configure(javaProjects) {
             dependency("commons-io:commons-io:2.7")
             dependency("commons-lang:commons-lang:2.6")
             dependency("commons-logging:commons-logging:1.1.3")
-            dependency("io.airlift:aircompressor:0.21")
+            dependency("io.airlift:aircompressor:${aircompressorVersion}")
             dependency("javax.jdo:jdo-api:3.0.1")
             dependency("joda-time:joda-time:2.8.1")
             dependency("net.sf.opencsv:opencsv:2.3")
@@ -136,7 +133,7 @@ configure(javaProjects) {
             dependency("org.apache.httpcomponents:httpcore:4.4.16")
 
             // https://projectlombok.org
-            dependency("org.projectlombok:lombok:1.18.20")
+            dependency("org.projectlombok:lombok:1.18.22")
 
             // The snappy-java:1.1.8.4 is required for PPC64LE arch.
             dependency("org.xerial.snappy:snappy-java:1.1.8.4")
@@ -205,6 +202,7 @@ configure(javaProjects) {
 
             // Parquet dependencies
             dependencySet(group:"org.apache.parquet", version:"${parquetVersion}") {
+                entry("parquet-avro")
                 entry("parquet-column")
                 entry("parquet-common")
                 entry("parquet-encoding")
@@ -212,8 +210,9 @@ configure(javaProjects) {
                 entry("parquet-format-structures")
                 entry("parquet-hadoop")
                 entry("parquet-jackson")
-                entry("parquet-pig")
             }
+
+            dependency("org.locationtech.jts:jts-core:1.20.0")
 
             // Compression
             dependency("com.github.luben:zstd-jni:1.5.0-1")
@@ -232,7 +231,7 @@ configure(javaProjects) {
             }
 
             // Avro dependencies
-            dependencySet(group:"org.apache.avro", version:"1.10.2") {
+            dependencySet(group:"org.apache.avro", version:"${avroVersion}") {
                 entry("avro")
                 entry("avro-mapred")
             }
@@ -243,6 +242,10 @@ configure(javaProjects) {
                 entry("jackson-mapper-asl")
             }
 
+            dependencySet(group:"io.github.resilience4j", version:"${resilience4jVersion}") {
+                entry("resilience4j-retry")
+            }
+
             // AWS SDK dependencies
             dependencySet(group:"com.amazonaws", version:"${awsJavaSdk}") {
                 entry("aws-java-sdk-core")
@@ -250,24 +253,44 @@ configure(javaProjects) {
                 entry("aws-java-sdk-s3")
             }
 
+            // AWS SDK v2 dependencies (required by iceberg-aws for S3FileIO and Glue catalog)
+            dependencySet(group:"software.amazon.awssdk", version:"${awsSdkV2Version}") {
+                entry("auth")
+                entry("dynamodb")
+                entry("glue")
+                entry("kms")
+                entry("regions")
+                entry("s3")
+                entry("sdk-core")
+                entry("sts")
+                entry("url-connection-client")
+            }
+
+            // Iceberg dependencies
+            dependencySet(group:"org.apache.iceberg", version:"${icebergVersion}") {
+                entry("iceberg-api")
+                entry("iceberg-common")
+                entry("iceberg-core")
+                entry("iceberg-aws")
+                entry("iceberg-data")
+                entry("iceberg-hive-metastore")
+                entry("iceberg-orc")
+                entry("iceberg-parquet")
+                entry("iceberg-bundled-guava")
+            }
+
+            dependency("com.github.ben-manes.caffeine:caffeine:${caffeineVersion}")
+            dependency("org.roaringbitmap:RoaringBitmap:1.3.0")
+            dependency("dev.failsafe:failsafe:3.3.2")
+            dependency("org.apache.httpcomponents.client5:httpclient5:5.5")
+
             // Unit test dependencies
             dependencySet(group:"org.apache.hadoop.thirdparty", version:"1.1.1") {
                 entry("hadoop-shaded-guava")
                 entry("hadoop-shaded-protobuf_3_7")
             }
 
-            // currently imported BOM spring-boot-dependencies:2.5.12 includes log4j-bom:2.17.2 and
-            // importing a module log4j-spring-boot:2.17.2 results in its transitive Junit dependencies
-            // being put into compileClasspath so we have to exclude them here so they are not shipped with PXF
-            // this is fixed in log4j-spring-boot:2.19.0, which is used by spring-boot-dependencies:3.0.0+
-            // so when we upgrade to Spring Boot version 3.0.0+ we should remove this fix
-            // alternatively we can bump log4j-spring-boot to 2.19.0 and not use excludes
-            // dependency("org.apache.logging.log4j:log4j-spring-boot:2.19.0")
-            dependency("org.apache.logging.log4j:log4j-spring-boot:2.17.2") {
-                exclude("org.junit.vintage:junit-vintage-engine")
-                exclude("org.junit.jupiter:junit-jupiter-engine")
-                exclude("org.junit.jupiter:junit-jupiter-api")
-            }
+            dependency("org.apache.logging.log4j:log4j-spring-boot:2.17.2")
         }
     }
 
@@ -317,6 +340,11 @@ configure(javaProjects) {
         all*.exclude group: 'javax.servlet', module: 'servlet-api'
         all*.exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
         all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    }
+
+    dependencies {
+        // required by Gradle 8.x for JUnit 5 test discovery
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
     test {
