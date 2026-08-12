@@ -32,6 +32,7 @@ jobs:
         uses: greengagedb/greengage-ci/.github/actions/upload-pkgs-to-release@v45
         with:
           workflow_for_waiting: Greengage PXF CI
+          clobber:              'true'
           target_os:            ${{ matrix.target_os }}
           target_os_version:    ${{ matrix.target_os_version }}
           extensions:           ${{ matrix.extensions }}
