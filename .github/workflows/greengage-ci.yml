@@ -18,13 +18,13 @@ concurrency:
 env:
   MATRIX_BUILDS_PR: |
     [
-      { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "prod"  },
-      { "version": "7", "target_os": "ubuntu", "target_os_version": "22.04", "release": "prod",  "skip_package": "true" }
+      { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "prod" },
+      { "version": "7", "target_os": "ubuntu", "target_os_version": "22.04", "release": "prod" },
+      { "version": "6", "target_os": "ubuntu", "target_os_version": "24.04", "release": "prod", "skip_package": "true" }
     ]
   MATRIX_BUILDS_NIGHTLY: |
     [
       { "version": "6", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel", "skip_package": "true" },
-      { "version": "6", "target_os": "ubuntu", "target_os_version": "24.04", "release": "prod",  "skip_package": "true" },
       { "version": "6", "target_os": "ubuntu", "target_os_version": "24.04", "release": "devel", "skip_package": "true" },
       { "version": "7", "target_os": "ubuntu", "target_os_version": "22.04", "release": "devel", "skip_package": "true" }
     ]
