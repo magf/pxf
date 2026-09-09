@@ -171,28 +171,23 @@ DEB_PREREQS  := debian/changelog debian/control
 DEBUILD_ENV  := GPHOME="$(GPHOME)" PXF_HOME="$(PXF_HOME)" GP_MAJORVERSION="$(GP_MAJORVERSION)"
 DEBUILD_CMD  := debuild --preserve-env -us -uc -b
 
-# $(1) — human-readable name, $(2) — DH_OPTIONS package name (empty = build all)
-define debuild-pkg
-	@echo "Building $(1) package"
-	@$(DEBUILD_ENV) $(if $(2),DH_OPTIONS="-p$(2)") $(DEBUILD_CMD)
+# Default target
+pkg: pkg-deb
+pkg-deb: pkg-deb-all
+
+# List of packages: "all" generates the main target (pkg-deb-all)
+PACKAGES := all pxf-server pxf-cli greengage$(GP_MAJORVERSION)-pxf-fdw
+
+# Template to generate a target for each package
+define PKG_template
+pkg-deb-$1: $(DEB_PREREQS)
+	@echo "Building $1 package"
+	@$(DEBUILD_ENV) $(if $(filter all,$(1)),,DH_OPTIONS="-p$(1)") $(DEBUILD_CMD)
 	@$(MAKE) _collect-artifacts
 endef
 
-# Default packaging target
-pkg: pkg-deb
-
-# Build Debian package
-pkg-deb: $(DEB_PREREQS)
-	$(call debuild-pkg,pxf (all))
-
-pkg-deb-server: $(DEB_PREREQS)
-	$(call debuild-pkg,pxf-server,pxf-server)
-
-pkg-deb-cli: $(DEB_PREREQS)
-	$(call debuild-pkg,pxf-cli,pxf-cli)
-
-pkg-deb-fdw: $(DEB_PREREQS)
-	$(call debuild-pkg,pxf-fdw$(GP_MAJORVERSION),pxf-fdw$(GP_MAJORVERSION))
+# Generate targets for all entries in PACKAGES
+$(foreach pkg,$(PACKAGES),$(eval $(call PKG_template,$(pkg))))
 
 pkg-deb-ext: pkg-deb-fdw
 
