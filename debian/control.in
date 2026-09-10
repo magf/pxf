@@ -12,9 +12,9 @@ Description: PXF core service
 	The pxf-server package provides the core PXF service and plugins.
 	This package includes the PXF Java service, Tomcat runtime, and all built-in
 	connectors required to query external data sources.
-	PXF is a query federation engine that accesses data residing in external systems
-	such as Hadoop, Hive, HBase, relational databases, S3, Google Cloud Storage,
-	among other external systems.
+	PXF is a query federation engine that accesses data residing in external
+	systems such as Hadoop, Hive, HBase, S3, Google Cloud Storage,
+	relational databases, among other external systems.
 
 Package: pxf-cli
 Priority: optional
@@ -26,9 +26,9 @@ Description: PXF CLI Utility
 	the PXF service and configuration on Greengage hosts.
 	The pxf-cli utility allows you to start, stop, and manage PXF instances,
 	synchronize configurations across the cluster, perform other tasks.
-	PXF is a query federation engine that accesses data residing in external systems
-	such as Hadoop, Hive, HBase, relational databases, S3, Google Cloud Storage,
-	among other external systems.
+	PXF is a query federation engine that accesses data residing in external
+	systems such as Hadoop, Hive, HBase, S3, Google Cloud Storage,
+	relational databases, among other external systems.
 
 Package: greengage@GP_MAJORVERSION@-pxf-fdw
 Priority: optional
@@ -37,8 +37,8 @@ Depends: ${shlibs:Depends},
 	 greengage@GP_MAJORVERSION@
 Provides: pxf-fdw
 Description: PXF Foreign Data Wrapper for Greengage@GP_MAJORVERSION@
-	The greengage@GP_MAJORVERSION@-pxf-fdw package provides the Greengage@GP_MAJORVERSION@ extension that implements
-	a Foreign Data Wrapper (FDW) for PXF.
-	PXF is a query federation engine that accesses data residing in external systems
-	such as Hadoop, Hive, HBase, relational databases, S3, Google Cloud Storage,
-	among other external systems.
+	The greengage@GP_MAJORVERSION@-pxf-fdw package provides the Greengage@GP_MAJORVERSION@ extension that
+	implements a Foreign Data Wrapper (FDW) for PXF.
+	PXF is a query federation engine that accesses data residing in external
+	systems such as Hadoop, Hive, HBase, S3, Google Cloud Storage,
+	relational databases, among other external systems.
