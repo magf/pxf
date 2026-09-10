@@ -1,0 +1,7 @@
+# 3rd-party Package
+dir-or-file-in-opt
+jar-not-in-usr-share
+
+## This bugs not masking because bug #1004313
+## lintian bugs: #1000977, #1000449
+#elf-error In program headers: Unable to find program interpreter name [usr/lib/debug/.build-id/*]
