@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 13),
 Package: pxf-server
 Architecture: amd64
 Depends: ${shlibs:Depends}
-Description: PXF Server
+Description: PXF core service
 	The pxf-server package provides the core PXF service and plugins.
 	This package includes the PXF Java service, Tomcat runtime, and all built-in
 	connectors required to query external data sources.
