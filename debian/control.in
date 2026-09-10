@@ -5,6 +5,7 @@ Build-Depends: debhelper (>= 13),
 	 lsb-release
 
 Package: pxf-server
+Priority: optional
 Architecture: amd64
 Depends: ${shlibs:Depends}
 Description: PXF core service
@@ -16,6 +17,7 @@ Description: PXF core service
 	among other external systems.
 
 Package: pxf-cli
+Priority: optional
 Architecture: amd64
 Depends: ${shlibs:Depends},
 	 pxf-server
@@ -29,6 +31,7 @@ Description: PXF CLI Utility
 	among other external systems.
 
 Package: greengage@GP_MAJORVERSION@-pxf-fdw
+Priority: optional
 Architecture: amd64
 Depends: ${shlibs:Depends},
 	 greengage@GP_MAJORVERSION@
