@@ -8,3 +8,8 @@ jar-not-in-usr-share
 
 # Lintian does not yet recognise Java 17
 unknown-java-class-version
+
+# pxf-cli is a Go binary. Standard hardening flags (PIE/RELRO) are not
+# applied by the current Go build. Not fixed here — deliberately out of scope.
+pxf-cli: hardening-no-pie opt/greengagedb/pxf/bin/pxf-cli
+pxf-cli: hardening-no-relro opt/greengagedb/pxf/bin/pxf-cli
