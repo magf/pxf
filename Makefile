@@ -189,8 +189,6 @@ endef
 # Generate targets for all entries in PACKAGES
 $(foreach pkg,$(PACKAGES),$(eval $(call PKG_template,$(pkg))))
 
-pkg-deb-ext: pkg-deb-fdw
-
 _collect-artifacts:
 	@mkdir -p $(ARTIFACTS_DIR)
 	@find $(CURDIR)/../ -maxdepth 1 -type f \( -name "*.deb" \
@@ -200,7 +198,7 @@ _collect-artifacts:
 	                                        -o -name "*.changes" \) \
 	                                        -exec mv -f {} $(ARTIFACTS_DIR)/ \;
 
-.PHONY: pkg pkg-deb pkg-deb-server pkg-deb-cli pkg-deb-fdw pkg-deb-ext \
+.PHONY: pkg pkg-deb pkg-deb-all pkg-deb-pxf-server pkg-deb-pxf-cli pkg-deb-greengage$(GP_MAJORVERSION)-pxf-fdw \
         build-server build-ext install-server-pkg install-ext \
         _collect-artifacts changelog version-vars version-info
 
@@ -219,4 +217,4 @@ help:
 	@echo	'  - install - install external table and foreign data wrapper extensions, CLI and server binaries'
 	@echo	'  - install-server - install server binaries only without running tests'
 	@echo	'  - stage - install external table and foreign data wrapper extensions, CLI, and server binaries into build/stage/pxf directory'
-	@echo	'  - deb - create PXF DEB package'
+	@echo	'  - pkg-deb - create PXF DEB packages'
