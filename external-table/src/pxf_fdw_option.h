@@ -10,8 +10,8 @@
 
 #include "nodes/pg_list.h"
 
-#ifndef _PXF_OPTION_H
-#define _PXF_OPTION_H
+#ifndef _PXF_FDW_OPTION_H
+#define _PXF_FDW_OPTION_H
 
 #define PXF_FDW_DEFAULT_PROTOCOL "http"
 #define PXF_FDW_DEFAULT_HOST     "localhost"
@@ -77,4 +77,4 @@ PxfOptions *PxfGetOptions(Oid foreigntableid);
 
 bool IsExtCommitMetadata(PxfOptions *options);
 
-#endif							/* _PXF_OPTION_H */
+#endif							/* _PXF_FDW_OPTION_H */

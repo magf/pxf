@@ -18,12 +18,12 @@
  *
  */
 
-#ifndef _PXFBRIDGE_H
-#define _PXFBRIDGE_H
+#ifndef _PXF_FDW_BRIDGE_H
+#define _PXF_FDW_BRIDGE_H
 
 #include "libchurl.h"
 
-#include "pxf_option.h"
+#include "pxf_fdw_option.h"
 
 #include "libpq-fe.h"
 
@@ -112,4 +112,4 @@ int			PxfBridgeWrite(PxfFdwModifyState *context, char *databuf, int datalen);
 int PxfBridgeReceiveMetadata(PxfFdwModifyState *pxfmstate, StringInfo buf);
 #endif
 
-#endif							/* _PXFBRIDGE_H */
+#endif							/* _PXF_FDW_BRIDGE_H */

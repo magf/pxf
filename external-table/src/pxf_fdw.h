@@ -23,7 +23,7 @@
 #define PXF_FDW_H
 
 #define PXF_METADATA_INVALID_QUEUE_ID -1
-/* in pxf_deparse.c */
+/* in pxf_fdw_deparse.c */
 extern void deparseTargetList(Relation rel, Bitmapset *attrs_used, List **retrieved_attrs);
 extern void classifyConditions(PlannerInfo *root, RelOptInfo *baserel, List *input_conds, List **remote_conds, List **local_conds);
 

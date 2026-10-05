@@ -1,13 +1,13 @@
 /*-------------------------------------------------------------------------
  *
- * pxf_deparse.c
+ * pxf_fdw_deparse.c
  *		  Query deparser for pxf_fdw
  *
  * This file includes functions that examine query WHERE clauses to see
  * whether they're safe to send to the remote server for execution.
  *
  * IDENTIFICATION
- *		  fdw/pxf_deparse.c
+ *		  external-table/src/pxf_fdw_deparse.c
  *
  *-------------------------------------------------------------------------
  */
