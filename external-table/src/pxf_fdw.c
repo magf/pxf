@@ -10,8 +10,8 @@
 #include "libpq-fe.h"
 
 #include "pxf_fdw.h"
-#include "pxf_bridge.h"
-#include "pxf_filter.h"
+#include "pxf_fdw_bridge.h"
+#include "pxffilters.h"
 
 #include "access/reloptions.h"
 #if PG_VERSION_NUM >= 90600
@@ -44,7 +44,7 @@
 #include <dlfcn.h>
 #include <stdio.h>
 
-PG_MODULE_MAGIC;
+/* PG_MODULE_MAGIC is defined in pxfprotocol.c, which is linked into the same library */
 
 #define DEFAULT_PXF_FDW_STARTUP_COST   50000
 
@@ -406,8 +406,19 @@ pxfGetForeignPlan(PlannerInfo *root,
 
 	if (!options->disable_ppd)
 	{
+		List	   *remote_clauses = NIL;
+		ListCell   *lc;
+
+		/* strip RestrictInfo nodes, the serializer expects bare clauses */
+		foreach(lc, fpinfo->remote_conds)
+		{
+			RestrictInfo *ri = (RestrictInfo *) lfirst(lc);
+
+			remote_clauses = lappend(remote_clauses, ri->clause);
+		}
+
 		/* here we serialize the WHERE clauses */
-		where_clauses_str = SerializePxfFilterQuals(fpinfo->remote_conds);
+		where_clauses_str = serializePxfFilterQuals(remote_clauses);
 	}
 
 	/*
