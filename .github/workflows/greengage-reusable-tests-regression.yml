@@ -28,7 +28,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          push: false
+          push: true
           file: ./ci/Dockerfile.regression
           tags: ${{ env.TEST_IMAGE }}
           build-args: |
